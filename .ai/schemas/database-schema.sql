@@ -28,6 +28,10 @@ INSERT INTO "statuses" ("entity_type", "code", "display_name") VALUES
   ('credit_applications_bnpl', 'cancelled', 'Cancelado'),
   ('credit_applications_bnpl', 'delinquent', 'En mora'),
   ('credit_applications_bnpl', 'closed', 'Cerrado'),
+  ('credit_applications_bnpl', 'business_relation', 'Único dueño'),
+  ('credit_applications_bnpl', 'business_relation_partner', 'Socio'),
+  ('credit_applications_bnpl', 'business_relation_employee', 'Empleado'),
+  ('credit_applications_bnpl', 'business_relation_owner_family', 'Familiar del dueño'),
   ('sales_representatives', 'active', 'Activo'),
   ('sales_representatives', 'inactive', 'Inactivo'),
   ('sales_representatives', 'blocked', 'Bloqueado'),
@@ -266,37 +270,12 @@ CREATE TABLE "credit_applications_bnpl" (
   "partner_category_id" BIGINT,
   "sales_rep_id" BIGINT,
   "business_name" varchar(255),
-  "business_type" varchar(50) CHECK ( /*pendiente de revisar*/
-    "business_type" IN (
-      'Distribuidor / Mayorista',
-      'Venta de productos de belleza',
-      'Servicios de belleza',
-      'Miscelánea',
-      'Tienda de barrio / Minimercado',
-      'Profesional independiente',
-      'Otro',
-      'Academia de belleza',
-      'Farmacia / Droguería',
-      'Cafetería',
-      'Servicios de belleza',
-      'Vendedor independiente',
-      'Tienda de muebles y hogar',
-      'Retailer',
-      'Entrenador',
-      'Venta Online',
-      'Gimnasio',
-      'Restaurante',
-      'Farmacia',
-      'Ferreteria',
-      'Tiendas de ropa, calzado, accesorios',
-      'Supermercado',
-      'Centro de estética',
-      'Tienda de electrónica',
-      'Carnicería'
-    )
-  ),
+  "business_relation_id" BIGINT DEFAULT get_status_id('credit_applications_bnpl', 'business_relation'),
+  "business_type_name" varchar(250),
+  "business_type_code" BIGINT,
   "business_address" text,
   "business_city" varchar(120),
+  "business_rent_amount" BIGINT,
   "number_of_locations" int,
   "number_of_employees" int,
   "business_seniority_id" BIGINT,
@@ -534,6 +513,7 @@ ALTER TABLE "credit_applications_bnpl" ADD FOREIGN KEY ("partner_id") REFERENCES
 ALTER TABLE "credit_applications_bnpl" ADD FOREIGN KEY ("partner_category_id") REFERENCES "partner_categories" ("id");
 ALTER TABLE "credit_applications_bnpl" ADD FOREIGN KEY ("sales_rep_id") REFERENCES "sales_representatives" ("id");
 ALTER TABLE "credit_applications_bnpl" ADD FOREIGN KEY ("business_seniority_id") REFERENCES "business_seniority" ("id");
+ALTER TABLE "credit_applications_bnpl" ADD FOREIGN KEY ("business_relation_id") REFERENCES "statuses" ("id");
 ALTER TABLE "credit_applications_bnpl" ADD FOREIGN KEY ("status_id") REFERENCES "statuses" ("id");
 ALTER TABLE "ai_agent_analysis" ADD FOREIGN KEY ("application_id") REFERENCES "credit_applications_bnpl" ("id");
 ALTER TABLE "sales_representatives" ADD FOREIGN KEY ("partner_id") REFERENCES "partners" ("id");
@@ -665,6 +645,7 @@ CREATE INDEX IF NOT EXISTS idx_credit_applications_partner_id ON "credit_applica
 CREATE INDEX IF NOT EXISTS idx_credit_applications_partner_category_id ON "credit_applications_bnpl" ("partner_category_id");
 CREATE INDEX IF NOT EXISTS idx_credit_applications_sales_rep_id ON "credit_applications_bnpl" ("sales_rep_id");
 CREATE INDEX IF NOT EXISTS idx_credit_applications_business_seniority_id ON "credit_applications_bnpl" ("business_seniority_id");
+CREATE INDEX IF NOT EXISTS idx_credit_applications_business_relation_id ON "credit_applications_bnpl" ("business_relation_id");
 CREATE INDEX IF NOT EXISTS idx_credit_applications_status_id ON "credit_applications_bnpl" ("status_id");
 CREATE INDEX IF NOT EXISTS idx_ai_agent_analysis_application_id ON "ai_agent_analysis" ("application_id");
 CREATE INDEX IF NOT EXISTS idx_sales_representatives_partner_id ON "sales_representatives" ("partner_id");
