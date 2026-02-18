@@ -6,14 +6,14 @@ import { Logger } from '@nestjs/common';
 import './config/dotenv.config';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule); 
   const configService = app.get(ConfigService);
   const port = configService.get<number>('PORT') ?? 3000;
   const options = new DocumentBuilder()
-    .setTitle('Hello World example')
-    .setDescription('The Hello World API description')
+    .setTitle('💳 Platam API Services')
+    .setDescription('Platam API Services: BNPL, Factoring, and Confirming for enterprise financial platforms.')
     .setVersion('1.0')
-    .addTag('hello-world')
+    .addTag('platam-api-services')
     .build();
   const document = SwaggerModule.createDocument(app, options);
   SwaggerModule.setup('docs', app, document);
