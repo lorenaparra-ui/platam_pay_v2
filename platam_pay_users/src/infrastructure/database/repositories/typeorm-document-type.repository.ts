@@ -14,8 +14,25 @@ export class TypeOrmDocumentTypeRepository implements DocumentTypeRepositoryPort
   ) {}
 
   async findAll(): Promise<DocumentType[]> {
-    const entities = await this.repository.find();
-    return entities.map(DocumentTypeMapper.toDomain);
+    const rows = await this.repository
+      .createQueryBuilder('documents')
+      .distinctOn(['documents.document_type'])
+      .select('documents.id', 'id')
+      .addSelect('documents.external_id', 'externalId')
+      .addSelect('documents.document_type', 'documentType')
+      .where('documents.document_type IS NOT NULL')
+      .andWhere("TRIM(documents.document_type) <> ''")
+      .orderBy('documents.document_type', 'ASC')
+      .addOrderBy('documents.id', 'ASC')
+      .getRawMany<{ id: string; externalId: string; documentType: string }>();
+
+    return rows.map((row) =>
+      DocumentTypeMapper.toDomain({
+        id: Number(row.id),
+        externalId: row.externalId,
+        documentType: row.documentType,
+      } as DocumentTypeEntity),
+    );
   }
 
   async findById(id: number): Promise<DocumentType | null> {
@@ -24,7 +41,11 @@ export class TypeOrmDocumentTypeRepository implements DocumentTypeRepositoryPort
   }
 
   async findByCode(code: string): Promise<DocumentType | null> {
-    const entity = await this.repository.findOne({ where: { code } });
+    const entity = await this.repository
+      .createQueryBuilder('documents')
+      .where('LOWER(documents.document_type) = LOWER(:code)', { code })
+      .orderBy('documents.id', 'ASC')
+      .getOne();
     return entity ? DocumentTypeMapper.toDomain(entity) : null;
   }
 }

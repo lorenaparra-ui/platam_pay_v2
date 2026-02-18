@@ -1,0 +1,44 @@
+---
+description: Reglas backend mínimas para NestJS + TypeORM + arquitectura hexagonal.
+globs: platam_play_users/src/**/*.ts
+alwaysApply: false
+---
+
+# Backend Rules (Minimal)
+
+## Stack objetivo
+- NestJS 11 + Node 20 + TypeORM 0.3.x + PostgreSQL 15.
+
+## Arquitectura
+- Mantener separación por capas: `domain`, `application`, `infrastructure`.
+- El dominio no depende de NestJS ni TypeORM.
+- Los repositorios de infraestructura implementan puertos del dominio.
+
+## Dominio
+- Modelos y puertos sin imports de framework.
+- No usar entidades ORM como contratos del dominio.
+- Si existe identificador público, exponer `externalId` y mantener `id` como interno.
+
+## Infraestructura (ORM y repositorios)
+- Entidades TypeORM alineadas al DDL (tabla, columnas, tipos y nullability).
+- Usar `name` en `@Column` cuando el DDL use `snake_case`.
+- Adaptadores TypeORM deben mapear ORM <-> dominio mediante mappers dedicados.
+- Evitar lógica de negocio en repositorios; solo acceso a datos.
+
+## DI y providers
+- Inyectar por token de puerto (no por implementación concreta).
+- Registrar providers en módulos con `provide` + `useClass`.
+
+## Datos financieros y seguridad
+- No usar `float/double` para dinero; usar `decimal` o enteros en mínima unidad.
+- No exponer `id` autoincremental en URLs públicas; usar `externalId`.
+- Nunca loguear secretos ni PII.
+
+## Configuración
+- Usar `ConfigService` en código de negocio.
+- Evitar acceso directo a `process.env` fuera de configuración.
+
+## Calidad mínima por cambio backend
+- Compila (`npm run build`) y sin lints nuevos.
+- Mappers, puertos y repositorios consistentes entre sí.
+- Sin dependencias invertidas (domain -> infrastructure).

@@ -5,18 +5,19 @@ export class BusinessSeniorityMapper {
   static toDomain(entity: BusinessSeniorityEntity): BusinessSeniority {
     return new BusinessSeniority(
       entity.id,
-      entity.name,
-      entity.level,
-      entity.isActive,
+      entity.externalId,
+      entity.description,
+      entity.rangeStart,
+      entity.rangeEnd,
     );
   }
 
   static toEntity(domain: BusinessSeniority): BusinessSeniorityEntity {
     const entity = new BusinessSeniorityEntity();
     entity.id = domain.id;
-    entity.name = domain.name;
-    entity.level = domain.level;
-    entity.isActive = domain.isActive;
+    entity.description = domain.description;
+    entity.rangeStart = domain.rangeStart;
+    entity.rangeEnd = domain.rangeEnd;
     return entity;
   }
 }

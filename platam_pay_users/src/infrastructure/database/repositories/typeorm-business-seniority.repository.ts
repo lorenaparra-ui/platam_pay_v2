@@ -14,7 +14,9 @@ export class TypeOrmBusinessSeniorityRepository implements BusinessSeniorityRepo
   ) {}
 
   async findAll(): Promise<BusinessSeniority[]> {
-    const entities = await this.repository.find();
+    const entities = await this.repository.find({
+      order: { rangeStart: 'ASC' },
+    });
     return entities.map(BusinessSeniorityMapper.toDomain);
   }
 
