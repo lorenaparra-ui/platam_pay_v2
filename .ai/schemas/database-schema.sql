@@ -1,5 +1,7 @@
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
+SET timezone = 'America/Bogota';
+
 CREATE TABLE "statuses" (
   "id" BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   "external_id" UUID NOT NULL DEFAULT gen_random_uuid(),
