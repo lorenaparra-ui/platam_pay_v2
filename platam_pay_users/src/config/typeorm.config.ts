@@ -18,7 +18,5 @@ const TypeormConfig = {
     migrationsDir: 'src/infrastructure/database/migrations',
   },
 };
-console.log(TypeormConfig);
-
 export default TypeormConfig;
 export const dataSource = new DataSource(TypeormConfig as DataSourceOptions);

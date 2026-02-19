@@ -2,7 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Onboarding } from '@transversal/domain/models/onboarding.model';
-import { OnboardingRepositoryPort } from '@transversal/domain/ports/onboarding.repository.port';
+import {
+  CreateOnboardingPayload,
+  OnboardingRepositoryPort,
+  UpdateOnboardingPayload,
+} from '@transversal/domain/ports/onboarding.repository.port';
 import { OnboardingEntity } from '../entities/onboarding.entity';
 import { OnboardingMapper } from '../mappers/onboarding.mapper';
 
@@ -30,5 +34,27 @@ export class TypeOrmOnboardingRepository implements OnboardingRepositoryPort {
   ): Promise<Onboarding | null> {
     const entity = await this.repository.findOne({ where: { externalId } });
     return entity ? OnboardingMapper.toDomain(entity) : null;
+  }
+
+  async create(payload: CreateOnboardingPayload): Promise<Onboarding> {
+    const entity = OnboardingMapper.toCreateEntity(payload);
+    const saved = await this.repository.save(entity);
+    return OnboardingMapper.toDomain(saved);
+  }
+
+  async updateByExternalId(
+    externalId: string,
+    payload: UpdateOnboardingPayload,
+  ): Promise<Onboarding | null> {
+    const existing = await this.repository.findOne({ where: { externalId } });
+    if (!existing) return null;
+    const updated = OnboardingMapper.applyUpdate(existing, payload);
+    const saved = await this.repository.save(updated);
+    return OnboardingMapper.toDomain(saved);
+  }
+
+  async deleteByExternalId(externalId: string): Promise<boolean> {
+    const result = await this.repository.delete({ externalId });
+    return (result.affected ?? 0) > 0;
   }
 }
