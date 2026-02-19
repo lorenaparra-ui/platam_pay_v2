@@ -1,4 +1,4 @@
-export interface CreditApplicationBnplProps {
+export interface OnboardingProps {
   id: number;
   externalId: string;
   userId: number;
@@ -41,7 +41,7 @@ export interface CreditApplicationBnplProps {
   updatedAt: Date;
 }
 
-export class CreditApplicationBnpl {
+export class Onboarding {
   public readonly id: number;
   public readonly externalId: string;
   public readonly userId: number;
@@ -83,7 +83,7 @@ export class CreditApplicationBnpl {
   public readonly createdAt: Date;
   public readonly updatedAt: Date;
 
-  constructor(props: CreditApplicationBnplProps) {
+  constructor(props: OnboardingProps) {
     this.id = props.id;
     this.externalId = props.externalId;
     this.userId = props.userId;

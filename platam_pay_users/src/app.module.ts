@@ -10,7 +10,7 @@ import appConfig from './config/app.config';
 import { CommonModule } from '@common/common.module';
 import { InfrastructureModule } from '@infrastructure/infrastructure.module';
 import { TransversalModule } from './transversal/transversal.module';
-import { CreditApplicationsModule } from './credit-applications/credit-applications.module';
+import { OnboardingModule } from './onboarding/onboarding.module';
 
 @Module({
   imports: [
@@ -22,7 +22,7 @@ import { CreditApplicationsModule } from './credit-applications/credit-applicati
     InfrastructureModule,
     CommonModule,
     TransversalModule,
-    CreditApplicationsModule,
+    OnboardingModule,
   ],
   controllers: [AppController],
   providers: [],

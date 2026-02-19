@@ -2,7 +2,7 @@ import { Column, Entity } from 'typeorm';
 import { BaseExternalIdEntity } from './base-external-id.entity';
 
 @Entity('credit_applications_bnpl')
-export class CreditApplicationBnplEntity extends BaseExternalIdEntity {
+export class OnboardingEntity extends BaseExternalIdEntity {
   @Column({ name: 'user_id', type: 'bigint' })
   userId: number;
 

@@ -1,9 +1,9 @@
-import { CreditApplicationBnpl } from '@transversal/domain/models/credit-application-bnpl.model';
-import { CreditApplicationBnplEntity } from '../entities/credit-application-bnpl.entity';
+import { Onboarding } from '@transversal/domain/models/onboarding.model';
+import { OnboardingEntity } from '../entities/onboarding.entity';
 
-export class CreditApplicationBnplMapper {
-  static toDomain(entity: CreditApplicationBnplEntity): CreditApplicationBnpl {
-    return new CreditApplicationBnpl({
+export class OnboardingMapper {
+  static toDomain(entity: OnboardingEntity): Onboarding {
+    return new Onboarding({
       id: entity.id,
       externalId: entity.externalId,
       userId: entity.userId,
@@ -47,8 +47,8 @@ export class CreditApplicationBnplMapper {
     });
   }
 
-  static toEntity(domain: CreditApplicationBnpl): CreditApplicationBnplEntity {
-    const entity = new CreditApplicationBnplEntity();
+  static toEntity(domain: Onboarding): OnboardingEntity {
+    const entity = new OnboardingEntity();
     entity.id = domain.id;
     entity.userId = domain.userId;
     entity.userProductId = domain.userProductId;

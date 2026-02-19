@@ -7,15 +7,15 @@ import {
   ParseUUIDPipe,
 } from '@nestjs/common';
 import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
-import type { CreditApplicationBnplRepositoryPort } from '@transversal/domain/ports/credit-application-bnpl.repository.port';
-import { CREDIT_APPLICATION_BNPL_REPOSITORY } from '@transversal/domain/ports/credit-application-bnpl.repository.port';
-import { CreditApplicationBnpl } from '@transversal/domain/models/credit-application-bnpl.model';
-import { CreditApplicationBnplResponseDto } from './dto/credit-application-bnpl-response.dto';
+import type { OnboardingRepositoryPort } from '@transversal/domain/ports/onboarding.repository.port';
+import { ONBOARDING_REPOSITORY } from '@transversal/domain/ports/onboarding.repository.port';
+import { Onboarding } from '@transversal/domain/models/onboarding.model';
+import { OnboardingResponseDto } from './dto/onboarding-response.dto';
 
 function toResponseDto(
-  domain: CreditApplicationBnpl,
-): CreditApplicationBnplResponseDto {
-  const dto = new CreditApplicationBnplResponseDto();
+  domain: Onboarding,
+): OnboardingResponseDto {
+  const dto = new OnboardingResponseDto();
   dto.externalId = domain.externalId;
   dto.userId = domain.userId;
   dto.userProductId = domain.userProductId;
@@ -58,29 +58,29 @@ function toResponseDto(
   return dto;
 }
 
-@ApiTags('credit-applications')
-@Controller('credit-applications')
-export class CreditApplicationsController {
+@ApiTags('onboarding')
+@Controller('onboarding')
+export class OnboardingController {
   constructor(
-    @Inject(CREDIT_APPLICATION_BNPL_REPOSITORY)
-    private readonly repository: CreditApplicationBnplRepositoryPort,
+    @Inject(ONBOARDING_REPOSITORY)
+    private readonly repository: OnboardingRepositoryPort,
   ) {}
 
-  @Get(':externalId')
+  @Get('register/:externalId')
   @ApiOperation({
-    summary: 'Obtener solicitud de crédito BNPL por externalId',
+    summary: 'Obtener onboarding register por externalId',
     description:
-      'Retorna la solicitud de crédito BNPL identificada por su UUID público. No expone id incremental.',
+      'Retorna el registro de onboarding/register identificado por su UUID publico. No expone id incremental.',
   })
   @ApiParam({
     name: 'externalId',
-    description: 'UUID de la solicitud de crédito',
+    description: 'UUID del registro de onboarding',
     example: '550e8400-e29b-41d4-a716-446655440000',
   })
   @ApiResponse({
     status: 200,
-    description: 'Solicitud encontrada',
-    type: CreditApplicationBnplResponseDto,
+    description: 'Registro encontrado',
+    type: OnboardingResponseDto,
   })
   @ApiResponse({
     status: 400,
@@ -88,14 +88,14 @@ export class CreditApplicationsController {
   })
   @ApiResponse({
     status: 404,
-    description: 'Solicitud no encontrada',
+    description: 'Registro no encontrado',
   })
   async getByExternalId(
     @Param('externalId', ParseUUIDPipe) externalId: string,
-  ): Promise<CreditApplicationBnplResponseDto> {
+  ): Promise<OnboardingResponseDto> {
     const domain = await this.repository.findByExternalId(externalId);
     if (!domain) {
-      throw new NotFoundException('Credit application not found');
+      throw new NotFoundException('Onboarding not found');
     }
     return toResponseDto(domain);
   }
