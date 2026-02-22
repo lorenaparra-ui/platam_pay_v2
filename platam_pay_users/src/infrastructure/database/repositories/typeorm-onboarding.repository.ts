@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Onboarding } from '@transversal/domain/models/onboarding.model';
+import { Onboarding } from 'src/modules/transversal/domain/models/onboarding.model';
 import {
   CreateOnboardingPayload,
   OnboardingRepositoryPort,
   UpdateOnboardingPayload,
-} from '@transversal/domain/ports/onboarding.repository.port';
+} from 'src/modules/transversal/domain/ports/onboarding.repository.port';
 import { OnboardingEntity } from '../entities/onboarding.entity';
 import { OnboardingMapper } from '../mappers/onboarding.mapper';
 

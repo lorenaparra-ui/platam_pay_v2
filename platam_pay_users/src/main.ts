@@ -9,6 +9,15 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule); 
   const configService = app.get(ConfigService);
   const port = configService.get<number>('PORT') ?? 3000;
+
+
+   // Habilitar CORS
+   app.enableCors({
+    origin: '*', 
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    allowedHeaders: 'Content-Type, Accept',
+  });
+  
   const options = new DocumentBuilder()
     .setTitle('💳 Platam API Services')
     .setDescription('Platam API Services: BNPL, Factoring, and Confirming for enterprise financial platforms.')

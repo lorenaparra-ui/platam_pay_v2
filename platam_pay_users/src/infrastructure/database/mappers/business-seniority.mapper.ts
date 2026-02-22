@@ -1,5 +1,5 @@
 import { BusinessSeniorityEntity } from '../entities/business-seniority.entity';
-import { BusinessSeniority } from '../../../transversal/domain/models/business-seniority.model';
+import { BusinessSeniority } from '../../../modules/transversal/domain/models/business-seniority.model';
 
 export class BusinessSeniorityMapper {
   static toDomain(entity: BusinessSeniorityEntity): BusinessSeniority {

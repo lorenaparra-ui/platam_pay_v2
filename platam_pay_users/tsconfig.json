@@ -24,7 +24,8 @@
     "paths": {
       "@config/*": ["src/config/*"],
       "@infrastructure/*": ["src/infrastructure/*"],
-      "@transversal/*": ["src/transversal/*"],
+      "@transversal/*": ["src/modules/transversal/*"],
+      "@onboarding/*": ["src/modules/onboarding/*"],
       "@common/*": ["src/common/*"]
     }
   }
