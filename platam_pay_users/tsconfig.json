@@ -26,6 +26,7 @@
       "@infrastructure/*": ["src/infrastructure/*"],
       "@transversal/*": ["src/modules/transversal/*"],
       "@onboarding/*": ["src/modules/onboarding/*"],
+      "@users/*": ["src/modules/users/*"],
       "@common/*": ["src/common/*"]
     }
   }
