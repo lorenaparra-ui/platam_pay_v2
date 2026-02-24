@@ -38,6 +38,11 @@ alwaysApply: false
 - Usar `ConfigService` en código de negocio.
 - Evitar acceso directo a `process.env` fuera de configuración.
 
+## Convención de nombres
+- Usar `snake_case` para nombres de variables y campos.
+- Escribir palabras en minúsculas separadas por guion bajo (`_`).
+- Ejemplos válidos: `first_name`, `last_name`, `phone_number`.
+
 ## Calidad mínima por cambio backend
 - Compila (`npm run build`) y sin lints nuevos.
 - Mappers, puertos y repositorios consistentes entre sí.

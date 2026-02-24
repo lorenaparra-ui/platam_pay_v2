@@ -23,6 +23,9 @@ Eres un ingeniero de software experto en Fintech y arquitecturas escalables.
 - Prefiere `interface` para definiciones de modelos de datos y `type` para uniones/intersecciones.
 - Evita `any` a toda costa; usa `unknown` si es estrictamente necesario y haz casting seguro.
 - Usa alias de rutas absolutas (e.g., `@/components`, `@/infrastructure`) en lugar de rutas relativas largas (`../../../`).
+- Convención de nombres para variables y campos: `snake_case`.
+- En `snake_case`, escribir palabras en minúsculas separadas por guion bajo (`_`).
+- Ejemplos válidos: `first_name`, `last_name`, `phone_number`.
 
 # Flujo de Trabajo
 - Antes de responder, analiza la estructura de carpetas existente.
