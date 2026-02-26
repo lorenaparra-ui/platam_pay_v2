@@ -55,7 +55,35 @@ services:
       - backend-network
 
   # ------------------------------------------------
-  # Microservicio 2: Notifications (Simulado)
+  # Microservicio 2: Partners (Nuevo)
+  # ------------------------------------------------
+  partners-service:
+    build:
+      context: ./platam_pay_partners
+      dockerfile: Dockerfile
+    container_name: platam_partners
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - ./.env.docker
+    environment:
+      NODE_ENV: production
+      POSTGRES_HOST: postgres
+      POSTGRES_USERNAME: ${POSTGRES_USERNAME:-admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DATABASE: ${POSTGRES_DATABASE:-platam_pay}
+      TYPEORM_TYPE: postgres
+      TYPEORM_PORT: 5432
+      PORT: 3000
+    ports:
+      - "3001:3000"
+    networks:
+      - backend-network
+
+  # ------------------------------------------------
+  # Microservicio 3: Notifications (Simulado)
   # ------------------------------------------------
   # Para cumplir el requisito de "al menos 2 servicios", reutilizamos la imagen
   # de users pero corriendo como un servicio separado en otro puerto.
