@@ -28,7 +28,6 @@
       "@onboarding/*": ["src/modules/onboarding/*"],
       "@users/*": ["src/modules/users/*"],
       "@persons/*": ["src/modules/persons/*"],
-      "@sales_rep/*": ["src/modules/sales_rep/*"],
       "@auth/*": ["src/modules/auth/*"],
       "@common/*": ["src/common/*"]
     }
