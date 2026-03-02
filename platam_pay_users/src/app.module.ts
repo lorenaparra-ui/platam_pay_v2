@@ -14,6 +14,7 @@ import { OnboardingModule } from './modules/onboarding/onboarding.module';
 import { UsersModule } from './modules/users/users.module';
 import { PersonsModule } from './modules/persons/persons.module';
 import { SalesRepModule } from './modules/sales_rep/sales_rep.module';
+import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { SalesRepModule } from './modules/sales_rep/sales_rep.module';
     UsersModule,
     PersonsModule,
     SalesRepModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [],
