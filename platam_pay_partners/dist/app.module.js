@@ -17,6 +17,7 @@ const common_module_1 = require("./common/common.module");
 const app_config_1 = __importDefault(require("./config/app.config"));
 const infrastructure_module_1 = require("./infrastructure/infrastructure.module");
 const partners_module_1 = require("./modules/management/partners.module");
+const businesses_module_1 = require("./modules/businesses/businesses.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -31,6 +32,7 @@ exports.AppModule = AppModule = __decorate([
             infrastructure_module_1.InfrastructureModule,
             common_module_1.CommonModule,
             partners_module_1.PartnersModule,
+            businesses_module_1.BusinessesModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [],

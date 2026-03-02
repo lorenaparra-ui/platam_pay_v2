@@ -1,0 +1,42 @@
+import { SalesRepresentative } from 'src/modules/persons/domain/models/sales-representative.model';
+import type { CreateSalesRepresentativePayload } from 'src/modules/persons/domain/ports/sales-representative.repository.port';
+import { SalesRepresentativeEntity } from '../entities/sales-representative.entity';
+
+export class SalesRepresentativeMapper {
+  static toDomain(entity: SalesRepresentativeEntity): SalesRepresentative {
+    return new SalesRepresentative(
+      Number(entity.id),
+      entity.externalId,
+      Number(entity.partnerId),
+      entity.userId != null ? Number(entity.userId) : null,
+      entity.name,
+      entity.role,
+      Number(entity.statusId),
+      entity.createdAt,
+      entity.updatedAt,
+    );
+  }
+
+  static toEntity(domain: SalesRepresentative): SalesRepresentativeEntity {
+    const entity = new SalesRepresentativeEntity();
+    entity.id = domain.id;
+    entity.partnerId = domain.partnerId;
+    entity.userId = domain.userId;
+    entity.name = domain.name;
+    entity.role = domain.role;
+    entity.statusId = domain.statusId;
+    return entity;
+  }
+
+  static toCreateEntity(
+    payload: CreateSalesRepresentativePayload,
+  ): SalesRepresentativeEntity {
+    const entity = new SalesRepresentativeEntity();
+    entity.partnerId = payload.partnerId;
+    entity.userId = payload.userId ?? null;
+    entity.name = payload.name;
+    entity.role = payload.role;
+    entity.statusId = payload.statusId;
+    return entity;
+  }
+}

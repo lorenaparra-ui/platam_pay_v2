@@ -5,6 +5,7 @@ import { CommonModule } from "@common/common.module";
 import appConfig from "./config/app.config";
 import { InfrastructureModule } from "@infrastructure/infrastructure.module";
 import { PartnersModule } from "./modules/management/partners.module";
+import { BusinessesModule } from "./modules/businesses/businesses.module";
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { PartnersModule } from "./modules/management/partners.module";
     InfrastructureModule,
     CommonModule,
     PartnersModule,
+    BusinessesModule,
   ],
   controllers: [AppController],
   providers: [],
