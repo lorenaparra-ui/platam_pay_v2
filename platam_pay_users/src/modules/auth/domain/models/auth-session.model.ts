@@ -7,7 +7,7 @@ export interface AuthTokens {
 }
 
 export interface AuthMfaSetupResult {
-  secretCode: string;
+  secret_code_url: string;
   session: string;
 }
 

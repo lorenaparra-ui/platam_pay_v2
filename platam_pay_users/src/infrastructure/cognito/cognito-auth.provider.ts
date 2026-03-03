@@ -161,8 +161,11 @@ export class CognitoAuthProvider implements AuthProviderPort {
         );
       }
 
+      const issuer = this.configService.get<string>('config.mfa.issuer') ?? 'Platam Pay';
+      const secret_code_url = this.buildTotpProvisioningUrl(response.SecretCode, issuer);
+
       return {
-        secretCode: response.SecretCode,
+        secret_code_url,
         session: response.Session,
       };
     } catch (error) {
@@ -245,6 +248,12 @@ export class CognitoAuthProvider implements AuthProviderPort {
     return createHmac('sha256', this.clientSecret)
       .update(`${username}${this.clientId}`)
       .digest('base64');
+  }
+
+  private buildTotpProvisioningUrl(secretCode: string, issuer: string): string {
+    const encodedIssuer = encodeURIComponent(issuer);
+    const label = encodedIssuer;
+    return `otpauth://totp/${label}?secret=${secretCode}&issuer=${encodedIssuer}`;
   }
 
   private mapAndThrowAuthError(error: unknown, context: FlowContext): never {

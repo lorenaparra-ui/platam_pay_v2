@@ -59,11 +59,11 @@ function toTokensResponseDto(tokens: AuthTokens): TokensResponseDto {
 }
 
 function toSetupMfaResponseDto(
-  secretCode: string,
+  secret_code_url: string,
   session: string,
 ): SetupMfaResponseDto {
   const dto = new SetupMfaResponseDto();
-  dto.secretCode = secretCode;
+  dto.secret_code_url = secret_code_url;
   dto.session = session;
   return dto;
 }
@@ -166,7 +166,7 @@ export class AuthController {
   ): Promise<SetupMfaResponseDto> {
     try {
       const setup = await this.setupMfaUseCase.execute(body.session);
-      return toSetupMfaResponseDto(setup.secretCode, setup.session);
+      return toSetupMfaResponseDto(setup.secret_code_url, setup.session);
     } catch (error) {
       this.throwHttpError(error);
     }

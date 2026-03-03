@@ -11,5 +11,8 @@ export default registerAs('config', () => {
         process.env.COGNITO_CLIENT_ID || 'k2fca9hhf0he0tadlhfcj7ntj',
       clientSecret: process.env.COGNITO_CLIENT_SECRET || 'v8i20s8mrur0hm84mftdkmjsisml1kvmv5oe43smbti3qi38p4n',
     },
+    mfa: {
+      issuer: process.env.MFA_ISSUER || 'Platam Pay',
+    },
   };
 });

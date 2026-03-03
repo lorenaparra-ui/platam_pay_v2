@@ -3,10 +3,10 @@ import { ApiProperty } from '@nestjs/swagger';
 export class SetupMfaResponseDto {
   @ApiProperty({
     description:
-      'Clave secreta TOTP para registrar en Google Authenticator o Authy',
-    example: 'JBSWY3DPEHPK3PXP',
+      'URL otpauth para escanear con app de autenticacion (ej. Google Authenticator)',
+    example: 'otpauth://totp/Platam%20Pay?secret=JBSWY3DPEHPK3PXP&issuer=Platam%20Pay',
   })
-  secretCode: string;
+  secret_code_url: string;
 
   @ApiProperty({
     description: 'Session a reutilizar en /auth/mfa/verify',
