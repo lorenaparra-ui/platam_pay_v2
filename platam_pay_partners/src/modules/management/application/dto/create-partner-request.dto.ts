@@ -6,6 +6,7 @@ import {
   IsEmail,
   IsInt,
   IsLowercase,
+  NotContains,
   IsOptional,
   IsString,
   IsUrl,
@@ -43,7 +44,7 @@ export class CreatePartnerRequestDto {
   })
   @IsString()
   @IsLowercase()
-  @Matches(/^[a-z0-9_]+$/)
+  @NotContains(" ")
   @MaxLength(255)
   tradeName: string;
 

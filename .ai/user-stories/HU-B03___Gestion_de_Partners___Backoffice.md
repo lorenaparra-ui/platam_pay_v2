@@ -43,7 +43,7 @@ Organizado en 4 tabs.
 | Label | Campo DB | Tabla | Tipo | Validaciones |
 |---|---|---|---|---|
 | Razón Social * | `company_name` | `partners` | Texto | — |
-| Nombre comercial * | `trade_name` | `partners` | Texto | Único en el sistema, sin espacios y en minúsculas (`^[a-z0-9_]+$`) |
+| Nombre comercial * | `trade_name` | `partners` | Texto | Único en el sistema |
 | Acrónimo * | `acronym` | `partners` | Texto | Máx. 10 caracteres |
 | País * | `country_code` | `partners` | Dropdown | Países activos en el sistema |
 | Nombre del rol SR (singular) | `sales_rep_role_name` | `partners` | Texto | Default: *"Sales Rep"* |

@@ -301,7 +301,7 @@ CREATE TABLE "partners" (
   "external_id" UUID NOT NULL DEFAULT gen_random_uuid(),
   "country_code" varchar(2),
   "company_name" varchar (255) NOT NULL,
-  "trade_name" varchar (255) NOT NULL UNIQUE CHECK ("trade_name" ~ '^[a-z0-9_]+$'),
+  "trade_name" varchar (255) NOT NULL UNIQUE,
   "acronym" varchar(10),
   "logo_url" text,
   "co_branding_logo_url" text,

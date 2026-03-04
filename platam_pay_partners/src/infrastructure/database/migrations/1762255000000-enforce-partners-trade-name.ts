@@ -48,29 +48,9 @@ export class EnforcePartnersTradeName1762255000000 implements MigrationInterface
       CREATE UNIQUE INDEX IF NOT EXISTS idx_partners_trade_name
       ON "partners" ("trade_name")
     `);
-
-    await queryRunner.query(`
-      DO $$
-      BEGIN
-        IF NOT EXISTS (
-          SELECT 1
-          FROM pg_constraint
-          WHERE conname = 'chk_partners_trade_name_format'
-        ) THEN
-          ALTER TABLE "partners"
-          ADD CONSTRAINT chk_partners_trade_name_format
-          CHECK ("trade_name" ~ '^[a-z0-9_]+$');
-        END IF;
-      END $$;
-    `);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`
-      ALTER TABLE "partners"
-      DROP CONSTRAINT IF EXISTS chk_partners_trade_name_format
-    `);
-
     await queryRunner.query(`
       DROP INDEX IF EXISTS idx_partners_trade_name
     `);
