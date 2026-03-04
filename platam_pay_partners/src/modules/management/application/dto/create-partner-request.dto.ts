@@ -1,14 +1,20 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { Type } from "class-transformer";
 import {
+  ArrayMinSize,
   IsBoolean,
   IsEmail,
   IsInt,
+  IsLowercase,
   IsOptional,
   IsString,
   IsUrl,
+  Matches,
   MaxLength,
   Min,
+  ValidateNested,
 } from "class-validator";
+import { CreatePartnerCategoryRequestDto } from "@partner-categories/application/dto/create-partner-category-request.dto";
 
 export class CreatePartnerRequestDto {
   @ApiProperty({
@@ -16,10 +22,10 @@ export class CreatePartnerRequestDto {
     description: "Codigo de pais (2 caracteres)",
     maxLength: 2,
   })
-  @IsOptional()
   @IsString()
+  @Matches(/^[A-Z]{2}$/)
   @MaxLength(2)
-  countryCode?: string;
+  countryCode: string;
 
   @ApiProperty({
     example: "Partner Demo S.A.S",
@@ -30,25 +36,25 @@ export class CreatePartnerRequestDto {
   @MaxLength(255)
   companyName: string;
 
-  @ApiPropertyOptional({
-    example: "Partner Demo",
-    description: "Nombre comercial del partner",
+  @ApiProperty({
+    example: "partner_demo",
+    description: "Nombre comercial unico en minusculas y sin espacios",
     maxLength: 255,
   })
-  @IsOptional()
   @IsString()
+  @IsLowercase()
+  @Matches(/^[a-z0-9_]+$/)
   @MaxLength(255)
-  tradeName?: string;
+  tradeName: string;
 
-  @ApiPropertyOptional({
+  @ApiProperty({
     example: "PDP",
     description: "Acronimo del partner",
     maxLength: 10,
   })
-  @IsOptional()
   @IsString()
   @MaxLength(10)
-  acronym?: string;
+  acronym: string;
 
   @ApiPropertyOptional({
     example: "https://cdn.platam.com/partners/logo.png",
@@ -174,4 +180,24 @@ export class CreatePartnerRequestDto {
   @IsInt()
   @Min(0)
   statusId?: number;
+
+  @ApiPropertyOptional({
+    type: [CreatePartnerCategoryRequestDto],
+    description: "Categorias a crear en el mismo flujo del partner",
+  })
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => CreatePartnerCategoryRequestDto)
+  @ArrayMinSize(1)
+  categories?: CreatePartnerCategoryRequestDto[];
+
+  @ApiPropertyOptional({
+    example: 0,
+    description:
+      "Indice de la categoria enviada en categories que se marcara como predeterminada",
+  })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  defaultCategoryIndex?: number;
 }

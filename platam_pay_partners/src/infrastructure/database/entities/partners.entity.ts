@@ -9,8 +9,8 @@ export class PartnersEntity extends BaseExternalIdEntity {
   @Column({ name: "company_name", type: "varchar", length: 255 })
   companyName: string;
 
-  @Column({ name: "trade_name", type: "varchar", length: 255, nullable: true })
-  tradeName: string | null;
+  @Column({ name: "trade_name", type: "varchar", length: 255, unique: true })
+  tradeName: string;
 
   @Column({ name: "acronym", type: "varchar", length: 10, nullable: true })
   acronym: string | null;

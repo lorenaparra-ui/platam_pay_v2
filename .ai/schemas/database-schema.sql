@@ -301,7 +301,7 @@ CREATE TABLE "partners" (
   "external_id" UUID NOT NULL DEFAULT gen_random_uuid(),
   "country_code" varchar(2),
   "company_name" varchar (255) NOT NULL,
-  "trade_name" varchar (255),
+  "trade_name" varchar (255) NOT NULL UNIQUE CHECK ("trade_name" ~ '^[a-z0-9_]+$'),
   "acronym" varchar(10),
   "logo_url" text,
   "co_branding_logo_url" text,
@@ -665,6 +665,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_legal_representatives_external_id ON "lega
 CREATE UNIQUE INDEX IF NOT EXISTS idx_shareholders_external_id ON "shareholders" ("external_id");
 CREATE UNIQUE INDEX IF NOT EXISTS idx_guarantors_external_id ON "guarantors" ("external_id");
 CREATE UNIQUE INDEX IF NOT EXISTS idx_partners_external_id ON "partners" ("external_id");
+CREATE UNIQUE INDEX IF NOT EXISTS idx_partners_trade_name ON "partners" ("trade_name");
 CREATE UNIQUE INDEX IF NOT EXISTS idx_partner_categories_external_id ON "partner_categories" ("external_id");
 CREATE UNIQUE INDEX IF NOT EXISTS idx_credit_applications_bnpl_external_id ON "credit_applications_bnpl" ("external_id");
 CREATE UNIQUE INDEX IF NOT EXISTS idx_ai_agent_analysis_external_id ON "ai_agent_analysis" ("external_id");
@@ -702,6 +703,7 @@ CREATE INDEX IF NOT EXISTS idx_guarantors_contract_signer_id ON "guarantors" ("c
 CREATE INDEX IF NOT EXISTS idx_partners_default_rep_id ON "partners" ("default_rep_id");
 CREATE INDEX IF NOT EXISTS idx_partners_default_category_id ON "partners" ("default_category_id");
 CREATE INDEX IF NOT EXISTS idx_partners_status_id ON "partners" ("status_id");
+CREATE INDEX IF NOT EXISTS idx_partners_company_name ON "partners" ("company_name");
 CREATE INDEX IF NOT EXISTS idx_partner_categories_partner_id ON "partner_categories" ("partner_id");
 CREATE INDEX IF NOT EXISTS idx_partner_categories_status_id ON "partner_categories" ("status_id");
 CREATE INDEX IF NOT EXISTS idx_credit_applications_user_id ON "credit_applications_bnpl" ("user_id");

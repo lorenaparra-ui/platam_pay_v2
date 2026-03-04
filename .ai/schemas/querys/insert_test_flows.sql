@@ -140,7 +140,7 @@ INSERT INTO "partners" (
   "notification_email", "status_id"
 )
 VALUES (
-  'CO', 'Comercial Demo S.A.S.', 'Demo Store', 'DEMO',
+  'CO', 'Comercial Demo S.A.S.', 'demo_store', 'DEMO',
   'notificaciones@demo.test',
   get_status_id('partners', 'active')
 );

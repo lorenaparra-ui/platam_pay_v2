@@ -10,7 +10,7 @@ const typeormConfig: DataSourceOptions = {
   database: process.env.POSTGRES_DATABASE,
   password: process.env.POSTGRES_PASSWORD,
   migrations: [
-    path.join(__dirname, "../infrastructure/database/migrations/*.js"),
+    path.join(__dirname, "../infrastructure/database/migrations/*.{js,ts}"),
   ],
   entities: [path.join(__dirname, "../../**/*.entity.js")],
   logging: true,

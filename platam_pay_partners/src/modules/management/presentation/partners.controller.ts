@@ -1,41 +1,46 @@
 import {
+  BadRequestException,
   Body,
+  ConflictException,
   Controller,
   Delete,
   Get,
   HttpCode,
-  Inject,
   NotFoundException,
-  NotImplementedException,
   Param,
   ParseUUIDPipe,
   Patch,
   Post,
+  Query,
 } from "@nestjs/common";
 import {
   ApiBody,
   ApiOperation,
   ApiParam,
+  ApiQuery,
   ApiResponse,
   ApiTags,
 } from "@nestjs/swagger";
+import { QueryFailedError } from "typeorm";
+import { CreatePartnerCategoryRequestDto } from "@partner-categories/application/dto/create-partner-category-request.dto";
+import { ChangePartnerStatusRequestDto } from "../application/dto/change-partner-status-request.dto";
 import { CreatePartnerRequestDto } from "../application/dto/create-partner-request.dto";
+import { PartnerListQueryDto } from "../application/dto/partner-list-query.dto";
 import { PartnerResponseDto } from "../application/dto/partner-response.dto";
+import { RegeneratePartnerApiKeyResponseDto } from "../application/dto/regenerate-partner-api-key-response.dto";
 import { UpdatePartnerRequestDto } from "../application/dto/update-partner-request.dto";
+import { ChangePartnerStatusUseCase } from "../application/use-cases/change-partner-status.use-case";
+import { CreatePartnerUseCase } from "../application/use-cases/create-partner.use-case";
+import { DeletePartnerByExternalIdUseCase } from "../application/use-cases/delete-partner-by-external-id.use-case";
+import { FindAllPartnersUseCase } from "../application/use-cases/find-all-partners.use-case";
+import { FindPartnerByExternalIdUseCase } from "../application/use-cases/find-partner-by-external-id.use-case";
+import { RegeneratePartnerApiKeyUseCase } from "../application/use-cases/regenerate-partner-api-key.use-case";
+import { UpdatePartnerByExternalIdUseCase } from "../application/use-cases/update-partner-by-external-id.use-case";
 import { Partner } from "../domain/models/partner.model";
 import {
-  PARTNERS_REPOSITORY,
-  type PartnerRepositoryPort,
+  type CreatePartnerCategoryPayload,
+  type CreatePartnerPayload,
 } from "../domain/ports/partner.repository.port";
-
-type PartnerCrudPort = PartnerRepositoryPort & {
-  create: (payload: Record<string, unknown>) => Promise<Partner>;
-  updateByExternalId: (
-    externalId: string,
-    payload: Record<string, unknown>,
-  ) => Promise<Partner | null>;
-  deleteByExternalId: (externalId: string) => Promise<boolean>;
-};
 
 function toResponseDto(domain: Partner): PartnerResponseDto {
   const dto = new PartnerResponseDto();
@@ -67,23 +72,14 @@ function toResponseDto(domain: Partner): PartnerResponseDto {
 @Controller("partners/register")
 export class PartnersController {
   constructor(
-    @Inject(PARTNERS_REPOSITORY)
-    private readonly repository: PartnerRepositoryPort,
+    private readonly createPartnerUseCase: CreatePartnerUseCase,
+    private readonly findAllPartnersUseCase: FindAllPartnersUseCase,
+    private readonly findPartnerByExternalIdUseCase: FindPartnerByExternalIdUseCase,
+    private readonly updatePartnerByExternalIdUseCase: UpdatePartnerByExternalIdUseCase,
+    private readonly deletePartnerByExternalIdUseCase: DeletePartnerByExternalIdUseCase,
+    private readonly changePartnerStatusUseCase: ChangePartnerStatusUseCase,
+    private readonly regeneratePartnerApiKeyUseCase: RegeneratePartnerApiKeyUseCase,
   ) {}
-
-  private getCrudRepository(): PartnerCrudPort {
-    const repository = this.repository as Partial<PartnerCrudPort>;
-    if (
-      typeof repository.create !== "function" ||
-      typeof repository.updateByExternalId !== "function" ||
-      typeof repository.deleteByExternalId !== "function"
-    ) {
-      throw new NotImplementedException(
-        "CRUD methods are not implemented in PartnerRepositoryPort adapter",
-      );
-    }
-    return repository as PartnerCrudPort;
-  }
 
   @Post()
   @ApiOperation({ summary: "Crear partner" })
@@ -96,11 +92,11 @@ export class PartnersController {
   async create(
     @Body() body: CreatePartnerRequestDto,
   ): Promise<PartnerResponseDto> {
-    const created = await this.getCrudRepository().create({
-      countryCode: body.countryCode ?? null,
+    const payload: CreatePartnerPayload = {
+      countryCode: body.countryCode,
       companyName: body.companyName,
-      tradeName: body.tradeName ?? null,
-      acronym: body.acronym ?? null,
+      tradeName: body.tradeName,
+      acronym: body.acronym,
       logoUrl: body.logoUrl ?? null,
       coBrandingLogoUrl: body.coBrandingLogoUrl ?? null,
       primaryColor: body.primaryColor ?? null,
@@ -113,23 +109,36 @@ export class PartnersController {
       sendSalesRepVoucher: body.sendSalesRepVoucher ?? false,
       disbursementNotificationEmail: body.disbursementNotificationEmail ?? null,
       defaultRepId: body.defaultRepId ?? null,
-      defaultCategoryId: body.defaultCategoryId ?? null,
+      defaultCategoryId: body.defaultCategoryId,
       statusId: body.statusId,
-    });
+      categories: this.mapCategories(body.categories),
+      defaultCategoryIndex: body.defaultCategoryIndex,
+    };
+
+    const created = await this.executeWithUniqueConstraintHandling(() =>
+      this.createPartnerUseCase.execute(payload),
+    );
 
     return toResponseDto(created);
   }
 
   @Get()
   @ApiOperation({ summary: "Listar partners" })
+  @ApiQuery({
+    name: "search",
+    required: false,
+    description: "Busca partners por razon social",
+  })
   @ApiResponse({
     status: 200,
     description: "Lista de partners",
     type: PartnerResponseDto,
     isArray: true,
   })
-  async findAll(): Promise<PartnerResponseDto[]> {
-    const partners = await this.repository.findAll();
+  async findAll(
+    @Query() query: PartnerListQueryDto,
+  ): Promise<PartnerResponseDto[]> {
+    const partners = await this.findAllPartnersUseCase.execute(query.search);
     return partners.map(toResponseDto);
   }
 
@@ -152,7 +161,8 @@ export class PartnersController {
   private async findByExternalIdHandler(
     externalId: string,
   ): Promise<PartnerResponseDto> {
-    const partner = await this.repository.findByExternalId(externalId);
+    const partner =
+      await this.findPartnerByExternalIdUseCase.execute(externalId);
     if (!partner) {
       throw new NotFoundException("Partner not found");
     }
@@ -175,9 +185,8 @@ export class PartnersController {
     @Param("externalId", ParseUUIDPipe) externalId: string,
     @Body() body: UpdatePartnerRequestDto,
   ): Promise<PartnerResponseDto> {
-    const updated = await this.getCrudRepository().updateByExternalId(
-      externalId,
-      {
+    const updated = await this.executeWithUniqueConstraintHandling(() =>
+      this.updatePartnerByExternalIdUseCase.execute(externalId, {
         countryCode: body.countryCode,
         companyName: body.companyName,
         tradeName: body.tradeName,
@@ -196,7 +205,7 @@ export class PartnersController {
         defaultRepId: body.defaultRepId,
         defaultCategoryId: body.defaultCategoryId,
         statusId: body.statusId,
-      },
+      }),
     );
 
     if (!updated) {
@@ -217,9 +226,100 @@ export class PartnersController {
     @Param("externalId", ParseUUIDPipe) externalId: string,
   ): Promise<void> {
     const deleted =
-      await this.getCrudRepository().deleteByExternalId(externalId);
+      await this.deletePartnerByExternalIdUseCase.execute(externalId);
     if (!deleted) {
       throw new NotFoundException("Partner not found");
+    }
+  }
+
+  @Patch(":externalId/status")
+  @ApiOperation({ summary: "Activar o desactivar partner" })
+  @ApiParam({ name: "externalId", description: "UUID publico del partner" })
+  @ApiBody({ type: ChangePartnerStatusRequestDto })
+  @ApiResponse({
+    status: 200,
+    description: "Estado del partner actualizado",
+    type: PartnerResponseDto,
+  })
+  @ApiResponse({ status: 400, description: "Body invalido o UUID invalido" })
+  @ApiResponse({ status: 404, description: "Partner no encontrado" })
+  async changeStatus(
+    @Param("externalId", ParseUUIDPipe) externalId: string,
+    @Body() body: ChangePartnerStatusRequestDto,
+  ): Promise<PartnerResponseDto> {
+    const updated = await this.changePartnerStatusUseCase.execute(
+      externalId,
+      body.statusCode,
+    );
+    if (!updated) {
+      throw new NotFoundException("Partner not found");
+    }
+
+    return toResponseDto(updated);
+  }
+
+  @Post(":externalId/api-key/regenerate")
+  @ApiOperation({ summary: "Regenerar API key del partner" })
+  @ApiParam({ name: "externalId", description: "UUID publico del partner" })
+  @ApiResponse({
+    status: 201,
+    description: "API key regenerada (valor visible solo una vez)",
+    type: RegeneratePartnerApiKeyResponseDto,
+  })
+  @ApiResponse({ status: 404, description: "Partner no encontrado" })
+  async regenerateApiKey(
+    @Param("externalId", ParseUUIDPipe) externalId: string,
+  ): Promise<RegeneratePartnerApiKeyResponseDto> {
+    const { updated, apiKey } =
+      await this.regeneratePartnerApiKeyUseCase.execute(externalId);
+    if (!updated) {
+      throw new NotFoundException("Partner not found");
+    }
+
+    return { apiKey };
+  }
+
+  private mapCategories(
+    categories?: CreatePartnerCategoryRequestDto[],
+  ): CreatePartnerPayload["categories"] {
+    return categories?.map(
+      (category): CreatePartnerCategoryPayload => ({
+        name: category.name,
+        discountPercentage: category.discountPercentage,
+        interestRate: category.interestRate,
+        disbursementFeePercent: category.disbursementFeePercent ?? null,
+        minimumDisbursementFee: category.minimumDisbursementFee ?? null,
+        delayDays: category.delayDays,
+        termDays: category.termDays,
+      }),
+    );
+  }
+
+  private async executeWithUniqueConstraintHandling<T>(
+    action: () => Promise<T>,
+  ): Promise<T> {
+    try {
+      return await action();
+    } catch (error) {
+      const driverErrorCode = (error as { driverError?: { code?: unknown } })
+        .driverError?.code;
+      if (
+        error instanceof QueryFailedError &&
+        typeof driverErrorCode === "string" &&
+        driverErrorCode === "23505"
+      ) {
+        throw new ConflictException("Duplicated unique value");
+      }
+
+      if (
+        error instanceof QueryFailedError &&
+        typeof driverErrorCode === "string" &&
+        driverErrorCode === "23502"
+      ) {
+        throw new BadRequestException("Missing required value");
+      }
+
+      throw error;
     }
   }
 }

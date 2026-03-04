@@ -21,11 +21,10 @@ export class PartnerResponseDto {
   companyName: string;
 
   @ApiProperty({
-    example: "Partner Demo",
-    nullable: true,
-    description: "Nombre comercial del partner",
+    example: "partner_demo",
+    description: "Nombre comercial unico en minusculas y sin espacios",
   })
-  tradeName: string | null;
+  tradeName: string;
 
   @ApiProperty({
     example: "PDP",

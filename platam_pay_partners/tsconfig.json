@@ -26,6 +26,7 @@
       "@infrastructure/*": ["src/infrastructure/*"],
       "@transversal/*": ["src/modules/transversal/*"],
       "@partners/*": ["src/modules/management/*"],
+      "@partner-categories/*": ["src/modules/partner-categories/*"],
       "@common/*": ["src/common/*"]
     }
   }

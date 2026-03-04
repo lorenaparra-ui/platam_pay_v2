@@ -3,7 +3,7 @@ export interface Partner {
   externalId: string;
   countryCode: string | null;
   companyName: string;
-  tradeName: string | null;
+  tradeName: string;
   acronym: string | null;
   logoUrl: string | null;
   coBrandingLogoUrl: string | null;
