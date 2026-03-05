@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CityEntity } from '../entities/city.entity';
-import { CityRepositoryPort } from '../../../modules/transversal/domain/ports/city.repository.port';
+import { CityRepositoryPort, CountryItem } from '../../../modules/transversal/domain/ports/city.repository.port';
 import { City } from '../../../modules/transversal/domain/models/city.model';
 import { CityMapper } from '../mappers/city.mapper';
 
@@ -44,5 +44,17 @@ export class TypeOrmCityRepository implements CityRepositoryPort {
       order: { cityName: 'ASC' },
     });
     return entities.map(CityMapper.toDomain);
+  }
+
+  async findDistinctCountries(): Promise<CountryItem[]> {
+    const rows = await this.repository
+      .createQueryBuilder('city')
+      .select('city.countryCode', 'countryCode')
+      .addSelect('city.countryName', 'countryName')
+      .distinctOn(['city.countryCode'])
+      .orderBy('city.countryCode')
+      .addOrderBy('city.countryName')
+      .getRawMany<CountryItem>();
+    return rows;
   }
 }

@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import type { CityRepositoryPort } from '../../domain/ports/city.repository.port';
 import { CITY_REPOSITORY } from '../../domain/ports/city.repository.port';
 import { CityResponseDto } from '../dto/city-response.dto';
+import { CountryResponseDto } from '../dto/country-response.dto';
 
 @Injectable()
 export class GetCitiesUseCase {
@@ -31,5 +32,10 @@ export class GetCitiesUseCase {
   ): Promise<CityResponseDto[]> {
     const models = await this.repository.findByCountryAndState(countryCode, stateName);
     return models.map(CityResponseDto.fromDomain);
+  }
+
+  async executeCountries(): Promise<CountryResponseDto[]> {
+    const countries = await this.repository.findDistinctCountries();
+    return countries.map((c) => CountryResponseDto.from(c.countryCode, c.countryName));
   }
 }
