@@ -3,7 +3,8 @@ import { registerAs } from '@nestjs/config';
 export default registerAs('config', () => {
   return {
     environment: process.env.APP_ENV || 'development',
-    port: process.env.APP_PORT || 3000,
+    port: process.env.APP_PORT || 8080,
+    rues_api_base_url: process.env.RUES_API_BASE_URL || 'https://ollama-rues.5n921h.easypanel.host',
     cognito: {
       region: process.env.COGNITO_REGION || 'us-east-2',
       userPoolId: process.env.COGNITO_USER_POOL_ID || 'us-east-2_Nx4vYRz63',

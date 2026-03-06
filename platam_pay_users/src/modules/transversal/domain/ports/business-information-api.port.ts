@@ -1,0 +1,7 @@
+import { BusinessInformation } from '../models/business-information.model';
+
+export const BUSINESS_INFORMATION_API = 'BUSINESS_INFORMATION_API';
+
+export interface BusinessInformationApiPort {
+  getByTaxId(tax_id: string): Promise<BusinessInformation | null>;
+}

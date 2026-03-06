@@ -48,9 +48,10 @@ services:
       POSTGRES_DATABASE: ${POSTGRES_DATABASE:-platam_pay}
       TYPEORM_TYPE: postgres
       TYPEORM_PORT: 5432
-      PORT: 3000
+      PORT: 8080
+      RUES_API_BASE_URL: "https://ollama-rues.5n921h.easypanel.host"
     ports:
-      - "3000:3000"
+      - "8080:8080"
     networks:
       - backend-network
 
