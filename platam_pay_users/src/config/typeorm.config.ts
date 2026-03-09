@@ -19,4 +19,5 @@ const TypeormConfig = {
   },
 };
 export default TypeormConfig;
+
 export const dataSource = new DataSource(TypeormConfig as DataSourceOptions);
