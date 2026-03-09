@@ -6,9 +6,7 @@ export class PartnersMapper {
     return {
       id: entity.id,
       externalId: entity.externalId,
-      countryCode: entity.countryCode,
-      companyName: entity.companyName,
-      tradeName: entity.tradeName,
+      businessId: entity.businessId,
       acronym: entity.acronym,
       logoUrl: entity.logoUrl,
       coBrandingLogoUrl: entity.coBrandingLogoUrl,
@@ -34,9 +32,7 @@ export class PartnersMapper {
     const entity = new PartnersEntity();
     entity.id = domain.id;
     entity.externalId = domain.externalId;
-    entity.countryCode = domain.countryCode;
-    entity.companyName = domain.companyName;
-    entity.tradeName = domain.tradeName;
+    entity.businessId = domain.businessId;
     entity.acronym = domain.acronym;
     entity.logoUrl = domain.logoUrl;
     entity.coBrandingLogoUrl = domain.coBrandingLogoUrl;

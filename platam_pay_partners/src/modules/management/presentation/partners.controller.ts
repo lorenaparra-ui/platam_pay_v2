@@ -45,9 +45,7 @@ import {
 function toResponseDto(domain: Partner): PartnerResponseDto {
   const dto = new PartnerResponseDto();
   dto.externalId = domain.externalId;
-  dto.countryCode = domain.countryCode;
-  dto.companyName = domain.companyName;
-  dto.tradeName = domain.tradeName;
+  dto.businessId = domain.businessId;
   dto.acronym = domain.acronym;
   dto.logoUrl = domain.logoUrl;
   dto.coBrandingLogoUrl = domain.coBrandingLogoUrl;
@@ -93,9 +91,7 @@ export class PartnersController {
     @Body() body: CreatePartnerRequestDto,
   ): Promise<PartnerResponseDto> {
     const payload: CreatePartnerPayload = {
-      countryCode: body.countryCode,
-      companyName: body.companyName,
-      tradeName: body.tradeName,
+      businessId: body.businessId,
       acronym: body.acronym,
       logoUrl: body.logoUrl ?? null,
       coBrandingLogoUrl: body.coBrandingLogoUrl ?? null,
@@ -127,7 +123,7 @@ export class PartnersController {
   @ApiQuery({
     name: "search",
     required: false,
-    description: "Busca partners por razon social",
+    description: "Busca partners por acronimo",
   })
   @ApiResponse({
     status: 200,
@@ -187,9 +183,7 @@ export class PartnersController {
   ): Promise<PartnerResponseDto> {
     const updated = await this.executeWithUniqueConstraintHandling(() =>
       this.updatePartnerByExternalIdUseCase.execute(externalId, {
-        countryCode: body.countryCode,
-        companyName: body.companyName,
-        tradeName: body.tradeName,
+        businessId: body.businessId,
         acronym: body.acronym,
         logoUrl: body.logoUrl,
         coBrandingLogoUrl: body.coBrandingLogoUrl,
@@ -317,6 +311,14 @@ export class PartnersController {
         driverErrorCode === "23502"
       ) {
         throw new BadRequestException("Missing required value");
+      }
+
+      if (
+        error instanceof QueryFailedError &&
+        typeof driverErrorCode === "string" &&
+        driverErrorCode === "23503"
+      ) {
+        throw new BadRequestException("Invalid foreign key reference");
       }
 
       throw error;

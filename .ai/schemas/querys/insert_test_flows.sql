@@ -136,11 +136,11 @@ VALUES (
 -- =========================================================
 
 INSERT INTO "partners" (
-  "country_code", "company_name", "trade_name", "acronym",
+  "business_id", "acronym",
   "notification_email", "status_id"
 )
 VALUES (
-  'CO', 'Comercial Demo S.A.S.', 'demo_store', 'DEMO',
+  (SELECT id FROM "businesses" ORDER BY id DESC LIMIT 1), 'DEMO',
   'notificaciones@demo.test',
   get_status_id('partners', 'active')
 );
@@ -348,7 +348,7 @@ LIMIT 1;
 SELECT
   ca.id AS application_id,
   b.business_name,
-  p.company_name AS partner_name,
+  p.acronym AS partner_name,
   pc.name AS partner_category,
   sr.name AS sales_rep_name
 FROM "credit_applications_bnpl" ca

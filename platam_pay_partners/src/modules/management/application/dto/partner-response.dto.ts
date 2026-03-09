@@ -8,23 +8,10 @@ export class PartnerResponseDto {
   externalId: string;
 
   @ApiProperty({
-    example: "PL",
-    nullable: true,
-    description: "Codigo de pais del partner",
+    example: 42,
+    description: "ID interno del negocio asociado",
   })
-  countryCode: string | null;
-
-  @ApiProperty({
-    example: "Partner Demo S.A.S",
-    description: "Razon social del partner",
-  })
-  companyName: string;
-
-  @ApiProperty({
-    example: "partner_demo",
-    description: "Nombre comercial unico en minusculas y sin espacios",
-  })
-  tradeName: string;
+  businessId: number;
 
   @ApiProperty({
     example: "PDP",

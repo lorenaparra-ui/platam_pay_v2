@@ -3,14 +3,8 @@ import { BaseExternalIdEntity } from "./base-external-id.entity";
 
 @Entity({ name: "partners" })
 export class PartnersEntity extends BaseExternalIdEntity {
-  @Column({ name: "country_code", type: "varchar", length: 2, nullable: true })
-  countryCode: string | null;
-
-  @Column({ name: "company_name", type: "varchar", length: 255 })
-  companyName: string;
-
-  @Column({ name: "trade_name", type: "varchar", length: 255, unique: true })
-  tradeName: string;
+  @Column({ name: "business_id", type: "bigint" })
+  businessId: number;
 
   @Column({ name: "acronym", type: "varchar", length: 10, nullable: true })
   acronym: string | null;

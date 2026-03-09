@@ -231,6 +231,14 @@ export class PartnerCategoriesController {
         throw new BadRequestException("Missing required value");
       }
 
+      if (
+        error instanceof QueryFailedError &&
+        typeof driverErrorCode === "string" &&
+        driverErrorCode === "23503"
+      ) {
+        throw new BadRequestException("Invalid foreign key reference");
+      }
+
       throw error;
     }
   }

@@ -5,12 +5,9 @@ import {
   IsBoolean,
   IsEmail,
   IsInt,
-  IsLowercase,
-  NotContains,
   IsOptional,
   IsString,
   IsUrl,
-  Matches,
   MaxLength,
   Min,
   ValidateNested,
@@ -19,34 +16,12 @@ import { CreatePartnerCategoryRequestDto } from "@partner-categories/application
 
 export class CreatePartnerRequestDto {
   @ApiProperty({
-    example: "PL",
-    description: "Codigo de pais (2 caracteres)",
-    maxLength: 2,
+    example: 42,
+    description: "ID interno del negocio asociado",
   })
-  @IsString()
-  @Matches(/^[A-Z]{2}$/)
-  @MaxLength(2)
-  countryCode: string;
-
-  @ApiProperty({
-    example: "Partner Demo S.A.S",
-    description: "Razon social del partner",
-    maxLength: 255,
-  })
-  @IsString()
-  @MaxLength(255)
-  companyName: string;
-
-  @ApiProperty({
-    example: "partner_demo",
-    description: "Nombre comercial unico en minusculas y sin espacios",
-    maxLength: 255,
-  })
-  @IsString()
-  @IsLowercase()
-  @NotContains(" ")
-  @MaxLength(255)
-  tradeName: string;
+  @IsInt()
+  @Min(1)
+  businessId: number;
 
   @ApiProperty({
     example: "PDP",

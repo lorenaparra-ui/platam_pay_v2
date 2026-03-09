@@ -3,8 +3,8 @@ import { IsOptional, IsString, MaxLength } from "class-validator";
 
 export class PartnerListQueryDto {
   @ApiPropertyOptional({
-    example: "demo",
-    description: "Busca por razon social",
+    example: "PDP",
+    description: "Busca por acronimo",
   })
   @IsOptional()
   @IsString()

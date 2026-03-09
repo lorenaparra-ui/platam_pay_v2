@@ -7,14 +7,15 @@ Table statuses {
   display_name varchar(100) [not null]
   description text
   is_active boolean [not null, default: true]
-  created_at timestamptz [default: `now()`]
-  updated_at timestamptz [default: `now()`]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
 
   Indexes {
     (entity_type, code) [unique]
   }
 }
 
+// --- 1.1 Option Catalog ---
 Table options {
   id bigint [pk]
   external_id uuid [not null, unique]
@@ -24,8 +25,8 @@ Table options {
   description text
   sort_order int [not null, default: 0]
   is_active boolean [not null, default: true]
-  created_at timestamptz [default: `now()`]
-  updated_at timestamptz [default: `now()`]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
 
   Indexes {
     (option_group, code) [unique]
@@ -42,8 +43,8 @@ Table users {
   role_id bigint [ref: > roles.id]
   status_id bigint [not null, ref: > statuses.id, note: "default: get_status_id('users', 'pending') — pasa a active tras aprobación y firma"]
   last_login_at timestamptz
-  created_at timestamptz [default: `now()`]
-  updated_at timestamptz [default: `now()`]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
 }
 
 // --- 3. Access Control (RBAC) ---
@@ -52,8 +53,8 @@ Table roles {
   external_id uuid [not null, unique]
   name varchar(80) [not null, unique]
   description text
-  created_at timestamptz [default: `now()`]
-  updated_at timestamptz [default: `now()`]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
 }
 
 Table permissions {
@@ -61,8 +62,8 @@ Table permissions {
   external_id uuid [not null, unique]
   code varchar(120) [not null, unique]
   description text
-  created_at timestamptz [default: `now()`]
-  updated_at timestamptz [default: `now()`]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
 }
 
 Table role_permissions {
@@ -70,8 +71,8 @@ Table role_permissions {
   external_id uuid [not null, unique]
   role_id bigint [not null, ref: > roles.id]
   permission_id bigint [not null, ref: > permissions.id]
-  created_at timestamptz [default: `now()`]
-  updated_at timestamptz [default: `now()`]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
 
   Indexes {
     (role_id, permission_id) [unique]
@@ -89,25 +90,27 @@ Table currencies {
   thousand_separator varchar(1)
   decimal_separator varchar(1)
   is_active boolean [not null, default: true]
-  created_at timestamptz [default: `now()`]
-  updated_at timestamptz [default: `now()`]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+
 }
 
 Table cities {
   id bigint [pk]
   external_id uuid [not null, unique]
   country_name varchar(120) [not null]
-  country_code varchar(2) [not null]
+  country_code varchar(2) [not null, note: "CHECK: country_code ~ '^[A-Z]{2}$'"]
   state_name varchar(120) [not null]
-  state_code varchar(3)
+  state_code varchar(3) [note: "CHECK: state_code IS NULL OR state_code ~ '^[A-Z0-9]{2,3}$'"]
   city_name varchar(120) [not null]
   currency_id bigint [not null, ref: > currencies.id]
-  created_at timestamptz [default: `now()`]
-  updated_at timestamptz [default: `now()`]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
 
   Indexes {
     (country_code, state_name, city_name) [unique]
   }
+
 }
 
 Table persons {
@@ -126,8 +129,8 @@ Table persons {
   residential_address text
   business_address text
   city_id bigint [ref: > cities.id]
-  created_at timestamptz [default: `now()`]
-  updated_at timestamptz [default: `now()`]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
 }
 
 // Renombrada desde companies — cubre negocios PN y empresas formales PJ
@@ -135,11 +138,10 @@ Table businesses {
   id bigint [pk]
   external_id uuid [not null, unique]
   user_id bigint [not null, ref: > users.id]
-  country_code varchar(2)
   city_id bigint [ref: > cities.id]
 
   // Discriminador PN / PJ
-  entity_type varchar(10) [not null, note: "PN | PJ"]
+  entity_type varchar(10) [not null, note: "PN | PJ. CHECK: entity_type IN ('PN','PJ')"]
 
   // Campos comunes PN y PJ
   business_name varchar(255) [note: "Nombre comercial del negocio. Principal para PN, complementario para PJ"]
@@ -153,8 +155,9 @@ Table businesses {
   tax_id varchar(50) [unique, note: "NIT / RUT. Requerido para PJ"]
   year_of_establishment int [note: "Año de constitución legal. Relevante para PJ"]
 
-  created_at timestamptz [default: `now()`]
-  updated_at timestamptz [default: `now()`]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+
 }
 
 // --- 5. Corporate Structure & Guarantors ---
@@ -164,8 +167,8 @@ Table legal_representatives {
   business_id bigint [not null, ref: > businesses.id]
   person_id bigint [not null, ref: > persons.id]
   is_primary boolean [default: true]
-  created_at timestamptz [default: `now()`]
-  updated_at timestamptz [default: `now()`]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
 }
 
 Table shareholders {
@@ -178,8 +181,9 @@ Table shareholders {
   credit_check_required boolean [default: false]
   credit_check_completed boolean [default: false]
   is_legal_representative boolean [default: false]
-  created_at timestamptz [default: `now()`]
-  updated_at timestamptz [default: `now()`]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+
 }
 
 Table guarantors {
@@ -188,23 +192,22 @@ Table guarantors {
   credit_application_id bigint [not null, ref: > credit_applications_bnpl.id]
   person_id bigint [not null, ref: > persons.id]
   contract_signer_id bigint [ref: > contract_signers.id]
-  guarantor_type varchar(20) [not null, note: "one of: personal, corporate, spousal, third_party"]
+  guarantor_type varchar(20) [not null]
   relationship_to_applicant varchar(100)
   is_primary_guarantor boolean [default: false]
   selected_after_credit_check boolean [default: false]
   signature_url text
   signature_date timestamptz
-  created_at timestamptz [default: `now()`]
-  updated_at timestamptz [default: `now()`]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+
 }
 
 // --- 6. Partners & Product Categories ---
 Table partners {
   id bigint [pk]
   external_id uuid [not null, unique]
-  country_code varchar(2)
-  company_name varchar(255) [not null]
-  trade_name varchar(255)
+  business_id bigint [not null, ref: > businesses.id]
   acronym varchar(10)
   logo_url text
   co_branding_logo_url text
@@ -221,8 +224,8 @@ Table partners {
   default_rep_id bigint [ref: > sales_representatives.id]
   default_category_id bigint [ref: > partner_categories.id]
   status_id bigint [not null, ref: > statuses.id, note: "default: get_status_id('partners', 'active')"]
-  created_at timestamptz [default: `now()`]
-  updated_at timestamptz [default: `now()`]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
 }
 
 Table partner_categories {
@@ -237,8 +240,9 @@ Table partner_categories {
   delay_days int [not null]
   term_days int [not null]
   status_id bigint [not null, ref: > statuses.id, note: "default: get_status_id('partner_categories', 'active')"]
-  created_at timestamptz [default: `now()`]
-  updated_at timestamptz [default: `now()`]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+
 }
 
 // --- 7. Credit Onboarding (BNPL Specific) & AI Analysis ---
@@ -255,13 +259,13 @@ Table credit_applications_bnpl {
   business_id bigint [ref: > businesses.id, note: "FK al negocio del solicitante"]
 
   // Datos del negocio al momento de la solicitud [A]
-  number_of_locations int
-  number_of_employees int
-  business_seniority_id bigint [not null, ref: > options.id, note: "group: business_seniority, default: get_option_id('business_seniority', 'lt_1y')"]
+  number_of_locations int [note: "CHECK: number_of_locations >= 0"]
+  number_of_employees int [note: "CHECK: number_of_employees >= 0"]
+  business_seniority_id bigint [ref: > options.id, note: "Alineado con FK/trigger SQL para option_group 'business_seniority'"]
   sector_experience varchar
-  business_flagship_m2 int [note: "Tamaño en m² del local principal. Min: 1"]
+  business_flagship_m2 int [note: "Tamaño en m² del local principal. CHECK: NULL o >= 1"]
   business_has_rent boolean [note: "Indica si arrienda el/los local(es) donde opera el negocio"]
-  business_rent_amount bigint [note: "Valor mensual total de arriendos en COP. Condicional: solo si business_has_rent = true. Min: 100000"]
+  business_rent_amount bigint [note: "Valor mensual total de arriendos en COP. Condicional: solo si business_has_rent = true. CHECK: NULL o >= 0"]
 
   // Datos financieros al momento de la solicitud [A]
   monthly_income bigint
@@ -272,7 +276,7 @@ Table credit_applications_bnpl {
   requested_credit_line bigint
   is_current_client boolean [default: false]
 
-  status_id bigint [not null, ref: > statuses.id, note: "default: get_status_id('credit_applications_bnpl', 'en_estudio')"]
+  status_id bigint [not null, ref: > statuses.id, note: "default: get_status_id('credit_applications_bnpl', 'in_study')"]
   submission_date timestamptz
   approval_date timestamptz
   rejection_reason varchar(500)
@@ -280,15 +284,16 @@ Table credit_applications_bnpl {
   credit_study_date timestamptz
   credit_score decimal(8,2)
   credit_decision varchar
-  approved_credit_line bigint
+  approved_credit_line bigint [note: "CHECK: NULL o >= 0"]
   analyst_report text
   risk_profile varchar
 
   privacy_policy_accepted boolean [default: false]
   privacy_policy_date timestamptz
 
-  created_at timestamptz [default: `now()`]
-  updated_at timestamptz [default: `now()`]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+
 }
 
 Table ai_agent_analysis {
@@ -300,8 +305,8 @@ Table ai_agent_analysis {
   agent_analysis_timestamptz timestamptz
   agent_recommended_loc bigint
   agent_recomendation bigint
-  created_at timestamptz [default: `now()`]
-  updated_at timestamptz [default: `now()`]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
 }
 
 Table sales_representatives {
@@ -312,8 +317,8 @@ Table sales_representatives {
   name varchar [not null]
   role varchar [not null]
   status_id bigint [not null, ref: > statuses.id, note: "default: get_status_id('sales_representatives', 'active')"]
-  created_at timestamptz [default: `now()`]
-  updated_at timestamptz [default: `now()`]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
 }
 
 // --- 8. Contracts & Signatures ---
@@ -327,8 +332,8 @@ Table contracts {
   original_file_url text
   signed_file_url text
   form_answers_json jsonb
-  created_at timestamptz [default: `now()`]
-  updated_at timestamptz [default: `now()`]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
 }
 
 Table contract_signers {
@@ -347,8 +352,8 @@ Table contract_signers {
   document_verse_photo_url text
   selfie_photo_url text
   signature_image_url text
-  created_at timestamptz [default: `now()`]
-  updated_at timestamptz [default: `now()`]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
 }
 
 // --- 9. Product Portfolio & Risk ---
@@ -358,21 +363,22 @@ Table user_products {
   user_id bigint [not null, ref: > users.id]
   product_type varchar [not null]
   activated_at timestamptz [not null]
-  created_at timestamptz [default: `now()`]
-  updated_at timestamptz [default: `now()`]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
 }
 
 Table product_bnpl {
   id bigint [pk]
   external_id uuid [not null, unique]
   user_product_id bigint [not null, unique, ref: > user_products.id]
-  credit_limit bigint [not null]
-  available_credit_limit bigint [not null]
+  credit_limit bigint [not null, note: "CHECK: credit_limit >= 0"]
+  available_credit_limit bigint [not null, note: "CHECK: available_credit_limit >= 0 y <= credit_limit"]
   status_id bigint [not null, ref: > statuses.id, note: "default: get_status_id('product_bnpl', 'active')"]
   has_active_payment_plan boolean [default: false]
   notification_channels text[]
-  created_at timestamptz [default: `now()`]
-  updated_at timestamptz [default: `now()`]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+
 }
 
 Table bnpl_categories {
@@ -380,8 +386,8 @@ Table bnpl_categories {
   external_id uuid [not null, unique]
   product_bnpl_id bigint [ref: > product_bnpl.id]
   category_id bigint [ref: > partner_categories.id]
-  created_at timestamptz [default: `now()`]
-  updated_at timestamptz [default: `now()`]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
 }
 
 Table risk_profile {
@@ -397,8 +403,8 @@ Table risk_profile {
   risk_ai_reasoning text
   json_proyections jsonb
   json_weights jsonb
-  created_at timestamptz [default: `now()`]
-  updated_at timestamptz [default: `now()`]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
 }
 
 // --- 10. Operational Data ---
@@ -411,9 +417,9 @@ Table documents {
   document_type varchar [not null]
   document_url text [not null]
   verification_status_id bigint [not null, ref: > statuses.id, note: "default: get_status_id('documents', 'pending')"]
-  upload_date timestamptz [default: `now()`]
-  created_at timestamptz [default: `now()`]
-  updated_at timestamptz [default: `now()`]
+  upload_date timestamptz [not null, default: `now()`]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
 }
 
 Table credit_reports {
@@ -426,6 +432,6 @@ Table credit_reports {
   report_date date [not null]
   bureau_name varchar
   full_report_json jsonb
-  created_at timestamptz [default: `now()`]
-  updated_at timestamptz [default: `now()`]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
 }

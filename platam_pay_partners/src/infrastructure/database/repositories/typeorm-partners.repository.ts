@@ -23,7 +23,7 @@ export class TypeOrmPartnersRepository implements PartnerRepositoryPort {
   async findAll(search?: string): Promise<Partner[]> {
     const trimmedSearch = search?.trim();
     const where = trimmedSearch
-      ? [{ companyName: ILike(`%${trimmedSearch}%`) }]
+      ? [{ acronym: ILike(`%${trimmedSearch}%`) }]
       : undefined;
 
     const partners = await this.repository.find({
@@ -53,6 +53,7 @@ export class TypeOrmPartnersRepository implements PartnerRepositoryPort {
   }
 
   async create(payload: CreatePartnerPayload): Promise<Partner> {
+    await this.ensureBusinessIdExists(payload.businessId);
     if (payload.statusId !== undefined) {
       await this.ensurePartnerStatusId(payload.statusId);
     }
@@ -65,9 +66,7 @@ export class TypeOrmPartnersRepository implements PartnerRepositoryPort {
 
       const createdPartner = await partnersRepository.save(
         partnersRepository.create({
-          countryCode: payload.countryCode,
-          companyName: payload.companyName,
-          tradeName: payload.tradeName,
+          businessId: payload.businessId,
           acronym: payload.acronym,
           logoUrl: payload.logoUrl ?? null,
           coBrandingLogoUrl: payload.coBrandingLogoUrl ?? null,
@@ -122,6 +121,9 @@ export class TypeOrmPartnersRepository implements PartnerRepositoryPort {
     externalId: string,
     payload: UpdatePartnerPayload,
   ): Promise<Partner | null> {
+    if (payload.businessId !== undefined) {
+      await this.ensureBusinessIdExists(payload.businessId);
+    }
     if (payload.statusId !== undefined) {
       await this.ensurePartnerStatusId(payload.statusId);
     }
@@ -229,5 +231,15 @@ export class TypeOrmPartnersRepository implements PartnerRepositoryPort {
     );
 
     return Array.isArray(rawResult) && rawResult.length > 0;
+  }
+
+  private async ensureBusinessIdExists(businessId: number): Promise<void> {
+    const rawResult: unknown = await this.dataSource.query(
+      `SELECT 1 FROM businesses WHERE id = $1 LIMIT 1`,
+      [businessId],
+    );
+    if (!Array.isArray(rawResult) || rawResult.length === 0) {
+      throw new BadRequestException(`Invalid businessId ${businessId}`);
+    }
   }
 }

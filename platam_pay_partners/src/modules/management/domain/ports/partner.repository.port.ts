@@ -15,9 +15,7 @@ export interface CreatePartnerCategoryPayload {
 }
 
 export interface CreatePartnerPayload {
-  countryCode: string;
-  companyName: string;
-  tradeName: string;
+  businessId: number;
   acronym: string;
   logoUrl?: string | null;
   coBrandingLogoUrl?: string | null;
@@ -38,9 +36,7 @@ export interface CreatePartnerPayload {
 }
 
 export interface UpdatePartnerPayload {
-  countryCode?: string | null;
-  companyName?: string;
-  tradeName?: string;
+  businessId?: number;
   acronym?: string | null;
   logoUrl?: string | null;
   coBrandingLogoUrl?: string | null;
