@@ -26,6 +26,19 @@ export class GetCitiesUseCase {
     return models.map(CityResponseDto.fromDomain);
   }
 
+  async executeByCountryName(countryName: string): Promise<CityResponseDto[]> {
+    const models = await this.repository.findByCountryName(countryName);
+    return models.map(CityResponseDto.fromDomain);
+  }
+
+  async executeByCountryCodeAndName(
+    countryCode: string,
+    countryName: string,
+  ): Promise<CityResponseDto[]> {
+    const models = await this.repository.findByCountryCodeAndName(countryCode, countryName);
+    return models.map(CityResponseDto.fromDomain);
+  }
+
   async executeByCountryAndState(
     countryCode: string,
     stateName: string,

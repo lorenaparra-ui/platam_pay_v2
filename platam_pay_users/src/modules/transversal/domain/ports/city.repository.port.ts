@@ -12,6 +12,8 @@ export interface CityRepositoryPort {
   findById(id: number): Promise<City | null>;
   findByExternalId(externalId: string): Promise<City | null>;
   findByCountryCode(countryCode: string): Promise<City[]>;
+  findByCountryName(countryName: string): Promise<City[]>;
+  findByCountryCodeAndName(countryCode: string, countryName: string): Promise<City[]>;
   findByCountryAndState(countryCode: string, stateName: string): Promise<City[]>;
   findDistinctCountries(): Promise<CountryItem[]>;
 }

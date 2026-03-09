@@ -38,6 +38,22 @@ export class TypeOrmCityRepository implements CityRepositoryPort {
     return entities.map(CityMapper.toDomain);
   }
 
+  async findByCountryName(countryName: string): Promise<City[]> {
+    const entities = await this.repository.find({
+      where: { countryName },
+      order: { stateName: 'ASC', cityName: 'ASC' },
+    });
+    return entities.map(CityMapper.toDomain);
+  }
+
+  async findByCountryCodeAndName(countryCode: string, countryName: string): Promise<City[]> {
+    const entities = await this.repository.find({
+      where: { countryCode, countryName },
+      order: { stateName: 'ASC', cityName: 'ASC' },
+    });
+    return entities.map(CityMapper.toDomain);
+  }
+
   async findByCountryAndState(countryCode: string, stateName: string): Promise<City[]> {
     const entities = await this.repository.find({
       where: { countryCode, stateName },
