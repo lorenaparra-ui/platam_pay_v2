@@ -10,8 +10,8 @@ export class GetBusinessInformationUseCase {
     private readonly api: BusinessInformationApiPort,
   ) {}
 
-  async execute(tax_id: string): Promise<BusinessInformationResponseDto | null> {
-    const model = await this.api.getByTaxId(tax_id);
+  async execute(taxId: string): Promise<BusinessInformationResponseDto | null> {
+    const model = await this.api.getByTaxId(taxId);
     return model ? BusinessInformationResponseDto.fromDomain(model) : null;
   }
 }

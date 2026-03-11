@@ -6,21 +6,21 @@ import { BusinessInformationResponseDto } from '../application/dto/business-info
 @ApiTags('Transversal - Business Information')
 @Controller('transversal/business-information')
 export class BusinessInformationController {
-  constructor(private readonly get_business_information_use_case: GetBusinessInformationUseCase) {}
+  constructor(private readonly getBusinessInformationUseCase: GetBusinessInformationUseCase) {}
 
-  @Get(':tax_id')
+  @Get(':taxId')
   @ApiOperation({ summary: 'Obtener información empresarial por NIT desde API externa RUES' })
-  @ApiParam({ name: 'tax_id', description: 'NIT / identificador tributario' })
+  @ApiParam({ name: 'taxId', description: 'NIT / identificador tributario' })
   @ApiResponse({
     status: 200,
     description: 'Información empresarial encontrada',
     type: BusinessInformationResponseDto,
   })
   @ApiResponse({ status: 404, description: 'No se encontró información para el NIT indicado' })
-  async getByTaxId(@Param('tax_id') tax_id: string): Promise<BusinessInformationResponseDto> {
-    const result = await this.get_business_information_use_case.execute(tax_id);
+  async getByTaxId(@Param('taxId') taxId: string): Promise<BusinessInformationResponseDto> {
+    const result = await this.getBusinessInformationUseCase.execute(taxId);
     if (!result) {
-      throw new NotFoundException(`No se encontró información empresarial para el NIT ${tax_id}`);
+      throw new NotFoundException(`No se encontró información empresarial para el NIT ${taxId}`);
     }
     return result;
   }

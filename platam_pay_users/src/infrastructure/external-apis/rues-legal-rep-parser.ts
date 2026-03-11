@@ -55,8 +55,8 @@ export function parseLegalRepresentatives(legal_rep_text: string | undefined): L
     const match = line.match(DOC_PATTERN);
     if (!match) continue;
 
-    const document_type = match[1].trim();
-    const document_number = match[2].replace(/\s/g, '').trim();
+    const documentType = match[1].trim();
+    const documentNumber = match[2].replace(/\s/g, '').trim();
     const { role: role_start, name: name_start } = parseBlockFirstLine(line, match);
 
     let role = role_start;
@@ -73,8 +73,8 @@ export function parseLegalRepresentatives(legal_rep_text: string | undefined): L
     result.push(
       new LegalRepresentative(
         name.replace(/\s+/g, ' ').trim(),
-        document_type,
-        document_number,
+        documentType,
+        documentNumber,
         role.replace(/\s+/g, ' ').trim(),
       ),
     );

@@ -23,6 +23,7 @@ export class CityController {
   @Get()
   @ApiOperation({ summary: 'Obtener todas las ciudades o filtrar por país/estado' })
   @ApiQuery({ name: 'countryCode', required: false, description: 'Código ISO del país (2 caracteres)' })
+  @ApiQuery({ name: 'countryName', required: false, description: 'Nombre del país' })
   @ApiQuery({ name: 'stateName', required: false, description: 'Nombre del estado/departamento' })
   @ApiResponse({
     status: 200,
@@ -31,13 +32,20 @@ export class CityController {
   })
   async findAll(
     @Query('countryCode') countryCode?: string,
+    @Query('countryName') countryName?: string,
     @Query('stateName') stateName?: string,
   ): Promise<CityResponseDto[]> {
     if (countryCode && stateName) {
       return this.getCitiesUseCase.executeByCountryAndState(countryCode, stateName);
     }
+    if (countryCode && countryName) {
+      return this.getCitiesUseCase.executeByCountryCodeAndName(countryCode, countryName);
+    }
     if (countryCode) {
       return this.getCitiesUseCase.executeByCountryCode(countryCode);
+    }
+    if (countryName) {
+      return this.getCitiesUseCase.executeByCountryName(countryName);
     }
     return this.getCitiesUseCase.execute();
   }

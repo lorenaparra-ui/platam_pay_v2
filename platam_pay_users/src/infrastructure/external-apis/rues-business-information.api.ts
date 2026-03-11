@@ -7,14 +7,14 @@ import { parseLegalRepresentatives } from './rues-legal-rep-parser';
 
 @Injectable()
 export class RuesBusinessInformationApi implements BusinessInformationApiPort {
-  constructor(private readonly config_service: ConfigService) {}
+  constructor(private readonly configService: ConfigService) {}
 
-  async getByTaxId(tax_id: string): Promise<BusinessInformation | null> {
-    const base_url = this.config_service.get<string>('config.rues_api_base_url');
-    if (!base_url) {
+  async getByTaxId(taxId: string): Promise<BusinessInformation | null> {
+    const baseUrl = this.configService.get<string>('config.rues_api_base_url');
+    if (!baseUrl) {
       throw new Error('config.rues_api_base_url (RUES_API_BASE_URL) no está definida');
     }
-    const url = `${base_url.replace(/\/$/, '')}/api/scrape?nit=${encodeURIComponent(tax_id)}`;
+    const url = `${baseUrl.replace(/\/$/, '')}/api/scrape?nit=${encodeURIComponent(taxId)}`;
 
     const response = await fetch(url, { method: 'GET' });
     if (!response.ok) {
@@ -27,12 +27,12 @@ export class RuesBusinessInformationApi implements BusinessInformationApiPort {
     }
 
     const first = data.results[0];
-    const legal_representatives = parseLegalRepresentatives(first.legalRep);
+    const legalRepresentatives = parseLegalRepresentatives(first.legalRep);
 
     return new BusinessInformation(
       first.name ?? '',
-      first.nit ?? tax_id,
-      legal_representatives,
+      first.nit ?? taxId,
+      legalRepresentatives,
     );
   }
 }
