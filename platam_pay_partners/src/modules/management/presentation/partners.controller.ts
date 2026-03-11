@@ -22,19 +22,16 @@ import {
   ApiTags,
 } from "@nestjs/swagger";
 import { QueryFailedError } from "typeorm";
-import { CreatePartnerCategoryRequestDto } from "@partner-categories/application/dto/create-partner-category-request.dto";
 import { ChangePartnerStatusRequestDto } from "../application/dto/change-partner-status-request.dto";
 import { CreatePartnerRequestDto } from "../application/dto/create-partner-request.dto";
 import { PartnerListQueryDto } from "../application/dto/partner-list-query.dto";
 import { PartnerResponseDto } from "../application/dto/partner-response.dto";
-import { RegeneratePartnerApiKeyResponseDto } from "../application/dto/regenerate-partner-api-key-response.dto";
 import { UpdatePartnerRequestDto } from "../application/dto/update-partner-request.dto";
 import { ChangePartnerStatusUseCase } from "../application/use-cases/change-partner-status.use-case";
 import { CreatePartnerUseCase } from "../application/use-cases/create-partner.use-case";
 import { DeletePartnerByExternalIdUseCase } from "../application/use-cases/delete-partner-by-external-id.use-case";
 import { FindAllPartnersUseCase } from "../application/use-cases/find-all-partners.use-case";
 import { FindPartnerByExternalIdUseCase } from "../application/use-cases/find-partner-by-external-id.use-case";
-import { RegeneratePartnerApiKeyUseCase } from "../application/use-cases/regenerate-partner-api-key.use-case";
 import { UpdatePartnerByExternalIdUseCase } from "../application/use-cases/update-partner-by-external-id.use-case";
 import { Partner } from "../domain/models/partner.model";
 import {
@@ -76,7 +73,6 @@ export class PartnersController {
     private readonly updatePartnerByExternalIdUseCase: UpdatePartnerByExternalIdUseCase,
     private readonly deletePartnerByExternalIdUseCase: DeletePartnerByExternalIdUseCase,
     private readonly changePartnerStatusUseCase: ChangePartnerStatusUseCase,
-    private readonly regeneratePartnerApiKeyUseCase: RegeneratePartnerApiKeyUseCase,
   ) {}
 
   @Post()
@@ -252,29 +248,8 @@ export class PartnersController {
     return toResponseDto(updated);
   }
 
-  @Post(":externalId/api-key/regenerate")
-  @ApiOperation({ summary: "Regenerar API key del partner" })
-  @ApiParam({ name: "externalId", description: "UUID publico del partner" })
-  @ApiResponse({
-    status: 201,
-    description: "API key regenerada (valor visible solo una vez)",
-    type: RegeneratePartnerApiKeyResponseDto,
-  })
-  @ApiResponse({ status: 404, description: "Partner no encontrado" })
-  async regenerateApiKey(
-    @Param("externalId", ParseUUIDPipe) externalId: string,
-  ): Promise<RegeneratePartnerApiKeyResponseDto> {
-    const { updated, apiKey } =
-      await this.regeneratePartnerApiKeyUseCase.execute(externalId);
-    if (!updated) {
-      throw new NotFoundException("Partner not found");
-    }
-
-    return { apiKey };
-  }
-
   private mapCategories(
-    categories?: CreatePartnerCategoryRequestDto[],
+    categories?: CreatePartnerRequestDto["categories"],
   ): CreatePartnerPayload["categories"] {
     return categories?.map(
       (category): CreatePartnerCategoryPayload => ({

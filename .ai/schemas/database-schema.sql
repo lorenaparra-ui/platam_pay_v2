@@ -65,12 +65,17 @@ INSERT INTO "statuses" ("entity_type", "code", "display_name") VALUES
   ('documents', 'verified', 'Verificado'),
   ('documents', 'rejected', 'Rechazado');
 
-INSERT INTO "options" ("option_group", "code", "display_name", "sort_order") VALUES
-  ('business_seniority', 'lt_1y', 'Menos de 1 año', 10),
-  ('business_seniority', 'y1_2', '1 a 2 años', 20),
-  ('business_seniority', 'y2_5', '2 a 5 años', 30),
-  ('business_seniority', 'y5_10', '5 a 10 años', 40),
-  ('business_seniority', 'gt_10y', 'Más de 10 años', 50);
+INSERT INTO "options" ("option_group", "code", "display_name", "description", "sort_order", "is_active") VALUES
+  ('business_seniority', 'lt_1y', 'Menos de 1 año', NULL, 10, true),
+  ('business_seniority', 'y1_2', '1 a 2 años', NULL, 20, true),
+  ('business_seniority', 'y2_5', '2 a 5 años', NULL, 30, true),
+  ('business_seniority', 'y5_10', '5 a 10 años', NULL, 40, true),
+  ('business_seniority', 'gt_10y', 'Más de 10 años', NULL, 50, true),
+  ('roles', 'admin', 'Administrador', NULL, 10, true),
+  ('roles', 'back_officer', 'Back Officer', NULL, 20, true),
+  ('roles', 'partner_operations', 'Partner operations', NULL, 30, true),
+  ('roles', 'client', 'Cliente', NULL, 40, true),
+  ('roles', 'sales_representative', 'Representante de ventas', NULL, 50, true);
 
 CREATE OR REPLACE FUNCTION get_status_id(p_entity_type text, p_code text)
 RETURNS BIGINT
@@ -307,7 +312,7 @@ CREATE TABLE "partners" (
   "light_color" varchar(20),
   "sales_rep_role_name" varchar(50) DEFAULT 'Sales Rep',
   "sales_rep_role_name_plural" varchar(50) DEFAULT 'Sales Reps',
-  "api_key_hash" varchar,
+  "api_key_hash" boolean DEFAULT false,
   "notification_email" varchar,
   "webhook_url" text,
   "send_sales_rep_voucher" boolean DEFAULT false,

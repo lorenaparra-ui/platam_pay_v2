@@ -52,8 +52,13 @@ export class PartnersEntity extends BaseExternalIdEntity {
   })
   salesRepRoleNamePlural: string | null;
 
-  @Column({ name: "api_key_hash", type: "varchar", nullable: true })
-  apiKeyHash: string | null;
+  @Column({
+    name: "api_key_hash",
+    type: "boolean",
+    default: false,
+    nullable: true,
+  })
+  apiKeyHash: boolean | null;
 
   @Column({ name: "notification_email", type: "varchar", nullable: true })
   notificationEmail: string | null;

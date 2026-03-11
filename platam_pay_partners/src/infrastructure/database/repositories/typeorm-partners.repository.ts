@@ -165,14 +165,6 @@ export class TypeOrmPartnersRepository implements PartnerRepositoryPort {
     return PartnersMapper.toDomain(updated);
   }
 
-  async setApiKeyHashByExternalId(
-    externalId: string,
-    apiKeyHash: string,
-  ): Promise<boolean> {
-    const result = await this.repository.update({ externalId }, { apiKeyHash });
-    return (result.affected ?? 0) > 0;
-  }
-
   private async resolveStatusId(
     entityType: string,
     code: string,

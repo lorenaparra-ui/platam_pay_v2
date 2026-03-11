@@ -216,7 +216,7 @@ Table partners {
   light_color varchar(20)
   sales_rep_role_name varchar(50) [default: 'Sales Rep']
   sales_rep_role_name_plural varchar(50) [default: 'Sales Reps']
-  api_key_hash varchar
+  api_key_hash boolean [default: false]
   notification_email varchar
   webhook_url text
   send_sales_rep_voucher boolean [default: false]

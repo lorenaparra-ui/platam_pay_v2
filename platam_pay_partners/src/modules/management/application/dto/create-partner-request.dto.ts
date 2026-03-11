@@ -8,11 +8,72 @@ import {
   IsOptional,
   IsString,
   IsUrl,
+  Matches,
   MaxLength,
   Min,
   ValidateNested,
 } from "class-validator";
-import { CreatePartnerCategoryRequestDto } from "@partner-categories/application/dto/create-partner-category-request.dto";
+
+class CreatePartnerInlineCategoryRequestDto {
+  @ApiProperty({
+    example: "Electro",
+    description: "Nombre de la categoria",
+    maxLength: 100,
+  })
+  @IsString()
+  @MaxLength(100)
+  name: string;
+
+  @ApiProperty({
+    example: "0.1500",
+    description: "Porcentaje de descuento en formato decimal",
+  })
+  @IsString()
+  @Matches(/^\d{1,2}(\.\d{1,4})?$/)
+  discountPercentage: string;
+
+  @ApiProperty({
+    example: "0.0200",
+    description: "Tasa de interes en formato decimal",
+  })
+  @IsString()
+  @Matches(/^\d{1,2}(\.\d{1,4})?$/)
+  interestRate: string;
+
+  @ApiPropertyOptional({
+    example: "0.0100",
+    description: "Comision de desembolso en formato decimal",
+  })
+  @IsOptional()
+  @IsString()
+  @Matches(/^\d{1,2}(\.\d{1,4})?$/)
+  disbursementFeePercent?: string;
+
+  @ApiPropertyOptional({
+    example: "25000",
+    description: "Comision minima de desembolso en centavos o unidad menor",
+  })
+  @IsOptional()
+  @IsString()
+  @Matches(/^\d+$/)
+  minimumDisbursementFee?: string;
+
+  @ApiProperty({
+    example: 3,
+    description: "Dias de retraso (> 0)",
+  })
+  @IsInt()
+  @Min(1)
+  delayDays: number;
+
+  @ApiProperty({
+    example: 30,
+    description: "Plazo en dias (> 0)",
+  })
+  @IsInt()
+  @Min(1)
+  termDays: number;
+}
 
 export class CreatePartnerRequestDto {
   @ApiProperty({
@@ -158,14 +219,14 @@ export class CreatePartnerRequestDto {
   statusId?: number;
 
   @ApiPropertyOptional({
-    type: [CreatePartnerCategoryRequestDto],
+    type: [CreatePartnerInlineCategoryRequestDto],
     description: "Categorias a crear en el mismo flujo del partner",
   })
   @IsOptional()
   @ValidateNested({ each: true })
-  @Type(() => CreatePartnerCategoryRequestDto)
+  @Type(() => CreatePartnerInlineCategoryRequestDto)
   @ArrayMinSize(1)
-  categories?: CreatePartnerCategoryRequestDto[];
+  categories?: CreatePartnerInlineCategoryRequestDto[];
 
   @ApiPropertyOptional({
     example: 0,

@@ -7,10 +7,8 @@ import { CreatePartnerUseCase } from "./application/use-cases/create-partner.use
 import { DeletePartnerByExternalIdUseCase } from "./application/use-cases/delete-partner-by-external-id.use-case";
 import { FindAllPartnersUseCase } from "./application/use-cases/find-all-partners.use-case";
 import { FindPartnerByExternalIdUseCase } from "./application/use-cases/find-partner-by-external-id.use-case";
-import { RegeneratePartnerApiKeyUseCase } from "./application/use-cases/regenerate-partner-api-key.use-case";
 import { UpdatePartnerByExternalIdUseCase } from "./application/use-cases/update-partner-by-external-id.use-case";
 import { PARTNERS_REPOSITORY } from "./domain/ports/partner.repository.port";
-import { ApiKeyService } from "./application/services/api-key.service";
 import { PartnersController } from "./presentation/partners.controller";
 
 @Module({
@@ -21,14 +19,12 @@ import { PartnersController } from "./presentation/partners.controller";
       provide: PARTNERS_REPOSITORY,
       useClass: TypeOrmPartnersRepository,
     },
-    ApiKeyService,
     CreatePartnerUseCase,
     FindAllPartnersUseCase,
     FindPartnerByExternalIdUseCase,
     UpdatePartnerByExternalIdUseCase,
     DeletePartnerByExternalIdUseCase,
     ChangePartnerStatusUseCase,
-    RegeneratePartnerApiKeyUseCase,
   ],
   exports: [PARTNERS_REPOSITORY],
 })

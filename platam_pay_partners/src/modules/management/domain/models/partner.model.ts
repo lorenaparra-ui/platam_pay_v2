@@ -10,7 +10,7 @@ export interface Partner {
   lightColor: string | null;
   salesRepRoleName: string | null;
   salesRepRoleNamePlural: string | null;
-  apiKeyHash: string | null;
+  apiKeyHash: boolean | null;
   notificationEmail: string | null;
   webhookUrl: string | null;
   sendSalesRepVoucher: boolean;

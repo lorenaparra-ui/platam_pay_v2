@@ -62,10 +62,10 @@ export class CreatePartnerCategoryRequestDto {
 
   @ApiProperty({
     example: 3,
-    description: "Dias de retraso",
+    description: "Dias de retraso (> 0)",
   })
   @IsInt()
-  @Min(0)
+  @Min(1)
   delayDays: number;
 
   @ApiProperty({

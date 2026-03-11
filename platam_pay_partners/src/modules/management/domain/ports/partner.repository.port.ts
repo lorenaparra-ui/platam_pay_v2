@@ -68,8 +68,4 @@ export interface PartnerRepositoryPort {
     externalId: string,
     statusCode: PartnerStatusCode,
   ): Promise<Partner | null>;
-  setApiKeyHashByExternalId(
-    externalId: string,
-    apiKeyHash: string,
-  ): Promise<boolean>;
 }
