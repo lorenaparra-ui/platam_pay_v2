@@ -1,5 +1,5 @@
 import { StatusEntity } from '../entities/status.entity';
-import { Status } from '../../../modules/transversal/domain/models/status.model';
+import { Status } from '@transversal/domain/models/status.model';
 
 export class StatusMapper {
   static toDomain(entity: StatusEntity): Status {

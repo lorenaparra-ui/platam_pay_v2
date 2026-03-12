@@ -14,15 +14,18 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PartnersController = void 0;
 const common_1 = require("@nestjs/common");
+const platform_express_1 = require("@nestjs/platform-express");
 const swagger_1 = require("@nestjs/swagger");
 const typeorm_1 = require("typeorm");
 const change_partner_status_request_dto_1 = require("../application/dto/change-partner-status-request.dto");
 const create_partner_request_dto_1 = require("../application/dto/create-partner-request.dto");
 const partner_list_query_dto_1 = require("../application/dto/partner-list-query.dto");
 const partner_response_dto_1 = require("../application/dto/partner-response.dto");
+const register_partner_request_dto_1 = require("../application/dto/register-partner-request.dto");
 const update_partner_request_dto_1 = require("../application/dto/update-partner-request.dto");
 const change_partner_status_use_case_1 = require("../application/use-cases/change-partner-status.use-case");
 const create_partner_use_case_1 = require("../application/use-cases/create-partner.use-case");
+const register_partner_use_case_1 = require("../application/use-cases/register-partner.use-case");
 const delete_partner_by_external_id_use_case_1 = require("../application/use-cases/delete-partner-by-external-id.use-case");
 const find_all_partners_use_case_1 = require("../application/use-cases/find-all-partners.use-case");
 const find_partner_by_external_id_use_case_1 = require("../application/use-cases/find-partner-by-external-id.use-case");
@@ -52,18 +55,28 @@ function toResponseDto(domain) {
 }
 let PartnersController = class PartnersController {
     createPartnerUseCase;
+    registerPartnerUseCase;
     findAllPartnersUseCase;
     findPartnerByExternalIdUseCase;
     updatePartnerByExternalIdUseCase;
     deletePartnerByExternalIdUseCase;
     changePartnerStatusUseCase;
-    constructor(createPartnerUseCase, findAllPartnersUseCase, findPartnerByExternalIdUseCase, updatePartnerByExternalIdUseCase, deletePartnerByExternalIdUseCase, changePartnerStatusUseCase) {
+    constructor(createPartnerUseCase, registerPartnerUseCase, findAllPartnersUseCase, findPartnerByExternalIdUseCase, updatePartnerByExternalIdUseCase, deletePartnerByExternalIdUseCase, changePartnerStatusUseCase) {
         this.createPartnerUseCase = createPartnerUseCase;
+        this.registerPartnerUseCase = registerPartnerUseCase;
         this.findAllPartnersUseCase = findAllPartnersUseCase;
         this.findPartnerByExternalIdUseCase = findPartnerByExternalIdUseCase;
         this.updatePartnerByExternalIdUseCase = updatePartnerByExternalIdUseCase;
         this.deletePartnerByExternalIdUseCase = deletePartnerByExternalIdUseCase;
         this.changePartnerStatusUseCase = changePartnerStatusUseCase;
+    }
+    async registerFull(body, files) {
+        const registerFiles = {
+            logo: files?.logo?.[0],
+            co_branding_logo: files?.coBrandingLogo?.[0],
+        };
+        const created = await this.executeWithUniqueConstraintHandling(() => this.registerPartnerUseCase.execute(body, registerFiles));
+        return toResponseDto(created);
     }
     async create(body) {
         const payload = {
@@ -179,6 +192,78 @@ let PartnersController = class PartnersController {
 };
 exports.PartnersController = PartnersController;
 __decorate([
+    (0, common_1.Post)("full"),
+    (0, common_1.UseInterceptors)((0, platform_express_1.FileFieldsInterceptor)([
+        { name: "logo", maxCount: 1 },
+        { name: "coBrandingLogo", maxCount: 1 },
+    ])),
+    (0, swagger_1.ApiConsumes)("multipart/form-data"),
+    (0, swagger_1.ApiOperation)({
+        summary: "Registro completo de partner",
+        description: "Crea usuario, business, sube logos, partner y categorías en un solo flujo.",
+    }),
+    (0, swagger_1.ApiBody)({
+        schema: {
+            type: "object",
+            required: [
+                "countryCode",
+                "legalName",
+                "tradeName",
+                "acronym",
+                "taxId",
+                "cityId",
+                "businessAddress",
+                "yearOfEstablishment",
+                "firstName",
+                "lastName",
+                "documentType",
+                "documentNumber",
+                "email",
+                "phone",
+            ],
+            properties: {
+                countryCode: { type: "string" },
+                legalName: { type: "string" },
+                tradeName: { type: "string" },
+                acronym: { type: "string" },
+                taxId: { type: "string" },
+                alias: { type: "string" },
+                cityId: { type: "string" },
+                businessAddress: { type: "string" },
+                yearOfEstablishment: { type: "number" },
+                firstName: { type: "string" },
+                lastName: { type: "string" },
+                documentType: { type: "string" },
+                documentNumber: { type: "string" },
+                email: { type: "string" },
+                phone: { type: "string" },
+                notificationEmail: { type: "string" },
+                webhookUrl: { type: "string" },
+                disbursementNotificationEmail: { type: "string" },
+                sendSalesRepVoucher: { type: "boolean" },
+                primaryColor: { type: "string" },
+                secondaryColor: { type: "string" },
+                lightColor: { type: "string" },
+                categories: { type: "array", items: { type: "object" } },
+                defaultCategoryIndex: { type: "number" },
+                logo: { type: "string", format: "binary" },
+                coBrandingLogo: { type: "string", format: "binary" },
+            },
+        },
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 201,
+        description: "Partner registrado",
+        type: partner_response_dto_1.PartnerResponseDto,
+    }),
+    (0, swagger_1.ApiResponse)({ status: 400, description: "Datos inválidos" }),
+    __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.UploadedFiles)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [register_partner_request_dto_1.RegisterPartnerRequestDto, Object]),
+    __metadata("design:returntype", Promise)
+], PartnersController.prototype, "registerFull", null);
+__decorate([
     (0, common_1.Post)(),
     (0, swagger_1.ApiOperation)({ summary: "Crear partner" }),
     (0, swagger_1.ApiBody)({ type: create_partner_request_dto_1.CreatePartnerRequestDto }),
@@ -280,6 +365,7 @@ exports.PartnersController = PartnersController = __decorate([
     (0, swagger_1.ApiTags)("partners"),
     (0, common_1.Controller)("partners/register"),
     __metadata("design:paramtypes", [create_partner_use_case_1.CreatePartnerUseCase,
+        register_partner_use_case_1.RegisterPartnerUseCase,
         find_all_partners_use_case_1.FindAllPartnersUseCase,
         find_partner_by_external_id_use_case_1.FindPartnerByExternalIdUseCase,
         update_partner_by_external_id_use_case_1.UpdatePartnerByExternalIdUseCase,

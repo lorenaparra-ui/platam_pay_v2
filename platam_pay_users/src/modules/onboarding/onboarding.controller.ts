@@ -18,9 +18,9 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import type { OnboardingRepositoryPort } from 'src/modules/transversal/domain/ports/onboarding.repository.port';
-import { ONBOARDING_REPOSITORY } from 'src/modules/transversal/domain/ports/onboarding.repository.port';
-import { Onboarding } from 'src/modules/transversal/domain/models/onboarding.model';
+import type { OnboardingRepositoryPort } from '@transversal/domain/ports/repository/onboarding.repository.port';
+import { ONBOARDING_REPOSITORY } from '@transversal/domain/ports/repository/onboarding.repository.port';
+import { Onboarding } from '@transversal/domain/models/onboarding.model';
 import { CreateOnboardingRequestDto } from './dto/create-onboarding-request.dto';
 import { OnboardingResponseDto } from './dto/onboarding-response.dto';
 import { UpdateOnboardingRequestDto } from './dto/update-onboarding-request.dto';

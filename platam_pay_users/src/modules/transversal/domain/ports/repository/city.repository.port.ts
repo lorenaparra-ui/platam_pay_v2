@@ -1,4 +1,4 @@
-import { City } from '../models/city.model';
+import { City } from '../../models/city.model';
 
 export const CITY_REPOSITORY = 'CITY_REPOSITORY';
 
