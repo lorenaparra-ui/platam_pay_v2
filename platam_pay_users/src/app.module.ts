@@ -15,6 +15,7 @@ import { UsersModule } from './modules/users/users.module';
 import { PersonsModule } from './modules/persons/persons.module';
 import { AuthModule } from './modules/auth/auth.module';
 
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -29,6 +30,7 @@ import { AuthModule } from './modules/auth/auth.module';
     UsersModule,
     PersonsModule,
     AuthModule,
+    
   ],
   controllers: [AppController],
   providers: [],

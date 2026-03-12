@@ -1,0 +1,35 @@
+import { BaseExternalIdEntity } from "./base-external-id.entity";
+export declare class CreditApplicationBnplEntity extends BaseExternalIdEntity {
+    userId: number;
+    userProductId: number | null;
+    partnerId: number | null;
+    partnerCategoryId: number | null;
+    salesRepId: number | null;
+    businessId: number | null;
+    numberOfLocations: number | null;
+    numberOfEmployees: number | null;
+    businessSeniorityId: number | null;
+    sectorExperience: string | null;
+    businessFlagshipM2: number | null;
+    businessHasRent: boolean | null;
+    businessRentAmount: number | null;
+    monthlyIncome: number | null;
+    monthlyExpenses: number | null;
+    monthlyPurchases: number | null;
+    currentPurchases: number | null;
+    totalAssets: number | null;
+    requestedCreditLine: number | null;
+    isCurrentClient: boolean;
+    statusId: number;
+    submissionDate: Date | null;
+    approvalDate: Date | null;
+    rejectionReason: string | null;
+    creditStudyDate: Date | null;
+    creditScore: string | null;
+    creditDecision: string | null;
+    approvedCreditLine: number | null;
+    analystReport: string | null;
+    riskProfile: string | null;
+    privacyPolicyAccepted: boolean;
+    privacyPolicyDate: Date | null;
+}

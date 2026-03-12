@@ -1,8 +1,6 @@
 import { BaseExternalIdEntity } from "./base-external-id.entity";
 export declare class PartnersEntity extends BaseExternalIdEntity {
-    countryCode: string | null;
-    companyName: string;
-    tradeName: string | null;
+    businessId: number;
     acronym: string | null;
     logoUrl: string | null;
     coBrandingLogoUrl: string | null;
@@ -11,7 +9,7 @@ export declare class PartnersEntity extends BaseExternalIdEntity {
     lightColor: string | null;
     salesRepRoleName: string | null;
     salesRepRoleNamePlural: string | null;
-    apiKeyHash: string | null;
+    apiKeyHash: boolean | null;
     notificationEmail: string | null;
     webhookUrl: string | null;
     sendSalesRepVoucher: boolean;

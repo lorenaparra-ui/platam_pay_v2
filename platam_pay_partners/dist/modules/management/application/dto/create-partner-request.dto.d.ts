@@ -1,8 +1,15 @@
+declare class CreatePartnerInlineCategoryRequestDto {
+    name: string;
+    discountPercentage: string;
+    interestRate: string;
+    disbursementFeePercent?: string;
+    minimumDisbursementFee?: string;
+    delayDays: number;
+    termDays: number;
+}
 export declare class CreatePartnerRequestDto {
-    countryCode?: string;
-    companyName: string;
-    tradeName?: string;
-    acronym?: string;
+    businessId: number;
+    acronym: string;
     logoUrl?: string;
     coBrandingLogoUrl?: string;
     primaryColor?: string;
@@ -17,4 +24,7 @@ export declare class CreatePartnerRequestDto {
     defaultRepId?: number;
     defaultCategoryId?: number;
     statusId?: number;
+    categories?: CreatePartnerInlineCategoryRequestDto[];
+    defaultCategoryIndex?: number;
 }
+export {};

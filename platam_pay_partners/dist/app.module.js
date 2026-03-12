@@ -17,6 +17,9 @@ const common_module_1 = require("./common/common.module");
 const app_config_1 = __importDefault(require("./config/app.config"));
 const infrastructure_module_1 = require("./infrastructure/infrastructure.module");
 const partners_module_1 = require("./modules/management/partners.module");
+const partner_categories_module_1 = require("./modules/partner-categories/partner-categories.module");
+const businesses_module_1 = require("./modules/businesses/businesses.module");
+const credit_applications_bnpl_module_1 = require("./modules/credit-applications-bnpl/credit-applications-bnpl.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -31,6 +34,9 @@ exports.AppModule = AppModule = __decorate([
             infrastructure_module_1.InfrastructureModule,
             common_module_1.CommonModule,
             partners_module_1.PartnersModule,
+            partner_categories_module_1.PartnerCategoriesModule,
+            businesses_module_1.BusinessesModule,
+            credit_applications_bnpl_module_1.CreditApplicationsBnplModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [],

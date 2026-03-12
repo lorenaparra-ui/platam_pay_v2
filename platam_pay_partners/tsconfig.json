@@ -27,6 +27,8 @@
       "@transversal/*": ["src/modules/transversal/*"],
       "@partners/*": ["src/modules/management/*"],
       "@partner-categories/*": ["src/modules/partner-categories/*"],
+      "@businesses/*": ["src/modules/businesses/*"],
+      "@credit-applications-bnpl/*": ["src/modules/credit-applications-bnpl/*"],
       "@common/*": ["src/common/*"]
     }
   }

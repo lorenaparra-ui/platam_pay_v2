@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { BusinessSeniorityEntity } from '../entities/business-seniority.entity';
-import { BusinessSeniorityRepositoryPort } from '../../../modules/transversal/domain/ports/business-seniority.repository.port';
-import { BusinessSeniority } from '../../../modules/transversal/domain/models/business-seniority.model';
-import { BusinessSeniorityMapper } from '../mappers/business-seniority.mapper';
+import { BusinessSeniorityEntity } from '@infrastructure/database/entities/business-seniority.entity';
+import { BusinessSeniorityRepositoryPort } from '@transversal/domain/ports/business-seniority.repository.port';
+import { BusinessSeniority } from '@transversal/domain/models/business-seniority.model';
+import { BusinessSeniorityMapper } from '@infrastructure/database/mappers/business-seniority.mapper';
 
 @Injectable()
 export class TypeOrmBusinessSeniorityRepository implements BusinessSeniorityRepositoryPort {

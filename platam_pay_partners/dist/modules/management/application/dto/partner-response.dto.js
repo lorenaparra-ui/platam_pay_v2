@@ -13,9 +13,7 @@ exports.PartnerResponseDto = void 0;
 const swagger_1 = require("@nestjs/swagger");
 class PartnerResponseDto {
     externalId;
-    countryCode;
-    companyName;
-    tradeName;
+    businessId;
     acronym;
     logoUrl;
     coBrandingLogoUrl;
@@ -44,27 +42,11 @@ __decorate([
 ], PartnerResponseDto.prototype, "externalId", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({
-        example: "PL",
-        nullable: true,
-        description: "Codigo de pais del partner",
+        example: 42,
+        description: "ID interno del negocio asociado",
     }),
-    __metadata("design:type", Object)
-], PartnerResponseDto.prototype, "countryCode", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)({
-        example: "Partner Demo S.A.S",
-        description: "Razon social del partner",
-    }),
-    __metadata("design:type", String)
-], PartnerResponseDto.prototype, "companyName", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)({
-        example: "Partner Demo",
-        nullable: true,
-        description: "Nombre comercial del partner",
-    }),
-    __metadata("design:type", Object)
-], PartnerResponseDto.prototype, "tradeName", void 0);
+    __metadata("design:type", Number)
+], PartnerResponseDto.prototype, "businessId", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({
         example: "PDP",

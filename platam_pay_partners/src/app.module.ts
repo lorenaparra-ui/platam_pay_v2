@@ -6,6 +6,8 @@ import appConfig from "./config/app.config";
 import { InfrastructureModule } from "@infrastructure/infrastructure.module";
 import { PartnersModule } from "./modules/management/partners.module";
 import { PartnerCategoriesModule } from "./modules/partner-categories/partner-categories.module";
+import { BusinessesModule } from './modules/businesses/businesses.module';
+import { CreditApplicationsBnplModule } from './modules/credit-applications-bnpl/credit-applications-bnpl.module';
 
 @Module({
   imports: [
@@ -18,6 +20,8 @@ import { PartnerCategoriesModule } from "./modules/partner-categories/partner-ca
     CommonModule,
     PartnersModule,
     PartnerCategoriesModule,
+    BusinessesModule,
+    CreditApplicationsBnplModule,
   ],
   controllers: [AppController],
   providers: [],

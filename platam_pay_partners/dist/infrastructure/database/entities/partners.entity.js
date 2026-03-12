@@ -13,9 +13,7 @@ exports.PartnersEntity = void 0;
 const typeorm_1 = require("typeorm");
 const base_external_id_entity_1 = require("./base-external-id.entity");
 let PartnersEntity = class PartnersEntity extends base_external_id_entity_1.BaseExternalIdEntity {
-    countryCode;
-    companyName;
-    tradeName;
+    businessId;
     acronym;
     logoUrl;
     coBrandingLogoUrl;
@@ -35,17 +33,9 @@ let PartnersEntity = class PartnersEntity extends base_external_id_entity_1.Base
 };
 exports.PartnersEntity = PartnersEntity;
 __decorate([
-    (0, typeorm_1.Column)({ name: "country_code", type: "varchar", length: 2, nullable: true }),
-    __metadata("design:type", Object)
-], PartnersEntity.prototype, "countryCode", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ name: "company_name", type: "varchar", length: 255 }),
-    __metadata("design:type", String)
-], PartnersEntity.prototype, "companyName", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ name: "trade_name", type: "varchar", length: 255, nullable: true }),
-    __metadata("design:type", Object)
-], PartnersEntity.prototype, "tradeName", void 0);
+    (0, typeorm_1.Column)({ name: "business_id", type: "bigint" }),
+    __metadata("design:type", Number)
+], PartnersEntity.prototype, "businessId", void 0);
 __decorate([
     (0, typeorm_1.Column)({ name: "acronym", type: "varchar", length: 10, nullable: true }),
     __metadata("design:type", Object)
@@ -101,7 +91,12 @@ __decorate([
     __metadata("design:type", Object)
 ], PartnersEntity.prototype, "salesRepRoleNamePlural", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ name: "api_key_hash", type: "varchar", nullable: true }),
+    (0, typeorm_1.Column)({
+        name: "api_key_hash",
+        type: "boolean",
+        default: false,
+        nullable: true,
+    }),
     __metadata("design:type", Object)
 ], PartnersEntity.prototype, "apiKeyHash", void 0);
 __decorate([

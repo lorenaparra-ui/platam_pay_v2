@@ -1,5 +1,5 @@
 import { Column, Entity } from 'typeorm';
-import { BaseExternalIdEntity } from './base-external-id.entity';
+import { BaseExternalIdEntity } from '@infrastructure/database/entities/base-external-id.entity';
 
 @Entity('business_seniority')
 export class BusinessSeniorityEntity extends BaseExternalIdEntity {
