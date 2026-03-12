@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { DocumentTypeEntity } from '../entities/document-type.entity';
-import { DocumentTypeRepositoryPort } from '@transversal/domain/ports/repository/document-type.repository.port';
+import { DocumentTypeRepositoryPort } from '../../../modules/transversal/domain/ports/document-type.repository.port';
 import { DocumentType } from '../../../modules/transversal/domain/models/document-type.model';
 import { DocumentTypeMapper } from '../mappers/document-type.mapper';
 

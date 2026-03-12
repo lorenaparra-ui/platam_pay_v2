@@ -1,6 +1,5 @@
 import { Business } from '../../domain/models/business.model';
 export declare class BusinessResponseDto {
-    id: number;
     externalId: string;
     userId: number;
     cityId: number | null;

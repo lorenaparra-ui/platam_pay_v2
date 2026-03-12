@@ -1,4 +1,4 @@
-import { Onboarding } from '../../models/onboarding.model';
+import { Onboarding } from '../models/onboarding.model';
 
 export const ONBOARDING_REPOSITORY = 'ONBOARDING_REPOSITORY';
 

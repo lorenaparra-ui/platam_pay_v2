@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
-import type { StatusRepositoryPort } from '../../domain/ports/repository/status.repository.port';
-import { STATUS_REPOSITORY } from '../../domain/ports/repository/status.repository.port';
+import type { StatusRepositoryPort } from '../../domain/ports/status.repository.port';
+import { STATUS_REPOSITORY } from '../../domain/ports/status.repository.port';
 import { StatusResponseDto } from '../dto/status-response.dto';
 
 @Injectable()

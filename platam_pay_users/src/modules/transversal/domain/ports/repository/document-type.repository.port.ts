@@ -1,4 +1,4 @@
-import { DocumentType } from '../../models/document-type.model';
+import { DocumentType } from '../models/document-type.model';
 
 export const DOCUMENT_TYPE_REPOSITORY = 'DOCUMENT_TYPE_REPOSITORY';
 
