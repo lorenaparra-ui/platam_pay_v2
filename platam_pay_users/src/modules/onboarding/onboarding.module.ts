@@ -1,9 +1,17 @@
 import { Module } from '@nestjs/common';
-import { TransversalModule } from '../transversal/transversal.module';
-import { OnboardingController } from './onboarding.controller';
+import { OnboardingController } from './presentation/controllers/onboarding.controller';
+import { CreateNaturalPersonOnboardingUseCase } from './application/use-cases/create-natural-person-onboarding.use-case';
+import { CreateSalesRepNaturalOpinionUseCase } from './application/use-cases/create-sales-rep-natural-opinion.use-case';
 
 @Module({
-  imports: [TransversalModule],
   controllers: [OnboardingController],
+  providers: [
+    CreateNaturalPersonOnboardingUseCase,
+    CreateSalesRepNaturalOpinionUseCase,
+  ],
+  exports: [
+    CreateNaturalPersonOnboardingUseCase,
+    CreateSalesRepNaturalOpinionUseCase,
+  ],
 })
 export class OnboardingModule {}

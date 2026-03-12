@@ -26,6 +26,9 @@ import {
   PERSONS_REPOSITORY,
   type PersonRepositoryPort,
 } from '../domain/ports/person.repository.port';
+import { GetPersonsUseCase } from '../application/use-cases/person/get-persons.use-case';
+import { GetPersonByExternalIdUseCase } from '../application/use-cases/person/get-person-by-external-id.use-case';
+import { CreatePersonUseCase } from '../application/use-cases/person/create-person.use-case';
 
 function toDateOnlyString(value: Date | string | null): string | null {
   if (!value) return null;
@@ -72,6 +75,9 @@ export class PersonsController {
   constructor(
     @Inject(PERSONS_REPOSITORY)
     private readonly repository: PersonRepositoryPort,
+    private readonly getPersonsUseCase: GetPersonsUseCase,
+    private readonly getPersonByExternalIdUseCase: GetPersonByExternalIdUseCase,
+    private readonly createPersonUseCase: CreatePersonUseCase,
   ) {}
 
   @Get('register')
@@ -83,7 +89,7 @@ export class PersonsController {
     isArray: true,
   })
   async findAll(): Promise<PersonResponseDto[]> {
-    const persons = await this.repository.findAll();
+    const persons = await this.getPersonsUseCase.execute();
     return persons.map(toResponseDto);
   }
 
@@ -99,21 +105,7 @@ export class PersonsController {
   async create(
     @Body() body: CreatePersonsRequestDto,
   ): Promise<PersonResponseDto> {
-    const created = await this.repository.create({
-      userId: body.userId,
-      countryCode: body.countryCode,
-      firstName: body.firstName,
-      lastName: body.lastName,
-      docType: body.docType,
-      docNumber: body.docNumber,
-      docIssueDate: toDateOrUndefined(body.docIssueDate),
-      birthDate: toDateOrUndefined(body.birthDate),
-      gender: body.gender,
-      phone: body.phone,
-      residentialAddress: body.residentialAddress,
-      businessAddress: body.businessAddress,
-      cityId: body.cityId,
-    });
+    const created = await this.createPersonUseCase.execute(body);
     return toResponseDto(created);
   }
 
@@ -130,7 +122,7 @@ export class PersonsController {
   async findByExternalId(
     @Param('externalId', ParseUUIDPipe) externalId: string,
   ): Promise<PersonResponseDto> {
-    const person = await this.repository.findByExternalId(externalId);
+    const person = await this.getPersonByExternalIdUseCase.execute(externalId);
     if (!person) {
       throw new NotFoundException('Person not found');
     }
