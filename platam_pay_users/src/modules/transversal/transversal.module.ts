@@ -18,7 +18,7 @@ import { RuesBusinessInformationApi } from '@infrastructure/external-apis/rues-b
 
 // Ports (Tokens)
 import { DOCUMENT_TYPE_REPOSITORY } from 'src/modules/transversal/domain/ports/document-type.repository.port';
-import { BUSINESS_SENIORITY_REPOSITORY } from 'src/modules/transversal/domain/ports/business-seniority.repository.port';
+import { BUSINESS_SENIORITY_REPOSITORY } from '@transversal/domain/ports/repository/business-seniority.repository.port';
 import { ONBOARDING_REPOSITORY } from 'src/modules/transversal/domain/ports/onboarding.repository.port';
 import { STATUS_REPOSITORY } from 'src/modules/transversal/domain/ports/status.repository.port';
 import { CITY_REPOSITORY } from 'src/modules/transversal/domain/ports/city.repository.port';

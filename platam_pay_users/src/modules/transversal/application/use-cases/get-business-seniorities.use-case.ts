@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
-import type { BusinessSeniorityRepositoryPort } from '../../domain/ports/business-seniority.repository.port';
-import { BUSINESS_SENIORITY_REPOSITORY } from '../../domain/ports/business-seniority.repository.port';
+import type { BusinessSeniorityRepositoryPort } from '../../domain/ports/repository/business-seniority.repository.port';
+import { BUSINESS_SENIORITY_REPOSITORY } from '../../domain/ports/repository/business-seniority.repository.port';
 import { BusinessSeniorityResponseDto } from '../dto/business-seniority-response.dto';
 
 @Injectable()

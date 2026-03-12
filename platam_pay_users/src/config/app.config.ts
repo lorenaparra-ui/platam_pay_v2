@@ -15,5 +15,15 @@ export default registerAs('config', () => {
     mfa: {
       issuer: process.env.MFA_ISSUER || 'Platam Pay',
     },
+    storage: {
+      s3: {
+        region: process.env.AWS_S3_REGION || 'us-east-1',
+        bucket: process.env.AWS_S3_BUCKET || '',
+        endpoint: process.env.AWS_S3_ENDPOINT,
+        force_path_style: process.env.AWS_S3_FORCE_PATH_STYLE === 'true',
+        access_key_id: process.env.AWS_ACCESS_KEY_ID,
+        secret_access_key: process.env.AWS_SECRET_ACCESS_KEY,
+      },
+    },
   };
 });

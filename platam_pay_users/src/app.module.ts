@@ -16,6 +16,8 @@ import { PersonsModule } from './modules/persons/persons.module';
 import { AuthModule } from './modules/auth/auth.module';
 
 
+import { StorageModule } from '@shared/modules/storage.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -25,6 +27,7 @@ import { AuthModule } from './modules/auth/auth.module';
     }),
     InfrastructureModule,
     CommonModule,
+    StorageModule.forRoot({ registerExampleController: true }),
     TransversalModule,
     OnboardingModule,
     UsersModule,

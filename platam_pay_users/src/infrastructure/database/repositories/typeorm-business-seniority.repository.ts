@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { BusinessSeniorityEntity } from '@infrastructure/database/entities/business-seniority.entity';
-import { BusinessSeniorityRepositoryPort } from '@transversal/domain/ports/business-seniority.repository.port';
+import { BusinessSeniorityRepositoryPort } from '@transversal/domain/ports/repository/business-seniority.repository.port';
 import { BusinessSeniority } from '@transversal/domain/models/business-seniority.model';
 import { BusinessSeniorityMapper } from '@infrastructure/database/mappers/business-seniority.mapper';
 

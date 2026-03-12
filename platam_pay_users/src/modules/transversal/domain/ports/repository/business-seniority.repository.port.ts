@@ -1,4 +1,4 @@
-import { BusinessSeniority } from '../models/business-seniority.model';
+import { BusinessSeniority } from '../../models/business-seniority.model';
 
 export const BUSINESS_SENIORITY_REPOSITORY = 'BUSINESS_SENIORITY_REPOSITORY';
 
