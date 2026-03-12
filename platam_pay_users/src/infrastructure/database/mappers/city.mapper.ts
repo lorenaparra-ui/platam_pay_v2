@@ -1,5 +1,5 @@
 import { CityEntity } from '../entities/city.entity';
-import { City } from '../../../modules/transversal/domain/models/city.model';
+import { City } from '@transversal/domain/models/city.model';
 
 export class CityMapper {
   static toDomain(entity: CityEntity): City {

@@ -1,5 +1,5 @@
 import { DocumentTypeEntity } from '../entities/document-type.entity';
-import { DocumentType } from '../../../modules/transversal/domain/models/document-type.model';
+import { DocumentType } from '@transversal/domain/models/document-type.model';
 
 export class DocumentTypeMapper {
   static toDomain(entity: DocumentTypeEntity): DocumentType {

@@ -41,7 +41,7 @@ export class StorageExampleController {
     },
   })
   async upload(
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile() file: { buffer: Buffer; mimetype: string } | undefined,
     @Body('key') key: string,
   ) {
     if (!file?.buffer || !key?.trim()) {

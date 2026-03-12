@@ -2,8 +2,8 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { City } from '../../domain/models/city.model';
 
 export class CityResponseDto {
-  @ApiProperty({ description: 'Identificador público UUID' })
-  externalId: string;
+  @ApiProperty({ description: 'ID de la ciudad' })
+  id: number;
 
   @ApiProperty({ description: 'Nombre del país' })
   countryName: string;
@@ -22,7 +22,7 @@ export class CityResponseDto {
 
   static fromDomain(model: City): CityResponseDto {
     const dto = new CityResponseDto();
-    dto.externalId = model.externalId;
+    dto.id = model.id;
     dto.countryName = model.countryName;
     dto.countryCode = model.countryCode;
     dto.stateName = model.stateName;

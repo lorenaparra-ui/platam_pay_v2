@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.BusinessResponseDto = void 0;
 const swagger_1 = require("@nestjs/swagger");
 class BusinessResponseDto {
+    id;
     externalId;
     userId;
     cityId;
@@ -28,6 +29,7 @@ class BusinessResponseDto {
     updatedAt;
     static fromDomain(model) {
         const dto = new BusinessResponseDto();
+        dto.id = model.id;
         dto.externalId = model.externalId;
         dto.userId = model.userId;
         dto.cityId = model.cityId;
@@ -46,6 +48,10 @@ class BusinessResponseDto {
     }
 }
 exports.BusinessResponseDto = BusinessResponseDto;
+__decorate([
+    (0, swagger_1.ApiProperty)({ description: 'ID interno del negocio' }),
+    __metadata("design:type", Number)
+], BusinessResponseDto.prototype, "id", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({ description: 'UUID público del negocio' }),
     __metadata("design:type", String)

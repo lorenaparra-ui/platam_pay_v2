@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
-import type { DocumentTypeRepositoryPort } from '../../domain/ports/document-type.repository.port';
-import { DOCUMENT_TYPE_REPOSITORY } from '../../domain/ports/document-type.repository.port';
+import type { DocumentTypeRepositoryPort } from '../../domain/ports/repository/document-type.repository.port';
+import { DOCUMENT_TYPE_REPOSITORY } from '../../domain/ports/repository/document-type.repository.port';
 import { DocumentTypeResponseDto } from '../dto/document-type-response.dto';
 
 @Injectable()
