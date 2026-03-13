@@ -4,6 +4,7 @@
  */
 
 export type StorageErrorCode =
+  | 'STORAGE_NOT_CONFIGURED'
   | 'STORAGE_NOT_FOUND'
   | 'STORAGE_ACCESS_DENIED'
   | 'STORAGE_INVALID_INPUT'

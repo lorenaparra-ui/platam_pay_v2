@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import {
   S3Client,
   PutObjectCommand,
@@ -15,39 +15,74 @@ import type {
 import { StorageDomainError } from '@transversal/domain/errors/storage.error';
 import { S3ConfigService } from './s3.config';
 
+const S3_NOT_CONFIGURED_MESSAGE =
+  'S3 no está configurado. Configure AWS_S3_BUCKET (y opcionalmente AWS_S3_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY) para usar almacenamiento de archivos.';
+
+/**
+ * Adaptador S3 para FileStoragePort.
+ * Si AWS_S3_BUCKET no está definido o la creación del cliente falla, el adaptador
+ * queda en modo "no configurado" y la aplicación arranca igual; las operaciones
+ * de almacenamiento fallarán con STORAGE_NOT_CONFIGURED al usarse.
+ */
 @Injectable()
 export class S3StorageAdapter implements FileStoragePort {
-  private readonly client: S3Client;
-  private readonly bucket: string;
+  private readonly client: S3Client | null;
+  private readonly bucket: string | null;
+  private readonly logger = new Logger(S3StorageAdapter.name);
 
   constructor(private readonly s3Config: S3ConfigService) {
-    const config = this.s3Config.getConfig();
-    this.bucket = config.bucket;
-    this.client = new S3Client({
-      region: config.region,
-      endpoint: config.endpoint,
-      forcePathStyle: config.force_path_style,
-      credentials: config.credentials
-        ? {
-            accessKeyId: config.credentials.access_key_id,
-            secretAccessKey: config.credentials.secret_access_key,
-          }
-        : undefined,
-    });
+    const config = this.s3Config.getConfigOrNull();
+    if (!config) {
+      this.client = null;
+      this.bucket = null;
+      return;
+    }
+    try {
+      this.bucket = config.bucket;
+      this.client = new S3Client({
+        region: config.region,
+        endpoint: config.endpoint,
+        forcePathStyle: config.force_path_style,
+        credentials: config.credentials
+          ? {
+              accessKeyId: config.credentials.access_key_id,
+              secretAccessKey: config.credentials.secret_access_key,
+            }
+          : undefined,
+      });
+    } catch (error) {
+      this.logger.warn(
+        'S3 client no inicializado; el almacenamiento de archivos no estará disponible. ' +
+          'Verifique AWS_S3_BUCKET y credenciales si desea usarlo.',
+      );
+      this.client = null;
+      this.bucket = null;
+    }
+  }
+
+  private getClientAndBucket(): { client: S3Client; bucket: string } {
+    if (!this.bucket || !this.client) {
+      throw new StorageDomainError(
+        'STORAGE_NOT_CONFIGURED',
+        S3_NOT_CONFIGURED_MESSAGE,
+      );
+    }
+    return { client: this.client, bucket: this.bucket };
   }
 
   async upload(payload: UploadFilePayload): Promise<UploadFileResult> {
+    const { client, bucket } = this.getClientAndBucket();
     try {
-      await this.client.send(
+      await client.send(
         new PutObjectCommand({
-          Bucket: this.bucket,
+          Bucket: bucket,
           Key: payload.key,
           Body: payload.body,
           ContentType: payload.content_type,
           Metadata: payload.metadata,
         }),
       );
-      const location = `s3://${this.bucket}/${payload.key}`;
+      const location = `s3://${bucket}/${payload.key}`;
       return { key: payload.key, location };
     } catch (error) {
       throw this.mapError(error, 'upload');
@@ -55,10 +90,11 @@ export class S3StorageAdapter implements FileStoragePort {
   }
 
   async download(key: string): Promise<Buffer> {
+    const { client, bucket } = this.getClientAndBucket();
     try {
-      const response = await this.client.send(
+      const response = await client.send(
         new GetObjectCommand({
-          Bucket: this.bucket,
+          Bucket: bucket,
           Key: key,
         }),
       );
@@ -77,10 +113,11 @@ export class S3StorageAdapter implements FileStoragePort {
   }
 
   async delete(key: string): Promise<void> {
+    const { client, bucket } = this.getClientAndBucket();
     try {
-      await this.client.send(
+      await client.send(
         new DeleteObjectCommand({
-          Bucket: this.bucket,
+          Bucket: bucket,
           Key: key,
         }),
       );
@@ -90,19 +127,20 @@ export class S3StorageAdapter implements FileStoragePort {
   }
 
   async getSignedUrl(options: GetSignedUrlOptions): Promise<string> {
+    const { client, bucket } = this.getClientAndBucket();
     try {
       const method = options.method ?? 'GET';
       const command =
         method === 'GET'
           ? new GetObjectCommand({
-              Bucket: this.bucket,
+              Bucket: bucket,
               Key: options.key,
             })
           : new PutObjectCommand({
-              Bucket: this.bucket,
+              Bucket: bucket,
               Key: options.key,
             });
-      const url = await getSignedUrl(this.client, command, {
+      const url = await getSignedUrl(client, command, {
         expiresIn: options.expires_in_seconds,
       });
       return url;
