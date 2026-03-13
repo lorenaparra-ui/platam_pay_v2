@@ -1,8 +1,8 @@
-import { Inject, Injectable } from '@nestjs/common';
-import type { CreditApplicationBnplRepositoryPort } from '../../domain/ports/credit-application-bnpl.repository.port';
-import { CREDIT_APPLICATION_BNPL_REPOSITORY } from '../../domain/ports/credit-application-bnpl.repository.port';
-import type { CreditApplicationBnpl } from '../../domain/models/credit-application-bnpl.model';
-import type { CreateCreditApplicationBnplRequestDto } from '../dto/create-credit-application-bnpl-request.dto';
+import { Inject, Injectable } from "@nestjs/common";
+import type { CreditApplicationBnplRepositoryPort } from "../../domain/ports/credit-application-bnpl.repository.port";
+import { CREDIT_APPLICATION_BNPL_REPOSITORY } from "../../domain/ports/credit-application-bnpl.repository.port";
+import type { CreditApplicationBnpl } from "../../domain/models/credit-application-bnpl.model";
+import type { CreateCreditApplicationBnplRequestDto } from "../dto/create-credit-application-bnpl-request.dto";
 
 @Injectable()
 export class CreateCreditApplicationBnplUseCase {

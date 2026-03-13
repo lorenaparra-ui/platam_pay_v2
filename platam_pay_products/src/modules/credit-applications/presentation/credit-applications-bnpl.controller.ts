@@ -9,26 +9,28 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
-} from '@nestjs/common';
-import { NotFoundException } from '@nestjs/common';
+} from "@nestjs/common";
+import { NotFoundException } from "@nestjs/common";
 import {
   ApiBody,
   ApiOperation,
   ApiParam,
   ApiResponse,
   ApiTags,
-} from '@nestjs/swagger';
-import type { CreditApplicationBnpl } from '../domain/models/credit-application-bnpl.model';
-import { CreateCreditApplicationBnplRequestDto } from '../application/dto/create-credit-application-bnpl-request.dto';
-import { CreditApplicationBnplResponseDto } from '../application/dto/credit-application-bnpl-response.dto';
-import { UpdateCreditApplicationBnplRequestDto } from '../application/dto/update-credit-application-bnpl-request.dto';
-import { CreateCreditApplicationBnplUseCase } from '../application/use-cases/create-credit-application-bnpl.use-case';
-import { DeleteCreditApplicationBnplUseCase } from '../application/use-cases/delete-credit-application-bnpl.use-case';
-import { GetAllCreditApplicationsBnplUseCase } from '../application/use-cases/get-all-credit-applications-bnpl.use-case';
-import { GetCreditApplicationBnplByExternalIdUseCase } from '../application/use-cases/get-credit-application-bnpl-by-external-id.use-case';
-import { UpdateCreditApplicationBnplUseCase } from '../application/use-cases/update-credit-application-bnpl.use-case';
+} from "@nestjs/swagger";
+import type { CreditApplicationBnpl } from "../domain/models/credit-application-bnpl.model";
+import { CreateCreditApplicationBnplRequestDto } from "../application/dto/create-credit-application-bnpl-request.dto";
+import { CreditApplicationBnplResponseDto } from "../application/dto/credit-application-bnpl-response.dto";
+import { UpdateCreditApplicationBnplRequestDto } from "../application/dto/update-credit-application-bnpl-request.dto";
+import { CreateCreditApplicationBnplUseCase } from "../application/use-cases/create-credit-application-bnpl.use-case";
+import { DeleteCreditApplicationBnplUseCase } from "../application/use-cases/delete-credit-application-bnpl.use-case";
+import { GetAllCreditApplicationsBnplUseCase } from "../application/use-cases/get-all-credit-applications-bnpl.use-case";
+import { GetCreditApplicationBnplByExternalIdUseCase } from "../application/use-cases/get-credit-application-bnpl-by-external-id.use-case";
+import { UpdateCreditApplicationBnplUseCase } from "../application/use-cases/update-credit-application-bnpl.use-case";
 
-function toResponseDto(domain: CreditApplicationBnpl): CreditApplicationBnplResponseDto {
+function toResponseDto(
+  domain: CreditApplicationBnpl,
+): CreditApplicationBnplResponseDto {
   const dto = new CreditApplicationBnplResponseDto();
   dto.externalId = domain.externalId;
   dto.userId = domain.userId;
@@ -68,8 +70,8 @@ function toResponseDto(domain: CreditApplicationBnpl): CreditApplicationBnplResp
   return dto;
 }
 
-@ApiTags('credit-applications-bnpl')
-@Controller('credit-applications-bnpl')
+@ApiTags("credit-applications-bnpl")
+@Controller("credit-applications-bnpl")
 export class CreditApplicationsBnplController {
   constructor(
     private readonly createUseCase: CreateCreditApplicationBnplUseCase,
@@ -80,11 +82,11 @@ export class CreditApplicationsBnplController {
   ) {}
 
   @Post()
-  @ApiOperation({ summary: 'Crear solicitud de crédito BNPL' })
+  @ApiOperation({ summary: "Crear solicitud de crédito BNPL" })
   @ApiBody({ type: CreateCreditApplicationBnplRequestDto })
   @ApiResponse({
     status: HttpStatus.CREATED,
-    description: 'Solicitud creada',
+    description: "Solicitud creada",
     type: CreditApplicationBnplResponseDto,
   })
   async create(
@@ -95,10 +97,10 @@ export class CreditApplicationsBnplController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Listar solicitudes de crédito BNPL' })
+  @ApiOperation({ summary: "Listar solicitudes de crédito BNPL" })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Lista de solicitudes',
+    description: "Lista de solicitudes",
     type: CreditApplicationBnplResponseDto,
     isArray: true,
   })
@@ -107,67 +109,79 @@ export class CreditApplicationsBnplController {
     return list.map(toResponseDto);
   }
 
-  @Get(':externalId')
-  @ApiOperation({ summary: 'Obtener solicitud por externalId' })
+  @Get(":externalId")
+  @ApiOperation({ summary: "Obtener solicitud por externalId" })
   @ApiParam({
-    name: 'externalId',
-    description: 'UUID público de la solicitud',
+    name: "externalId",
+    description: "UUID público de la solicitud",
   })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Solicitud encontrada',
+    description: "Solicitud encontrada",
     type: CreditApplicationBnplResponseDto,
   })
-  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Solicitud no encontrada' })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: "Solicitud no encontrada",
+  })
   async findByExternalId(
-    @Param('externalId', ParseUUIDPipe) externalId: string,
+    @Param("externalId", ParseUUIDPipe) externalId: string,
   ): Promise<CreditApplicationBnplResponseDto> {
     const item = await this.getByExternalIdUseCase.run(externalId);
     if (!item) {
-      throw new NotFoundException('Solicitud de crédito BNPL no encontrada');
+      throw new NotFoundException("Solicitud de crédito BNPL no encontrada");
     }
     return toResponseDto(item);
   }
 
-  @Patch(':externalId')
-  @ApiOperation({ summary: 'Actualizar solicitud por externalId' })
+  @Patch(":externalId")
+  @ApiOperation({ summary: "Actualizar solicitud por externalId" })
   @ApiParam({
-    name: 'externalId',
-    description: 'UUID público de la solicitud',
+    name: "externalId",
+    description: "UUID público de la solicitud",
   })
   @ApiBody({ type: UpdateCreditApplicationBnplRequestDto })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Solicitud actualizada',
+    description: "Solicitud actualizada",
     type: CreditApplicationBnplResponseDto,
   })
-  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Solicitud no encontrada' })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: "Solicitud no encontrada",
+  })
   async updateByExternalId(
-    @Param('externalId', ParseUUIDPipe) externalId: string,
+    @Param("externalId", ParseUUIDPipe) externalId: string,
     @Body() body: UpdateCreditApplicationBnplRequestDto,
   ): Promise<CreditApplicationBnplResponseDto> {
     const updated = await this.updateUseCase.run(externalId, body);
     if (!updated) {
-      throw new NotFoundException('Solicitud de crédito BNPL no encontrada');
+      throw new NotFoundException("Solicitud de crédito BNPL no encontrada");
     }
     return toResponseDto(updated);
   }
 
-  @Delete(':externalId')
+  @Delete(":externalId")
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Eliminar solicitud por externalId' })
+  @ApiOperation({ summary: "Eliminar solicitud por externalId" })
   @ApiParam({
-    name: 'externalId',
-    description: 'UUID público de la solicitud',
+    name: "externalId",
+    description: "UUID público de la solicitud",
   })
-  @ApiResponse({ status: HttpStatus.NO_CONTENT, description: 'Solicitud eliminada' })
-  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Solicitud no encontrada' })
+  @ApiResponse({
+    status: HttpStatus.NO_CONTENT,
+    description: "Solicitud eliminada",
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: "Solicitud no encontrada",
+  })
   async deleteByExternalId(
-    @Param('externalId', ParseUUIDPipe) externalId: string,
+    @Param("externalId", ParseUUIDPipe) externalId: string,
   ): Promise<void> {
     const deleted = await this.deleteUseCase.run(externalId);
     if (!deleted) {
-      throw new NotFoundException('Solicitud de crédito BNPL no encontrada');
+      throw new NotFoundException("Solicitud de crédito BNPL no encontrada");
     }
   }
 }

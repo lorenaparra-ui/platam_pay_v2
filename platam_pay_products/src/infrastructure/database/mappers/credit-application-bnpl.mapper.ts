@@ -1,10 +1,10 @@
-import type { CreditApplicationBnpl } from '../../../modules/credit-applications/domain/models/credit-application-bnpl.model';
-import type { CreditApplicationBnplCreateInput } from '../../../modules/credit-applications/domain/ports/credit-application-bnpl.repository.port';
-import { CreditApplicationBnplEntity } from '../entities/credit-application-bnpl.entity';
+import type { CreditApplicationBnpl } from "../../../modules/credit-applications/domain/models/credit-application-bnpl.model";
+import type { CreditApplicationBnplCreateInput } from "../../../modules/credit-applications/domain/ports/credit-application-bnpl.repository.port";
+import { CreditApplicationBnplEntity } from "../entities/credit-application-bnpl.entity";
 
 function toNumber(value: string | number | null | undefined): number | null {
   if (value == null) return null;
-  return typeof value === 'string' ? Number(value) : value;
+  return typeof value === "string" ? Number(value) : value;
 }
 
 export class CreditApplicationBnplMapper {
@@ -24,22 +24,41 @@ export class CreditApplicationBnplMapper {
       sectorExperience: entity.sectorExperience,
       businessFlagshipM2: entity.businessFlagshipM2 ?? null,
       businessHasRent: entity.businessHasRent ?? null,
-      businessRentAmount: entity.businessRentAmount != null ? Number(entity.businessRentAmount) : null,
-      monthlyIncome: entity.monthlyIncome != null ? Number(entity.monthlyIncome) : null,
-      monthlyExpenses: entity.monthlyExpenses != null ? Number(entity.monthlyExpenses) : null,
-      monthlyPurchases: entity.monthlyPurchases != null ? Number(entity.monthlyPurchases) : null,
-      currentPurchases: entity.currentPurchases != null ? Number(entity.currentPurchases) : null,
-      totalAssets: entity.totalAssets != null ? Number(entity.totalAssets) : null,
-      requestedCreditLine: entity.requestedCreditLine != null ? Number(entity.requestedCreditLine) : null,
+      businessRentAmount:
+        entity.businessRentAmount != null
+          ? Number(entity.businessRentAmount)
+          : null,
+      monthlyIncome:
+        entity.monthlyIncome != null ? Number(entity.monthlyIncome) : null,
+      monthlyExpenses:
+        entity.monthlyExpenses != null ? Number(entity.monthlyExpenses) : null,
+      monthlyPurchases:
+        entity.monthlyPurchases != null
+          ? Number(entity.monthlyPurchases)
+          : null,
+      currentPurchases:
+        entity.currentPurchases != null
+          ? Number(entity.currentPurchases)
+          : null,
+      totalAssets:
+        entity.totalAssets != null ? Number(entity.totalAssets) : null,
+      requestedCreditLine:
+        entity.requestedCreditLine != null
+          ? Number(entity.requestedCreditLine)
+          : null,
       isCurrentClient: entity.isCurrentClient,
       statusId: Number(entity.statusId),
       submissionDate: entity.submissionDate ?? null,
       approvalDate: entity.approvalDate ?? null,
       rejectionReason: entity.rejectionReason,
       creditStudyDate: entity.creditStudyDate ?? null,
-      creditScore: entity.creditScore != null ? Number(entity.creditScore) : null,
+      creditScore:
+        entity.creditScore != null ? Number(entity.creditScore) : null,
       creditDecision: entity.creditDecision,
-      approvedCreditLine: entity.approvedCreditLine != null ? Number(entity.approvedCreditLine) : null,
+      approvedCreditLine:
+        entity.approvedCreditLine != null
+          ? Number(entity.approvedCreditLine)
+          : null,
       analystReport: entity.analystReport,
       riskProfile: entity.riskProfile,
       privacyPolicyAccepted: entity.privacyPolicyAccepted,
@@ -76,7 +95,8 @@ export class CreditApplicationBnplMapper {
     entity.approvalDate = domain.approvalDate;
     entity.rejectionReason = domain.rejectionReason;
     entity.creditStudyDate = domain.creditStudyDate;
-    entity.creditScore = domain.creditScore != null ? String(domain.creditScore) : null;
+    entity.creditScore =
+      domain.creditScore != null ? String(domain.creditScore) : null;
     entity.creditDecision = domain.creditDecision;
     entity.approvedCreditLine = domain.approvedCreditLine;
     entity.analystReport = domain.analystReport;

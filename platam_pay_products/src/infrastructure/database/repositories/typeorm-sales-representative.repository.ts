@@ -1,18 +1,16 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Injectable } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
 import type {
   CreateSalesRepresentativePayload,
   SalesRepresentativeRepositoryPort,
-} from 'src/modules/persons/domain/ports/sales-representative.repository.port';
-import { SalesRepresentative } from 'src/modules/persons/domain/models/sales-representative.model';
-import { SalesRepresentativeEntity } from '../entities/sales-representative.entity';
-import { SalesRepresentativeMapper } from '../mappers/sales-representative.mapper';
+} from "src/modules/persons/domain/ports/sales-representative.repository.port";
+import { SalesRepresentative } from "src/modules/persons/domain/models/sales-representative.model";
+import { SalesRepresentativeEntity } from "../entities/sales-representative.entity";
+import { SalesRepresentativeMapper } from "../mappers/sales-representative.mapper";
 
 @Injectable()
-export class TypeOrmSalesRepresentativeRepository
-  implements SalesRepresentativeRepositoryPort
-{
+export class TypeOrmSalesRepresentativeRepository implements SalesRepresentativeRepositoryPort {
   constructor(
     @InjectRepository(SalesRepresentativeEntity)
     private readonly repository: Repository<SalesRepresentativeEntity>,
@@ -20,7 +18,7 @@ export class TypeOrmSalesRepresentativeRepository
 
   async findAll(): Promise<SalesRepresentative[]> {
     const entities = await this.repository.find({
-      order: { partnerId: 'ASC', name: 'ASC' },
+      order: { partnerId: "ASC", name: "ASC" },
     });
     return entities.map(SalesRepresentativeMapper.toDomain);
   }
@@ -40,7 +38,7 @@ export class TypeOrmSalesRepresentativeRepository
   async findByPartnerId(partnerId: number): Promise<SalesRepresentative[]> {
     const entities = await this.repository.find({
       where: { partnerId },
-      order: { name: 'ASC' },
+      order: { name: "ASC" },
     });
     return entities.map(SalesRepresentativeMapper.toDomain);
   }

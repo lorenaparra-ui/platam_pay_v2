@@ -358,3 +358,22 @@ LEFT JOIN "partner_categories" pc ON pc.id = ca.partner_category_id
 LEFT JOIN "sales_representatives" sr ON sr.id = ca.sales_rep_id
 ORDER BY ca.id DESC
 LIMIT 1;
+
+-- =========================================================
+-- 8) Verificación controlada de índices backoffice (HU-B06)
+-- =========================================================
+SELECT
+  schemaname,
+  tablename,
+  indexname
+FROM pg_indexes
+WHERE schemaname = 'public'
+  AND indexname IN (
+    'idx_credit_applications_submission_date_id',
+    'idx_credit_applications_status_submission_date_id',
+    'idx_credit_applications_partner_submission_date_id',
+    'idx_businesses_legal_name',
+    'idx_businesses_trade_name',
+    'idx_businesses_business_name'
+  )
+ORDER BY indexname;

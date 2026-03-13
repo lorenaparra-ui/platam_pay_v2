@@ -1,6 +1,6 @@
-import { Inject, Injectable } from '@nestjs/common';
-import type { CreditApplicationBnplRepositoryPort } from '../../domain/ports/credit-application-bnpl.repository.port';
-import { CREDIT_APPLICATION_BNPL_REPOSITORY } from '../../domain/ports/credit-application-bnpl.repository.port';
+import { Inject, Injectable } from "@nestjs/common";
+import type { CreditApplicationBnplRepositoryPort } from "../../domain/ports/credit-application-bnpl.repository.port";
+import { CREDIT_APPLICATION_BNPL_REPOSITORY } from "../../domain/ports/credit-application-bnpl.repository.port";
 
 @Injectable()
 export class DeleteCreditApplicationBnplUseCase {
