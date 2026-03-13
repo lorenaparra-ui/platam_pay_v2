@@ -59,17 +59,18 @@ export class StorageExampleController {
     }
   }
 
-  @Get('download/:key(*)')
+  @Get('download/*key')
   @ApiOperation({ summary: 'Descargar archivo por clave (ejemplo)' })
-  async download(@Param('key') key: string) {
-    if (!key?.trim()) {
+  async download(@Param('key') key: string | string[]) {
+    const keyStr = this.normalizeKeyParam(key);
+    if (!keyStr.trim()) {
       throw new BadRequestException('Se requiere key');
     }
     try {
-      const buffer = await this.fileStorage.download(decodeURIComponent(key));
+      const buffer = await this.fileStorage.download(decodeURIComponent(keyStr));
       return {
         content: buffer.toString('base64'),
-        key,
+        key: keyStr,
       };
     } catch (error) {
       this.throwHttpError(error);
@@ -102,18 +103,25 @@ export class StorageExampleController {
     }
   }
 
-  @Delete(':key(*)')
+  @Delete('*key')
   @ApiOperation({ summary: 'Eliminar archivo por clave (ejemplo)' })
-  async delete(@Param('key') key: string) {
-    if (!key?.trim()) {
+  async delete(@Param('key') key: string | string[]) {
+    const keyStr = this.normalizeKeyParam(key);
+    if (!keyStr.trim()) {
       throw new BadRequestException('Se requiere key');
     }
     try {
-      await this.fileStorage.delete(decodeURIComponent(key));
-      return { deleted: true, key };
+      await this.fileStorage.delete(decodeURIComponent(keyStr));
+      return { deleted: true, key: keyStr };
     } catch (error) {
       this.throwHttpError(error);
     }
+  }
+
+  /** path-to-regexp v8 puede devolver el wildcard *key como string o string[]. */
+  private normalizeKeyParam(key: string | string[] | undefined): string {
+    if (key == null) return '';
+    return Array.isArray(key) ? key.join('/') : String(key);
   }
 
   private throwHttpError(error: unknown): never {

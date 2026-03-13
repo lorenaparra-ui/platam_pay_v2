@@ -17,6 +17,8 @@ export interface StorageModuleOptions {
 
 /**
  * Módulo de almacenamiento de archivos (hexagonal).
+ * - La aplicación arranca aunque no se configure S3 (AWS_S3_BUCKET vacío o ausente).
+ *   Las operaciones de almacenamiento fallarán con STORAGE_NOT_CONFIGURED hasta que se configure.
  * - Inyectar FILE_STORAGE_PORT o FileStorageService en otros módulos.
  * - Para reutilizar en otro microservicio: importar StorageModule y usar FileStorageService
  *   o inyectar FILE_STORAGE_PORT con la implementación que corresponda (ej. S3).
