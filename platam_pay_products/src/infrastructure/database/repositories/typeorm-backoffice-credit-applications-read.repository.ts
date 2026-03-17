@@ -33,7 +33,6 @@ interface CreditApplicationListRow {
   doc_number: string | null;
   phone: string | null;
   email: string | null;
-  sales_rep_name: string | null;
   requested_credit_line: string | number | null;
   submission_date: Date | string | null;
   queue_days: string | number | null;
@@ -109,7 +108,6 @@ export class TypeOrmBackofficeCreditApplicationsReadRepository implements Backof
         per.doc_number AS doc_number,
         u.phone AS phone,
         u.email AS email,
-        sr.name AS sales_rep_name,
         ca.requested_credit_line AS requested_credit_line,
         ca.submission_date AS submission_date,
         CASE
@@ -120,25 +118,13 @@ export class TypeOrmBackofficeCreditApplicationsReadRepository implements Backof
         st.code AS status_code,
         st.display_name AS status_display_name,
         ${sortExpression} AS sort_value
-      FROM "credit_applications_bnpl" ca
+      FROM "credit_applications" ca
       INNER JOIN "statuses" st
         ON st.id = ca.status_id
        AND st.entity_type = 'credit_applications_bnpl'
       LEFT JOIN "partners" p ON p.id = ca.partner_id
-      LEFT JOIN LATERAL (
-        SELECT
-          per.id AS person_id,
-          per.first_name,
-          per.last_name,
-          per.doc_type,
-          per.doc_number
-        FROM "persons" per
-        WHERE per.user_id = ca.user_id
-        ORDER BY per.id DESC
-        LIMIT 1
-      ) per ON TRUE
-      LEFT JOIN "users" u ON u.id = ca.user_id
-      LEFT JOIN "sales_representatives" sr ON sr.id = ca.sales_rep_id
+      LEFT JOIN "persons" per ON per.id = ca.person_id
+      LEFT JOIN "users" u ON u.id = per.user_id
       LEFT JOIN "businesses" b ON b.id = COALESCE(ca.business_id, p.business_id)
       WHERE ${whereClauses.join("\n        AND ")}
       ORDER BY ${orderBySql}
@@ -184,21 +170,12 @@ export class TypeOrmBackofficeCreditApplicationsReadRepository implements Backof
       SELECT
         st.code AS status_code,
         COUNT(*)::int AS total
-      FROM "credit_applications_bnpl" ca
+      FROM "credit_applications" ca
       INNER JOIN "statuses" st
         ON st.id = ca.status_id
        AND st.entity_type = 'credit_applications_bnpl'
       LEFT JOIN "partners" p ON p.id = ca.partner_id
-      LEFT JOIN LATERAL (
-        SELECT
-          per.first_name,
-          per.last_name,
-          per.doc_number
-        FROM "persons" per
-        WHERE per.user_id = ca.user_id
-        ORDER BY per.id DESC
-        LIMIT 1
-      ) per ON TRUE
+      LEFT JOIN "persons" per ON per.id = ca.person_id
       LEFT JOIN "businesses" b ON b.id = COALESCE(ca.business_id, p.business_id)
       WHERE ${whereClauses.join("\n        AND ")}
       GROUP BY st.code
@@ -386,7 +363,7 @@ export class TypeOrmBackofficeCreditApplicationsReadRepository implements Backof
       docNumber: row.doc_number,
       phone: row.phone,
       email: row.email,
-      salesRepName: row.sales_rep_name,
+      salesRepName: null,
       requestedCreditLine:
         row.requested_credit_line != null
           ? Number(row.requested_credit_line)

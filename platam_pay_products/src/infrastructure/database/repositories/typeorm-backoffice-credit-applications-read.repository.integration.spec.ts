@@ -14,7 +14,6 @@ describe("TypeOrmBackofficeCreditApplicationsReadRepository (integration-like)",
         doc_number: "3102759655",
         phone: "3102759655",
         email: "carlos@platam.co",
-        sales_rep_name: "Laura Rios",
         requested_credit_line: "8000000",
         submission_date: "2026-03-01T00:00:00.000Z",
         queue_days: "6",
@@ -41,7 +40,7 @@ describe("TypeOrmBackofficeCreditApplicationsReadRepository (integration-like)",
     });
 
     const [sql, params] = queryMock.mock.calls[0] as [string, unknown[]];
-    expect(sql).toContain('FROM "credit_applications_bnpl" ca');
+    expect(sql).toContain('FROM "credit_applications" ca');
     expect(sql).toContain("st.code = ANY");
     expect(sql).toContain("p.external_id");
     expect(params).toContain("6e5a1a5f-79ca-4f35-90a9-11f91d57f632");

@@ -1,0 +1,56 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.PartnersMapper = void 0;
+const partners_entity_1 = require("../entities/partners.entity");
+class PartnersMapper {
+    static toDomain(entity) {
+        return {
+            id: entity.id,
+            externalId: entity.externalId,
+            businessId: entity.businessId,
+            acronym: entity.acronym,
+            logoUrl: entity.logoUrl,
+            coBrandingLogoUrl: entity.coBrandingLogoUrl,
+            primaryColor: entity.primaryColor,
+            secondaryColor: entity.secondaryColor,
+            lightColor: entity.lightColor,
+            salesRepRoleName: entity.salesRepRoleName,
+            salesRepRoleNamePlural: entity.salesRepRoleNamePlural,
+            apiKeyHash: entity.apiKeyHash,
+            notificationEmail: entity.notificationEmail,
+            webhookUrl: entity.webhookUrl,
+            sendSalesRepVoucher: entity.sendSalesRepVoucher,
+            disbursementNotificationEmail: entity.disbursementNotificationEmail,
+            defaultRepId: entity.defaultRepId,
+            statusId: entity.statusId,
+            createdAt: entity.createdAt,
+            updatedAt: entity.updatedAt,
+        };
+    }
+    static toEntity(domain) {
+        const entity = new partners_entity_1.PartnersEntity();
+        entity.id = domain.id;
+        entity.externalId = domain.externalId;
+        entity.businessId = domain.businessId;
+        entity.acronym = domain.acronym;
+        entity.logoUrl = domain.logoUrl;
+        entity.coBrandingLogoUrl = domain.coBrandingLogoUrl;
+        entity.primaryColor = domain.primaryColor;
+        entity.secondaryColor = domain.secondaryColor;
+        entity.lightColor = domain.lightColor;
+        entity.salesRepRoleName = domain.salesRepRoleName;
+        entity.salesRepRoleNamePlural = domain.salesRepRoleNamePlural;
+        entity.apiKeyHash = domain.apiKeyHash;
+        entity.notificationEmail = domain.notificationEmail;
+        entity.webhookUrl = domain.webhookUrl;
+        entity.sendSalesRepVoucher = domain.sendSalesRepVoucher;
+        entity.disbursementNotificationEmail = domain.disbursementNotificationEmail;
+        entity.defaultRepId = domain.defaultRepId;
+        entity.statusId = domain.statusId;
+        entity.createdAt = domain.createdAt;
+        entity.updatedAt = domain.updatedAt;
+        return entity;
+    }
+}
+exports.PartnersMapper = PartnersMapper;
+//# sourceMappingURL=partners.mapper.js.map

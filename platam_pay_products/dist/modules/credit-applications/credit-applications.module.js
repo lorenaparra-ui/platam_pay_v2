@@ -9,34 +9,34 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreditApplicationsModule = void 0;
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
-const credit_application_bnpl_entity_1 = require("../../infrastructure/database/entities/credit-application-bnpl.entity");
-const typeorm_credit_application_bnpl_repository_1 = require("../../infrastructure/database/repositories/typeorm-credit-application-bnpl.repository");
-const credit_application_bnpl_repository_port_1 = require("./domain/ports/credit-application-bnpl.repository.port");
-const credit_applications_bnpl_controller_1 = require("./presentation/credit-applications-bnpl.controller");
-const create_credit_application_bnpl_use_case_1 = require("./application/use-cases/create-credit-application-bnpl.use-case");
-const get_all_credit_applications_bnpl_use_case_1 = require("./application/use-cases/get-all-credit-applications-bnpl.use-case");
-const get_credit_application_bnpl_by_external_id_use_case_1 = require("./application/use-cases/get-credit-application-bnpl-by-external-id.use-case");
-const update_credit_application_bnpl_use_case_1 = require("./application/use-cases/update-credit-application-bnpl.use-case");
-const delete_credit_application_bnpl_use_case_1 = require("./application/use-cases/delete-credit-application-bnpl.use-case");
+const credit_application_entity_1 = require("../../infrastructure/database/entities/credit-application.entity");
+const typeorm_credit_application_repository_1 = require("../../infrastructure/database/repositories/typeorm-credit-application.repository");
+const credit_application_repository_port_1 = require("./domain/ports/credit-application.repository.port");
+const credit_applications_controller_1 = require("./presentation/credit-applications.controller");
+const create_credit_application_use_case_1 = require("./application/use-cases/create-credit-application.use-case");
+const get_all_credit_applications_use_case_1 = require("./application/use-cases/get-all-credit-applications.use-case");
+const get_credit_application_by_external_id_use_case_1 = require("./application/use-cases/get-credit-application-by-external-id.use-case");
+const update_credit_application_use_case_1 = require("./application/use-cases/update-credit-application.use-case");
+const delete_credit_application_use_case_1 = require("./application/use-cases/delete-credit-application.use-case");
 let CreditApplicationsModule = class CreditApplicationsModule {
 };
 exports.CreditApplicationsModule = CreditApplicationsModule;
 exports.CreditApplicationsModule = CreditApplicationsModule = __decorate([
     (0, common_1.Module)({
-        imports: [typeorm_1.TypeOrmModule.forFeature([credit_application_bnpl_entity_1.CreditApplicationBnplEntity])],
-        controllers: [credit_applications_bnpl_controller_1.CreditApplicationsBnplController],
+        imports: [typeorm_1.TypeOrmModule.forFeature([credit_application_entity_1.CreditApplicationEntity])],
+        controllers: [credit_applications_controller_1.CreditApplicationsController],
         providers: [
             {
-                provide: credit_application_bnpl_repository_port_1.CREDIT_APPLICATION_BNPL_REPOSITORY,
-                useClass: typeorm_credit_application_bnpl_repository_1.TypeOrmCreditApplicationBnplRepository,
+                provide: credit_application_repository_port_1.CREDIT_APPLICATION_REPOSITORY,
+                useClass: typeorm_credit_application_repository_1.TypeOrmCreditApplicationRepository,
             },
-            create_credit_application_bnpl_use_case_1.CreateCreditApplicationBnplUseCase,
-            get_all_credit_applications_bnpl_use_case_1.GetAllCreditApplicationsBnplUseCase,
-            get_credit_application_bnpl_by_external_id_use_case_1.GetCreditApplicationBnplByExternalIdUseCase,
-            update_credit_application_bnpl_use_case_1.UpdateCreditApplicationBnplUseCase,
-            delete_credit_application_bnpl_use_case_1.DeleteCreditApplicationBnplUseCase,
+            create_credit_application_use_case_1.CreateCreditApplicationUseCase,
+            get_all_credit_applications_use_case_1.GetAllCreditApplicationsUseCase,
+            get_credit_application_by_external_id_use_case_1.GetCreditApplicationByExternalIdUseCase,
+            update_credit_application_use_case_1.UpdateCreditApplicationUseCase,
+            delete_credit_application_use_case_1.DeleteCreditApplicationUseCase,
         ],
-        exports: [credit_application_bnpl_repository_port_1.CREDIT_APPLICATION_BNPL_REPOSITORY],
+        exports: [credit_application_repository_port_1.CREDIT_APPLICATION_REPOSITORY],
     })
 ], CreditApplicationsModule);
 //# sourceMappingURL=credit-applications.module.js.map

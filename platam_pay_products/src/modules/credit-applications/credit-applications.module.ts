@@ -1,29 +1,29 @@
 import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
-import { CreditApplicationBnplEntity } from "@infrastructure/database/entities/credit-application-bnpl.entity";
-import { TypeOrmCreditApplicationBnplRepository } from "@infrastructure/database/repositories/typeorm-credit-application-bnpl.repository";
-import { CREDIT_APPLICATION_BNPL_REPOSITORY } from "./domain/ports/credit-application-bnpl.repository.port";
-import { CreditApplicationsBnplController } from "./presentation/credit-applications-bnpl.controller";
-import { CreateCreditApplicationBnplUseCase } from "./application/use-cases/create-credit-application-bnpl.use-case";
-import { GetAllCreditApplicationsBnplUseCase } from "./application/use-cases/get-all-credit-applications-bnpl.use-case";
-import { GetCreditApplicationBnplByExternalIdUseCase } from "./application/use-cases/get-credit-application-bnpl-by-external-id.use-case";
-import { UpdateCreditApplicationBnplUseCase } from "./application/use-cases/update-credit-application-bnpl.use-case";
-import { DeleteCreditApplicationBnplUseCase } from "./application/use-cases/delete-credit-application-bnpl.use-case";
+import { CreditApplicationEntity } from "@infrastructure/database/entities/credit-application.entity";
+import { TypeOrmCreditApplicationRepository } from "@infrastructure/database/repositories/typeorm-credit-application.repository";
+import { CREDIT_APPLICATION_REPOSITORY } from "./domain/ports/credit-application.repository.port";
+import { CreditApplicationsController } from "./presentation/credit-applications.controller";
+import { CreateCreditApplicationUseCase } from "./application/use-cases/create-credit-application.use-case";
+import { GetAllCreditApplicationsUseCase } from "./application/use-cases/get-all-credit-applications.use-case";
+import { GetCreditApplicationByExternalIdUseCase } from "./application/use-cases/get-credit-application-by-external-id.use-case";
+import { UpdateCreditApplicationUseCase } from "./application/use-cases/update-credit-application.use-case";
+import { DeleteCreditApplicationUseCase } from "./application/use-cases/delete-credit-application.use-case";
 
 @Module({
-  imports: [TypeOrmModule.forFeature([CreditApplicationBnplEntity])],
-  controllers: [CreditApplicationsBnplController],
+  imports: [TypeOrmModule.forFeature([CreditApplicationEntity])],
+  controllers: [CreditApplicationsController],
   providers: [
     {
-      provide: CREDIT_APPLICATION_BNPL_REPOSITORY,
-      useClass: TypeOrmCreditApplicationBnplRepository,
+      provide: CREDIT_APPLICATION_REPOSITORY,
+      useClass: TypeOrmCreditApplicationRepository,
     },
-    CreateCreditApplicationBnplUseCase,
-    GetAllCreditApplicationsBnplUseCase,
-    GetCreditApplicationBnplByExternalIdUseCase,
-    UpdateCreditApplicationBnplUseCase,
-    DeleteCreditApplicationBnplUseCase,
+    CreateCreditApplicationUseCase,
+    GetAllCreditApplicationsUseCase,
+    GetCreditApplicationByExternalIdUseCase,
+    UpdateCreditApplicationUseCase,
+    DeleteCreditApplicationUseCase,
   ],
-  exports: [CREDIT_APPLICATION_BNPL_REPOSITORY],
+  exports: [CREDIT_APPLICATION_REPOSITORY],
 })
 export class CreditApplicationsModule {}
