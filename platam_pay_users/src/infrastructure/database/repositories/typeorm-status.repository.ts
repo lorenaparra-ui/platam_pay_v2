@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { StatusEntity } from '../entities/status.entity';
-import { StatusRepositoryPort } from '../../../modules/transversal/domain/ports/status.repository.port';
+import { StatusRepositoryPort } from '@transversal/domain/ports/repository/status.repository.port';
 import { Status } from '../../../modules/transversal/domain/models/status.model';
 import { StatusMapper } from '../mappers/status.mapper';
 

@@ -1,5 +1,5 @@
-import { Shareholder } from 'src/modules/persons/domain/models/shareholder.model';
-import type { CreateShareholderPayload } from 'src/modules/persons/domain/ports/shareholder.repository.port';
+import { Shareholder } from '@persons/domain/models/shareholder.model';
+import type { CreateShareholderPayload } from '@persons/domain/ports/shareholder.repository.port';
 import { ShareholderEntity } from '../entities/shareholder.entity';
 
 export class ShareholderMapper {

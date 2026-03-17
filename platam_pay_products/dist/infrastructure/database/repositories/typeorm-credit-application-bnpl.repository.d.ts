@@ -1,7 +1,7 @@
-import { Repository } from 'typeorm';
-import type { CreditApplicationBnplCreateInput, CreditApplicationBnplRepositoryPort, CreditApplicationBnplUpdateInput } from '../../../modules/credit-applications/domain/ports/credit-application-bnpl.repository.port';
-import type { CreditApplicationBnpl } from '../../../modules/credit-applications/domain/models/credit-application-bnpl.model';
-import { CreditApplicationBnplEntity } from '../entities/credit-application-bnpl.entity';
+import { Repository } from "typeorm";
+import type { CreditApplicationBnplCreateInput, CreditApplicationBnplRepositoryPort, CreditApplicationBnplUpdateInput } from "../../../modules/credit-applications/domain/ports/credit-application-bnpl.repository.port";
+import type { CreditApplicationBnpl } from "../../../modules/credit-applications/domain/models/credit-application-bnpl.model";
+import { CreditApplicationBnplEntity } from "../entities/credit-application-bnpl.entity";
 export declare class TypeOrmCreditApplicationBnplRepository implements CreditApplicationBnplRepositoryPort {
     private readonly repository;
     constructor(repository: Repository<CreditApplicationBnplEntity>);

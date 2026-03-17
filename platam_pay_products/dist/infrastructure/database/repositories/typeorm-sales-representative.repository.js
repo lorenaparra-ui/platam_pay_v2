@@ -25,7 +25,7 @@ let TypeOrmSalesRepresentativeRepository = class TypeOrmSalesRepresentativeRepos
     }
     async findAll() {
         const entities = await this.repository.find({
-            order: { partnerId: 'ASC', name: 'ASC' },
+            order: { partnerId: "ASC", name: "ASC" },
         });
         return entities.map(sales_representative_mapper_1.SalesRepresentativeMapper.toDomain);
     }
@@ -40,7 +40,7 @@ let TypeOrmSalesRepresentativeRepository = class TypeOrmSalesRepresentativeRepos
     async findByPartnerId(partnerId) {
         const entities = await this.repository.find({
             where: { partnerId },
-            order: { name: 'ASC' },
+            order: { name: "ASC" },
         });
         return entities.map(sales_representative_mapper_1.SalesRepresentativeMapper.toDomain);
     }

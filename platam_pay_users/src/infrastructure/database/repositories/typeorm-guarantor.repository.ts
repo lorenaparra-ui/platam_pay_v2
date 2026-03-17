@@ -4,8 +4,8 @@ import { Repository } from 'typeorm';
 import type {
   CreateGuarantorPayload,
   GuarantorRepositoryPort,
-} from 'src/modules/persons/domain/ports/guarantor.repository.port';
-import { Guarantor } from 'src/modules/persons/domain/models/guarantor.model';
+} from '@persons/domain/ports/guarantor.repository.port';
+import { Guarantor } from '@persons/domain/models/guarantor.model';
 import { GuarantorEntity } from '../entities/guarantor.entity';
 import { GuarantorMapper } from '../mappers/guarantor.mapper';
 

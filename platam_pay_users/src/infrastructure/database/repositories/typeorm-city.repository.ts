@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CityEntity } from '../entities/city.entity';
-import { CityRepositoryPort, CountryItem } from '../../../modules/transversal/domain/ports/city.repository.port';
+import { CityRepositoryPort, CountryItem } from '@transversal/domain/ports/repository/city.repository.port';
 import { City } from '../../../modules/transversal/domain/models/city.model';
 import { CityMapper } from '../mappers/city.mapper';
 

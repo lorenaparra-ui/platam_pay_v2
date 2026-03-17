@@ -17,12 +17,12 @@ import { TypeOrmCityRepository } from '@infrastructure/database/repositories/typ
 import { RuesBusinessInformationApi } from '@infrastructure/external-apis/rues-business-information.api';
 
 // Ports (Tokens)
-import { DOCUMENT_TYPE_REPOSITORY } from 'src/modules/transversal/domain/ports/document-type.repository.port';
+import { DOCUMENT_TYPE_REPOSITORY } from '@transversal/domain/ports/repository/document-type.repository.port';
 import { BUSINESS_SENIORITY_REPOSITORY } from '@transversal/domain/ports/repository/business-seniority.repository.port';
-import { ONBOARDING_REPOSITORY } from 'src/modules/transversal/domain/ports/onboarding.repository.port';
-import { STATUS_REPOSITORY } from 'src/modules/transversal/domain/ports/status.repository.port';
-import { CITY_REPOSITORY } from 'src/modules/transversal/domain/ports/city.repository.port';
-import { BUSINESS_INFORMATION_API } from 'src/modules/transversal/domain/ports/business-information-api.port';
+import { ONBOARDING_REPOSITORY } from '@transversal/domain/ports/repository/onboarding.repository.port';
+import { STATUS_REPOSITORY } from '@transversal/domain/ports/repository/status.repository.port';
+import { CITY_REPOSITORY } from '@transversal/domain/ports/repository/city.repository.port';
+import { BUSINESS_INFORMATION_API } from '@transversal/domain/ports/repository/business-information-api.port';
 
 // Use Cases
 import { GetBusinessSenioritiesUseCase } from './application/use-cases/get-business-seniorities.use-case';

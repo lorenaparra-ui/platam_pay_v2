@@ -91,7 +91,7 @@ export class OnboardingController {
       opinion: {
         relationshipDuration: dto.opinion.relationshipDuration,
         confidenceScore: dto.opinion.confidenceScore,
-        
+        recommendedLoc: dto.opinion.recommendedLoc,
       },
     };
   }

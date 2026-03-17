@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import type { RolePermissionRepositoryPort } from 'src/modules/users/domain/ports/role-permission.repository.port';
-import { RolePermission } from 'src/modules/users/domain/models/role-permission.model';
+import type { RolePermissionRepositoryPort } from '@users/domain/ports/role-permission.repository.port';
+import { RolePermission } from '@users/domain/models/role-permission.model';
 import { RolePermissionEntity } from '../entities/role-permission.entity';
 import { RolePermissionMapper } from '../mappers/role-permission.mapper';
 

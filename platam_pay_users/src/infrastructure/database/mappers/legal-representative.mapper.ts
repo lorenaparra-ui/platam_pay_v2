@@ -1,5 +1,5 @@
-import { LegalRepresentative } from 'src/modules/persons/domain/models/legal-representative.model';
-import type { CreateLegalRepresentativePayload } from 'src/modules/persons/domain/ports/legal-representative.repository.port';
+import { LegalRepresentative } from '@persons/domain/models/legal-representative.model';
+import type { CreateLegalRepresentativePayload } from '@persons/domain/ports/legal-representative.repository.port';
 import { LegalRepresentativeEntity } from '../entities/legal-representative.entity';
 
 export class LegalRepresentativeMapper {

@@ -1,5 +1,5 @@
-import { Guarantor } from 'src/modules/persons/domain/models/guarantor.model';
-import type { CreateGuarantorPayload } from 'src/modules/persons/domain/ports/guarantor.repository.port';
+import { Guarantor } from '@persons/domain/models/guarantor.model';
+import type { CreateGuarantorPayload } from '@persons/domain/ports/guarantor.repository.port';
 import { GuarantorEntity } from '../entities/guarantor.entity';
 
 export class GuarantorMapper {

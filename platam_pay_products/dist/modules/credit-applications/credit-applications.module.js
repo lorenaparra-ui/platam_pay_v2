@@ -23,9 +23,7 @@ let CreditApplicationsModule = class CreditApplicationsModule {
 exports.CreditApplicationsModule = CreditApplicationsModule;
 exports.CreditApplicationsModule = CreditApplicationsModule = __decorate([
     (0, common_1.Module)({
-        imports: [
-            typeorm_1.TypeOrmModule.forFeature([credit_application_bnpl_entity_1.CreditApplicationBnplEntity]),
-        ],
+        imports: [typeorm_1.TypeOrmModule.forFeature([credit_application_bnpl_entity_1.CreditApplicationBnplEntity])],
         controllers: [credit_applications_bnpl_controller_1.CreditApplicationsBnplController],
         providers: [
             {

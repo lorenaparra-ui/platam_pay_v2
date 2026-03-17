@@ -25,7 +25,7 @@ let TypeOrmCreditApplicationBnplRepository = class TypeOrmCreditApplicationBnplR
     }
     async findAll() {
         const entities = await this.repository.find({
-            order: { createdAt: 'DESC' },
+            order: { createdAt: "DESC" },
         });
         return entities.map((e) => credit_application_bnpl_mapper_1.CreditApplicationBnplMapper.toDomain(e));
     }
@@ -42,7 +42,7 @@ let TypeOrmCreditApplicationBnplRepository = class TypeOrmCreditApplicationBnplR
         const saved = await this.repository.save(entity);
         const full = await this.repository.findOne({ where: { id: saved.id } });
         if (!full)
-            throw new Error('Credit application create: row not found after save');
+            throw new Error("Credit application create: row not found after save");
         return credit_application_bnpl_mapper_1.CreditApplicationBnplMapper.toDomain(full);
     }
     async updateByExternalId(externalId, input) {
@@ -100,7 +100,8 @@ let TypeOrmCreditApplicationBnplRepository = class TypeOrmCreditApplicationBnplR
         if (input.creditStudyDate !== undefined)
             entity.creditStudyDate = input.creditStudyDate;
         if (input.creditScore !== undefined)
-            entity.creditScore = input.creditScore != null ? String(input.creditScore) : null;
+            entity.creditScore =
+                input.creditScore != null ? String(input.creditScore) : null;
         if (input.creditDecision !== undefined)
             entity.creditDecision = input.creditDecision;
         if (input.approvedCreditLine !== undefined)

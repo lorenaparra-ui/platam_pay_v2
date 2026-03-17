@@ -87,32 +87,32 @@ let CreditApplicationsBnplController = class CreditApplicationsBnplController {
     async findByExternalId(externalId) {
         const item = await this.getByExternalIdUseCase.run(externalId);
         if (!item) {
-            throw new common_2.NotFoundException('Solicitud de crédito BNPL no encontrada');
+            throw new common_2.NotFoundException("Solicitud de crédito BNPL no encontrada");
         }
         return toResponseDto(item);
     }
     async updateByExternalId(externalId, body) {
         const updated = await this.updateUseCase.run(externalId, body);
         if (!updated) {
-            throw new common_2.NotFoundException('Solicitud de crédito BNPL no encontrada');
+            throw new common_2.NotFoundException("Solicitud de crédito BNPL no encontrada");
         }
         return toResponseDto(updated);
     }
     async deleteByExternalId(externalId) {
         const deleted = await this.deleteUseCase.run(externalId);
         if (!deleted) {
-            throw new common_2.NotFoundException('Solicitud de crédito BNPL no encontrada');
+            throw new common_2.NotFoundException("Solicitud de crédito BNPL no encontrada");
         }
     }
 };
 exports.CreditApplicationsBnplController = CreditApplicationsBnplController;
 __decorate([
     (0, common_1.Post)(),
-    (0, swagger_1.ApiOperation)({ summary: 'Crear solicitud de crédito BNPL' }),
+    (0, swagger_1.ApiOperation)({ summary: "Crear solicitud de crédito BNPL" }),
     (0, swagger_1.ApiBody)({ type: create_credit_application_bnpl_request_dto_1.CreateCreditApplicationBnplRequestDto }),
     (0, swagger_1.ApiResponse)({
         status: common_1.HttpStatus.CREATED,
-        description: 'Solicitud creada',
+        description: "Solicitud creada",
         type: credit_application_bnpl_response_dto_1.CreditApplicationBnplResponseDto,
     }),
     __param(0, (0, common_1.Body)()),
@@ -122,10 +122,10 @@ __decorate([
 ], CreditApplicationsBnplController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
-    (0, swagger_1.ApiOperation)({ summary: 'Listar solicitudes de crédito BNPL' }),
+    (0, swagger_1.ApiOperation)({ summary: "Listar solicitudes de crédito BNPL" }),
     (0, swagger_1.ApiResponse)({
         status: common_1.HttpStatus.OK,
-        description: 'Lista de solicitudes',
+        description: "Lista de solicitudes",
         type: credit_application_bnpl_response_dto_1.CreditApplicationBnplResponseDto,
         isArray: true,
     }),
@@ -134,61 +134,73 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], CreditApplicationsBnplController.prototype, "findAll", null);
 __decorate([
-    (0, common_1.Get)(':externalId'),
-    (0, swagger_1.ApiOperation)({ summary: 'Obtener solicitud por externalId' }),
+    (0, common_1.Get)(":externalId"),
+    (0, swagger_1.ApiOperation)({ summary: "Obtener solicitud por externalId" }),
     (0, swagger_1.ApiParam)({
-        name: 'externalId',
-        description: 'UUID público de la solicitud',
+        name: "externalId",
+        description: "UUID público de la solicitud",
     }),
     (0, swagger_1.ApiResponse)({
         status: common_1.HttpStatus.OK,
-        description: 'Solicitud encontrada',
+        description: "Solicitud encontrada",
         type: credit_application_bnpl_response_dto_1.CreditApplicationBnplResponseDto,
     }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.NOT_FOUND, description: 'Solicitud no encontrada' }),
-    __param(0, (0, common_1.Param)('externalId', common_1.ParseUUIDPipe)),
+    (0, swagger_1.ApiResponse)({
+        status: common_1.HttpStatus.NOT_FOUND,
+        description: "Solicitud no encontrada",
+    }),
+    __param(0, (0, common_1.Param)("externalId", common_1.ParseUUIDPipe)),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], CreditApplicationsBnplController.prototype, "findByExternalId", null);
 __decorate([
-    (0, common_1.Patch)(':externalId'),
-    (0, swagger_1.ApiOperation)({ summary: 'Actualizar solicitud por externalId' }),
+    (0, common_1.Patch)(":externalId"),
+    (0, swagger_1.ApiOperation)({ summary: "Actualizar solicitud por externalId" }),
     (0, swagger_1.ApiParam)({
-        name: 'externalId',
-        description: 'UUID público de la solicitud',
+        name: "externalId",
+        description: "UUID público de la solicitud",
     }),
     (0, swagger_1.ApiBody)({ type: update_credit_application_bnpl_request_dto_1.UpdateCreditApplicationBnplRequestDto }),
     (0, swagger_1.ApiResponse)({
         status: common_1.HttpStatus.OK,
-        description: 'Solicitud actualizada',
+        description: "Solicitud actualizada",
         type: credit_application_bnpl_response_dto_1.CreditApplicationBnplResponseDto,
     }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.NOT_FOUND, description: 'Solicitud no encontrada' }),
-    __param(0, (0, common_1.Param)('externalId', common_1.ParseUUIDPipe)),
+    (0, swagger_1.ApiResponse)({
+        status: common_1.HttpStatus.NOT_FOUND,
+        description: "Solicitud no encontrada",
+    }),
+    __param(0, (0, common_1.Param)("externalId", common_1.ParseUUIDPipe)),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, update_credit_application_bnpl_request_dto_1.UpdateCreditApplicationBnplRequestDto]),
     __metadata("design:returntype", Promise)
 ], CreditApplicationsBnplController.prototype, "updateByExternalId", null);
 __decorate([
-    (0, common_1.Delete)(':externalId'),
+    (0, common_1.Delete)(":externalId"),
     (0, common_1.HttpCode)(common_1.HttpStatus.NO_CONTENT),
-    (0, swagger_1.ApiOperation)({ summary: 'Eliminar solicitud por externalId' }),
+    (0, swagger_1.ApiOperation)({ summary: "Eliminar solicitud por externalId" }),
     (0, swagger_1.ApiParam)({
-        name: 'externalId',
-        description: 'UUID público de la solicitud',
+        name: "externalId",
+        description: "UUID público de la solicitud",
     }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.NO_CONTENT, description: 'Solicitud eliminada' }),
-    (0, swagger_1.ApiResponse)({ status: common_1.HttpStatus.NOT_FOUND, description: 'Solicitud no encontrada' }),
-    __param(0, (0, common_1.Param)('externalId', common_1.ParseUUIDPipe)),
+    (0, swagger_1.ApiResponse)({
+        status: common_1.HttpStatus.NO_CONTENT,
+        description: "Solicitud eliminada",
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: common_1.HttpStatus.NOT_FOUND,
+        description: "Solicitud no encontrada",
+    }),
+    __param(0, (0, common_1.Param)("externalId", common_1.ParseUUIDPipe)),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], CreditApplicationsBnplController.prototype, "deleteByExternalId", null);
 exports.CreditApplicationsBnplController = CreditApplicationsBnplController = __decorate([
-    (0, swagger_1.ApiTags)('credit-applications-bnpl'),
-    (0, common_1.Controller)('credit-applications-bnpl'),
+    (0, swagger_1.ApiTags)("credit-applications-bnpl"),
+    (0, common_1.Controller)("credit-applications-bnpl"),
     __metadata("design:paramtypes", [create_credit_application_bnpl_use_case_1.CreateCreditApplicationBnplUseCase,
         get_all_credit_applications_bnpl_use_case_1.GetAllCreditApplicationsBnplUseCase,
         get_credit_application_bnpl_by_external_id_use_case_1.GetCreditApplicationBnplByExternalIdUseCase,

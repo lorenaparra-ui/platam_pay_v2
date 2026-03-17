@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User } from 'src/modules/users/domain/models/user.model';
+import { User } from '@users/domain/models/user.model';
 import {
   CreateUserPayload,
   UpdateUserPayload,
   UserRepositoryPort,
-} from 'src/modules/users/domain/ports/user.repository.port';
+} from '@users/domain/ports/user.repository.port';
 import { UserEntity } from '../entities/user.entity';
 import { UserMapper } from '../mappers/user.mapper';
 

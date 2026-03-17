@@ -1,8 +1,8 @@
-import { User } from 'src/modules/users/domain/models/user.model';
+import { User } from '@users/domain/models/user.model';
 import {
   CreateUserPayload,
   UpdateUserPayload,
-} from 'src/modules/users/domain/ports/user.repository.port';
+} from '@users/domain/ports/user.repository.port';
 import { UserEntity } from '../entities/user.entity';
 
 export class UserMapper {

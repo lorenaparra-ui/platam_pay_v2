@@ -1,4 +1,4 @@
-import { Status } from '../models/status.model';
+import { Status } from '../../models/status.model';
 
 export const STATUS_REPOSITORY = 'STATUS_REPOSITORY';
 

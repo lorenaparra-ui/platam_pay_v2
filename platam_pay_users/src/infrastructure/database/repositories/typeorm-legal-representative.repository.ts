@@ -4,8 +4,8 @@ import { Repository } from 'typeorm';
 import type {
   CreateLegalRepresentativePayload,
   LegalRepresentativeRepositoryPort,
-} from 'src/modules/persons/domain/ports/legal-representative.repository.port';
-import { LegalRepresentative } from 'src/modules/persons/domain/models/legal-representative.model';
+} from '@persons/domain/ports/legal-representative.repository.port';
+import { LegalRepresentative } from '@persons/domain/models/legal-representative.model';
 import { LegalRepresentativeEntity } from '../entities/legal-representative.entity';
 import { LegalRepresentativeMapper } from '../mappers/legal-representative.mapper';
 

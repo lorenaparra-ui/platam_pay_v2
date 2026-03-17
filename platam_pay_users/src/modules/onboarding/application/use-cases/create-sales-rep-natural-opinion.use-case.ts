@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { CreateSalesRepNaturalOpinionCommand } from '../../commands';
+import type { CreateSalesRepNaturalOpinionCommand } from '@onboarding/application/commands';
 
 /**
  * Caso de uso: crear opinión del representante para onboarding persona natural.

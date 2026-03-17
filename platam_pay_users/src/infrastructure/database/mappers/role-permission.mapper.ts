@@ -1,4 +1,4 @@
-import { RolePermission } from 'src/modules/users/domain/models/role-permission.model';
+import { RolePermission } from '@users/domain/models/role-permission.model';
 import { RolePermissionEntity } from '../entities/role-permission.entity';
 
 export class RolePermissionMapper {

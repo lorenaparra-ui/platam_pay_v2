@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { BusinessInformationApiPort } from '@transversal/domain/ports/business-information-api.port';
+import { BusinessInformationApiPort } from '@transversal/domain/ports/repository/business-information-api.port';
 import { BusinessInformation } from '@transversal/domain/models/business-information.model';
 import type { RuesApiResponse } from './rues-api.types';
 import { parseLegalRepresentatives } from './rues-legal-rep-parser';

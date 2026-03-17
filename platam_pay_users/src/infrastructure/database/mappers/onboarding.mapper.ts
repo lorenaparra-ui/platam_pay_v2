@@ -2,7 +2,7 @@ import { Onboarding } from 'src/modules/transversal/domain/models/onboarding.mod
 import {
   CreateOnboardingPayload,
   UpdateOnboardingPayload,
-} from 'src/modules/transversal/domain/ports/onboarding.repository.port';
+} from '@transversal/domain/ports/repository/onboarding.repository.port';
 import { OnboardingEntity } from '../entities/onboarding.entity';
 
 export class OnboardingMapper {

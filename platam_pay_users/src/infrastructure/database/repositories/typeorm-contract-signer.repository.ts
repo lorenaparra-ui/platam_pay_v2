@@ -4,8 +4,8 @@ import { Repository } from 'typeorm';
 import type {
   ContractSignerRepositoryPort,
   CreateContractSignerPayload,
-} from 'src/modules/persons/domain/ports/contract-signer.repository.port';
-import { ContractSigner } from 'src/modules/persons/domain/models/contract-signer.model';
+} from '@persons/domain/ports/contract-signer.repository.port';
+import { ContractSigner } from '@persons/domain/models/contract-signer.model';
 import { ContractSignerEntity } from '../entities/contract-signer.entity';
 import { ContractSignerMapper } from '../mappers/contract-signer.mapper';
 

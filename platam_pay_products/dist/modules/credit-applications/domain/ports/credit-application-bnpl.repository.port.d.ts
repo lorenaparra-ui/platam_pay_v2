@@ -1,6 +1,6 @@
-import type { CreditApplicationBnpl } from '../models/credit-application-bnpl.model';
+import type { CreditApplicationBnpl } from "../models/credit-application-bnpl.model";
 export declare const CREDIT_APPLICATION_BNPL_REPOSITORY = "CREDIT_APPLICATION_BNPL_REPOSITORY";
-export type CreditApplicationBnplCreateInput = Omit<CreditApplicationBnpl, 'id' | 'externalId' | 'createdAt' | 'updatedAt'>;
+export type CreditApplicationBnplCreateInput = Omit<CreditApplicationBnpl, "id" | "externalId" | "createdAt" | "updatedAt">;
 export type CreditApplicationBnplUpdateInput = Partial<CreditApplicationBnplCreateInput>;
 export interface CreditApplicationBnplRepositoryPort {
     findAll(): Promise<CreditApplicationBnpl[]>;

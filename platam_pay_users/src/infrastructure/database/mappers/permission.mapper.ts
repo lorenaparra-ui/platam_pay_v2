@@ -1,4 +1,4 @@
-import { Permission } from 'src/modules/users/domain/models/permission.model';
+import { Permission } from '@users/domain/models/permission.model';
 import { PermissionEntity } from '../entities/permission.entity';
 
 export class PermissionMapper {

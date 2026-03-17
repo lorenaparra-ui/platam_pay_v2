@@ -20,10 +20,11 @@ async function bootstrap() {
         allowedHeaders: "Content-Type, Accept",
     });
     const options = new swagger_1.DocumentBuilder()
-        .setTitle("Platam Partners API")
-        .setDescription("Microservicio de partners para plataforma Platam.")
+        .setTitle("Platam Products API")
+        .setDescription("Microservicio de productos y backoffice para plataforma Platam.")
         .setVersion("1.0")
-        .addTag("partners-service")
+        .addTag("credit-applications-bnpl")
+        .addTag("backoffice-credit-applications")
         .build();
     const document = swagger_1.SwaggerModule.createDocument(app, options);
     swagger_1.SwaggerModule.setup("docs", app, document);

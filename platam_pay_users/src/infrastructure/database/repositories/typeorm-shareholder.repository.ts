@@ -4,8 +4,8 @@ import { Repository } from 'typeorm';
 import type {
   CreateShareholderPayload,
   ShareholderRepositoryPort,
-} from 'src/modules/persons/domain/ports/shareholder.repository.port';
-import { Shareholder } from 'src/modules/persons/domain/models/shareholder.model';
+} from '@persons/domain/ports/shareholder.repository.port';
+import { Shareholder } from '@persons/domain/models/shareholder.model';
 import { ShareholderEntity } from '../entities/shareholder.entity';
 import { ShareholderMapper } from '../mappers/shareholder.mapper';
 

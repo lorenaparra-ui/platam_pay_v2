@@ -1,7 +1,7 @@
-import { Repository } from 'typeorm';
-import type { CreateSalesRepresentativePayload, SalesRepresentativeRepositoryPort } from 'src/modules/persons/domain/ports/sales-representative.repository.port';
-import { SalesRepresentative } from 'src/modules/persons/domain/models/sales-representative.model';
-import { SalesRepresentativeEntity } from '../entities/sales-representative.entity';
+import { Repository } from "typeorm";
+import type { CreateSalesRepresentativePayload, SalesRepresentativeRepositoryPort } from "src/modules/persons/domain/ports/sales-representative.repository.port";
+import { SalesRepresentative } from "src/modules/persons/domain/models/sales-representative.model";
+import { SalesRepresentativeEntity } from "../entities/sales-representative.entity";
 export declare class TypeOrmSalesRepresentativeRepository implements SalesRepresentativeRepositoryPort {
     private readonly repository;
     constructor(repository: Repository<SalesRepresentativeEntity>);

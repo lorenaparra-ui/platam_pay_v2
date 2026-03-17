@@ -21,26 +21,26 @@ let SalesRepresentativeEntity = class SalesRepresentativeEntity extends base_ext
 };
 exports.SalesRepresentativeEntity = SalesRepresentativeEntity;
 __decorate([
-    (0, typeorm_1.Column)({ name: 'partner_id', type: 'bigint' }),
+    (0, typeorm_1.Column)({ name: "partner_id", type: "bigint" }),
     __metadata("design:type", Number)
 ], SalesRepresentativeEntity.prototype, "partnerId", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ name: 'user_id', type: 'bigint', nullable: true }),
+    (0, typeorm_1.Column)({ name: "user_id", type: "bigint", nullable: true }),
     __metadata("design:type", Object)
 ], SalesRepresentativeEntity.prototype, "userId", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ name: 'name', type: 'varchar' }),
+    (0, typeorm_1.Column)({ name: "name", type: "varchar" }),
     __metadata("design:type", String)
 ], SalesRepresentativeEntity.prototype, "name", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ name: 'role', type: 'varchar' }),
+    (0, typeorm_1.Column)({ name: "role", type: "varchar" }),
     __metadata("design:type", String)
 ], SalesRepresentativeEntity.prototype, "role", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ name: 'status_id', type: 'bigint' }),
+    (0, typeorm_1.Column)({ name: "status_id", type: "bigint" }),
     __metadata("design:type", Number)
 ], SalesRepresentativeEntity.prototype, "statusId", void 0);
 exports.SalesRepresentativeEntity = SalesRepresentativeEntity = __decorate([
-    (0, typeorm_1.Entity)('sales_representatives')
+    (0, typeorm_1.Entity)("sales_representatives")
 ], SalesRepresentativeEntity);
 //# sourceMappingURL=sales-representative.entity.js.map

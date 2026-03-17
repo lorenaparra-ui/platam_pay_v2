@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
-import type { CityRepositoryPort } from '../../domain/ports/city.repository.port';
-import { CITY_REPOSITORY } from '../../domain/ports/city.repository.port';
+import type { CityRepositoryPort } from '@transversal/domain/ports/repository/city.repository.port';
+import { CITY_REPOSITORY } from '@transversal/domain/ports/repository/city.repository.port';
 import { CityResponseDto } from '../dto/city-response.dto';
 import { CountryResponseDto } from '../dto/country-response.dto';
 

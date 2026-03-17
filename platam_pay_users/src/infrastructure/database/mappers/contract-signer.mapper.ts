@@ -1,5 +1,5 @@
-import { ContractSigner } from 'src/modules/persons/domain/models/contract-signer.model';
-import type { CreateContractSignerPayload } from 'src/modules/persons/domain/ports/contract-signer.repository.port';
+import { ContractSigner } from '@persons/domain/models/contract-signer.model';
+import type { CreateContractSignerPayload } from '@persons/domain/ports/contract-signer.repository.port';
 import { ContractSignerEntity } from '../entities/contract-signer.entity';
 
 export class ContractSignerMapper {

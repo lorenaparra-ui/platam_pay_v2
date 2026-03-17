@@ -1,4 +1,4 @@
-import { BaseExternalIdEntity } from './base-external-id.entity';
+import { BaseExternalIdEntity } from "./base-external-id.entity";
 export declare class CreditApplicationBnplEntity extends BaseExternalIdEntity {
     userId: number;
     userProductId: number | null;

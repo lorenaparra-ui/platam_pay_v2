@@ -6,7 +6,7 @@ import {
   CreateOnboardingPayload,
   OnboardingRepositoryPort,
   UpdateOnboardingPayload,
-} from 'src/modules/transversal/domain/ports/onboarding.repository.port';
+} from '@transversal/domain/ports/repository/onboarding.repository.port';
 import { OnboardingEntity } from '../entities/onboarding.entity';
 import { OnboardingMapper } from '../mappers/onboarding.mapper';
 
