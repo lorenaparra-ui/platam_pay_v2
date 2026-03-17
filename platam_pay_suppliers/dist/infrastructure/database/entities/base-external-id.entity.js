@@ -27,7 +27,7 @@ __decorate([
         name: "external_id",
         type: "uuid",
         unique: true,
-        insert: false,
+        default: () => "gen_random_uuid()",
         update: false,
     }),
     __metadata("design:type", String)

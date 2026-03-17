@@ -4,7 +4,7 @@ import { AppController } from "./app.controller";
 import { CommonModule } from "@common/common.module";
 import appConfig from "./config/app.config";
 import { InfrastructureModule } from "@infrastructure/infrastructure.module";
-import { PartnersModule } from "./modules/management/partners.module";
+import { ManagementModule } from "./modules/management/management.module";
 import { BusinessesModule } from "./modules/businesses/businesses.module";
 import { SuppliersModule } from "./modules/suppliers/suppliers.module";
 
@@ -17,7 +17,7 @@ import { SuppliersModule } from "./modules/suppliers/suppliers.module";
     }),
     InfrastructureModule,
     CommonModule,
-    PartnersModule,
+    ManagementModule,
     BusinessesModule,
     SuppliersModule,
   ],

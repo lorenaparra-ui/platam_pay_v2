@@ -1,6 +1,7 @@
 import { InjectRepository } from "@nestjs/typeorm";
 import { DataSource, ILike, Repository } from "typeorm";
 import { BadRequestException, Injectable } from "@nestjs/common";
+import { randomUUID } from "node:crypto";
 import { Partner } from "@partners/domain/models/partner.model";
 import {
   CreatePartnerPayload,
@@ -59,6 +60,7 @@ export class TypeOrmPartnersRepository implements PartnerRepositoryPort {
 
     const createdPartner = await this.repository.save(
       this.repository.create({
+        externalId: randomUUID(),
         businessId: payload.businessId,
         acronym: payload.acronym,
         logoUrl: payload.logoUrl ?? null,

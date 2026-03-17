@@ -25,7 +25,7 @@
       "@config/*": ["src/config/*"],
       "@infrastructure/*": ["src/infrastructure/*"],
       "@transversal/*": ["src/modules/transversal/*"],
-      "@partners/*": ["src/modules/management/*"],
+      "@partners/*": ["src/modules/partners/*"],
       "@partner-categories/*": ["src/modules/partner-categories/*"],
       "@businesses/*": ["src/modules/businesses/*"],
       "@credit-applications-bnpl/*": ["src/modules/credit-applications-bnpl/*"],

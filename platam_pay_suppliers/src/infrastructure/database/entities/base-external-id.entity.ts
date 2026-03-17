@@ -13,7 +13,7 @@ export abstract class BaseExternalIdEntity {
     name: "external_id",
     type: "uuid",
     unique: true,
-    insert: false,
+    default: () => "gen_random_uuid()",
     update: false,
   })
   externalId: string;

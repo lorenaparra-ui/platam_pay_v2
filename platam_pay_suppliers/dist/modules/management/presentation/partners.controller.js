@@ -14,19 +14,21 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PartnersController = void 0;
 const common_1 = require("@nestjs/common");
+const platform_express_1 = require("@nestjs/platform-express");
 const swagger_1 = require("@nestjs/swagger");
 const typeorm_1 = require("typeorm");
-const change_partner_status_request_dto_1 = require("../application/dto/change-partner-status-request.dto");
-const create_partner_request_dto_1 = require("../application/dto/create-partner-request.dto");
-const partner_list_query_dto_1 = require("../application/dto/partner-list-query.dto");
-const partner_response_dto_1 = require("../application/dto/partner-response.dto");
-const update_partner_request_dto_1 = require("../application/dto/update-partner-request.dto");
-const change_partner_status_use_case_1 = require("../application/use-cases/change-partner-status.use-case");
-const create_partner_use_case_1 = require("../application/use-cases/create-partner.use-case");
-const delete_partner_by_external_id_use_case_1 = require("../application/use-cases/delete-partner-by-external-id.use-case");
-const find_all_partners_use_case_1 = require("../application/use-cases/find-all-partners.use-case");
-const find_partner_by_external_id_use_case_1 = require("../application/use-cases/find-partner-by-external-id.use-case");
-const update_partner_by_external_id_use_case_1 = require("../application/use-cases/update-partner-by-external-id.use-case");
+const change_partner_status_request_dto_1 = require("../../partners/application/dto/change-partner-status-request.dto");
+const create_partner_request_dto_1 = require("../../partners/application/dto/create-partner-request.dto");
+const partner_list_query_dto_1 = require("../../partners/application/dto/partner-list-query.dto");
+const partner_response_dto_1 = require("../../partners/application/dto/partner-response.dto");
+const update_partner_request_dto_1 = require("../../partners/application/dto/update-partner-request.dto");
+const change_partner_status_use_case_1 = require("../../partners/application/use-cases/change-partner-status.use-case");
+const create_partner_use_case_1 = require("../../partners/application/use-cases/create-partner.use-case");
+const create_partner_event_driven_use_case_1 = require("../../partners/application/use-cases/create-partner-event-driven.use-case");
+const delete_partner_by_external_id_use_case_1 = require("../../partners/application/use-cases/delete-partner-by-external-id.use-case");
+const find_all_partners_use_case_1 = require("../../partners/application/use-cases/find-all-partners.use-case");
+const find_partner_by_external_id_use_case_1 = require("../../partners/application/use-cases/find-partner-by-external-id.use-case");
+const update_partner_by_external_id_use_case_1 = require("../../partners/application/use-cases/update-partner-by-external-id.use-case");
 function toResponseDto(domain) {
     const dto = new partner_response_dto_1.PartnerResponseDto();
     dto.externalId = domain.externalId;
@@ -51,18 +53,41 @@ function toResponseDto(domain) {
 }
 let PartnersController = class PartnersController {
     createPartnerUseCase;
+    createPartnerEventDrivenUseCase;
     findAllPartnersUseCase;
     findPartnerByExternalIdUseCase;
     updatePartnerByExternalIdUseCase;
     deletePartnerByExternalIdUseCase;
     changePartnerStatusUseCase;
-    constructor(createPartnerUseCase, findAllPartnersUseCase, findPartnerByExternalIdUseCase, updatePartnerByExternalIdUseCase, deletePartnerByExternalIdUseCase, changePartnerStatusUseCase) {
+    constructor(createPartnerUseCase, createPartnerEventDrivenUseCase, findAllPartnersUseCase, findPartnerByExternalIdUseCase, updatePartnerByExternalIdUseCase, deletePartnerByExternalIdUseCase, changePartnerStatusUseCase) {
         this.createPartnerUseCase = createPartnerUseCase;
+        this.createPartnerEventDrivenUseCase = createPartnerEventDrivenUseCase;
         this.findAllPartnersUseCase = findAllPartnersUseCase;
         this.findPartnerByExternalIdUseCase = findPartnerByExternalIdUseCase;
         this.updatePartnerByExternalIdUseCase = updatePartnerByExternalIdUseCase;
         this.deletePartnerByExternalIdUseCase = deletePartnerByExternalIdUseCase;
         this.changePartnerStatusUseCase = changePartnerStatusUseCase;
+    }
+    async createFull(dataJson, files) {
+        const dto = JSON.parse(dataJson || "{}");
+        if (!files?.logo?.[0] || !files?.coBrandingLogo?.[0]) {
+            throw new common_1.BadRequestException("Se requieren los archivos logo y coBrandingLogo");
+        }
+        const logoFile = files.logo[0];
+        const coBrandingFile = files.coBrandingLogo[0];
+        const created = await this.runWithConstraintHandling(() => this.createPartnerEventDrivenUseCase.execute(dto, {
+            logo: {
+                buffer: logoFile.buffer,
+                mimetype: logoFile.mimetype ?? "image/png",
+                originalname: logoFile.originalname ?? "logo",
+            },
+            coBrandingLogo: {
+                buffer: coBrandingFile.buffer,
+                mimetype: coBrandingFile.mimetype ?? "image/png",
+                originalname: coBrandingFile.originalname ?? "cobranding",
+            },
+        }));
+        return toResponseDto(created);
     }
     async create(body) {
         const payload = {
@@ -82,25 +107,21 @@ let PartnersController = class PartnersController {
             defaultRepId: body.defaultRepId ?? null,
             statusId: body.statusId,
         };
-        const created = await this.executeWithUniqueConstraintHandling(() => this.createPartnerUseCase.execute(payload));
+        const created = await this.runWithConstraintHandling(() => this.createPartnerUseCase.execute(payload));
         return toResponseDto(created);
     }
     async findAll(query) {
         const partners = await this.findAllPartnersUseCase.execute(query.search);
         return partners.map(toResponseDto);
     }
-    findByExternalId(externalId) {
-        return this.findByExternalIdHandler(externalId);
-    }
-    async findByExternalIdHandler(externalId) {
+    async findByExternalId(externalId) {
         const partner = await this.findPartnerByExternalIdUseCase.execute(externalId);
-        if (!partner) {
+        if (!partner)
             throw new common_1.NotFoundException("Partner not found");
-        }
         return toResponseDto(partner);
     }
     async updateByExternalId(externalId, body) {
-        const updated = await this.executeWithUniqueConstraintHandling(() => this.updatePartnerByExternalIdUseCase.execute(externalId, {
+        const updated = await this.runWithConstraintHandling(() => this.updatePartnerByExternalIdUseCase.execute(externalId, {
             businessId: body.businessId,
             acronym: body.acronym,
             logoUrl: body.logoUrl,
@@ -117,45 +138,34 @@ let PartnersController = class PartnersController {
             defaultRepId: body.defaultRepId,
             statusId: body.statusId,
         }));
-        if (!updated) {
+        if (!updated)
             throw new common_1.NotFoundException("Partner not found");
-        }
         return toResponseDto(updated);
     }
     async deleteByExternalId(externalId) {
         const deleted = await this.deletePartnerByExternalIdUseCase.execute(externalId);
-        if (!deleted) {
+        if (!deleted)
             throw new common_1.NotFoundException("Partner not found");
-        }
     }
     async changeStatus(externalId, body) {
         const updated = await this.changePartnerStatusUseCase.execute(externalId, body.statusCode);
-        if (!updated) {
+        if (!updated)
             throw new common_1.NotFoundException("Partner not found");
-        }
         return toResponseDto(updated);
     }
-    async executeWithUniqueConstraintHandling(action) {
+    async runWithConstraintHandling(action) {
         try {
             return await action();
         }
         catch (error) {
-            const driverErrorCode = error
-                .driverError?.code;
-            if (error instanceof typeorm_1.QueryFailedError &&
-                typeof driverErrorCode === "string" &&
-                driverErrorCode === "23505") {
-                throw new common_1.ConflictException("Duplicated unique value");
-            }
-            if (error instanceof typeorm_1.QueryFailedError &&
-                typeof driverErrorCode === "string" &&
-                driverErrorCode === "23502") {
-                throw new common_1.BadRequestException("Missing required value");
-            }
-            if (error instanceof typeorm_1.QueryFailedError &&
-                typeof driverErrorCode === "string" &&
-                driverErrorCode === "23503") {
-                throw new common_1.BadRequestException("Invalid foreign key reference");
+            const code = error.driverError?.code;
+            if (error instanceof typeorm_1.QueryFailedError && typeof code === "string") {
+                if (code === "23505")
+                    throw new common_1.ConflictException("Duplicated unique value");
+                if (code === "23502")
+                    throw new common_1.BadRequestException("Missing required value");
+                if (code === "23503")
+                    throw new common_1.BadRequestException("Invalid foreign key reference");
             }
             throw error;
         }
@@ -163,14 +173,36 @@ let PartnersController = class PartnersController {
 };
 exports.PartnersController = PartnersController;
 __decorate([
-    (0, common_1.Post)(),
-    (0, swagger_1.ApiOperation)({ summary: "Crear partner" }),
-    (0, swagger_1.ApiBody)({ type: create_partner_request_dto_1.CreatePartnerRequestDto }),
-    (0, swagger_1.ApiResponse)({
-        status: 201,
-        description: "Partner creado",
-        type: partner_response_dto_1.PartnerResponseDto,
+    (0, common_1.Post)("full"),
+    (0, swagger_1.ApiOperation)({ summary: "Crear partner (flujo completo event-driven)" }),
+    (0, swagger_1.ApiConsumes)("multipart/form-data"),
+    (0, swagger_1.ApiBody)({
+        schema: {
+            type: "object",
+            required: ["data", "logo", "coBrandingLogo"],
+            properties: {
+                data: { type: "string", description: "JSON del CreatePartnerFullRequestDto" },
+                logo: { type: "string", format: "binary" },
+                coBrandingLogo: { type: "string", format: "binary" },
+            },
+        },
     }),
+    (0, swagger_1.ApiResponse)({ status: 201, description: "Partner creado", type: partner_response_dto_1.PartnerResponseDto }),
+    (0, common_1.UseInterceptors)((0, platform_express_1.FileFieldsInterceptor)([
+        { name: "logo", maxCount: 1 },
+        { name: "coBrandingLogo", maxCount: 1 },
+    ])),
+    __param(0, (0, common_1.Body)("data")),
+    __param(1, (0, common_1.UploadedFiles)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], PartnersController.prototype, "createFull", null);
+__decorate([
+    (0, common_1.Post)(),
+    (0, swagger_1.ApiOperation)({ summary: "Crear partner (payload simple)" }),
+    (0, swagger_1.ApiBody)({ type: create_partner_request_dto_1.CreatePartnerRequestDto }),
+    (0, swagger_1.ApiResponse)({ status: 201, description: "Partner creado", type: partner_response_dto_1.PartnerResponseDto }),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [create_partner_request_dto_1.CreatePartnerRequestDto]),
@@ -179,17 +211,8 @@ __decorate([
 __decorate([
     (0, common_1.Get)(),
     (0, swagger_1.ApiOperation)({ summary: "Listar partners" }),
-    (0, swagger_1.ApiQuery)({
-        name: "search",
-        required: false,
-        description: "Busca partners por acronimo",
-    }),
-    (0, swagger_1.ApiResponse)({
-        status: 200,
-        description: "Lista de partners",
-        type: partner_response_dto_1.PartnerResponseDto,
-        isArray: true,
-    }),
+    (0, swagger_1.ApiQuery)({ name: "search", required: false, description: "Busca por acrónimo" }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: "Lista de partners", type: partner_response_dto_1.PartnerResponseDto, isArray: true }),
     __param(0, (0, common_1.Query)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [partner_list_query_dto_1.PartnerListQueryDto]),
@@ -198,13 +221,8 @@ __decorate([
 __decorate([
     (0, common_1.Get)(":externalId"),
     (0, swagger_1.ApiOperation)({ summary: "Obtener partner por externalId" }),
-    (0, swagger_1.ApiParam)({ name: "externalId", description: "UUID publico del partner" }),
-    (0, swagger_1.ApiResponse)({
-        status: 200,
-        description: "Partner encontrado",
-        type: partner_response_dto_1.PartnerResponseDto,
-    }),
-    (0, swagger_1.ApiResponse)({ status: 400, description: "Formato UUID invalido" }),
+    (0, swagger_1.ApiParam)({ name: "externalId", description: "UUID del partner" }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: "Partner encontrado", type: partner_response_dto_1.PartnerResponseDto }),
     (0, swagger_1.ApiResponse)({ status: 404, description: "Partner no encontrado" }),
     __param(0, (0, common_1.Param)("externalId", common_1.ParseUUIDPipe)),
     __metadata("design:type", Function),
@@ -214,14 +232,9 @@ __decorate([
 __decorate([
     (0, common_1.Patch)(":externalId"),
     (0, swagger_1.ApiOperation)({ summary: "Actualizar partner por externalId" }),
-    (0, swagger_1.ApiParam)({ name: "externalId", description: "UUID publico del partner" }),
+    (0, swagger_1.ApiParam)({ name: "externalId", description: "UUID del partner" }),
     (0, swagger_1.ApiBody)({ type: update_partner_request_dto_1.UpdatePartnerRequestDto }),
-    (0, swagger_1.ApiResponse)({
-        status: 200,
-        description: "Partner actualizado",
-        type: partner_response_dto_1.PartnerResponseDto,
-    }),
-    (0, swagger_1.ApiResponse)({ status: 400, description: "Formato UUID invalido" }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: "Partner actualizado", type: partner_response_dto_1.PartnerResponseDto }),
     (0, swagger_1.ApiResponse)({ status: 404, description: "Partner no encontrado" }),
     __param(0, (0, common_1.Param)("externalId", common_1.ParseUUIDPipe)),
     __param(1, (0, common_1.Body)()),
@@ -233,9 +246,8 @@ __decorate([
     (0, common_1.Delete)(":externalId"),
     (0, common_1.HttpCode)(204),
     (0, swagger_1.ApiOperation)({ summary: "Eliminar partner por externalId" }),
-    (0, swagger_1.ApiParam)({ name: "externalId", description: "UUID publico del partner" }),
+    (0, swagger_1.ApiParam)({ name: "externalId", description: "UUID del partner" }),
     (0, swagger_1.ApiResponse)({ status: 204, description: "Partner eliminado" }),
-    (0, swagger_1.ApiResponse)({ status: 400, description: "Formato UUID invalido" }),
     (0, swagger_1.ApiResponse)({ status: 404, description: "Partner no encontrado" }),
     __param(0, (0, common_1.Param)("externalId", common_1.ParseUUIDPipe)),
     __metadata("design:type", Function),
@@ -245,14 +257,9 @@ __decorate([
 __decorate([
     (0, common_1.Patch)(":externalId/status"),
     (0, swagger_1.ApiOperation)({ summary: "Activar o desactivar partner" }),
-    (0, swagger_1.ApiParam)({ name: "externalId", description: "UUID publico del partner" }),
+    (0, swagger_1.ApiParam)({ name: "externalId", description: "UUID del partner" }),
     (0, swagger_1.ApiBody)({ type: change_partner_status_request_dto_1.ChangePartnerStatusRequestDto }),
-    (0, swagger_1.ApiResponse)({
-        status: 200,
-        description: "Estado del partner actualizado",
-        type: partner_response_dto_1.PartnerResponseDto,
-    }),
-    (0, swagger_1.ApiResponse)({ status: 400, description: "Body invalido o UUID invalido" }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: "Estado actualizado", type: partner_response_dto_1.PartnerResponseDto }),
     (0, swagger_1.ApiResponse)({ status: 404, description: "Partner no encontrado" }),
     __param(0, (0, common_1.Param)("externalId", common_1.ParseUUIDPipe)),
     __param(1, (0, common_1.Body)()),
@@ -264,6 +271,7 @@ exports.PartnersController = PartnersController = __decorate([
     (0, swagger_1.ApiTags)("partners"),
     (0, common_1.Controller)("partners/register"),
     __metadata("design:paramtypes", [create_partner_use_case_1.CreatePartnerUseCase,
+        create_partner_event_driven_use_case_1.CreatePartnerEventDrivenUseCase,
         find_all_partners_use_case_1.FindAllPartnersUseCase,
         find_partner_by_external_id_use_case_1.FindPartnerByExternalIdUseCase,
         update_partner_by_external_id_use_case_1.UpdatePartnerByExternalIdUseCase,

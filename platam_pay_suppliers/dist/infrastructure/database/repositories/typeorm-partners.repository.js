@@ -16,6 +16,7 @@ exports.TypeOrmPartnersRepository = void 0;
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const common_1 = require("@nestjs/common");
+const node_crypto_1 = require("node:crypto");
 const partners_entity_1 = require("../entities/partners.entity");
 const partners_mapper_1 = require("../mappers/partners.mapper");
 let TypeOrmPartnersRepository = class TypeOrmPartnersRepository {
@@ -56,6 +57,7 @@ let TypeOrmPartnersRepository = class TypeOrmPartnersRepository {
             await this.ensurePartnerStatusId(payload.statusId);
         }
         const createdPartner = await this.repository.save(this.repository.create({
+            externalId: (0, node_crypto_1.randomUUID)(),
             businessId: payload.businessId,
             acronym: payload.acronym,
             logoUrl: payload.logoUrl ?? null,
