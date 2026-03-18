@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { BusinessSeniorityEntity } from '@libs/database';
 import { BusinessSeniorityRepositoryPort } from '@transversal/domain/ports/repository/business-seniority.repository.port';
 import { BusinessSeniority } from '@transversal/domain/models/business-seniority.model';
-import { BusinessSeniorityMapper } from '@infrastructure/database/mappers/business-seniority.mapper';
+import { BusinessSeniorityMapper } from '@infrastructure/database/mappers/transversal/business-seniority.mapper';
 
 @Injectable()
 export class TypeOrmBusinessSeniorityRepository implements BusinessSeniorityRepositoryPort {

@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import type { RolePermissionRepositoryPort } from '@users/domain/ports/role-permission.repository.port';
 import { RolePermission } from '@users/domain/models/role-permission.model';
 import { RolePermissionEntity } from '@libs/database';
-import { RolePermissionMapper } from '../mappers/users/role-permission.mapper';
+import { RolePermissionMapper } from '@infrastructure/database/mappers/users/role-permission.mapper';
 
 @Injectable()
 export class TypeOrmRolePermissionRepository implements RolePermissionRepositoryPort {

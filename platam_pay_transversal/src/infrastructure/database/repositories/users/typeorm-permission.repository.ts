@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import type { PermissionRepositoryPort } from '@users/domain/ports/permission.repository.port';
 import { Permission } from '@users/domain/models/permission.model';
 import { PermissionEntity } from '@libs/database';
-import { PermissionMapper } from '../mappers/users/permission.mapper';
+import { PermissionMapper } from '@infrastructure/database/mappers/users/permission.mapper';
 
 @Injectable()
 export class TypeOrmPermissionRepository implements PermissionRepositoryPort {

@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { DocumentTypeEntity } from '@libs/database';
 import { DocumentTypeRepositoryPort } from '@transversal/domain/ports/repository/document-type.repository.port';
 import { DocumentType } from '../../../../modules/transversal/domain/models/document-type.model';
-import { DocumentTypeMapper } from '../mappers/document-type.mapper';
+import { DocumentTypeMapper } from '@infrastructure/database/mappers/transversal/document-type.mapper';
 
 @Injectable()
 export class TypeOrmDocumentTypeRepository implements DocumentTypeRepositoryPort {

@@ -2,12 +2,17 @@
   "compilerOptions": {
     "target": "ES2022",
     "module": "commonjs",
+    "outDir": "dist",
+    "rootDir": ".",
+    "declaration": true,
     "strict": true,
     "strictPropertyInitialization": false,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "skipLibCheck": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "types": ["node"]
   },
-  "include": ["**/*.ts"]
+  "include": ["index.ts", "entities/**/*.ts", "transformers/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
 }

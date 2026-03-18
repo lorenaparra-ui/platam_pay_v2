@@ -7,7 +7,7 @@ import type {
 } from '@persons/domain/ports/contract-signer.repository.port';
 import { ContractSigner } from '@persons/domain/models/contract-signer.model';
 import { ContractSignerEntity } from '@libs/database';
-import { ContractSignerMapper } from '../mappers/persons/contract-signer.mapper';
+import { ContractSignerMapper } from '@infrastructure/database/mappers/persons/contract-signer.mapper';
 
 @Injectable()
 export class TypeOrmContractSignerRepository

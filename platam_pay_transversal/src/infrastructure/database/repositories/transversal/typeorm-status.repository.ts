@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { StatusEntity } from '@libs/database';
 import { StatusRepositoryPort } from '@transversal/domain/ports/repository/status.repository.port';
 import { Status } from '../../../../modules/transversal/domain/models/status.model';
-import { StatusMapper } from '../mappers/status.mapper';
+import { StatusMapper } from '@infrastructure/database/mappers/transversal/status.mapper';
 
 @Injectable()
 export class TypeOrmStatusRepository implements StatusRepositoryPort {

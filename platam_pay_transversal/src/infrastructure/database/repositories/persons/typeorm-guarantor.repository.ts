@@ -7,7 +7,7 @@ import type {
 } from '@persons/domain/ports/guarantor.repository.port';
 import { Guarantor } from '@persons/domain/models/guarantor.model';
 import { GuarantorEntity } from '@libs/database';
-import { GuarantorMapper } from '../mappers/persons/guarantor.mapper';
+import { GuarantorMapper } from '@infrastructure/database/mappers/persons/guarantor.mapper';
 
 @Injectable()
 export class TypeOrmGuarantorRepository implements GuarantorRepositoryPort {

@@ -7,7 +7,7 @@ import type {
 } from '@persons/domain/ports/shareholder.repository.port';
 import { Shareholder } from '@persons/domain/models/shareholder.model';
 import { ShareholderEntity } from '@libs/database';
-import { ShareholderMapper } from '../mappers/persons/shareholder.mapper';
+import { ShareholderMapper } from '@infrastructure/database/mappers/persons/shareholder.mapper';
 
 @Injectable()
 export class TypeOrmShareholderRepository implements ShareholderRepositoryPort {
