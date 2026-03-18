@@ -10,9 +10,23 @@ CREATE TABLE "statuses" (
   "display_name" varchar(100) NOT NULL,
   "description" text,
   "is_active" boolean NOT NULL DEFAULT true,
-  "created_at" timestamptz DEFAULT (now()),
-  "updated_at" timestamptz DEFAULT (now()),
+  "created_at" timestamptz NOT NULL DEFAULT (now()),
+  "updated_at" timestamptz NOT NULL DEFAULT (now()),
   UNIQUE ("entity_type", "code")
+);
+
+CREATE TABLE "options" (
+  "id" BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  "external_id" UUID NOT NULL DEFAULT gen_random_uuid(),
+  "option_group" varchar(100) NOT NULL,
+  "code" varchar(80) NOT NULL,
+  "display_name" varchar(150) NOT NULL,
+  "description" text,
+  "sort_order" int NOT NULL DEFAULT 0,
+  "is_active" boolean NOT NULL DEFAULT true,
+  "created_at" timestamptz NOT NULL DEFAULT (now()),
+  "updated_at" timestamptz NOT NULL DEFAULT (now()),
+  UNIQUE ("option_group", "code")
 );
 
 INSERT INTO "statuses" ("entity_type", "code", "display_name") VALUES
@@ -28,6 +42,7 @@ INSERT INTO "statuses" ("entity_type", "code", "display_name") VALUES
   ('partner_categories', 'archived', 'Archivado'),
   ('credit_applications_bnpl', 'authorized', 'Autorizado'),
   ('credit_applications_bnpl', 'cancelled', 'Cancelado'),
+  ('credit_applications_bnpl', 'in_study', 'En estudio'),
   ('credit_applications_bnpl', 'delinquent', 'En mora'),
   ('credit_applications_bnpl', 'closed', 'Cerrado'),
   ('credit_applications_bnpl', 'business_relation', 'Único dueño'),
@@ -50,6 +65,18 @@ INSERT INTO "statuses" ("entity_type", "code", "display_name") VALUES
   ('documents', 'verified', 'Verificado'),
   ('documents', 'rejected', 'Rechazado');
 
+INSERT INTO "options" ("option_group", "code", "display_name", "description", "sort_order", "is_active") VALUES
+  ('business_seniority', 'lt_1y', 'Menos de 1 año', NULL, 10, true),
+  ('business_seniority', 'y1_2', '1 a 2 años', NULL, 20, true),
+  ('business_seniority', 'y2_5', '2 a 5 años', NULL, 30, true),
+  ('business_seniority', 'y5_10', '5 a 10 años', NULL, 40, true),
+  ('business_seniority', 'gt_10y', 'Más de 10 años', NULL, 50, true),
+  ('roles', 'admin', 'Administrador', NULL, 10, true),
+  ('roles', 'back_officer', 'Back Officer', NULL, 20, true),
+  ('roles', 'partner_operations', 'Partner operations', NULL, 30, true),
+  ('roles', 'client', 'Cliente', NULL, 40, true),
+  ('roles', 'sales_representative', 'Representante de ventas', NULL, 50, true);
+
 CREATE OR REPLACE FUNCTION get_status_id(p_entity_type text, p_code text)
 RETURNS BIGINT
 LANGUAGE sql
@@ -60,6 +87,19 @@ AS $$
   WHERE s.entity_type = p_entity_type
     AND s.code = p_code
     AND s.is_active = true
+  LIMIT 1;
+$$;
+
+CREATE OR REPLACE FUNCTION get_option_id(p_option_group text, p_code text)
+RETURNS BIGINT
+LANGUAGE sql
+STABLE
+AS $$
+  SELECT o.id
+  FROM options o
+  WHERE o.option_group = p_option_group
+    AND o.code = p_code
+    AND o.is_active = true
   LIMIT 1;
 $$;
 
@@ -105,6 +145,42 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION validate_option_group()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+DECLARE
+  expected_group text := TG_ARGV[0];
+  option_column text := TG_ARGV[1];
+  incoming_option_id BIGINT;
+  actual_group text;
+BEGIN
+  incoming_option_id := NULLIF(to_jsonb(NEW) ->> option_column, '')::BIGINT;
+
+  IF incoming_option_id IS NULL THEN
+    RETURN NEW;
+  END IF;
+
+  SELECT o.option_group
+    INTO actual_group
+  FROM options o
+  WHERE o.id = incoming_option_id
+    AND o.is_active = true;
+
+  IF actual_group IS NULL THEN
+    RAISE EXCEPTION 'Option id % does not exist or is inactive', incoming_option_id;
+  END IF;
+
+  IF actual_group <> expected_group THEN
+    RAISE EXCEPTION
+      'Option id % belongs to group %, expected %',
+      incoming_option_id, actual_group, expected_group;
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
 CREATE TABLE "users" (
   "id" BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   "external_id" UUID NOT NULL DEFAULT gen_random_uuid(),
@@ -112,10 +188,10 @@ CREATE TABLE "users" (
   "email" varchar UNIQUE NOT NULL,
   "phone" varchar UNIQUE,
   "role_id" BIGINT,
-  "status_id" BIGINT NOT NULL DEFAULT get_status_id('users', 'active'),
+  "status_id" BIGINT NOT NULL DEFAULT get_status_id('users', 'pending'),
   "last_login_at" timestamptz,
-  "created_at" timestamptz DEFAULT (now()),
-  "updated_at" timestamptz DEFAULT (now())
+  "created_at" timestamptz NOT NULL DEFAULT (now()),
+  "updated_at" timestamptz NOT NULL DEFAULT (now())
 );
 
 CREATE TABLE "roles" (
@@ -123,8 +199,8 @@ CREATE TABLE "roles" (
   "external_id" UUID NOT NULL DEFAULT gen_random_uuid(),
   "name" varchar(80) NOT NULL UNIQUE,
   "description" text,
-  "created_at" timestamptz DEFAULT (now()),
-  "updated_at" timestamptz DEFAULT (now()) 
+  "created_at" timestamptz NOT NULL DEFAULT (now()),
+  "updated_at" timestamptz NOT NULL DEFAULT (now()) 
 );
 
 CREATE TABLE "permissions" (
@@ -132,8 +208,8 @@ CREATE TABLE "permissions" (
   "external_id" UUID NOT NULL DEFAULT gen_random_uuid(),
   "code" varchar(120) NOT NULL UNIQUE,
   "description" text,
-  "created_at" timestamptz DEFAULT (now()),
-  "updated_at" timestamptz DEFAULT (now())
+  "created_at" timestamptz NOT NULL DEFAULT (now()),
+  "updated_at" timestamptz NOT NULL DEFAULT (now())
 );
 
 CREATE TABLE "role_permissions" (
@@ -141,8 +217,8 @@ CREATE TABLE "role_permissions" (
   "external_id" UUID NOT NULL DEFAULT gen_random_uuid(),
   "role_id" BIGINT NOT NULL,
   "permission_id" BIGINT NOT NULL,
-  "created_at" timestamptz DEFAULT (now()),
-  "updated_at" timestamptz DEFAULT (now()),
+  "created_at" timestamptz NOT NULL DEFAULT (now()),
+  "updated_at" timestamptz NOT NULL DEFAULT (now()),
   UNIQUE ("role_id", "permission_id")
 );
 
@@ -162,47 +238,50 @@ CREATE TABLE "persons" (
   "residential_address" text,
   "business_address" text,
   "city_id" BIGINT,
-  "created_at" timestamptz DEFAULT (now()),
-  "updated_at" timestamptz DEFAULT (now())
+  "created_at" timestamptz NOT NULL DEFAULT (now()),
+  "updated_at" timestamptz NOT NULL DEFAULT (now())
 );
 
-CREATE TABLE "companies" (
+CREATE TABLE "businesses" (
   "id" BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   "external_id" UUID NOT NULL DEFAULT gen_random_uuid(),
   "user_id" BIGINT NOT NULL,
-  "country_code" varchar(2),
   "city_id" BIGINT,
-  "legal_name" varchar (255) NOT NULL,
+  "entity_type" varchar(10) NOT NULL CHECK ("entity_type" IN ('PN', 'PJ')),
+  "business_name" varchar(255),
+  "business_address" text,
+  "business_type" varchar(10),
+  "relationship_to_business" varchar(100),
+  "legal_name" varchar (255),
   "trade_name" varchar (255),
-  "tax_id" varchar (50) UNIQUE NOT NULL,
+  "tax_id" varchar (50) UNIQUE,
   "year_of_establishment" int,
-  "business_activity_code" varchar(10),
-  "created_at" timestamptz DEFAULT (now()),
-  "updated_at" timestamptz DEFAULT (now())
+  "created_at" timestamptz NOT NULL DEFAULT (now()),
+  "updated_at" timestamptz NOT NULL DEFAULT (now())
 );
 
 CREATE TABLE "legal_representatives" (
   "id" BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   "external_id" UUID NOT NULL DEFAULT gen_random_uuid(),
-  "company_id" BIGINT NOT NULL,
+  "business_id" BIGINT NOT NULL,
   "person_id" BIGINT NOT NULL,
   "is_primary" boolean DEFAULT true,
-  "created_at" timestamptz DEFAULT (now()),
-  "updated_at" timestamptz DEFAULT (now())
+  "created_at" timestamptz NOT NULL DEFAULT (now()),
+  "updated_at" timestamptz NOT NULL DEFAULT (now())
 );
 
 CREATE TABLE "shareholders" (
   "id" BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   "external_id" UUID NOT NULL DEFAULT gen_random_uuid(),
-  "company_id" BIGINT NOT NULL,
+  "business_id" BIGINT NOT NULL,
   "person_id" BIGINT NOT NULL,
   "ownership_percentage" decimal(5,4),
   "evaluation_order" int,
   "credit_check_required" boolean DEFAULT false,
   "credit_check_completed" boolean DEFAULT false,
   "is_legal_representative" boolean DEFAULT false,
-  "created_at" timestamptz DEFAULT (now()),
-  "updated_at" timestamptz DEFAULT (now())
+  "created_at" timestamptz NOT NULL DEFAULT (now()),
+  "updated_at" timestamptz NOT NULL DEFAULT (now())
 );
 
 CREATE TABLE "guarantors" (
@@ -217,16 +296,14 @@ CREATE TABLE "guarantors" (
   "selected_after_credit_check" boolean DEFAULT false,
   "signature_url" text,
   "signature_date" timestamptz,
-  "created_at" timestamptz DEFAULT (now()),
-  "updated_at" timestamptz DEFAULT (now())
+  "created_at" timestamptz NOT NULL DEFAULT (now()),
+  "updated_at" timestamptz NOT NULL DEFAULT (now())
 );
 
 CREATE TABLE "partners" (
   "id" BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   "external_id" UUID NOT NULL DEFAULT gen_random_uuid(),
-  "country_code" varchar(2),
-  "company_name" varchar (255) NOT NULL,
-  "trade_name" varchar (255),
+  "business_id" BIGINT NOT NULL,
   "acronym" varchar(10),
   "logo_url" text,
   "co_branding_logo_url" text,
@@ -235,7 +312,7 @@ CREATE TABLE "partners" (
   "light_color" varchar(20),
   "sales_rep_role_name" varchar(50) DEFAULT 'Sales Rep',
   "sales_rep_role_name_plural" varchar(50) DEFAULT 'Sales Reps',
-  "api_key_hash" varchar,
+  "api_key_hash" boolean DEFAULT false,
   "notification_email" varchar,
   "webhook_url" text,
   "send_sales_rep_voucher" boolean DEFAULT false,
@@ -243,8 +320,8 @@ CREATE TABLE "partners" (
   "default_rep_id" BIGINT,
   "default_category_id" BIGINT,
   "status_id" BIGINT NOT NULL DEFAULT get_status_id('partners', 'active'),
-  "created_at" timestamptz DEFAULT (now()),
-  "updated_at" timestamptz DEFAULT (now())
+  "created_at" timestamptz NOT NULL DEFAULT (now()),
+  "updated_at" timestamptz NOT NULL DEFAULT (now())
 );
 
 CREATE TABLE "partner_categories" (
@@ -256,11 +333,11 @@ CREATE TABLE "partner_categories" (
   "interest_rate" decimal(5,4) NOT NULL,
   "disbursement_fee_percent" decimal(5,4),
   "minimum_disbursement_fee" bigint,
-  "delay_days" int NOT NULL,
-  "term_days" int NOT NULL,
+  "delay_days" int NOT NULL CHECK ("delay_days" > 0),
+  "term_days" int NOT NULL CHECK ("term_days" > 0),
   "status_id" BIGINT NOT NULL DEFAULT get_status_id('partner_categories', 'active'),
-  "created_at" timestamptz DEFAULT (now()),
-  "updated_at" timestamptz DEFAULT (now())
+  "created_at" timestamptz NOT NULL DEFAULT (now()),
+  "updated_at" timestamptz NOT NULL DEFAULT (now())
 );
 
 CREATE TABLE "credit_applications_bnpl" (
@@ -271,18 +348,14 @@ CREATE TABLE "credit_applications_bnpl" (
   "partner_id" BIGINT,
   "partner_category_id" BIGINT,
   "sales_rep_id" BIGINT,
-  "business_name" varchar(255),
-  "business_relation_id" BIGINT DEFAULT get_status_id('credit_applications_bnpl', 'business_relation'),
-  "business_type_name" varchar(250),
-  "business_type_code" BIGINT,
-  "business_address" text,
-  "business_city" varchar(120),
-  "business_rent_amount" BIGINT,
-  "number_of_locations" int,
-  "number_of_employees" int,
+  "business_id" BIGINT,
+  "number_of_locations" int CHECK ("number_of_locations" >= 0),
+  "number_of_employees" int CHECK ("number_of_employees" >= 0),
   "business_seniority_id" BIGINT,
   "sector_experience" varchar,
-  "relationship_to_business" varchar,
+  "business_flagship_m2" int,
+  "business_has_rent" boolean,
+  "business_rent_amount" BIGINT,
   "monthly_income" bigint,
   "monthly_expenses" bigint,
   "monthly_purchases" bigint,
@@ -290,7 +363,7 @@ CREATE TABLE "credit_applications_bnpl" (
   "total_assets" bigint,
   "requested_credit_line" bigint,
   "is_current_client" boolean DEFAULT false,
-  "status_id" BIGINT NOT NULL DEFAULT get_status_id('credit_applications_bnpl', 'authorized'),
+  "status_id" BIGINT NOT NULL DEFAULT get_status_id('credit_applications_bnpl', 'in_study'),
   "submission_date" timestamptz,
   "approval_date" timestamptz,
   "rejection_reason" varchar(500),
@@ -302,21 +375,8 @@ CREATE TABLE "credit_applications_bnpl" (
   "risk_profile" varchar,
   "privacy_policy_accepted" boolean DEFAULT false,
   "privacy_policy_date" timestamptz,
-  "created_at" timestamptz DEFAULT (now()),
-  "updated_at" timestamptz DEFAULT (now())
-);
-
-
-CREATE TABLE "business_seniority" (
-  "id" BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  "external_id" UUID NOT NULL DEFAULT gen_random_uuid(),
-  "range_start" int NOT NULL CHECK ("range_start" >= 0),
-  "range_end" int NOT NULL CHECK ("range_end" >= "range_start"),
-  "description" varchar(100) NOT NULL,
-  "created_at" timestamptz DEFAULT (now()),
-  "updated_at" timestamptz DEFAULT (now()),
-  UNIQUE ("range_start", "range_end"),
-  UNIQUE ("description")
+  "created_at" timestamptz NOT NULL DEFAULT (now()),
+  "updated_at" timestamptz NOT NULL DEFAULT (now())
 );
 
 
@@ -329,8 +389,8 @@ CREATE TABLE "ai_agent_analysis" (
   "agent_analysis_timestamptz" timestamptz,
   "agent_recommended_loc" bigint,
   "agent_recomendation" bigint,
-  "created_at" timestamptz DEFAULT (now()),  
-  "updated_at" timestamptz DEFAULT (now())
+  "created_at" timestamptz NOT NULL DEFAULT (now()),  
+  "updated_at" timestamptz NOT NULL DEFAULT (now())
 );
 
 CREATE TABLE "sales_representatives" (
@@ -341,8 +401,8 @@ CREATE TABLE "sales_representatives" (
   "name" varchar NOT NULL,
   "role" varchar NOT NULL,
   "status_id" BIGINT NOT NULL DEFAULT get_status_id('sales_representatives', 'active'),
-  "created_at" timestamptz DEFAULT (now()),
-  "updated_at" timestamptz DEFAULT (now())
+  "created_at" timestamptz NOT NULL DEFAULT (now()),
+  "updated_at" timestamptz NOT NULL DEFAULT (now())
 );
 
 CREATE TABLE "contracts" (
@@ -355,8 +415,8 @@ CREATE TABLE "contracts" (
   "original_file_url" text,
   "signed_file_url" text,
   "form_answers_json" jsonb,
-  "created_at" timestamptz DEFAULT (now()),
-  "updated_at" timestamptz DEFAULT (now())
+  "created_at" timestamptz NOT NULL DEFAULT (now()),
+  "updated_at" timestamptz NOT NULL DEFAULT (now())
 );
 
 CREATE TABLE "contract_signers" (
@@ -375,8 +435,8 @@ CREATE TABLE "contract_signers" (
   "document_verse_photo_url" text,
   "selfie_photo_url" text,
   "signature_image_url" text,
-  "created_at" timestamptz DEFAULT (now()),
-  "updated_at" timestamptz DEFAULT (now())
+  "created_at" timestamptz NOT NULL DEFAULT (now()),
+  "updated_at" timestamptz NOT NULL DEFAULT (now())
 );
 
 CREATE TABLE "user_products" (
@@ -385,8 +445,8 @@ CREATE TABLE "user_products" (
   "user_id" BIGINT NOT NULL,
   "product_type" varchar NOT NULL,
   "activated_at" timestamptz NOT NULL,
-  "created_at" timestamptz DEFAULT (now()),
-  "updated_at" timestamptz DEFAULT (now())
+  "created_at" timestamptz NOT NULL DEFAULT (now()),
+  "updated_at" timestamptz NOT NULL DEFAULT (now())
 );
 
 CREATE TABLE "product_bnpl" (
@@ -398,8 +458,8 @@ CREATE TABLE "product_bnpl" (
   "status_id" BIGINT NOT NULL DEFAULT get_status_id('product_bnpl', 'active'),
   "has_active_payment_plan" boolean DEFAULT false,
   "notification_channels" text[],
-  "created_at" timestamptz DEFAULT (now()),
-  "updated_at" timestamptz DEFAULT (now())
+  "created_at" timestamptz NOT NULL DEFAULT (now()),
+  "updated_at" timestamptz NOT NULL DEFAULT (now())
 );
 
 CREATE TABLE "bnpl_categories" (
@@ -407,8 +467,8 @@ CREATE TABLE "bnpl_categories" (
   "external_id" UUID NOT NULL DEFAULT gen_random_uuid(),
   "product_bnpl_id" BIGINT,
   "category_id" BIGINT,
-  "created_at" timestamptz DEFAULT (now()),
-  "updated_at" timestamptz DEFAULT (now())
+  "created_at" timestamptz NOT NULL DEFAULT (now()),
+  "updated_at" timestamptz NOT NULL DEFAULT (now())
 );
 
 CREATE TABLE "risk_profile" (
@@ -424,22 +484,22 @@ CREATE TABLE "risk_profile" (
   "risk_ai_reasoning" text,
   "json_proyections" jsonb,
   "json_weights" jsonb,
-  "created_at" timestamptz DEFAULT (now()),
-  "updated_at" timestamptz DEFAULT (now())
+  "created_at" timestamptz NOT NULL DEFAULT (now()),
+  "updated_at" timestamptz NOT NULL DEFAULT (now())
 );
 
 CREATE TABLE "documents" (
   "id" BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   "external_id" UUID NOT NULL DEFAULT gen_random_uuid(),
   "person_id" BIGINT,
-  "company_id" BIGINT,
+  "business_id" BIGINT,
   "application_id" BIGINT,
   "document_type" varchar NOT NULL,
   "document_url" text NOT NULL,
   "verification_status_id" BIGINT NOT NULL DEFAULT get_status_id('documents', 'pending'),
-  "upload_date" timestamptz DEFAULT (now()),
-  "created_at" timestamptz DEFAULT (now()),
-  "updated_at" timestamptz DEFAULT (now())
+  "upload_date" timestamptz NOT NULL DEFAULT (now()),
+  "created_at" timestamptz NOT NULL DEFAULT (now()),
+  "updated_at" timestamptz NOT NULL DEFAULT (now())
 );
 
 CREATE TABLE "credit_reports" (
@@ -447,13 +507,13 @@ CREATE TABLE "credit_reports" (
   "external_id" UUID NOT NULL DEFAULT gen_random_uuid(),
   "user_id" BIGINT NOT NULL,
   "person_id" BIGINT,
-  "company_id" BIGINT,
+  "business_id" BIGINT,
   "application_id" BIGINT,
   "report_date" date NOT NULL,
   "bureau_name" varchar,
   "full_report_json" jsonb,
-  "created_at" timestamptz DEFAULT (now()),
-  "updated_at" timestamptz DEFAULT (now())
+  "created_at" timestamptz NOT NULL DEFAULT (now()),
+  "updated_at" timestamptz NOT NULL DEFAULT (now())
 );
 
 CREATE TABLE "currencies" (
@@ -466,8 +526,8 @@ CREATE TABLE "currencies" (
   "thousand_separator" varchar(1),
   "decimal_separator" varchar(1),
   "is_active" boolean NOT NULL DEFAULT true,
-  "created_at" timestamptz DEFAULT (now()),
-  "updated_at" timestamptz DEFAULT (now()),
+  "created_at" timestamptz NOT NULL DEFAULT (now()),
+  "updated_at" timestamptz NOT NULL DEFAULT (now()),
   UNIQUE ("code")
 );
 
@@ -480,8 +540,8 @@ CREATE TABLE "cities" (
   "state_code" varchar(3),
   "city_name" varchar(120) NOT NULL,
   "currency_id" BIGINT NOT NULL,
-  "created_at" timestamptz DEFAULT (now()),
-  "updated_at" timestamptz DEFAULT (now()),
+  "created_at" timestamptz NOT NULL DEFAULT (now()),
+  "updated_at" timestamptz NOT NULL DEFAULT (now()),
   CHECK ("country_code" ~ '^[A-Z]{2}$'),
   CHECK ("state_code" IS NULL OR "state_code" ~ '^[A-Z0-9]{2,3}$'),
   UNIQUE ("country_code", "state_name", "city_name")
@@ -495,15 +555,16 @@ ALTER TABLE "role_permissions" ADD FOREIGN KEY ("role_id") REFERENCES "roles" ("
 ALTER TABLE "role_permissions" ADD FOREIGN KEY ("permission_id") REFERENCES "permissions" ("id");
 ALTER TABLE "persons" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
 ALTER TABLE "persons" ADD FOREIGN KEY ("city_id") REFERENCES "cities" ("id");
-ALTER TABLE "companies" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
-ALTER TABLE "companies" ADD FOREIGN KEY ("city_id") REFERENCES "cities" ("id");
-ALTER TABLE "legal_representatives" ADD FOREIGN KEY ("company_id") REFERENCES "companies" ("id");
+ALTER TABLE "businesses" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
+ALTER TABLE "businesses" ADD FOREIGN KEY ("city_id") REFERENCES "cities" ("id");
+ALTER TABLE "legal_representatives" ADD FOREIGN KEY ("business_id") REFERENCES "businesses" ("id");
 ALTER TABLE "legal_representatives" ADD FOREIGN KEY ("person_id") REFERENCES "persons" ("id");
-ALTER TABLE "shareholders" ADD FOREIGN KEY ("company_id") REFERENCES "companies" ("id");
+ALTER TABLE "shareholders" ADD FOREIGN KEY ("business_id") REFERENCES "businesses" ("id");
 ALTER TABLE "shareholders" ADD FOREIGN KEY ("person_id") REFERENCES "persons" ("id");
 ALTER TABLE "guarantors" ADD FOREIGN KEY ("credit_application_id") REFERENCES "credit_applications_bnpl" ("id");
 ALTER TABLE "guarantors" ADD FOREIGN KEY ("person_id") REFERENCES "persons" ("id");
 ALTER TABLE "guarantors" ADD FOREIGN KEY ("contract_signer_id") REFERENCES "contract_signers" ("id");
+ALTER TABLE "partners" ADD FOREIGN KEY ("business_id") REFERENCES "businesses" ("id");
 ALTER TABLE "partners" ADD FOREIGN KEY ("default_rep_id") REFERENCES "sales_representatives" ("id");
 ALTER TABLE "partners" ADD FOREIGN KEY ("default_category_id") REFERENCES "partner_categories" ("id");
 ALTER TABLE "partners" ADD FOREIGN KEY ("status_id") REFERENCES "statuses" ("id");
@@ -514,8 +575,8 @@ ALTER TABLE "credit_applications_bnpl" ADD FOREIGN KEY ("user_product_id") REFER
 ALTER TABLE "credit_applications_bnpl" ADD FOREIGN KEY ("partner_id") REFERENCES "partners" ("id");
 ALTER TABLE "credit_applications_bnpl" ADD FOREIGN KEY ("partner_category_id") REFERENCES "partner_categories" ("id");
 ALTER TABLE "credit_applications_bnpl" ADD FOREIGN KEY ("sales_rep_id") REFERENCES "sales_representatives" ("id");
-ALTER TABLE "credit_applications_bnpl" ADD FOREIGN KEY ("business_seniority_id") REFERENCES "business_seniority" ("id");
-ALTER TABLE "credit_applications_bnpl" ADD FOREIGN KEY ("business_relation_id") REFERENCES "statuses" ("id");
+ALTER TABLE "credit_applications_bnpl" ADD FOREIGN KEY ("business_id") REFERENCES "businesses" ("id");
+ALTER TABLE "credit_applications_bnpl" ADD FOREIGN KEY ("business_seniority_id") REFERENCES "options" ("id");
 ALTER TABLE "credit_applications_bnpl" ADD FOREIGN KEY ("status_id") REFERENCES "statuses" ("id");
 ALTER TABLE "ai_agent_analysis" ADD FOREIGN KEY ("application_id") REFERENCES "credit_applications_bnpl" ("id");
 ALTER TABLE "sales_representatives" ADD FOREIGN KEY ("partner_id") REFERENCES "partners" ("id");
@@ -535,12 +596,12 @@ ALTER TABLE "bnpl_categories" ADD FOREIGN KEY ("category_id") REFERENCES "partne
 ALTER TABLE "risk_profile" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
 ALTER TABLE "risk_profile" ADD FOREIGN KEY ("user_product_id") REFERENCES "user_products" ("id");
 ALTER TABLE "documents" ADD FOREIGN KEY ("person_id") REFERENCES "persons" ("id");
-ALTER TABLE "documents" ADD FOREIGN KEY ("company_id") REFERENCES "companies" ("id");
+ALTER TABLE "documents" ADD FOREIGN KEY ("business_id") REFERENCES "businesses" ("id");
 ALTER TABLE "documents" ADD FOREIGN KEY ("application_id") REFERENCES "credit_applications_bnpl" ("id");
 ALTER TABLE "documents" ADD FOREIGN KEY ("verification_status_id") REFERENCES "statuses" ("id");
 ALTER TABLE "credit_reports" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
 ALTER TABLE "credit_reports" ADD FOREIGN KEY ("person_id") REFERENCES "persons" ("id");
-ALTER TABLE "credit_reports" ADD FOREIGN KEY ("company_id") REFERENCES "companies" ("id");
+ALTER TABLE "credit_reports" ADD FOREIGN KEY ("business_id") REFERENCES "businesses" ("id");
 ALTER TABLE "credit_reports" ADD FOREIGN KEY ("application_id") REFERENCES "credit_applications_bnpl" ("id");
 ALTER TABLE "cities" ADD FOREIGN KEY ("currency_id") REFERENCES "currencies" ("id");
 
@@ -563,6 +624,11 @@ CREATE TRIGGER trg_credit_applications_bnpl_validate_status
 BEFORE INSERT OR UPDATE OF status_id ON "credit_applications_bnpl"
 FOR EACH ROW
 EXECUTE FUNCTION validate_status_entity('credit_applications_bnpl', 'status_id');
+
+CREATE TRIGGER trg_credit_applications_bnpl_validate_business_seniority
+BEFORE INSERT OR UPDATE OF business_seniority_id ON "credit_applications_bnpl"
+FOR EACH ROW
+EXECUTE FUNCTION validate_option_group('business_seniority', 'business_seniority_id');
 
 CREATE TRIGGER trg_sales_representatives_validate_status
 BEFORE INSERT OR UPDATE OF status_id ON "sales_representatives"
@@ -597,7 +663,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_roles_external_id ON "roles" ("external_id
 CREATE UNIQUE INDEX IF NOT EXISTS idx_permissions_external_id ON "permissions" ("external_id");
 CREATE UNIQUE INDEX IF NOT EXISTS idx_role_permissions_external_id ON "role_permissions" ("external_id");
 CREATE UNIQUE INDEX IF NOT EXISTS idx_persons_external_id ON "persons" ("external_id");
-CREATE UNIQUE INDEX IF NOT EXISTS idx_companies_external_id ON "companies" ("external_id");
+CREATE UNIQUE INDEX IF NOT EXISTS idx_businesses_external_id ON "businesses" ("external_id");
 CREATE UNIQUE INDEX IF NOT EXISTS idx_legal_representatives_external_id ON "legal_representatives" ("external_id");
 CREATE UNIQUE INDEX IF NOT EXISTS idx_shareholders_external_id ON "shareholders" ("external_id");
 CREATE UNIQUE INDEX IF NOT EXISTS idx_guarantors_external_id ON "guarantors" ("external_id");
@@ -615,9 +681,9 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_risk_profile_external_id ON "risk_profile"
 CREATE UNIQUE INDEX IF NOT EXISTS idx_documents_external_id ON "documents" ("external_id");
 CREATE UNIQUE INDEX IF NOT EXISTS idx_credit_reports_external_id ON "credit_reports" ("external_id");
 CREATE UNIQUE INDEX IF NOT EXISTS idx_statuses_external_id ON "statuses" ("external_id");
+CREATE UNIQUE INDEX IF NOT EXISTS idx_options_external_id ON "options" ("external_id");
 CREATE UNIQUE INDEX IF NOT EXISTS idx_currencies_external_id ON "currencies" ("external_id");
 CREATE UNIQUE INDEX IF NOT EXISTS idx_cities_external_id ON "cities" ("external_id");
-CREATE UNIQUE INDEX IF NOT EXISTS idx_business_seniority_external_id ON "business_seniority" ("external_id");
 
 -- =========================================================
 -- Baseline performance indexes (FKs + frequent join filters)
@@ -627,15 +693,19 @@ CREATE INDEX IF NOT EXISTS idx_users_status_id ON "users" ("status_id");
 CREATE INDEX IF NOT EXISTS idx_role_permissions_permission_id ON "role_permissions" ("permission_id");
 CREATE INDEX IF NOT EXISTS idx_persons_user_id ON "persons" ("user_id");
 CREATE INDEX IF NOT EXISTS idx_persons_city_id ON "persons" ("city_id");
-CREATE INDEX IF NOT EXISTS idx_companies_user_id ON "companies" ("user_id");
-CREATE INDEX IF NOT EXISTS idx_companies_city_id ON "companies" ("city_id");
-CREATE INDEX IF NOT EXISTS idx_legal_representatives_company_id ON "legal_representatives" ("company_id");
+CREATE INDEX IF NOT EXISTS idx_businesses_user_id ON "businesses" ("user_id");
+CREATE INDEX IF NOT EXISTS idx_businesses_city_id ON "businesses" ("city_id");
+CREATE INDEX IF NOT EXISTS idx_businesses_legal_name ON "businesses" ("legal_name");
+CREATE INDEX IF NOT EXISTS idx_businesses_trade_name ON "businesses" ("trade_name");
+CREATE INDEX IF NOT EXISTS idx_businesses_business_name ON "businesses" ("business_name");
+CREATE INDEX IF NOT EXISTS idx_legal_representatives_business_id ON "legal_representatives" ("business_id");
 CREATE INDEX IF NOT EXISTS idx_legal_representatives_person_id ON "legal_representatives" ("person_id");
-CREATE INDEX IF NOT EXISTS idx_shareholders_company_id ON "shareholders" ("company_id");
+CREATE INDEX IF NOT EXISTS idx_shareholders_business_id ON "shareholders" ("business_id");
 CREATE INDEX IF NOT EXISTS idx_shareholders_person_id ON "shareholders" ("person_id");
 CREATE INDEX IF NOT EXISTS idx_guarantors_credit_application_id ON "guarantors" ("credit_application_id");
 CREATE INDEX IF NOT EXISTS idx_guarantors_person_id ON "guarantors" ("person_id");
 CREATE INDEX IF NOT EXISTS idx_guarantors_contract_signer_id ON "guarantors" ("contract_signer_id");
+CREATE INDEX IF NOT EXISTS idx_partners_business_id ON "partners" ("business_id");
 CREATE INDEX IF NOT EXISTS idx_partners_default_rep_id ON "partners" ("default_rep_id");
 CREATE INDEX IF NOT EXISTS idx_partners_default_category_id ON "partners" ("default_category_id");
 CREATE INDEX IF NOT EXISTS idx_partners_status_id ON "partners" ("status_id");
@@ -646,9 +716,12 @@ CREATE INDEX IF NOT EXISTS idx_credit_applications_user_product_id ON "credit_ap
 CREATE INDEX IF NOT EXISTS idx_credit_applications_partner_id ON "credit_applications_bnpl" ("partner_id");
 CREATE INDEX IF NOT EXISTS idx_credit_applications_partner_category_id ON "credit_applications_bnpl" ("partner_category_id");
 CREATE INDEX IF NOT EXISTS idx_credit_applications_sales_rep_id ON "credit_applications_bnpl" ("sales_rep_id");
+CREATE INDEX IF NOT EXISTS idx_credit_applications_business_id ON "credit_applications_bnpl" ("business_id");
 CREATE INDEX IF NOT EXISTS idx_credit_applications_business_seniority_id ON "credit_applications_bnpl" ("business_seniority_id");
-CREATE INDEX IF NOT EXISTS idx_credit_applications_business_relation_id ON "credit_applications_bnpl" ("business_relation_id");
 CREATE INDEX IF NOT EXISTS idx_credit_applications_status_id ON "credit_applications_bnpl" ("status_id");
+CREATE INDEX IF NOT EXISTS idx_credit_applications_submission_date_id ON "credit_applications_bnpl" ("submission_date" DESC, "id" DESC);
+CREATE INDEX IF NOT EXISTS idx_credit_applications_status_submission_date_id ON "credit_applications_bnpl" ("status_id", "submission_date" DESC, "id" DESC);
+CREATE INDEX IF NOT EXISTS idx_credit_applications_partner_submission_date_id ON "credit_applications_bnpl" ("partner_id", "submission_date" DESC, "id" DESC);
 CREATE INDEX IF NOT EXISTS idx_ai_agent_analysis_application_id ON "ai_agent_analysis" ("application_id");
 CREATE INDEX IF NOT EXISTS idx_sales_representatives_partner_id ON "sales_representatives" ("partner_id");
 CREATE INDEX IF NOT EXISTS idx_sales_representatives_user_id ON "sales_representatives" ("user_id");
@@ -666,12 +739,13 @@ CREATE INDEX IF NOT EXISTS idx_bnpl_categories_category_id ON "bnpl_categories" 
 CREATE INDEX IF NOT EXISTS idx_risk_profile_user_id ON "risk_profile" ("user_id");
 CREATE INDEX IF NOT EXISTS idx_risk_profile_user_product_id ON "risk_profile" ("user_product_id");
 CREATE INDEX IF NOT EXISTS idx_documents_person_id ON "documents" ("person_id");
-CREATE INDEX IF NOT EXISTS idx_documents_company_id ON "documents" ("company_id");
+CREATE INDEX IF NOT EXISTS idx_documents_business_id ON "documents" ("business_id");
 CREATE INDEX IF NOT EXISTS idx_documents_application_id ON "documents" ("application_id");
 CREATE INDEX IF NOT EXISTS idx_documents_verification_status_id ON "documents" ("verification_status_id");
 CREATE INDEX IF NOT EXISTS idx_credit_reports_user_id ON "credit_reports" ("user_id");
 CREATE INDEX IF NOT EXISTS idx_credit_reports_person_id ON "credit_reports" ("person_id");
-CREATE INDEX IF NOT EXISTS idx_credit_reports_company_id ON "credit_reports" ("company_id");
+CREATE INDEX IF NOT EXISTS idx_credit_reports_business_id ON "credit_reports" ("business_id");
 CREATE INDEX IF NOT EXISTS idx_credit_reports_application_id ON "credit_reports" ("application_id");
 CREATE INDEX IF NOT EXISTS idx_cities_country_state_name ON "cities" ("country_code", "state_name", "city_name");
+CREATE INDEX IF NOT EXISTS idx_options_option_group ON "options" ("option_group");
 CREATE INDEX IF NOT EXISTS idx_cities_currency_id ON "cities" ("currency_id");

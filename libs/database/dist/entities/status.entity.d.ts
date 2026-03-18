@@ -1,0 +1,8 @@
+import { BaseExternalIdEntity } from './base-external-id.entity';
+export declare class StatusEntity extends BaseExternalIdEntity {
+    entityType: string;
+    code: string;
+    displayName: string;
+    description: string | null;
+    isActive: boolean;
+}
