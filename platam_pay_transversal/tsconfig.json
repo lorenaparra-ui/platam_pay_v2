@@ -27,6 +27,7 @@
       "@domain/*": ["src/domain/*"],
       "@application/*": ["src/application/*"],
       "@shared/*": ["src/shared/*"],
+      "@libs/database/*": ["../../libs/database/*"],
       "@transversal/*": ["src/modules/transversal/*"],
       "@onboarding/*": ["src/modules/onboarding/*"],
       "@users/*": ["src/modules/users/*"],

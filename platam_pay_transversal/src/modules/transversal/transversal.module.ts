@@ -9,11 +9,11 @@ import { StatusEntity } from '@libs/database';
 import { CityEntity } from '@libs/database';
 
 // Repositories (Implementations)
-import { TypeOrmDocumentTypeRepository } from '@infrastructure/database/repositories/typeorm-document-type.repository';
-import { TypeOrmBusinessSeniorityRepository } from '@infrastructure/database/repositories/typeorm-business-seniority.repository';
+import { TypeOrmDocumentTypeRepository } from '@infrastructure/database/repositories/transversal/typeorm-document-type.repository';
+import { TypeOrmBusinessSeniorityRepository } from '@infrastructure/database/repositories/transversal/typeorm-business-seniority.repository';
 import { TypeOrmOnboardingRepository } from '@infrastructure/database/repositories/typeorm-onboarding.repository';
-import { TypeOrmStatusRepository } from '@infrastructure/database/repositories/typeorm-status.repository';
-import { TypeOrmCityRepository } from '@infrastructure/database/repositories/typeorm-city.repository';
+import { TypeOrmStatusRepository } from '@infrastructure/database/repositories/transversal/typeorm-status.repository';
+import { TypeOrmCityRepository } from '@infrastructure/database/repositories/transversal/typeorm-city.repository';
 import { RuesBusinessInformationApi } from '@infrastructure/external-apis/rues-business-information.api';
 
 // Ports (Tokens)

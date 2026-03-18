@@ -6,7 +6,7 @@ import { ShareholderEntity } from '@libs/database';
 import { GuarantorEntity } from '@libs/database';
 import { SalesRepresentativeEntity } from '@libs/database';
 import { ContractSignerEntity } from '@libs/database';
-import { TypeOrmPersonRepository } from '@infrastructure/database/repositories/typeorm-person.repository';
+import { TypeOrmPersonRepository } from '@infrastructure/database/repositories/persons/typeorm-person.repository';
 import { TypeOrmLegalRepresentativeRepository } from '@infrastructure/database/repositories/typeorm-legal-representative.repository';
 import { TypeOrmShareholderRepository } from '@infrastructure/database/repositories/typeorm-shareholder.repository';
 import { TypeOrmGuarantorRepository } from '@infrastructure/database/repositories/typeorm-guarantor.repository';

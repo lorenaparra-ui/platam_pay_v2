@@ -8,7 +8,7 @@ import {
   UpdatePersonPayload,
 } from '@persons/domain/ports/person.repository.port';
 import { PersonEntity } from '@libs/database';
-import { PersonMapper } from '../mappers/persons/person.mapper';
+import { PersonMapper } from '../../mappers/persons/person.mapper';
 
 @Injectable()
 export class TypeOrmPersonRepository implements PersonRepositoryPort {
