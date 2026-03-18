@@ -1,0 +1,27 @@
+---
+description: Establece lineamientos estrictos para crear y aplicar migraciones de base de datos, priorizando la compatibilidad hacia atrás, la reversibilidad segura, la ausencia de downtime y la protección de datos críticos mediante pruebas, backups y el patrón expand/contract. Prohíbe la sincronización automática y migraciones destructivas sin control explícito.
+alwaysApply: false
+---
+# Reglas para Migraciones de Base de Datos (NestJS + TypeORM/Prisma - Producción)
+
+## 1. Configuración de producción: prohibido `synchronize: true`
+En entornos de producción, **NUNCA** habilites la opción de sincronización automática del ORM (`synchronize: true` en TypeORM, `prisma db push` en producción). Solo se permite en desarrollo local, ya que puede perder o modificar datos sin control.  
+**Regla:** Toda alteración de esquema debe realizarse únicamente con migraciones generadas explícitamente y ejecutadas de forma controlada mediante CLI.
+
+## 2. Zero Downtime y compatibilidad hacia atrás
+- **Backwards compatibility:** Durante cualquier cambio de esquema, la aplicación deberá soportar ambos formatos durante la transición (lectura/escritura en columnas antiguas y nuevas).
+- **Desacoplamiento despliegue/migración:** Siempre despliega primero el código compatible con ambos esquemas antes de migrar datos.
+- **Rollout gradual:** Introduce nuevas columnas/campos, actualiza la app y después realiza el backfill de datos.
+- **Tamaño de columnas:** Antes de alterar columnas (p.ej., contraseñas encriptadas, strings grandes), valida el tamaño requerido y usa tipos apropiados como `varchar(500)` o `text`.
+
+## 3. Reversión (Rollback) y transacciones
+- **Transacciones ACID:** Todas las operaciones de migración, en especial las críticas, deben ir envueltas en una transacción. Si ocurre un error, debe ejecutarse rollback automáticamente para evitar estados inconsistentes.
+- **No migraciones destructivas directas:** Prohibido eliminar columnas o tablas (DROP) sin estrategia de rollback ni advertencia explícita.
+
+## 4. Patrón de expansión y contracción (expand/contract)
+1. **Expandir:** Añade nueva columna/tablas (la versión actual ignora o no usa).
+2. **Escribir en ambas:** Despliega nueva app que escribe en ambos esquemas.
+3. **Migrar datos (Backfill):** Copia histórico a la nueva estructura.
+4. **Leer de la nueva:** Actualiza app para consumir solo la nueva estructura.
+5. **Contraer:** Elimina la columna/campo/tabla obsoleta.
+> Cumple siempre con estos pasos para garantizar despliegues seguros y sin downtime en producción.

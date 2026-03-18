@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # ------------------------------------------------
   # Base de Datos PostgreSQL
@@ -9,19 +7,20 @@ services:
     container_name: platam_db
     restart: always
     env_file:
-      - .env.docker
+      - ./.env.docker
     environment:
-      POSTGRES_USER: ${POSTGRES_USERNAME:-admin}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: ${POSTGRES_DATABASE:-platam_play}
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: platam_pay
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./.ai/schemas/database-schema.sql:/docker-entrypoint-initdb.d/01-database-schema.sql:ro
     networks:
       - backend-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USERNAME:-admin} -d ${POSTGRES_DATABASE:-platam_play}"]
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -31,7 +30,7 @@ services:
   # ------------------------------------------------
   users-service:
     build:
-      context: ./platam_play_users
+      context: ./platam_pay_users
       dockerfile: Dockerfile
     container_name: platam_users
     restart: unless-stopped
@@ -39,31 +38,60 @@ services:
       postgres:
         condition: service_healthy
     env_file:
-      - .env.docker
+      - ./.env.docker
     environment:
       NODE_ENV: production
       # Conexión a DB usando el nombre del servicio 'postgres' como host
       POSTGRES_HOST: postgres
-      POSTGRES_USER: ${POSTGRES_USERNAME:-admin}
+      POSTGRES_USERNAME: ${POSTGRES_USERNAME:-admin}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: ${POSTGRES_DATABASE:-platam_play}
+      POSTGRES_DATABASE: ${POSTGRES_DATABASE:-platam_pay}
       TYPEORM_TYPE: postgres
       TYPEORM_PORT: 5432
-      PORT: 3000
+      PORT: 8080
+      RUES_API_BASE_URL: "https://ollama-rues.5n921h.easypanel.host"
     ports:
-      - "3000:3000"
+      - "8080:8080"
     networks:
       - backend-network
 
   # ------------------------------------------------
-  # Microservicio 2: Notifications (Simulado)
+  # Microservicio 2: Partners (Nuevo)
+  # ------------------------------------------------
+  partners-service:
+    build:
+      context: ./platam_pay_partners
+      dockerfile: Dockerfile
+    container_name: platam_partners
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - ./.env.docker
+    environment:
+      NODE_ENV: production
+      POSTGRES_HOST: postgres
+      POSTGRES_USERNAME: ${POSTGRES_USERNAME:-admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DATABASE: ${POSTGRES_DATABASE:-platam_pay}
+      TYPEORM_TYPE: postgres
+      TYPEORM_PORT: 5432
+      PORT: 3000
+    ports:
+      - "3001:3000"
+    networks:
+      - backend-network
+
+  # ------------------------------------------------
+  # Microservicio 3: Notifications (Simulado)
   # ------------------------------------------------
   # Para cumplir el requisito de "al menos 2 servicios", reutilizamos la imagen
   # de users pero corriendo como un servicio separado en otro puerto.
   # En el futuro, cambia el 'context' a la carpeta de tu nuevo microservicio.
   # notifications-service:
   #   build:
-  #     context: ./platam_play_users # Cambiar a ./platam_play_notifications
+  #     context: ./platam_pay_users # Cambiar a ./platam_pay_notifications
   #     dockerfile: Dockerfile
   #   container_name: platam_notifications
   #   restart: unless-stopped
@@ -76,7 +104,7 @@ services:
   #     DB_PORT: 5432
   #     DB_USERNAME: ${POSTGRES_USER:-admin}
   #     DB_PASSWORD: ${POSTGRES_PASSWORD:-securepassword}
-  #     DB_DATABASE: ${POSTGRES_DB:-platam_play}
+  #     DB_DATABASE: ${POSTGRES_DB:-platam_pay}
   #     PORT: 3001 # Puerto interno diferente si la app lo soporta por env var
   #   ports:
   #     - "3001:3001" # Mapeo externo diferente

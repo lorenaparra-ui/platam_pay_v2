@@ -1,0 +1,58 @@
+# --- Dependencias y Sistema ---
+#node_modules/
+# .git/
+# .vscode/
+# .idea/
+# .DS_Store
+
+# --- Build y Archivos Generados (Frontend Next.js) ---
+#.next/
+#out/
+#build/
+#.open-next/
+
+# --- Build y Archivos Generados (Backend NestJS) ---
+#dist/
+#ts_output/
+
+# --- Datos y Base de Datos (Docker) ---
+# Crítico: Evita indexar el volumen de datos de Postgres
+#postgres_data/
+# Dumps de base de datos grandes
+#*.sql
+#*.sqlite
+#*.db
+
+# --- Seguridad y Secretos (Fintech) ---
+# Aunque uses Privacy Mode, es mejor prevenir la indexación local de secretos
+#.env
+#.env.*
+#*.pem
+#*.key
+#*.cert
+#secrets/
+
+# --- Logs y Archivos Temporales ---
+#*.log
+#npm-debug.log*
+#yarn-debug.log*
+#yarn-error.log*
+#coverage/
+#.nyc_output/
+
+# --- Archivos de Bloqueo (Consumen muchos tokens) ---
+# La IA lee package.json para ver dependencias; los lockfiles son ruido.
+#package-lock.json
+#yarn.lock
+#pnpm-lock.yaml
+#bun.lockb
+
+# --- Archivos Estáticos Grandes ---
+# Exclúyelos si no necesitas que la IA "vea" imágenes (ahorra espacio de indexación)
+public/images/
+#*.png
+*.jpg
+*.jpeg
+*.svg
+*.ico
+#*.pdf
