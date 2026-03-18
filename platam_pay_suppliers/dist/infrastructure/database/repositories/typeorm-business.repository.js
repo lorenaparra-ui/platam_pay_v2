@@ -16,7 +16,7 @@ exports.TypeOrmBusinessRepository = void 0;
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
-const business_entity_1 = require("../entities/business.entity");
+const database_1 = require("@libs/database");
 const business_mapper_1 = require("../mappers/business.mapper");
 let TypeOrmBusinessRepository = class TypeOrmBusinessRepository {
     repository;
@@ -61,7 +61,7 @@ let TypeOrmBusinessRepository = class TypeOrmBusinessRepository {
 exports.TypeOrmBusinessRepository = TypeOrmBusinessRepository;
 exports.TypeOrmBusinessRepository = TypeOrmBusinessRepository = __decorate([
     (0, common_1.Injectable)(),
-    __param(0, (0, typeorm_1.InjectRepository)(business_entity_1.BusinessEntity)),
+    __param(0, (0, typeorm_1.InjectRepository)(database_1.BusinessEntity)),
     __metadata("design:paramtypes", [typeorm_2.Repository])
 ], TypeOrmBusinessRepository);
 //# sourceMappingURL=typeorm-business.repository.js.map

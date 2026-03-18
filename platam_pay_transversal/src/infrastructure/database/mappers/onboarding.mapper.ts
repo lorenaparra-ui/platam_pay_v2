@@ -3,7 +3,7 @@ import {
   CreateOnboardingPayload,
   UpdateOnboardingPayload,
 } from '@transversal/domain/ports/repository/onboarding.repository.port';
-import { OnboardingEntity } from '../entities/onboarding.entity';
+import { OnboardingEntity } from '@libs/database';
 
 export class OnboardingMapper {
   static toDomain(entity: OnboardingEntity): Onboarding {

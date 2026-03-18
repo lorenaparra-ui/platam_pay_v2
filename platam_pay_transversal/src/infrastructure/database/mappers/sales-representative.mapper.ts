@@ -1,6 +1,6 @@
 import { SalesRepresentative } from '@persons/domain/models/sales-representative.model';
 import type { CreateSalesRepresentativePayload } from '@persons/domain/ports/sales-representative.repository.port';
-import { SalesRepresentativeEntity } from '../entities/sales-representative.entity';
+import { SalesRepresentativeEntity } from '@libs/database';
 
 export class SalesRepresentativeMapper {
   static toDomain(entity: SalesRepresentativeEntity): SalesRepresentative {

@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { BusinessEntity } from '@infrastructure/database/entities/business.entity';
+import { BusinessEntity } from '@libs/database';
 import { TypeOrmBusinessRepository } from '@infrastructure/database/repositories/typeorm-business.repository';
 import { BUSINESS_REPOSITORY } from './domain/ports/business.repository.port';
 import { BusinessController } from './presentation/business.controller';

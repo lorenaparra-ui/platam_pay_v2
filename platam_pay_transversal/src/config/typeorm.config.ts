@@ -1,23 +1,20 @@
-import './dotenv.config';
-import * as path from 'path';
-import { DataSource, DataSourceOptions } from 'typeorm';
+import "./dotenv.config";
+import { DataSourceOptions } from "typeorm";
+import { DATABASE_ENTITIES } from "@libs/database";
 
 const TypeormConfig = {
-  type: process.env.TYPEORM_TYPE,
+  type: "postgres" as const,
   host: process.env.POSTGRES_HOST,
   username: process.env.POSTGRES_USERNAME,
-  port: process.env.TYPEORM_PORT,
+  port: Number(process.env.TYPEORM_PORT ?? 5432),
   database: process.env.POSTGRES_DATABASE,
   password: process.env.POSTGRES_PASSWORD,
-  migrations: [path.join(__dirname, '../infrastructure/database/migrations/*.js')],
-  entities: [path.join(__dirname, '../../**/*.entity.js')],
-  logging: true,
-  synchronize: process.env.TYPEORM_SYNC === 'true',
-  migrationsTableName: 'typeorm_migrations',
-  cli: {
-    migrationsDir: 'src/infrastructure/database/migrations',
-  },
-};
-export default TypeormConfig;
+  entities: DATABASE_ENTITIES as DataSourceOptions["entities"],
+  migrations: [],
+  logging: process.env.TYPEORM_LOGGING === "true",
+  synchronize: false,
+  migrationsRun: false,
+  migrationsTableName: "typeorm_migrations",
+} satisfies DataSourceOptions;
 
-export const dataSource = new DataSource(TypeormConfig as DataSourceOptions);
+export default TypeormConfig;

@@ -17,7 +17,7 @@ const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const common_1 = require("@nestjs/common");
 const node_crypto_1 = require("node:crypto");
-const partners_entity_1 = require("../entities/partners.entity");
+const database_1 = require("@libs/database");
 const partners_mapper_1 = require("../mappers/partners.mapper");
 let TypeOrmPartnersRepository = class TypeOrmPartnersRepository {
     repository;
@@ -152,7 +152,7 @@ let TypeOrmPartnersRepository = class TypeOrmPartnersRepository {
 exports.TypeOrmPartnersRepository = TypeOrmPartnersRepository;
 exports.TypeOrmPartnersRepository = TypeOrmPartnersRepository = __decorate([
     (0, common_1.Injectable)(),
-    __param(0, (0, typeorm_1.InjectRepository)(partners_entity_1.PartnersEntity)),
+    __param(0, (0, typeorm_1.InjectRepository)(database_1.PartnersEntity)),
     __metadata("design:paramtypes", [typeorm_2.Repository,
         typeorm_2.DataSource])
 ], TypeOrmPartnersRepository);

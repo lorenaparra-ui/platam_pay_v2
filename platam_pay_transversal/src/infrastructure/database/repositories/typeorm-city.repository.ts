@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CityEntity } from '../entities/city.entity';
+import { CityEntity } from '@libs/database';
 import { CityRepositoryPort, CountryItem } from '@transversal/domain/ports/repository/city.repository.port';
 import { City } from '../../../modules/transversal/domain/models/city.model';
 import { CityMapper } from '../mappers/city.mapper';

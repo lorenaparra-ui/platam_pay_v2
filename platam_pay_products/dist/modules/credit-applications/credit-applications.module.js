@@ -9,7 +9,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreditApplicationsModule = void 0;
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
-const credit_application_entity_1 = require("../../infrastructure/database/entities/credit-application.entity");
+const database_1 = require("@libs/database");
 const typeorm_credit_application_repository_1 = require("../../infrastructure/database/repositories/typeorm-credit-application.repository");
 const credit_application_repository_port_1 = require("./domain/ports/credit-application.repository.port");
 const credit_applications_controller_1 = require("./presentation/credit-applications.controller");
@@ -23,7 +23,7 @@ let CreditApplicationsModule = class CreditApplicationsModule {
 exports.CreditApplicationsModule = CreditApplicationsModule;
 exports.CreditApplicationsModule = CreditApplicationsModule = __decorate([
     (0, common_1.Module)({
-        imports: [typeorm_1.TypeOrmModule.forFeature([credit_application_entity_1.CreditApplicationEntity])],
+        imports: [typeorm_1.TypeOrmModule.forFeature([database_1.CreditApplicationEntity])],
         controllers: [credit_applications_controller_1.CreditApplicationsController],
         providers: [
             {

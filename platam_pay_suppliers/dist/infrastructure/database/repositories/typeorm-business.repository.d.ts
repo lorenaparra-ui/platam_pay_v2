@@ -1,7 +1,7 @@
 import { Repository } from 'typeorm';
 import { Business } from '@businesses/domain/models/business.model';
 import { BusinessRepositoryPort, CreateBusinessPayload, UpdateBusinessPayload } from '@businesses/domain/ports/business.repository.port';
-import { BusinessEntity } from '../entities/business.entity';
+import { BusinessEntity } from '@libs/database';
 export declare class TypeOrmBusinessRepository implements BusinessRepositoryPort {
     private readonly repository;
     constructor(repository: Repository<BusinessEntity>);

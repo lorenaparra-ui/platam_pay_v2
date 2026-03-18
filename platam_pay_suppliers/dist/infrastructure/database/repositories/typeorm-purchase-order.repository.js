@@ -16,7 +16,7 @@ exports.TypeOrmPurchaseOrderRepository = void 0;
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
-const purchase_order_entity_1 = require("../entities/purchase-order.entity");
+const database_1 = require("@libs/database");
 const purchase_order_mapper_1 = require("../mappers/purchase-order.mapper");
 let TypeOrmPurchaseOrderRepository = class TypeOrmPurchaseOrderRepository {
     repository;
@@ -53,7 +53,7 @@ let TypeOrmPurchaseOrderRepository = class TypeOrmPurchaseOrderRepository {
 exports.TypeOrmPurchaseOrderRepository = TypeOrmPurchaseOrderRepository;
 exports.TypeOrmPurchaseOrderRepository = TypeOrmPurchaseOrderRepository = __decorate([
     (0, common_1.Injectable)(),
-    __param(0, (0, typeorm_1.InjectRepository)(purchase_order_entity_1.PurchaseOrderEntity)),
+    __param(0, (0, typeorm_1.InjectRepository)(database_1.PurchaseOrderEntity)),
     __metadata("design:paramtypes", [typeorm_2.Repository])
 ], TypeOrmPurchaseOrderRepository);
 //# sourceMappingURL=typeorm-purchase-order.repository.js.map

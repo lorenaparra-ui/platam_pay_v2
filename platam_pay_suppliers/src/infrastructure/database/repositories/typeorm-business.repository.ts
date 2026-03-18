@@ -7,7 +7,7 @@ import {
   CreateBusinessPayload,
   UpdateBusinessPayload,
 } from '@businesses/domain/ports/business.repository.port';
-import { BusinessEntity } from '../entities/business.entity';
+import { BusinessEntity } from '@libs/database';
 import { BusinessMapper } from '../mappers/business.mapper';
 
 @Injectable()

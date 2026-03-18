@@ -7,7 +7,7 @@ import {
   SupplierRepositoryPort,
   UpdateSupplierPayload,
 } from "@suppliers/domain/ports/supplier.repository.port";
-import { SupplierEntity } from "../entities/supplier.entity";
+import { SupplierEntity } from '@libs/database';
 import { SupplierMapper } from "../mappers/supplier.mapper";
 
 @Injectable()

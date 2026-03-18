@@ -6,7 +6,7 @@ import type {
   SalesRepresentativeRepositoryPort,
 } from '@persons/domain/ports/sales-representative.repository.port';
 import { SalesRepresentative } from '@persons/domain/models/sales-representative.model';
-import { SalesRepresentativeEntity } from '../entities/sales-representative.entity';
+import { SalesRepresentativeEntity } from '@libs/database';
 import { SalesRepresentativeMapper } from '../mappers/sales-representative.mapper';
 
 @Injectable()

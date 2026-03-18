@@ -1,7 +1,7 @@
 import { Repository } from "typeorm";
 import type { CreditApplicationCreateInput, CreditApplicationRepositoryPort, CreditApplicationUpdateInput } from "../../../modules/credit-applications/domain/ports/credit-application.repository.port";
 import type { CreditApplication } from "../../../modules/credit-applications/domain/models/credit-application.model";
-import { CreditApplicationEntity } from "../entities/credit-application.entity";
+import { CreditApplicationEntity } from '@libs/database';
 export declare class TypeOrmCreditApplicationRepository implements CreditApplicationRepositoryPort {
     private readonly repository;
     constructor(repository: Repository<CreditApplicationEntity>);

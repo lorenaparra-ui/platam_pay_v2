@@ -9,8 +9,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.SuppliersModule = void 0;
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
-const supplier_entity_1 = require("../../infrastructure/database/entities/supplier.entity");
-const purchase_order_entity_1 = require("../../infrastructure/database/entities/purchase-order.entity");
+const database_1 = require("@libs/database");
+const database_2 = require("@libs/database");
 const typeorm_supplier_repository_1 = require("../../infrastructure/database/repositories/typeorm-supplier.repository");
 const typeorm_purchase_order_repository_1 = require("../../infrastructure/database/repositories/typeorm-purchase-order.repository");
 const supplier_repository_port_1 = require("./domain/ports/supplier.repository.port");
@@ -25,7 +25,7 @@ exports.SuppliersModule = SuppliersModule;
 exports.SuppliersModule = SuppliersModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            typeorm_1.TypeOrmModule.forFeature([supplier_entity_1.SupplierEntity, purchase_order_entity_1.PurchaseOrderEntity]),
+            typeorm_1.TypeOrmModule.forFeature([database_1.SupplierEntity, database_2.PurchaseOrderEntity]),
         ],
         controllers: [suppliers_controller_1.SuppliersController],
         providers: [

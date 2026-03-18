@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PurchaseOrderMapper = void 0;
-const purchase_order_entity_1 = require("../entities/purchase-order.entity");
+const database_1 = require("@libs/database");
 class PurchaseOrderMapper {
     static toDomain(entity) {
         return {
@@ -16,7 +16,7 @@ class PurchaseOrderMapper {
         };
     }
     static toCreateEntity(payload) {
-        const entity = new purchase_order_entity_1.PurchaseOrderEntity();
+        const entity = new database_1.PurchaseOrderEntity();
         entity.userId = payload.userId;
         entity.supplierId = payload.supplierId;
         entity.amount = payload.amount;

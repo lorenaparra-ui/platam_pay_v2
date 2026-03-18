@@ -1,6 +1,6 @@
 import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
-import { CreditApplicationEntity } from "@infrastructure/database/entities/credit-application.entity";
+import { CreditApplicationEntity } from '@libs/database';
 import { TypeOrmCreditApplicationRepository } from "@infrastructure/database/repositories/typeorm-credit-application.repository";
 import { CREDIT_APPLICATION_REPOSITORY } from "./domain/ports/credit-application.repository.port";
 import { CreditApplicationsController } from "./presentation/credit-applications.controller";

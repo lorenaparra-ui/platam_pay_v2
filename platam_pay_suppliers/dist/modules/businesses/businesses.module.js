@@ -9,7 +9,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.BusinessesModule = void 0;
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
-const business_entity_1 = require("../../infrastructure/database/entities/business.entity");
+const database_1 = require("@libs/database");
 const typeorm_business_repository_1 = require("../../infrastructure/database/repositories/typeorm-business.repository");
 const business_repository_port_1 = require("./domain/ports/business.repository.port");
 const business_controller_1 = require("./presentation/business.controller");
@@ -23,7 +23,7 @@ let BusinessesModule = class BusinessesModule {
 exports.BusinessesModule = BusinessesModule;
 exports.BusinessesModule = BusinessesModule = __decorate([
     (0, common_1.Module)({
-        imports: [typeorm_1.TypeOrmModule.forFeature([business_entity_1.BusinessEntity])],
+        imports: [typeorm_1.TypeOrmModule.forFeature([database_1.BusinessEntity])],
         controllers: [business_controller_1.BusinessController],
         providers: [
             {

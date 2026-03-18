@@ -1,0 +1,9 @@
+{
+  "name": "@libs/database",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "typeorm": "^0.3.28",
+    "reflect-metadata": "^0.2.2"
+  }
+}

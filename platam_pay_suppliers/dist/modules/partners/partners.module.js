@@ -9,7 +9,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.PartnersModule = void 0;
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
-const partners_entity_1 = require("../../infrastructure/database/entities/partners.entity");
+const database_1 = require("@libs/database");
 const typeorm_partners_repository_1 = require("../../infrastructure/database/repositories/typeorm-partners.repository");
 const businesses_module_1 = require("../businesses/businesses.module");
 const partner_repository_port_1 = require("./domain/ports/partner.repository.port");
@@ -37,7 +37,7 @@ exports.PartnersModule = PartnersModule;
 exports.PartnersModule = PartnersModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            typeorm_1.TypeOrmModule.forFeature([partners_entity_1.PartnersEntity]),
+            typeorm_1.TypeOrmModule.forFeature([database_1.PartnersEntity]),
             businesses_module_1.BusinessesModule,
         ],
         controllers: [],

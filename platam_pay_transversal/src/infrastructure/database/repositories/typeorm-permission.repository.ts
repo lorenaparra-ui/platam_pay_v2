@@ -3,8 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import type { PermissionRepositoryPort } from '@users/domain/ports/permission.repository.port';
 import { Permission } from '@users/domain/models/permission.model';
-import { PermissionEntity } from '../entities/permission.entity';
-import { PermissionMapper } from '../mappers/permission.mapper';
+import { PermissionEntity } from '@libs/database';
+import { PermissionMapper } from '../mappers/users/permission.mapper';
 
 @Injectable()
 export class TypeOrmPermissionRepository implements PermissionRepositoryPort {

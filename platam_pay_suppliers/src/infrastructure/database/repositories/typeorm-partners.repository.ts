@@ -9,7 +9,7 @@ import {
   PartnerStatusCode,
   UpdatePartnerPayload,
 } from "@partners/domain/ports/partner.repository.port";
-import { PartnersEntity } from "@infrastructure/database/entities/partners.entity";
+import { PartnersEntity } from '@libs/database';
 import { PartnersMapper } from "@infrastructure/database/mappers/partners.mapper";
 
 @Injectable()

@@ -6,8 +6,8 @@ import type {
   LegalRepresentativeRepositoryPort,
 } from '@persons/domain/ports/legal-representative.repository.port';
 import { LegalRepresentative } from '@persons/domain/models/legal-representative.model';
-import { LegalRepresentativeEntity } from '../entities/legal-representative.entity';
-import { LegalRepresentativeMapper } from '../mappers/legal-representative.mapper';
+import { LegalRepresentativeEntity } from '@libs/database';
+import { LegalRepresentativeMapper } from '../mappers/persons/legal-representative.mapper';
 
 @Injectable()
 export class TypeOrmLegalRepresentativeRepository

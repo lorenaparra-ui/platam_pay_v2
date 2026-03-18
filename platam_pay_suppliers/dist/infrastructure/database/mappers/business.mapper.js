@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.BusinessMapper = void 0;
 const business_model_1 = require("../../../modules/businesses/domain/models/business.model");
-const business_entity_1 = require("../entities/business.entity");
+const database_1 = require("@libs/database");
 class BusinessMapper {
     static toDomain(entity) {
         return new business_model_1.Business({
@@ -24,7 +24,7 @@ class BusinessMapper {
         });
     }
     static toCreateEntity(payload) {
-        const entity = new business_entity_1.BusinessEntity();
+        const entity = new database_1.BusinessEntity();
         return this.applyMutableFields(entity, payload);
     }
     static applyUpdate(entity, payload) {

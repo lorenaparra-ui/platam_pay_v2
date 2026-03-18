@@ -1,7 +1,7 @@
 import { Repository } from "typeorm";
 import { Supplier } from "@suppliers/domain/models/supplier.model";
 import { CreateSupplierPayload, SupplierRepositoryPort, UpdateSupplierPayload } from "@suppliers/domain/ports/supplier.repository.port";
-import { SupplierEntity } from "../entities/supplier.entity";
+import { SupplierEntity } from '@libs/database';
 export declare class TypeOrmSupplierRepository implements SupplierRepositoryPort {
     private readonly repository;
     constructor(repository: Repository<SupplierEntity>);

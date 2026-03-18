@@ -1,7 +1,7 @@
 import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
-import { SupplierEntity } from "@infrastructure/database/entities/supplier.entity";
-import { PurchaseOrderEntity } from "@infrastructure/database/entities/purchase-order.entity";
+import { SupplierEntity } from '@libs/database';
+import { PurchaseOrderEntity } from '@libs/database';
 import { TypeOrmSupplierRepository } from "@infrastructure/database/repositories/typeorm-supplier.repository";
 import { TypeOrmPurchaseOrderRepository } from "@infrastructure/database/repositories/typeorm-purchase-order.repository";
 import { SUPPLIER_REPOSITORY } from "./domain/ports/supplier.repository.port";

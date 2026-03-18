@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PartnersMapper = void 0;
-const partners_entity_1 = require("../entities/partners.entity");
+const database_1 = require("@libs/database");
 class PartnersMapper {
     static toDomain(entity) {
         return {
@@ -28,7 +28,7 @@ class PartnersMapper {
         };
     }
     static toEntity(domain) {
-        const entity = new partners_entity_1.PartnersEntity();
+        const entity = new database_1.PartnersEntity();
         entity.id = domain.id;
         entity.externalId = domain.externalId;
         entity.businessId = domain.businessId;

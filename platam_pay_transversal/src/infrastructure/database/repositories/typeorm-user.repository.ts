@@ -7,8 +7,8 @@ import {
   UpdateUserPayload,
   UserRepositoryPort,
 } from '@users/domain/ports/user.repository.port';
-import { UserEntity } from '../entities/user.entity';
-import { UserMapper } from '../mappers/user.mapper';
+import { UserEntity } from '@libs/database';
+import { UserMapper } from '../mappers/users/user.mapper';
 
 @Injectable()
 export class TypeOrmUserRepository implements UserRepositoryPort {

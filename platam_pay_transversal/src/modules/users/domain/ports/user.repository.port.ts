@@ -1,6 +1,7 @@
 import { User } from '../models/user.model';
 
-export const USERS_REPOSITORY = 'USERS_REPOSITORY';
+/** Token DI (Symbol) — patrón hexagonal explícito */
+export const USERS_REPOSITORY = Symbol('UserRepositoryPort');
 
 export interface CreateUserPayload {
   cognitoSub: string;

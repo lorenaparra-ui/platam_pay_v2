@@ -7,7 +7,7 @@ import type {
   CreditApplicationUpdateInput,
 } from "../../../modules/credit-applications/domain/ports/credit-application.repository.port";
 import type { CreditApplication } from "../../../modules/credit-applications/domain/models/credit-application.model";
-import { CreditApplicationEntity } from "../entities/credit-application.entity";
+import { CreditApplicationEntity } from '@libs/database';
 import { CreditApplicationMapper } from "../mappers/credit-application.mapper";
 
 @Injectable()

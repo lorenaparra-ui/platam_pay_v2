@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { PersonEntity } from '@infrastructure/database/entities/person.entity';
-import { LegalRepresentativeEntity } from '@infrastructure/database/entities/legal-representative.entity';
-import { ShareholderEntity } from '@infrastructure/database/entities/shareholder.entity';
-import { GuarantorEntity } from '@infrastructure/database/entities/guarantor.entity';
-import { SalesRepresentativeEntity } from '@infrastructure/database/entities/sales-representative.entity';
-import { ContractSignerEntity } from '@infrastructure/database/entities/contract-signer.entity';
+import { PersonEntity } from '@libs/database';
+import { LegalRepresentativeEntity } from '@libs/database';
+import { ShareholderEntity } from '@libs/database';
+import { GuarantorEntity } from '@libs/database';
+import { SalesRepresentativeEntity } from '@libs/database';
+import { ContractSignerEntity } from '@libs/database';
 import { TypeOrmPersonRepository } from '@infrastructure/database/repositories/typeorm-person.repository';
 import { TypeOrmLegalRepresentativeRepository } from '@infrastructure/database/repositories/typeorm-legal-representative.repository';
 import { TypeOrmShareholderRepository } from '@infrastructure/database/repositories/typeorm-shareholder.repository';

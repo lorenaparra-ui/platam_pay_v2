@@ -1,5 +1,5 @@
 {
-  "name": "platam_pay_partners",
+  "name": "platam-pay-products",
   "version": "0.0.1",
   "description": "Platam Pay Partners microservice",
   "author": "",
@@ -19,12 +19,10 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli",
-    "migration:create": "npm run typeorm -- migration:create ./src/infrastructure/database/migrations/$npm_config_name",
-    "migration:generate": "npm run typeorm -- -d ./src/config/typeorm.config.ts migration:generate ./src/infrastructure/database/migrations/$npm_config_name",
-    "migration:run": "npm run typeorm -- migration:run -d ./src/config/typeorm.config.ts",
-    "migration:revert": "npm run typeorm -- migration:revert -d ./src/config/typeorm.config.ts"
+    "migration:generate": "echo Use: npm run migration:generate --name=MiMigracion (desde la raíz del monorepo)"
   },
   "dependencies": {
+    "@libs/database": "file:../libs/database",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.3",
     "@nestjs/core": "^11.0.1",

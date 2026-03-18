@@ -2,11 +2,11 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 // Entities
-import { DocumentTypeEntity } from '@infrastructure/database/entities/document-type.entity';
-import { BusinessSeniorityEntity } from '@infrastructure/database/entities/business-seniority.entity';
-import { OnboardingEntity } from '@infrastructure/database/entities/onboarding.entity';
-import { StatusEntity } from '@infrastructure/database/entities/status.entity';
-import { CityEntity } from '@infrastructure/database/entities/city.entity';
+import { DocumentTypeEntity } from '@libs/database';
+import { BusinessSeniorityEntity } from '@libs/database';
+import { OnboardingEntity } from '@libs/database';
+import { StatusEntity } from '@libs/database';
+import { CityEntity } from '@libs/database';
 
 // Repositories (Implementations)
 import { TypeOrmDocumentTypeRepository } from '@infrastructure/database/repositories/typeorm-document-type.repository';

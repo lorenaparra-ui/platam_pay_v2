@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { UserEntity } from '@infrastructure/database/entities/user.entity';
-import { PermissionEntity } from '@infrastructure/database/entities/permission.entity';
-import { RolePermissionEntity } from '@infrastructure/database/entities/role-permission.entity';
+import { UserEntity } from '@libs/database';
+import { PermissionEntity } from '@libs/database';
+import { RolePermissionEntity } from '@libs/database';
 import { TypeOrmUserRepository } from '@infrastructure/database/repositories/typeorm-user.repository';
 import { TypeOrmPermissionRepository } from '@infrastructure/database/repositories/typeorm-permission.repository';
 import { TypeOrmRolePermissionRepository } from '@infrastructure/database/repositories/typeorm-role-permission.repository';

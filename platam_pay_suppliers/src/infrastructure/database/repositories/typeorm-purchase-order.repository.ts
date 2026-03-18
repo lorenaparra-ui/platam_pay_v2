@@ -6,7 +6,7 @@ import {
   CreatePurchaseOrderPayload,
   PurchaseOrderRepositoryPort,
 } from "@suppliers/domain/ports/purchase-order.repository.port";
-import { PurchaseOrderEntity } from "../entities/purchase-order.entity";
+import { PurchaseOrderEntity } from '@libs/database';
 import { PurchaseOrderMapper } from "../mappers/purchase-order.mapper";
 
 @Injectable()

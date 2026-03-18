@@ -16,7 +16,7 @@ exports.TypeOrmCreditApplicationRepository = void 0;
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
-const credit_application_entity_1 = require("../entities/credit-application.entity");
+const database_1 = require("@libs/database");
 const credit_application_mapper_1 = require("../mappers/credit-application.mapper");
 let TypeOrmCreditApplicationRepository = class TypeOrmCreditApplicationRepository {
     repository;
@@ -122,7 +122,7 @@ let TypeOrmCreditApplicationRepository = class TypeOrmCreditApplicationRepositor
 exports.TypeOrmCreditApplicationRepository = TypeOrmCreditApplicationRepository;
 exports.TypeOrmCreditApplicationRepository = TypeOrmCreditApplicationRepository = __decorate([
     (0, common_1.Injectable)(),
-    __param(0, (0, typeorm_1.InjectRepository)(credit_application_entity_1.CreditApplicationEntity)),
+    __param(0, (0, typeorm_1.InjectRepository)(database_1.CreditApplicationEntity)),
     __metadata("design:paramtypes", [typeorm_2.Repository])
 ], TypeOrmCreditApplicationRepository);
 //# sourceMappingURL=typeorm-credit-application.repository.js.map

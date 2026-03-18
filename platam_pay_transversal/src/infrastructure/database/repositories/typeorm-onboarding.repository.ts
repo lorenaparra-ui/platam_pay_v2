@@ -7,7 +7,7 @@ import {
   OnboardingRepositoryPort,
   UpdateOnboardingPayload,
 } from '@transversal/domain/ports/repository/onboarding.repository.port';
-import { OnboardingEntity } from '../entities/onboarding.entity';
+import { OnboardingEntity } from '@libs/database';
 import { OnboardingMapper } from '../mappers/onboarding.mapper';
 
 @Injectable()

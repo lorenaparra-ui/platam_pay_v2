@@ -1,6 +1,6 @@
 import { PurchaseOrder } from "@suppliers/domain/models/purchase-order.model";
 import type { CreatePurchaseOrderPayload } from "@suppliers/domain/ports/purchase-order.repository.port";
-import { PurchaseOrderEntity } from "../entities/purchase-order.entity";
+import { PurchaseOrderEntity } from '@libs/database';
 
 export class PurchaseOrderMapper {
   static toDomain(entity: PurchaseOrderEntity): PurchaseOrder {

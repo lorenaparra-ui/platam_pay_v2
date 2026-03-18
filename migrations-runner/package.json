@@ -1,0 +1,30 @@
+{
+  "name": "migrations-runner",
+  "version": "1.0.0",
+  "description": "Runner centralizado: TypeORM DataSource + @libs/database + migraciones @migrations",
+  "private": true,
+  "license": "UNLICENSED",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node -r tsconfig-paths/register -r ts-node/register src/main.ts",
+    "typeorm": "cross-env TS_NODE_TRANSPILE_ONLY=1 node -r tsconfig-paths/register -r ts-node/register ./node_modules/typeorm/cli.js",
+    "migration:create": "npm run typeorm -- migration:create ./src/infrastructure/database/migrations/$npm_config_name",
+    "migration:generate": "npm run typeorm -- -d ./src/config/typeorm.config.ts migration:generate ./src/infrastructure/database/migrations/$npm_config_name",
+    "migration:run": "npm run typeorm -- migration:run -d ./src/config/typeorm.config.ts",
+    "migration:revert": "npm run typeorm -- migration:revert -d ./src/config/typeorm.config.ts",
+    "migration:run:locked": "npm run start"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "pg": "^8.20.0",
+    "reflect-metadata": "^0.2.2",
+    "typeorm": "^0.3.28"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "@types/node": "^22.10.7",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.7.3"
+  }
+}

@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreditApplicationMapper = void 0;
-const credit_application_entity_1 = require("../entities/credit-application.entity");
+const database_1 = require("@libs/database");
 function toNumber(value) {
     if (value == null)
         return null;
@@ -57,7 +57,7 @@ class CreditApplicationMapper {
         };
     }
     static toEntity(domain) {
-        const entity = new credit_application_entity_1.CreditApplicationEntity();
+        const entity = new database_1.CreditApplicationEntity();
         entity.id = domain.id;
         entity.personId = domain.personId;
         entity.partnerId = domain.partnerId;
@@ -93,7 +93,7 @@ class CreditApplicationMapper {
         return entity;
     }
     static toEntityFromCreateInput(input) {
-        const entity = new credit_application_entity_1.CreditApplicationEntity();
+        const entity = new database_1.CreditApplicationEntity();
         entity.personId = input.personId ?? null;
         entity.partnerId = input.partnerId ?? null;
         entity.partnerCategoryId = input.partnerCategoryId ?? null;

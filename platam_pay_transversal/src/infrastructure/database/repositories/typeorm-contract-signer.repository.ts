@@ -6,8 +6,8 @@ import type {
   CreateContractSignerPayload,
 } from '@persons/domain/ports/contract-signer.repository.port';
 import { ContractSigner } from '@persons/domain/models/contract-signer.model';
-import { ContractSignerEntity } from '../entities/contract-signer.entity';
-import { ContractSignerMapper } from '../mappers/contract-signer.mapper';
+import { ContractSignerEntity } from '@libs/database';
+import { ContractSignerMapper } from '../mappers/persons/contract-signer.mapper';
 
 @Injectable()
 export class TypeOrmContractSignerRepository

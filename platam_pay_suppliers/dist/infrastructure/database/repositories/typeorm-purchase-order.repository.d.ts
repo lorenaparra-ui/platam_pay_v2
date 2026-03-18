@@ -1,7 +1,7 @@
 import { Repository } from "typeorm";
 import { PurchaseOrder } from "@suppliers/domain/models/purchase-order.model";
 import { CreatePurchaseOrderPayload, PurchaseOrderRepositoryPort } from "@suppliers/domain/ports/purchase-order.repository.port";
-import { PurchaseOrderEntity } from "../entities/purchase-order.entity";
+import { PurchaseOrderEntity } from '@libs/database';
 export declare class TypeOrmPurchaseOrderRepository implements PurchaseOrderRepositoryPort {
     private readonly repository;
     constructor(repository: Repository<PurchaseOrderEntity>);
