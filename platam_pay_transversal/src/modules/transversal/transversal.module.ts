@@ -4,14 +4,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 // Entities
 import { DocumentTypeEntity } from '@libs/database';
 import { BusinessSeniorityEntity } from '@libs/database';
-import { OnboardingEntity } from '@libs/database';
 import { StatusEntity } from '@libs/database';
 import { CityEntity } from '@libs/database';
 
 // Repositories (Implementations)
 import { TypeOrmDocumentTypeRepository } from '@infrastructure/database/repositories/transversal/typeorm-document-type.repository';
 import { TypeOrmBusinessSeniorityRepository } from '@infrastructure/database/repositories/transversal/typeorm-business-seniority.repository';
-import { TypeOrmOnboardingRepository } from '@infrastructure/database/repositories/typeorm-onboarding.repository';
 import { TypeOrmStatusRepository } from '@infrastructure/database/repositories/transversal/typeorm-status.repository';
 import { TypeOrmCityRepository } from '@infrastructure/database/repositories/transversal/typeorm-city.repository';
 import { RuesBusinessInformationApi } from '@infrastructure/external-apis/rues-business-information.api';
@@ -19,7 +17,6 @@ import { RuesBusinessInformationApi } from '@infrastructure/external-apis/rues-b
 // Ports (Tokens)
 import { DOCUMENT_TYPE_REPOSITORY } from '@transversal/domain/ports/repository/document-type.repository.port';
 import { BUSINESS_SENIORITY_REPOSITORY } from '@transversal/domain/ports/repository/business-seniority.repository.port';
-import { ONBOARDING_REPOSITORY } from '@transversal/domain/ports/repository/onboarding.repository.port';
 import { STATUS_REPOSITORY } from '@transversal/domain/ports/repository/status.repository.port';
 import { CITY_REPOSITORY } from '@transversal/domain/ports/repository/city.repository.port';
 import { BUSINESS_INFORMATION_API } from '@transversal/domain/ports/repository/business-information-api.port';
@@ -43,7 +40,6 @@ import { BusinessInformationController } from './presentation/business-informati
     TypeOrmModule.forFeature([
       DocumentTypeEntity,
       BusinessSeniorityEntity,
-      OnboardingEntity,
       StatusEntity,
       CityEntity,
     ]),
@@ -64,10 +60,6 @@ import { BusinessInformationController } from './presentation/business-informati
     {
       provide: BUSINESS_SENIORITY_REPOSITORY,
       useClass: TypeOrmBusinessSeniorityRepository,
-    },
-    {
-      provide: ONBOARDING_REPOSITORY,
-      useClass: TypeOrmOnboardingRepository,
     },
     {
       provide: STATUS_REPOSITORY,
@@ -91,7 +83,6 @@ import { BusinessInformationController } from './presentation/business-informati
   exports: [
     DOCUMENT_TYPE_REPOSITORY,
     BUSINESS_SENIORITY_REPOSITORY,
-    ONBOARDING_REPOSITORY,
     STATUS_REPOSITORY,
     CITY_REPOSITORY,
     BUSINESS_INFORMATION_API,

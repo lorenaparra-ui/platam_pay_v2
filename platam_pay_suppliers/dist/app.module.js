@@ -19,6 +19,8 @@ const infrastructure_module_1 = require("./infrastructure/infrastructure.module"
 const management_module_1 = require("./modules/management/management.module");
 const businesses_module_1 = require("./modules/businesses/businesses.module");
 const suppliers_module_1 = require("./modules/suppliers/suppliers.module");
+const onboarding_module_1 = require("./modules/onboarding/onboarding.module");
+const sales_representatives_module_1 = require("./modules/sales-representatives/sales-representatives.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -35,6 +37,8 @@ exports.AppModule = AppModule = __decorate([
             management_module_1.ManagementModule,
             businesses_module_1.BusinessesModule,
             suppliers_module_1.SuppliersModule,
+            onboarding_module_1.OnboardingModule,
+            sales_representatives_module_1.SalesRepresentativesModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [],

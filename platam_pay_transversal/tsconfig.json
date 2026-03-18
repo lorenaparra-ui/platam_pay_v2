@@ -29,7 +29,6 @@
       "@shared/*": ["src/shared/*"],
       "@libs/database/*": ["../../libs/database/*"],
       "@transversal/*": ["src/modules/transversal/*"],
-      "@onboarding/*": ["src/modules/onboarding/*"],
       "@users/*": ["src/modules/users/*"],
       "@persons/*": ["src/modules/persons/*"],
       "@auth/*": ["src/modules/auth/*"],

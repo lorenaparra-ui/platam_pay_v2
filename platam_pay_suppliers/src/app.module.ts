@@ -7,6 +7,8 @@ import { InfrastructureModule } from "@infrastructure/infrastructure.module";
 import { ManagementModule } from "./modules/management/management.module";
 import { BusinessesModule } from "./modules/businesses/businesses.module";
 import { SuppliersModule } from "./modules/suppliers/suppliers.module";
+import { OnboardingModule } from "./modules/onboarding/onboarding.module";
+import { SalesRepresentativesModule } from "./modules/sales-representatives/sales-representatives.module";
 
 @Module({
   imports: [
@@ -20,6 +22,8 @@ import { SuppliersModule } from "./modules/suppliers/suppliers.module";
     ManagementModule,
     BusinessesModule,
     SuppliersModule,
+    OnboardingModule,
+    SalesRepresentativesModule,
   ],
   controllers: [AppController],
   providers: [],

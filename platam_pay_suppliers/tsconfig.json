@@ -30,6 +30,8 @@
       "@businesses/*": ["src/modules/businesses/*"],
       "@credit-applications-bnpl/*": ["src/modules/credit-applications-bnpl/*"],
       "@suppliers/*": ["src/modules/suppliers/*"],
+      "@onboarding/*": ["src/modules/onboarding/*"],
+      "@sales-representatives/*": ["src/modules/sales-representatives/*"],
       "@common/*": ["src/common/*"]
     }
   }
