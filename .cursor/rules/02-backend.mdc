@@ -1,9 +1,7 @@
 ---
 description: Reglas backend mínimas para NestJS + TypeORM + arquitectura hexagonal.
-globs: platam_play_users/src/**/*.ts
 alwaysApply: false
 ---
-
 # Backend Rules (Minimal)
 
 ## Stack objetivo
@@ -37,6 +35,11 @@ alwaysApply: false
 ## Configuración
 - Usar `ConfigService` en código de negocio.
 - Evitar acceso directo a `process.env` fuera de configuración.
+
+## Convención de nombres
+- Usar `snake_case` para nombres de variables y campos.
+- Escribir palabras en minúsculas separadas por guion bajo (`_`).
+- Ejemplos válidos: `first_name`, `last_name`, `phone_number`.
 
 ## Calidad mínima por cambio backend
 - Compila (`npm run build`) y sin lints nuevos.

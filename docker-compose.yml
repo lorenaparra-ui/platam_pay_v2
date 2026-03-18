@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # ------------------------------------------------
   # Base de Datos PostgreSQL
@@ -9,7 +7,7 @@ services:
     container_name: platam_db
     restart: always
     env_file:
-      - ./platam_pay_users/.env.docker
+      - ./.env.docker
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: postgres
@@ -40,7 +38,7 @@ services:
       postgres:
         condition: service_healthy
     env_file:
-      - ./platam_pay_users/.env.docker
+      - ./.env.docker
     environment:
       NODE_ENV: production
       # Conexión a DB usando el nombre del servicio 'postgres' como host
@@ -50,14 +48,43 @@ services:
       POSTGRES_DATABASE: ${POSTGRES_DATABASE:-platam_pay}
       TYPEORM_TYPE: postgres
       TYPEORM_PORT: 5432
-      PORT: 3000
+      PORT: 8080
+      RUES_API_BASE_URL: "https://ollama-rues.5n921h.easypanel.host"
     ports:
-      - "3000:3000"
+      - "8080:8080"
     networks:
       - backend-network
 
   # ------------------------------------------------
-  # Microservicio 2: Notifications (Simulado)
+  # Microservicio 2: Partners (Nuevo)
+  # ------------------------------------------------
+  partners-service:
+    build:
+      context: ./platam_pay_partners
+      dockerfile: Dockerfile
+    container_name: platam_partners
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - ./.env.docker
+    environment:
+      NODE_ENV: production
+      POSTGRES_HOST: postgres
+      POSTGRES_USERNAME: ${POSTGRES_USERNAME:-admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DATABASE: ${POSTGRES_DATABASE:-platam_pay}
+      TYPEORM_TYPE: postgres
+      TYPEORM_PORT: 5432
+      PORT: 3000
+    ports:
+      - "3001:3000"
+    networks:
+      - backend-network
+
+  # ------------------------------------------------
+  # Microservicio 3: Notifications (Simulado)
   # ------------------------------------------------
   # Para cumplir el requisito de "al menos 2 servicios", reutilizamos la imagen
   # de users pero corriendo como un servicio separado en otro puerto.
