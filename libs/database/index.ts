@@ -21,7 +21,7 @@ export { PartnersEntity } from "./entities/partners.entity";
 export { SupplierEntity } from "./entities/supplier.entity";
 export { PurchaseOrderEntity } from "./entities/order.entity";
 export { CreditFacilityEntity } from "./entities/credit-facility.entity";
-export { CategoryEntity } from "./entities/product.entity";
+export { CategoryEntity } from "./entities/category.entity";
 export { CreditApplicationEntity } from "./entities/credit-application.entity";
 
 
@@ -44,7 +44,7 @@ import { PartnersEntity } from "./entities/partners.entity";
 import { SupplierEntity } from "./entities/supplier.entity";
 import { PurchaseOrderEntity } from "./entities/order.entity";
 import { CreditFacilityEntity } from "./entities/credit-facility.entity";
-import { CategoryEntity } from "./entities/product.entity";
+import { CategoryEntity } from "./entities/category.entity";
 import { CreditApplicationEntity } from "./entities/credit-application.entity";
 /** Registro único para DataSource (migrations-runner) y TypeOrmModule.forRoot. */
 export const DATABASE_ENTITIES: (new () => unknown)[] = [

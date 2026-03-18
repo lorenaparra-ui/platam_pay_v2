@@ -1,6 +1,6 @@
 import { Column, Entity, OneToMany } from "typeorm";
 import { BaseExternalIdEntity } from "./base-external-id.entity";
-import { CategoryEntity } from "./product.entity";
+import { CategoryEntity } from "./category.entity";
 
 /**
  * Entidad TypeORM para credit_facilities.
