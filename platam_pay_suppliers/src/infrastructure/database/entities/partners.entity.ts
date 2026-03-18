@@ -1,6 +1,9 @@
 import { Column, Entity } from "typeorm";
 import { BaseExternalIdEntity } from "./base-external-id.entity";
 
+/**
+ * Partner operativo. Nombre comercial / razón social: tabla `businesses` vinculada por business_id.
+ */
 @Entity({ name: "partners" })
 export class PartnersEntity extends BaseExternalIdEntity {
   @Column({ name: "business_id", type: "bigint" })

@@ -14,17 +14,12 @@ const typeorm_1 = require("typeorm");
 const base_external_id_entity_1 = require("./base-external-id.entity");
 const category_entity_1 = require("./category.entity");
 let CreditFacilityEntity = class CreditFacilityEntity extends base_external_id_entity_1.BaseExternalIdEntity {
-    partnerId;
     contractId;
     statusId;
     totalLimit;
     categories;
 };
 exports.CreditFacilityEntity = CreditFacilityEntity;
-__decorate([
-    (0, typeorm_1.Column)({ name: "partner_id", type: "bigint", nullable: true }),
-    __metadata("design:type", Object)
-], CreditFacilityEntity.prototype, "partnerId", void 0);
 __decorate([
     (0, typeorm_1.Column)({ name: "contract_id", type: "varchar", length: 255, nullable: true }),
     __metadata("design:type", Object)

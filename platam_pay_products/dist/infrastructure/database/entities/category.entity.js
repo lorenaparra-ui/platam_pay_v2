@@ -13,8 +13,10 @@ exports.CategoryEntity = void 0;
 const typeorm_1 = require("typeorm");
 const base_external_id_entity_1 = require("./base-external-id.entity");
 const credit_facility_entity_1 = require("./credit-facility.entity");
+const partner_reference_entity_1 = require("./partner-reference.entity");
 let CategoryEntity = class CategoryEntity extends base_external_id_entity_1.BaseExternalIdEntity {
     creditFacilityId;
+    partnerId;
     name;
     discountPercentage;
     interestRate;
@@ -24,12 +26,17 @@ let CategoryEntity = class CategoryEntity extends base_external_id_entity_1.Base
     termDays;
     statusId;
     creditFacility;
+    partner;
 };
 exports.CategoryEntity = CategoryEntity;
 __decorate([
     (0, typeorm_1.Column)({ name: "credit_facility_id", type: "bigint" }),
     __metadata("design:type", Number)
 ], CategoryEntity.prototype, "creditFacilityId", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: "partner_id", type: "bigint", nullable: true }),
+    __metadata("design:type", Object)
+], CategoryEntity.prototype, "partnerId", void 0);
 __decorate([
     (0, typeorm_1.Column)({ name: "name", type: "varchar", length: 255 }),
     __metadata("design:type", String)
@@ -91,6 +98,15 @@ __decorate([
     (0, typeorm_1.JoinColumn)({ name: "credit_facility_id" }),
     __metadata("design:type", credit_facility_entity_1.CreditFacilityEntity)
 ], CategoryEntity.prototype, "creditFacility", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => partner_reference_entity_1.PartnerReferenceEntity, {
+        nullable: true,
+        onDelete: "SET NULL",
+        onUpdate: "CASCADE",
+    }),
+    (0, typeorm_1.JoinColumn)({ name: "partner_id" }),
+    __metadata("design:type", Object)
+], CategoryEntity.prototype, "partner", void 0);
 exports.CategoryEntity = CategoryEntity = __decorate([
     (0, typeorm_1.Entity)("categories")
 ], CategoryEntity);

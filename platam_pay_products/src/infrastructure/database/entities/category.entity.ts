@@ -1,15 +1,19 @@
-import { Column, Entity, ManyToOne, JoinColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne } from "typeorm";
 import { BaseExternalIdEntity } from "./base-external-id.entity";
 import { CreditFacilityEntity } from "./credit-facility.entity";
+import { PartnerReferenceEntity } from "./partner-reference.entity";
 
 /**
  * Entidad TypeORM para categories.
- * Relación N:1 con credit_facility. Una credit_facility debe tener al menos una categoría (validación en aplicación).
+ * N:1 credit_facility; partner_id opcional (categoría propia del partner).
  */
 @Entity("categories")
 export class CategoryEntity extends BaseExternalIdEntity {
   @Column({ name: "credit_facility_id", type: "bigint" })
   creditFacilityId: number;
+
+  @Column({ name: "partner_id", type: "bigint", nullable: true })
+  partnerId: number | null;
 
   @Column({ name: "name", type: "varchar", length: 255 })
   name: string;
@@ -62,4 +66,12 @@ export class CategoryEntity extends BaseExternalIdEntity {
   })
   @JoinColumn({ name: "credit_facility_id" })
   creditFacility: CreditFacilityEntity;
+
+  @ManyToOne(() => PartnerReferenceEntity, {
+    nullable: true,
+    onDelete: "SET NULL",
+    onUpdate: "CASCADE",
+  })
+  @JoinColumn({ name: "partner_id" })
+  partner: PartnerReferenceEntity | null;
 }

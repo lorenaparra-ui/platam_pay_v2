@@ -14,14 +14,14 @@ Separarlos permite:
 ## 2. Impacto en escalabilidad
 
 - **Consultas**: listados de solicitudes (backoffice) no cargan facilidades; reportes de uso de línea no dependen del histórico de solicitudes.
-- **Índices**: `credit_applications` por `person_id`, `status_id`, `submission_date`; `credit_facilities` por `partner_id`, `status_id`.
+- **Índices**: `credit_applications` por `person_id`, `status_id`, `submission_date`; `credit_facilities` por `status_id`; `categories` por `credit_facility_id`, `partner_id` (opcional).
 - **Crecimiento**: tablas independientes permiten particionar o archivar por fecha en cada una sin acoplar.
 
 ## 3. Impacto en microservicios
 
 - Un servicio puede exponer solo **solicitudes** (flujo de aprobación); otro solo **facilidades y categorías** (límites, condiciones, desembolsos).
 - Contratos y límites (`credit_facilities`, `categories`) pueden vivir en un bounded context distinto al de “applications”.
-- La relación `credit_facility` → `partner_id` (opcional) permite asignar líneas a nivel partner o a nivel central.
+- El vínculo opcional con **partner** está en **`categories.partner_id`**: una línea (`credit_facility`) puede mezclar categorías globales y categorías propias de un partner.
 
 ## 4. Validación “al menos una categoría por credit_facility”
 
@@ -34,9 +34,9 @@ Separarlos permite:
 |--------------------|------------------------|--------|--------------------------|
 | credit_applications | person                 | N:1    | person_id → persons.id  |
 | credit_applications | partner, business, status | N:1  | partner_id, business_id, status_id |
-| credit_facilities  | partner (opcional)    | N:1    | partner_id → partners.id |
 | credit_facilities  | status                 | N:1    | status_id → statuses.id  |
 | categories         | credit_facility        | N:1    | credit_facility_id → credit_facilities.id |
+| categories         | partner (opcional)     | N:1    | partner_id → partners.id |
 | categories         | status                 | N:1    | status_id → statuses.id  |
 
 ## 6. Migraciones aplicadas (orden)
@@ -47,5 +47,6 @@ Separarlos permite:
 4. `1773500003000` – Eliminar tabla `sales_representatives`
 5. `1773500004000` – Crear tabla `credit_facilities` y statuses
 6. `1773500005000` – Crear tabla `categories` y statuses
+7. `1773600000000` – `categories.partner_id`; quitar `partner_id` de `credit_facilities`
 
 La migración de índices `1773400000000` sigue creando índices sobre `credit_applications_bnpl` (se ejecuta antes del rename); tras el rename, esos índices quedan sobre la tabla `credit_applications`.

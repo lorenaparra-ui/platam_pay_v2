@@ -4,13 +4,10 @@ import { CategoryEntity } from "./category.entity";
 
 /**
  * Entidad TypeORM para credit_facilities.
- * Relaciones: partner (opcional), status, categories (1:N).
+ * Relaciones: status, categories (1:N). El vínculo opcional con partner pasa por categories.partner_id.
  */
 @Entity("credit_facilities")
 export class CreditFacilityEntity extends BaseExternalIdEntity {
-  @Column({ name: "partner_id", type: "bigint", nullable: true })
-  partnerId: number | null;
-
   @Column({ name: "contract_id", type: "varchar", length: 255, nullable: true })
   contractId: string | null;
 

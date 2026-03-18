@@ -29,6 +29,7 @@ export class CreatePartnerFullRequestDto {
   @MaxLength(255)
   legalName: string;
 
+  /** Nombre comercial del negocio (persistido en `businesses.trade_name`, no en `partners`). */
   @ApiProperty({ example: "Partner Trade" })
   @IsString()
   @MaxLength(255)
