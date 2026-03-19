@@ -1,26 +1,22 @@
 import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
-import { PartnersEntity } from '@libs/database';
-import { TypeOrmPartnersRepository } from "@infrastructure/database/repositories/typeorm-partners.repository";
+import { PartnersEntity } from "@libs/database";
+import { TypeOrmPartnersRepository } from "../../infrastructure/database/repositories/typeorm-partners.repository";
 import { BusinessesModule } from "@businesses/businesses.module";
 import { PARTNERS_REPOSITORY } from "./domain/ports/partner.repository.port";
-import { EVENT_BUS_PORT } from "./domain/ports/event-bus.port";
-import { PARTNER_LOGO_STORAGE_PORT } from "./domain/ports/partner-logo-storage.port";
-import { EventEmitterEventBusAdapter } from "./infrastructure/events/event-emitter-event-bus.adapter";
+import { EVENT_BUS_PORT } from "@common/ports/event-bus.port";
+import { PARTNER_LOGO_STORAGE_PORT } from "./application/ports/partner-logo-storage.port";
+import { EventEmitterEventBusAdapter } from "@infrastructure/events/event-emitter-event-bus.adapter";
 import { PartnerLogoStorageAdapter } from "./infrastructure/storage/partner-logo-storage.adapter";
-import { FILE_UPLOADER } from "./infrastructure/storage/partner-logo-storage.adapter";
-import { InMemoryFileUploaderAdapter } from "./infrastructure/storage/in-memory-file-uploader.adapter";
-import { PartnerLogoUploadHandler } from "./infrastructure/events/handlers/partner-logo-upload.handler";
-import {
-  PartnerCategoriesCreateHandler,
-  PARTNER_CATEGORIES_SERVICE,
-} from "./infrastructure/events/handlers/partner-categories-create.handler";
-import {
-  PartnerUserCreateHandler,
-  PARTNER_USER_CREATOR,
-} from "./infrastructure/events/handlers/partner-user-create.handler";
-import { PartnerCategoriesServiceStubAdapter } from "./infrastructure/services/partner-categories-service-stub.adapter";
-import { PartnerUserCreatorStubAdapter } from "./infrastructure/services/partner-user-creator-stub.adapter";
+import { FILE_UPLOADER } from "@infrastructure/storage/file-uploader.port";
+import { InMemoryFileUploaderAdapter } from "@infrastructure/storage/in-memory-file-uploader.adapter";
+import { PartnerLogoUploadHandler } from "./infrastructure/handlers/partner-logo-upload.handler";
+import { PartnerCategoriesCreateHandler } from "./infrastructure/handlers/partner-categories-create.handler";
+import { PartnerUserCreateHandler } from "./infrastructure/handlers/partner-user-create.handler";
+import { PARTNER_CATEGORIES_SERVICE } from "./application/ports/partner-categories-service.port";
+import { PARTNER_USER_CREATOR } from "./application/ports/partner-user-creator.port";
+import { PartnerCategoriesServiceStubAdapter } from "./infrastructure/adapters/partner-categories-service-stub.adapter";
+import { PartnerUserCreatorStubAdapter } from "./infrastructure/adapters/partner-user-creator-stub.adapter";
 import { CreatePartnerUseCase } from "./application/use-cases/create-partner.use-case";
 import { CreatePartnerEventDrivenUseCase } from "./application/use-cases/create-partner-event-driven.use-case";
 import { FindAllPartnersUseCase } from "./application/use-cases/find-all-partners.use-case";
@@ -44,7 +40,10 @@ import { ChangePartnerStatusUseCase } from "./application/use-cases/change-partn
     { provide: EVENT_BUS_PORT, useClass: EventEmitterEventBusAdapter },
     { provide: FILE_UPLOADER, useClass: InMemoryFileUploaderAdapter },
     { provide: PARTNER_LOGO_STORAGE_PORT, useClass: PartnerLogoStorageAdapter },
-    { provide: PARTNER_CATEGORIES_SERVICE, useClass: PartnerCategoriesServiceStubAdapter },
+    {
+      provide: PARTNER_CATEGORIES_SERVICE,
+      useClass: PartnerCategoriesServiceStubAdapter,
+    },
     { provide: PARTNER_USER_CREATOR, useClass: PartnerUserCreatorStubAdapter },
     CreatePartnerUseCase,
     CreatePartnerEventDrivenUseCase,

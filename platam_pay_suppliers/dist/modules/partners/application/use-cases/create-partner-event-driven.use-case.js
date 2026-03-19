@@ -18,7 +18,7 @@ const common_1 = require("@nestjs/common");
 const business_repository_port_1 = require("../../../businesses/domain/ports/business.repository.port");
 const partner_repository_port_1 = require("../../domain/ports/partner.repository.port");
 const partner_events_1 = require("../../domain/events/partner.events");
-const event_bus_port_1 = require("../../domain/ports/event-bus.port");
+const event_bus_port_1 = require("../../../../common/ports/event-bus.port");
 const node_crypto_1 = require("node:crypto");
 const PLACEHOLDER_USER_ID_FOR_PARTNER_BUSINESS = 1;
 let CreatePartnerEventDrivenUseCase = CreatePartnerEventDrivenUseCase_1 = class CreatePartnerEventDrivenUseCase {

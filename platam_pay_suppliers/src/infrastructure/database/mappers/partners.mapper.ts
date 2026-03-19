@@ -1,5 +1,5 @@
 import { Partner } from "@partners/domain/models/partner.model";
-import { PartnersEntity } from '@libs/database';
+import { PartnersEntity } from "@libs/database";
 
 export class PartnersMapper {
   static toDomain(entity: PartnersEntity): Partner {

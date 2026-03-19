@@ -6,6 +6,7 @@ import {
   Delete,
   Get,
   HttpCode,
+  Logger,
   NotFoundException,
   Param,
   ParseUUIDPipe,
@@ -66,8 +67,10 @@ function toResponseDto(domain: Partner): PartnerResponseDto {
 }
 
 @ApiTags("partners")
-@Controller("partners/register")
+@Controller("partners")
 export class PartnersController {
+  private readonly logger = new Logger(PartnersController.name);
+
   constructor(
     private readonly createPartnerUseCase: CreatePartnerUseCase,
     private readonly createPartnerEventDrivenUseCase: CreatePartnerEventDrivenUseCase,
@@ -107,12 +110,36 @@ export class PartnersController {
       coBrandingLogo?: Array<{ buffer: Buffer; mimetype: string; originalname: string }>;
     },
   ): Promise<PartnerResponseDto> {
+    this.logger.debug("createFull: inicio del endpoint POST /partners/full");
+
+    this.logger.debug(
+      `createFull: dataJson presente=${!!dataJson}, length=${dataJson?.length ?? 0}`,
+    );
     const dto = JSON.parse(dataJson || "{}") as CreatePartnerFullRequestDto;
-    if (!files?.logo?.[0] || !files?.coBrandingLogo?.[0]) {
+    this.logger.debug(
+      `createFull: DTO parseado keys=${Object.keys(dto).join(",")}`,
+    );
+
+    const hasLogo = !!files?.logo?.[0];
+    const hasCoBranding = !!files?.coBrandingLogo?.[0];
+    this.logger.debug(
+      `createFull: archivos recibidos logo=${hasLogo} coBrandingLogo=${hasCoBranding}`,
+    );
+    if (!hasLogo || !hasCoBranding) {
+      this.logger.warn("createFull: faltan logo o coBrandingLogo");
       throw new BadRequestException("Se requieren los archivos logo y coBrandingLogo");
     }
-    const logoFile = files.logo[0];
-    const coBrandingFile = files.coBrandingLogo[0];
+
+    const logoFile = files.logo![0];
+    const coBrandingFile = files.coBrandingLogo![0];
+    this.logger.debug(
+      `createFull: logo size=${logoFile.buffer?.length ?? 0} mimetype=${logoFile.mimetype} originalname=${logoFile.originalname}`,
+    );
+    this.logger.debug(
+      `createFull: coBranding size=${coBrandingFile.buffer?.length ?? 0} mimetype=${coBrandingFile.mimetype} originalname=${coBrandingFile.originalname}`,
+    );
+
+    this.logger.debug("createFull: llamando runWithConstraintHandling -> createPartnerEventDrivenUseCase.execute");
     const created = await this.runWithConstraintHandling(() =>
       this.createPartnerEventDrivenUseCase.execute(dto, {
         logo: {
@@ -126,6 +153,9 @@ export class PartnersController {
           originalname: coBrandingFile.originalname ?? "cobranding",
         },
       }),
+    );
+    this.logger.debug(
+      `createFull: partner creado externalId=${created.externalId} businessId=${created.businessId}`,
     );
     return toResponseDto(created);
   }
@@ -243,9 +273,15 @@ export class PartnersController {
 
   private async runWithConstraintHandling<T>(action: () => Promise<T>): Promise<T> {
     try {
-      return await action();
+      this.logger.debug("runWithConstraintHandling: ejecutando acción");
+      const result = await action();
+      this.logger.debug("runWithConstraintHandling: acción completada OK");
+      return result;
     } catch (error) {
       const code = (error as { driverError?: { code?: unknown } }).driverError?.code;
+      this.logger.debug(
+        `runWithConstraintHandling: error capturado code=${code} name=${(error as Error)?.name} message=${(error as Error)?.message}`,
+      );
       if (error instanceof QueryFailedError && typeof code === "string") {
         if (code === "23505") throw new ConflictException("Duplicated unique value");
         if (code === "23502") throw new BadRequestException("Missing required value");

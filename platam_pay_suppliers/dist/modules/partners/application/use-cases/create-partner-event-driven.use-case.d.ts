@@ -1,6 +1,6 @@
 import type { BusinessRepositoryPort } from "@businesses/domain/ports/business.repository.port";
 import type { PartnerRepositoryPort } from "@partners/domain/ports/partner.repository.port";
-import type { EventBusPort } from "@partners/domain/ports/event-bus.port";
+import type { EventBusPort } from "@common/ports/event-bus.port";
 import { Partner } from "@partners/domain/models/partner.model";
 import type { CreatePartnerFullRequestDto } from "../dto/create-partner-full-request.dto";
 export declare class CreatePartnerEventDrivenUseCase {

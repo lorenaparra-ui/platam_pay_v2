@@ -9,8 +9,8 @@ import {
   PartnerStatusCode,
   UpdatePartnerPayload,
 } from "@partners/domain/ports/partner.repository.port";
-import { PartnersEntity } from '@libs/database';
-import { PartnersMapper } from "@infrastructure/database/mappers/partners.mapper";
+import { PartnersEntity } from "@libs/database";
+import { PartnersMapper } from "../mappers/partners.mapper";
 
 @Injectable()
 export class TypeOrmPartnersRepository implements PartnerRepositoryPort {

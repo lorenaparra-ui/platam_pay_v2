@@ -13,9 +13,9 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 var PartnerLogoStorageAdapter_1;
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PartnerLogoStorageAdapter = exports.FILE_UPLOADER = void 0;
+exports.PartnerLogoStorageAdapter = void 0;
 const common_1 = require("@nestjs/common");
-exports.FILE_UPLOADER = "FILE_UPLOADER";
+const file_uploader_port_1 = require("../../../../infrastructure/storage/file-uploader.port");
 let PartnerLogoStorageAdapter = PartnerLogoStorageAdapter_1 = class PartnerLogoStorageAdapter {
     uploader;
     logger = new common_1.Logger(PartnerLogoStorageAdapter_1.name);
@@ -35,7 +35,7 @@ let PartnerLogoStorageAdapter = PartnerLogoStorageAdapter_1 = class PartnerLogoS
 exports.PartnerLogoStorageAdapter = PartnerLogoStorageAdapter;
 exports.PartnerLogoStorageAdapter = PartnerLogoStorageAdapter = PartnerLogoStorageAdapter_1 = __decorate([
     (0, common_1.Injectable)(),
-    __param(0, (0, common_1.Inject)(exports.FILE_UPLOADER)),
+    __param(0, (0, common_1.Inject)(file_uploader_port_1.FILE_UPLOADER)),
     __metadata("design:paramtypes", [Object])
 ], PartnerLogoStorageAdapter);
 //# sourceMappingURL=partner-logo-storage.adapter.js.map

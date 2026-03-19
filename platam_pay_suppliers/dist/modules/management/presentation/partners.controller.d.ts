@@ -18,6 +18,7 @@ export declare class PartnersController {
     private readonly updatePartnerByExternalIdUseCase;
     private readonly deletePartnerByExternalIdUseCase;
     private readonly changePartnerStatusUseCase;
+    private readonly logger;
     constructor(createPartnerUseCase: CreatePartnerUseCase, createPartnerEventDrivenUseCase: CreatePartnerEventDrivenUseCase, findAllPartnersUseCase: FindAllPartnersUseCase, findPartnerByExternalIdUseCase: FindPartnerByExternalIdUseCase, updatePartnerByExternalIdUseCase: UpdatePartnerByExternalIdUseCase, deletePartnerByExternalIdUseCase: DeletePartnerByExternalIdUseCase, changePartnerStatusUseCase: ChangePartnerStatusUseCase);
     createFull(dataJson: string, files: {
         logo?: Array<{

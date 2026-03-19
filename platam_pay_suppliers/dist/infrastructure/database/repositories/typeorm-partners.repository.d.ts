@@ -1,7 +1,7 @@
 import { DataSource, Repository } from "typeorm";
 import { Partner } from "@partners/domain/models/partner.model";
 import { CreatePartnerPayload, PartnerRepositoryPort, PartnerStatusCode, UpdatePartnerPayload } from "@partners/domain/ports/partner.repository.port";
-import { PartnersEntity } from '@libs/database';
+import { PartnersEntity } from "@libs/database";
 export declare class TypeOrmPartnersRepository implements PartnerRepositoryPort {
     private readonly repository;
     private readonly dataSource;

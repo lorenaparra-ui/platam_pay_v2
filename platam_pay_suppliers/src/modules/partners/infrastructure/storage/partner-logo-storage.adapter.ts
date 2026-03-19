@@ -3,16 +3,11 @@ import type {
   PartnerLogoStoragePort,
   UploadLogoPayload,
   UploadLogoResult,
-} from "../../domain/ports/partner-logo-storage.port";
-
-export const FILE_UPLOADER = "FILE_UPLOADER";
-export interface FileUploader {
-  upload(payload: {
-    key: string;
-    body: Buffer | Uint8Array;
-    content_type?: string;
-  }): Promise<{ key: string; location: string }>;
-}
+} from "@partners/application/ports/partner-logo-storage.port";
+import {
+  FILE_UPLOADER,
+  type FileUploader,
+} from "@infrastructure/storage/file-uploader.port";
 
 @Injectable()
 export class PartnerLogoStorageAdapter implements PartnerLogoStoragePort {

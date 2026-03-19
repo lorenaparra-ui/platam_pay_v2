@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
+var PartnersController_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PartnersController = void 0;
 const common_1 = require("@nestjs/common");
@@ -51,7 +52,7 @@ function toResponseDto(domain) {
     dto.updatedAt = domain.updatedAt.toISOString();
     return dto;
 }
-let PartnersController = class PartnersController {
+let PartnersController = PartnersController_1 = class PartnersController {
     createPartnerUseCase;
     createPartnerEventDrivenUseCase;
     findAllPartnersUseCase;
@@ -59,6 +60,7 @@ let PartnersController = class PartnersController {
     updatePartnerByExternalIdUseCase;
     deletePartnerByExternalIdUseCase;
     changePartnerStatusUseCase;
+    logger = new common_1.Logger(PartnersController_1.name);
     constructor(createPartnerUseCase, createPartnerEventDrivenUseCase, findAllPartnersUseCase, findPartnerByExternalIdUseCase, updatePartnerByExternalIdUseCase, deletePartnerByExternalIdUseCase, changePartnerStatusUseCase) {
         this.createPartnerUseCase = createPartnerUseCase;
         this.createPartnerEventDrivenUseCase = createPartnerEventDrivenUseCase;
@@ -69,12 +71,22 @@ let PartnersController = class PartnersController {
         this.changePartnerStatusUseCase = changePartnerStatusUseCase;
     }
     async createFull(dataJson, files) {
+        this.logger.debug("createFull: inicio del endpoint POST /partners/full");
+        this.logger.debug(`createFull: dataJson presente=${!!dataJson}, length=${dataJson?.length ?? 0}`);
         const dto = JSON.parse(dataJson || "{}");
-        if (!files?.logo?.[0] || !files?.coBrandingLogo?.[0]) {
+        this.logger.debug(`createFull: DTO parseado keys=${Object.keys(dto).join(",")}`);
+        const hasLogo = !!files?.logo?.[0];
+        const hasCoBranding = !!files?.coBrandingLogo?.[0];
+        this.logger.debug(`createFull: archivos recibidos logo=${hasLogo} coBrandingLogo=${hasCoBranding}`);
+        if (!hasLogo || !hasCoBranding) {
+            this.logger.warn("createFull: faltan logo o coBrandingLogo");
             throw new common_1.BadRequestException("Se requieren los archivos logo y coBrandingLogo");
         }
         const logoFile = files.logo[0];
         const coBrandingFile = files.coBrandingLogo[0];
+        this.logger.debug(`createFull: logo size=${logoFile.buffer?.length ?? 0} mimetype=${logoFile.mimetype} originalname=${logoFile.originalname}`);
+        this.logger.debug(`createFull: coBranding size=${coBrandingFile.buffer?.length ?? 0} mimetype=${coBrandingFile.mimetype} originalname=${coBrandingFile.originalname}`);
+        this.logger.debug("createFull: llamando runWithConstraintHandling -> createPartnerEventDrivenUseCase.execute");
         const created = await this.runWithConstraintHandling(() => this.createPartnerEventDrivenUseCase.execute(dto, {
             logo: {
                 buffer: logoFile.buffer,
@@ -87,6 +99,7 @@ let PartnersController = class PartnersController {
                 originalname: coBrandingFile.originalname ?? "cobranding",
             },
         }));
+        this.logger.debug(`createFull: partner creado externalId=${created.externalId} businessId=${created.businessId}`);
         return toResponseDto(created);
     }
     async create(body) {
@@ -155,10 +168,14 @@ let PartnersController = class PartnersController {
     }
     async runWithConstraintHandling(action) {
         try {
-            return await action();
+            this.logger.debug("runWithConstraintHandling: ejecutando acción");
+            const result = await action();
+            this.logger.debug("runWithConstraintHandling: acción completada OK");
+            return result;
         }
         catch (error) {
             const code = error.driverError?.code;
+            this.logger.debug(`runWithConstraintHandling: error capturado code=${code} name=${error?.name} message=${error?.message}`);
             if (error instanceof typeorm_1.QueryFailedError && typeof code === "string") {
                 if (code === "23505")
                     throw new common_1.ConflictException("Duplicated unique value");
@@ -267,9 +284,9 @@ __decorate([
     __metadata("design:paramtypes", [String, change_partner_status_request_dto_1.ChangePartnerStatusRequestDto]),
     __metadata("design:returntype", Promise)
 ], PartnersController.prototype, "changeStatus", null);
-exports.PartnersController = PartnersController = __decorate([
+exports.PartnersController = PartnersController = PartnersController_1 = __decorate([
     (0, swagger_1.ApiTags)("partners"),
-    (0, common_1.Controller)("partners/register"),
+    (0, common_1.Controller)("partners"),
     __metadata("design:paramtypes", [create_partner_use_case_1.CreatePartnerUseCase,
         create_partner_event_driven_use_case_1.CreatePartnerEventDrivenUseCase,
         find_all_partners_use_case_1.FindAllPartnersUseCase,

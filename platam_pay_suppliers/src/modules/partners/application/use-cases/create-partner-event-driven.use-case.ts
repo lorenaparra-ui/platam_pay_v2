@@ -5,8 +5,8 @@ import { PARTNERS_REPOSITORY } from "@partners/domain/ports/partner.repository.p
 import type { CreatePartnerPayload, PartnerRepositoryPort } from "@partners/domain/ports/partner.repository.port";
 import { PARTNER_EVENTS } from "@partners/domain/events/partner.events";
 import type { PartnerLogoUploadCompletedPayload } from "@partners/domain/events/partner.events";
-import { EVENT_BUS_PORT } from "@partners/domain/ports/event-bus.port";
-import type { EventBusPort } from "@partners/domain/ports/event-bus.port";
+import { EVENT_BUS_PORT } from "@common/ports/event-bus.port";
+import type { EventBusPort } from "@common/ports/event-bus.port";
 import { Partner } from "@partners/domain/models/partner.model";
 import type { CreatePartnerFullRequestDto } from "../dto/create-partner-full-request.dto";
 import { randomUUID } from "node:crypto";
