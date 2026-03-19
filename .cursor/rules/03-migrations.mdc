@@ -4,6 +4,15 @@ alwaysApply: false
 ---
 # Reglas para Migraciones de Base de Datos (NestJS + TypeORM/Prisma - Producción)
 
+## 0. Fuente de verdad del flujo de migraciones (este repo)
+- Ejecutar migraciones desde `migrations-runner` (no desde cada microservicio).
+- Usar `migrations-runner/src/config/typeorm.config.ts` como DataSource de ejecución.
+- Tabla de control: `typeorm_migrations`.
+- Mantener sincronía entre:
+  - DDL documental: `.ai/schemas/database-schema.sql`
+  - Modelo DBML vigente: `.ai/schemas/schema_ppay_v*.dbml`
+  - Migraciones versionadas: `migrations-runner/src/infrastructure/database/migrations/`.
+
 ## 1. Configuración de producción: prohibido `synchronize: true`
 En entornos de producción, **NUNCA** habilites la opción de sincronización automática del ORM (`synchronize: true` en TypeORM, `prisma db push` en producción). Solo se permite en desarrollo local, ya que puede perder o modificar datos sin control.  
 **Regla:** Toda alteración de esquema debe realizarse únicamente con migraciones generadas explícitamente y ejecutadas de forma controlada mediante CLI.
@@ -25,3 +34,14 @@ En entornos de producción, **NUNCA** habilites la opción de sincronización au
 4. **Leer de la nueva:** Actualiza app para consumir solo la nueva estructura.
 5. **Contraer:** Elimina la columna/campo/tabla obsoleta.
 > Cumple siempre con estos pasos para garantizar despliegues seguros y sin downtime en producción.
+
+## 5. Comandos operativos (estándar del repo)
+```bash
+cd migrations-runner
+npm run migration:run
+```
+
+```bash
+cd migrations-runner
+npm run migration:revert
+```

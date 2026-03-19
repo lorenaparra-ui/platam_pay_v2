@@ -1,19 +1,19 @@
 # CONTEXTO
 Monorepo backend con microservicios NestJS + TypeScript + TypeORM bajo arquitectura hexagonal.
-El repositorio usa:
-- `docker-compose.yml` en raíz para orquestación.
-- Un servicio base de referencia (`platam_pay_users`) con estructura estándar.
-- Convención de módulos por feature en `src/modules/<feature>/`.
-- Infraestructura compartida por servicio en `src/infrastructure/`.
-
-Este prompt crea la **plantilla exacta de árbol de archivos (archivo por archivo)** para un microservicio nuevo, reusable para cualquier dominio, y con ejemplo aplicado a `platam_pay_partners`.
+Stack y estructura base:
+- `docker-compose.yml` en raíz
+- servicios: `platam_pay_users`, `platam_pay_partners`, `platam_pay_products`, `platam_pay_suppliers`, `platam_pay_transversal`
+- librería compartida: `libs/database`
+- migraciones centralizadas: `migrations-runner`
+- módulos feature en `src/modules/<feature>/`
 
 # OBJETIVO
-Crear un nuevo microservicio clonando la convención de `platam_pay_users`, con:
-1) estructura base completa de proyecto,
-2) wiring mínimo para arrancar (`main`, `app.module`, config, infraestructura),
-3) árbol de archivos exacto para implementar features hexagonales,
-4) actualización de `docker-compose.yml` para levantar el servicio nuevo.
+Crear un nuevo microservicio con:
+1) estructura base completa,
+2) wiring mínimo para arrancar,
+3) convención hexagonal por feature,
+4) integración en `docker-compose.yml`,
+5) compatibilidad con `@libs/database` cuando aplique.
 
 # IDENTIFICADORES (REEMPLAZAR)
 - MicroserviceFolderName: `<REEMPLAZAR>` (kebab_case con prefijo `platam_pay_`; ej: `platam_pay_partners`)
@@ -37,8 +37,7 @@ Crear un nuevo microservicio clonando la convención de `platam_pay_users`, con:
 - InternalPort: `3000`
 - TsPathAlias: `@partners/*`
 
-# ÁRBOL DE ARCHIVOS OBLIGATORIO (GENÉRICO, REUTILIZABLE)
-> Crear **archivo por archivo** en estas rutas exactas (ajustando placeholders):
+# ÁRBOL DE ARCHIVOS OBLIGATORIO (GENÉRICO)
 
 ```txt
 <repo-root>/
@@ -98,7 +97,7 @@ Crear un nuevo microservicio clonando la convención de `platam_pay_users`, con:
                └─ <DomainName>.controller.ts
 ```
 
-# ÁRBOL DE ARCHIVOS OBLIGATORIO (EJEMPLO EXACTO: platam_pay_partners)
+# EJEMPLO (platam_pay_partners)
 ```txt
 platam_pay_partners/
 ├─ package.json
@@ -154,6 +153,7 @@ platam_pay_partners/
 - Mantener `ValidationPipe` global en `main.ts`.
 - Swagger en `/docs` y healthcheck en `/health`.
 - No usar `console.log` en producción; usar `Logger` de NestJS.
+- Si se usa `@libs/database`, asegurar que el Dockerfile y `docker-compose` resuelvan dependencias locales de monorepo.
 
 # DO (PASOS DE IMPLEMENTACIÓN)
 1. Copiar base de `platam_pay_users` a `<MicroserviceFolderName>`.
@@ -166,6 +166,7 @@ platam_pay_partners/
    - `container_name: <ContainerName>`
    - `ports: "<HostPort>:<InternalPort>"`
    - conexión DB vía host `postgres`.
+   - si el servicio usa `@libs/database` (dependencia `file:../libs/database`), usar contexto raíz del repo y `dockerfile` por ruta relativa (ej. `context: .`, `dockerfile: ./<MicroserviceFolderName>/Dockerfile`).
 7. Verificar que `main.ts` publique Swagger en `/docs` y endpoint `/health`.
 
 # DON'T

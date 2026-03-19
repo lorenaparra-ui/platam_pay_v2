@@ -1,6 +1,7 @@
 # CONTEXTO
 Proyecto NestJS + TypeScript + TypeORM con arquitectura hexagonal. Toda la estructura de dominio y features vive bajo **src/modules/**; la infraestructura (ORM) vive en **src/infrastructure/database/**.
 Quiero implementar/adaptar UNA entidad de dominio y su adapter de persistencia.
+En este monorepo existen servicios (`users`, `partners`, `products`, `suppliers`, `transversal`) y una librería compartida de entidades `libs/database`.
 
 # ENTIDAD OBJETIVO
 - DomainModelName: <REEMPLAZAR>
@@ -41,16 +42,15 @@ Implementa de forma completa y alineada:
 2) Infraestructura: ORM entity + mapper + TypeORM repository
 3) Wiring DI: provider por token personalizado en módulo
 4) Mantener dominio desacoplado de TypeORM
+5) Definir si la entidad vive local al servicio o en `@libs/database` (compartida)
 
-# ÁRBOL DE PENSAMIENTO (ToT) - DECISIONES OBLIGATORIAS
-Evalúa y decide brevemente (sin razonamiento largo):
-1. Modelo dominio: ¿id solo o id+externalId? -> justificar.
-2. Entidad ORM: ¿extiende BaseExternalIdEntity? -> justificar.
-3. Mapping: ¿mapper dedicado o mapeo inline? -> justificar.
-4. Repo: ¿adapter implementa port de dominio? -> justificar.
-5. DI: ¿token personalizado o clase concreta? -> justificar.
-6. Consultas públicas: ¿externalId y no id incremental? -> justificar.
-7. Foreign keys: ¿cómo se representan en dominio vs infraestructura y qué validaciones/transacción requieren? -> justificar.
+# ToT mínimo (decisiones obligatorias)
+Responde breve:
+1. ¿Identidad del dominio: `id` interno + `externalId` público?
+2. ¿Entidad ORM extiende `BaseExternalIdEntity`?
+3. ¿Entidad local o compartida en `@libs/database`?
+4. ¿Cómo se validan/resuelven FKs (id interno vs externalId)?
+5. ¿Dónde se registra DI por token?
 
 # REGLAS OBLIGATORIAS
 - El dominio NO depende de TypeORM/Nest.
@@ -58,24 +58,22 @@ Evalúa y decide brevemente (sin razonamiento largo):
 - Mapper obligatorio toDomain/toEntity.
 - `external_id` lo genera DB (no setear manualmente en create).
 - Alinear nombres/tipos con DDL (snake_case con `name:` cuando aplique).
+- Si la entidad es transversal entre microservicios, priorizar `libs/database` para evitar duplicidad de entidades.
 - Alinear constraints relacionales con DDL: declarar explícitamente todas las foreign keys relevantes y su comportamiento (`onDelete`, `onUpdate`, nullability).
 - Si existe relación foránea en el DDL, NO asumir: especificar en el prompt la FK exacta y reflejarla en diseño de repositorio/caso de uso (orden de persistencia y transaccionalidad cuando aplique).
 - Para recursos nuevos con endpoint propio, crear SIEMPRE módulo feature en `src/modules/<FeatureModuleName>/` con estructura completa `domain/application/presentation` (no mezclar DTO/controller en raíz de `src`).
 - Para `users`, la ruta objetivo es obligatoria: `src/modules/users/` con estructura equivalente a `transversal` (adaptada al feature).
 
 # DO
-- Crear/actualizar respetando la estructura bajo **src/modules/** e **src/infrastructure/**:
-  - **Módulo feature completo (reutilizable):**
-    - `src/modules/<FeatureModuleName>/<feature>.module.ts`
-    - `src/modules/<FeatureModuleName>/domain/models/<entity>.model.ts`
-    - `src/modules/<FeatureModuleName>/domain/ports/<entity>.repository.port.ts`
-    - `src/modules/<FeatureModuleName>/application/use-cases/` (si aplica)
-    - `src/modules/<FeatureModuleName>/application/dto/`
-    - `src/modules/<FeatureModuleName>/presentation/<feature>.controller.ts`
-  - **Para catálogos estrictamente transversales/compartidos:** se permite `src/modules/transversal/domain/...`, `src/modules/transversal/application/...`, `src/modules/transversal/presentation/...`.
-  - **Infraestructura (fuera de modules):** src/infrastructure/database/entities/<entity>.entity.ts, src/infrastructure/database/mappers/<entity>.mapper.ts, src/infrastructure/database/repositories/typeorm-<entity>.repository.ts.
-  - **DI:** Registrar el provider (token + useClass del repositorio TypeORM) en el módulo dueño del contexto (`src/modules/<FeatureModuleName>/<feature>.module.ts` o `src/modules/transversal/transversal.module.ts` si es compartido). Exportar el token cuando deba ser consumido por otros módulos.
-  - **Wiring de módulo:** Registrar el módulo feature en AppModule.
+- Crear/actualizar:
+  - `src/modules/<FeatureModuleName>/<feature>.module.ts`
+  - `src/modules/<FeatureModuleName>/domain/models/<entity>.model.ts`
+  - `src/modules/<FeatureModuleName>/domain/ports/<entity>.repository.port.ts`
+  - `src/infrastructure/database/entities/<entity>.entity.ts`
+  - `src/infrastructure/database/mappers/<entity>.mapper.ts`
+  - `src/infrastructure/database/repositories/typeorm-<entity>.repository.ts`
+- Registrar DI por token (`provide` + `useClass`) en el modulo dueño y exportarlo si aplica.
+- Registrar modulo feature en `AppModule`.
 - Usar los alias de rutas del proyecto cuando existan (p. ej. @infrastructure/database/entities, @transversal/domain/models, @<feature>/... según tsconfig paths).
 - Para entidades con FKs:
   - Detallar en la entrada `ForeignKeys` cada relación (`source_table.source_column -> target_table.target_column`) y su semántica.

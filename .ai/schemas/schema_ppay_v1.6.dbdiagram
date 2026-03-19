@@ -7,158 +7,158 @@
     {
       "name": "statuses",
       "schemaName": "public",
-      "x": 0,
-      "y": 50
+      "x": 16,
+      "y": 16
     },
     {
       "name": "options",
       "schemaName": "public",
-      "x": 335.07958984375,
-      "y": 50
+      "x": 16,
+      "y": 1352
     },
     {
       "name": "users",
       "schemaName": "public",
-      "x": 709.82373046875,
-      "y": 50
+      "x": 560,
+      "y": 56
     },
     {
       "name": "roles",
       "schemaName": "public",
-      "x": 1071.97412109375,
-      "y": 50
+      "x": 16,
+      "y": 376
     },
     {
       "name": "permissions",
       "schemaName": "public",
-      "x": 1454.48974609375,
-      "y": 50
+      "x": 16,
+      "y": 648
     },
     {
       "name": "role_permissions",
       "schemaName": "public",
-      "x": 0,
-      "y": 420
+      "x": 560,
+      "y": 448
     },
     {
       "name": "currencies",
       "schemaName": "public",
-      "x": 335.07958984375,
-      "y": 452
+      "x": 16,
+      "y": 920
     },
     {
       "name": "cities",
       "schemaName": "public",
-      "x": 709.82373046875,
-      "y": 452
+      "x": 560,
+      "y": 720
     },
     {
       "name": "persons",
       "schemaName": "public",
-      "x": 1071.97412109375,
-      "y": 324
+      "x": 1136,
+      "y": 56
     },
     {
       "name": "businesses",
       "schemaName": "public",
-      "x": 1454.48974609375,
-      "y": 324
+      "x": 1136,
+      "y": 680
     },
     {
       "name": "legal_representatives",
       "schemaName": "public",
-      "x": 0,
-      "y": 694
+      "x": 1848,
+      "y": 136
     },
     {
       "name": "shareholders",
       "schemaName": "public",
-      "x": 335.07958984375,
-      "y": 886
+      "x": 1848,
+      "y": 440
     },
     {
       "name": "guarantors",
       "schemaName": "public",
-      "x": 709.82373046875,
-      "y": 854
+      "x": 5232,
+      "y": 16
     },
     {
       "name": "partners",
       "schemaName": "public",
-      "x": 1071.97412109375,
-      "y": 950
+      "x": 1848,
+      "y": 872
     },
     {
       "name": "partner_categories",
       "schemaName": "public",
-      "x": 1454.48974609375,
-      "y": 886
+      "x": 2688,
+      "y": 160
     },
     {
       "name": "credit_applications_bnpl",
       "schemaName": "public",
-      "x": 0,
-      "y": 1000
+      "x": 3448,
+      "y": 136
     },
     {
       "name": "ai_agent_analysis",
       "schemaName": "public",
-      "x": 335.07958984375,
-      "y": 1320
+      "x": 4064,
+      "y": 488
     },
     {
       "name": "sales_representatives",
       "schemaName": "public",
-      "x": 709.82373046875,
-      "y": 1352
+      "x": 2688,
+      "y": 648
     },
     {
       "name": "contracts",
       "schemaName": "public",
-      "x": 1071.97412109375,
-      "y": 1704
+      "x": 4064,
+      "y": 880
     },
     {
       "name": "contract_signers",
       "schemaName": "public",
-      "x": 1454.48974609375,
-      "y": 1384
+      "x": 4672,
+      "y": 16
     },
     {
       "name": "user_products",
       "schemaName": "public",
-      "x": 0,
-      "y": 2266
+      "x": 1136,
+      "y": 1280
     },
     {
       "name": "product_bnpl",
       "schemaName": "public",
-      "x": 335.07958984375,
-      "y": 1722
+      "x": 1848,
+      "y": 1664
     },
     {
       "name": "bnpl_categories",
       "schemaName": "public",
-      "x": 709.82373046875,
-      "y": 1722
+      "x": 3448,
+      "y": 1368
     },
     {
       "name": "risk_profile",
       "schemaName": "public",
-      "x": 1071.97412109375,
-      "y": 2138
+      "x": 1848,
+      "y": 2064
     },
     {
       "name": "documents",
       "schemaName": "public",
-      "x": 1454.48974609375,
-      "y": 2010
+      "x": 4064,
+      "y": 56
     },
     {
       "name": "credit_reports",
       "schemaName": "public",
-      "x": 0,
-      "y": 2572
+      "x": 4064,
+      "y": 1312
     }
   ],
   "tableGroupCollapseStates": [],

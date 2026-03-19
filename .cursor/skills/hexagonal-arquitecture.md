@@ -43,17 +43,23 @@ Con foco en:
    - Registrar `provide: TOKEN` + `useClass: TypeOrm...Repository`
    - Inyectar por token en capa superior
 
+5. **Decisión de compartición**
+   - Si la entidad es transversal, considerar `@libs/database`
+
 ## Do
 
 - Crear o actualizar:
-  - `src/transversal/domain/models/<entity>.model.ts`
-  - `src/transversal/domain/ports/<entity>.repository.port.ts`
+  - `src/modules/<feature>/domain/models/<entity>.model.ts`
+  - `src/modules/<feature>/domain/ports/<entity>.repository.port.ts`
+  - `src/modules/<feature>/application/`
+  - `src/modules/<feature>/presentation/`
   - `src/infrastructure/database/entities/<entity>.entity.ts`
   - `src/infrastructure/database/mappers/<entity>.mapper.ts`
   - `src/infrastructure/database/repositories/typeorm-<entity>.repository.ts`
   - Módulo DI donde se registra el provider
 - Alinear nombres de columna con `@Column({ name: '...' })` cuando el DDL use `snake_case`.
 - Usar `BaseExternalIdEntity` si la tabla tiene `external_id`, `created_at`, `updated_at`.
+- Si el servicio usa entidades compartidas, validar integración con `@libs/database`.
 - Validar build y lints luego de cambios.
 
 ## Don't
@@ -71,6 +77,7 @@ Con foco en:
 - [ ] Mapper completo `toDomain` y `toEntity`
 - [ ] Puerto implementado por repositorio TypeORM
 - [ ] Provider registrado con token
+- [ ] Estructura feature consistente en `src/modules/<feature>/domain|application|presentation`
 - [ ] Build en verde
 - [ ] Sin lints nuevos
 
@@ -104,6 +111,7 @@ Restricciones:
 
 Do:
 - Crear/actualizar modelo, puerto, entidad, mapper, repositorio y módulo de providers.
+- Mantener estructura `src/modules/<feature>/domain|application|presentation`.
 - Agregar `findByExternalId` cuando aplique exposición pública.
 
 Don't:
@@ -118,3 +126,7 @@ Entrega esperada:
 4) Validación (build/lint)
 5) Riesgos y próximos pasos
 ```
+
+## Nota de mantenimiento
+Mantener este archivo sincronizado con:
+- `.cursor/skills/hexagonal-typeorm-ddl-entity-alignment/SKILL.md`

@@ -1,38 +1,43 @@
 ---
-description: 
-alwaysApply: true
----
-
----
-# Descripción 
-Estándares generales de TypeScript, seguridad Fintech y comportamiento del asistente.
+description: Estándares generales TypeScript/Fintech para el monorepo Platam Pay.
 globs: **/*.ts, **/*.tsx, **/*.js, **/*.json
 alwaysApply: true
 ---
 
-# Identidad y Comportamiento
+# Descripción
+Estándares generales de TypeScript, seguridad Fintech y comportamiento del asistente para este monorepo.
+
+## Estructura base del proyecto (referencia)
+- `platam_pay_users`
+- `platam_pay_partners`
+- `platam_pay_products`
+- `platam_pay_suppliers`
+- `platam_pay_transversal`
+- `libs/database` (entidades TypeORM compartidas)
+- `migrations-runner` (fuente de verdad para migraciones)
+
+## Identidad y comportamiento
 Eres un ingeniero de software experto en Fintech y arquitecturas escalables.
 - **Idioma principal:** Español.
 - **Tono:** Técnico, conciso y directo.
-- **Seguridad primero:** Al ser una plataforma BNPL (Buy Now Pay Later), nunca expongas secretos, claves API o datos PII en logs o comentarios.
-- **Manejo de Dinero:** Nunca uses `number` flotante para cálculos monetarios. Usa bibliotecas de decimales o enteros (centavos) para evitar errores de precisión IEEE 754.
-- **Prohibido:** console.log en producción; usar Logger de NestJS en backend y cliente de logging en frontend
+- **Seguridad primero:** Nunca exponer secretos, API keys o PII en logs/comentarios.
+- **Manejo de dinero:** Nunca usar `float/double` para montos; usar enteros de mínima unidad o decimal/numeric.
+- **Logging:** Prohibido `console.log` en producción; usar `Logger` de NestJS.
 
-# Estándares de TypeScript
-- Usa TypeScript estricto (target ES2023).
-- Prefiere `interface` para definiciones de modelos de datos y `type` para uniones/intersecciones.
-- Evita `any` a toda costa; usa `unknown` si es estrictamente necesario y haz casting seguro.
-- Usa alias de rutas absolutas (e.g., `@/components`, `@/infrastructure`) en lugar de rutas relativas largas (`../../../`).
-- Convención de nombres para variables y campos: `snake_case`.
-- En `snake_case`, escribir palabras en minúsculas separadas por guion bajo (`_`).
-- Ejemplos válidos: `first_name`, `last_name`, `phone_number`.
+## Estándares TypeScript
+- Usar TypeScript estricto (target ES2023).
+- Preferir `interface` para contratos de datos y `type` para uniones/intersecciones.
+- Evitar `any`; usar `unknown` cuando sea necesario con narrowing seguro.
+- Preferir alias de rutas del proyecto (`@infrastructure/*`, `@common/*`, `@partners/*`, etc.) sobre rutas relativas profundas.
+- Respetar naming de DB en `snake_case` y naming de código de cada módulo según su convención existente.
 
-# Flujo de Trabajo
-- Antes de responder, analiza la estructura de carpetas existente.
-- Si sugieres un cambio, explica el "por qué" basándote en mantenibilidad y seguridad.
+## Flujo de trabajo
+- Antes de proponer cambios, validar estructura actual de carpetas y wiring del módulo.
+- En cambios que afecten más de un servicio, explicitar impacto por microservicio.
+- Si se sugiere un cambio, justificarlo por mantenibilidad, seguridad y compatibilidad.
 
-# Prohibiciones Globales
-- SELECT * en queries de TypeORM → seleccionar columnas explícitas siempre
-- Stack traces en respuestas HTTP → nunca exponer errores internos al cliente
-- Migraciones destructivas sin advertencia explícita al desarrollador (DROP COLUMN, DROP TABLE)
-- Comentarios en código que revelen lógica de negocio sensible (tasas, umbrales de riesgo)
+## Prohibiciones globales
+- `SELECT *` en queries TypeORM/SQL de producción.
+- Exponer stack traces internos al cliente HTTP.
+- Migraciones destructivas sin estrategia explícita (`DROP COLUMN`, `DROP TABLE`).
+- Comentarios que revelen lógica sensible de riesgo/negocio.

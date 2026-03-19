@@ -6,6 +6,9 @@ alwaysApply: false
 
 ## Stack objetivo
 - NestJS 11 + Node 20 + TypeORM 0.3.x + PostgreSQL 15.
+- Monorepo con servicios: `users`, `partners`, `products`, `suppliers`, `transversal`, etc.
+- Librería compartida de entidades: `libs/database`.
+- Migraciones centralizadas: `migrations-runner`.
 
 ## Arquitectura
 - Mantener separación por capas: `domain`, `application`, `infrastructure`.
@@ -22,6 +25,7 @@ alwaysApply: false
 - Usar `name` en `@Column` cuando el DDL use `snake_case`.
 - Adaptadores TypeORM deben mapear ORM <-> dominio mediante mappers dedicados.
 - Evitar lógica de negocio en repositorios; solo acceso a datos.
+- Si el servicio usa `@libs/database`, mantener consistencia entre imports, build Docker y resolución en runtime.
 
 ## DI y providers
 - Inyectar por token de puerto (no por implementación concreta).
@@ -35,6 +39,8 @@ alwaysApply: false
 ## Configuración
 - Usar `ConfigService` en código de negocio.
 - Evitar acceso directo a `process.env` fuera de configuración.
+- En Docker/Compose, alinear `PORT`, `EXPOSE` y `HEALTHCHECK`.
+- Evitar `synchronize: true` fuera de desarrollo local.
 
 ## Convención de nombres
 - Usar `snake_case` para nombres de variables y campos.
@@ -45,3 +51,4 @@ alwaysApply: false
 - Compila (`npm run build`) y sin lints nuevos.
 - Mappers, puertos y repositorios consistentes entre sí.
 - Sin dependencias invertidas (domain -> infrastructure).
+- Si el cambio toca más de un servicio, validar build por servicio afectado.
