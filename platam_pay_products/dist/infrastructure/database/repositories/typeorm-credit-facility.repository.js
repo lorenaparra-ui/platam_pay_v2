@@ -19,48 +19,28 @@ const typeorm_2 = require("typeorm");
 const database_1 = require("@libs/database");
 const credit_facility_mapper_1 = require("../mappers/credit-facility.mapper");
 let TypeOrmCreditFacilityRepository = class TypeOrmCreditFacilityRepository {
-    data_source;
-    constructor(data_source) {
-        this.data_source = data_source;
+    repository;
+    constructor(repository) {
+        this.repository = repository;
     }
-    async create_with_categories(input) {
-        return this.data_source.transaction(async (manager) => {
-            const facility = manager.create(database_1.CreditFacilityEntity, {
-                contractId: input.contract_id,
-                statusId: input.status_id,
-                totalLimit: input.total_limit,
-            });
-            const saved_facility = await manager.save(database_1.CreditFacilityEntity, facility);
-            for (const cat of input.categories) {
-                const row = manager.create(database_1.CategoryEntity, {
-                    creditFacilityId: saved_facility.id,
-                    partnerId: cat.partner_id ?? null,
-                    name: cat.name,
-                    discountPercentage: cat.discount_percentage,
-                    interestRate: cat.interest_rate,
-                    disbursementFeePercent: cat.disbursement_fee_percent,
-                    minimumDisbursementFee: cat.minimum_disbursement_fee,
-                    delayDays: cat.delay_days,
-                    termDays: cat.term_days,
-                    statusId: cat.status_id,
-                });
-                await manager.save(database_1.CategoryEntity, row);
-            }
-            const full = await manager.findOne(database_1.CreditFacilityEntity, {
-                where: { id: saved_facility.id },
-                relations: { categories: true },
-            });
-            if (!full) {
-                throw new Error("credit_facilities: registro no encontrado tras crear categorías");
-            }
-            return credit_facility_mapper_1.CreditFacilityMapper.to_domain(full);
+    async create(input) {
+        const row = this.repository.create({
+            contractId: input.contract_id,
+            statusId: input.status_id,
+            totalLimit: input.total_limit,
         });
+        const saved = await this.repository.save(row);
+        const full = await this.repository.findOne({ where: { id: saved.id } });
+        if (!full) {
+            throw new Error("credit_facilities: registro no encontrado tras crear");
+        }
+        return credit_facility_mapper_1.CreditFacilityMapper.to_domain(full);
     }
 };
 exports.TypeOrmCreditFacilityRepository = TypeOrmCreditFacilityRepository;
 exports.TypeOrmCreditFacilityRepository = TypeOrmCreditFacilityRepository = __decorate([
     (0, common_1.Injectable)(),
-    __param(0, (0, typeorm_1.InjectDataSource)()),
-    __metadata("design:paramtypes", [typeorm_2.DataSource])
+    __param(0, (0, typeorm_1.InjectRepository)(database_1.CreditFacilityEntity)),
+    __metadata("design:paramtypes", [typeorm_2.Repository])
 ], TypeOrmCreditFacilityRepository);
 //# sourceMappingURL=typeorm-credit-facility.repository.js.map

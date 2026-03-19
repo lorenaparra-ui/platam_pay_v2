@@ -16,6 +16,7 @@ const app_controller_1 = require("./app.controller");
 const app_config_1 = __importDefault(require("./config/app.config"));
 const infrastructure_module_1 = require("./infrastructure/infrastructure.module");
 const credit_applications_module_1 = require("./modules/credit-applications/credit-applications.module");
+const categories_module_1 = require("./modules/categories/categories.module");
 const credit_facilities_module_1 = require("./modules/credit-facilities/credit-facilities.module");
 let AppModule = class AppModule {
 };
@@ -30,6 +31,7 @@ exports.AppModule = AppModule = __decorate([
             }),
             infrastructure_module_1.InfrastructureModule,
             credit_applications_module_1.CreditApplicationsModule,
+            categories_module_1.CategoriesModule,
             credit_facilities_module_1.CreditFacilitiesModule,
         ],
         controllers: [app_controller_1.AppController],

@@ -1,4 +1,3 @@
-import type { Category } from "./category.model";
 export interface CreditFacility {
     id: number;
     external_id: string;
@@ -7,5 +6,4 @@ export interface CreditFacility {
     total_limit: string;
     created_at: Date;
     updated_at: Date;
-    categories: Category[];
 }

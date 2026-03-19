@@ -31,6 +31,7 @@ async function bootstrap() {
     .setVersion("1.0")
     .addTag("credit-applications-bnpl")
     .addTag("backoffice-credit-applications")
+    .addTag("categories")
     .build();
   const document = SwaggerModule.createDocument(app, options);
   SwaggerModule.setup("docs", app, document);

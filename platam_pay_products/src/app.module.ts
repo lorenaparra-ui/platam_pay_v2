@@ -5,6 +5,7 @@ import { AppController } from "./app.controller";
 import appConfig from "./config/app.config";
 import { InfrastructureModule } from "@infrastructure/infrastructure.module";
 import { CreditApplicationsModule } from "./modules/credit-applications/credit-applications.module";
+import { CategoriesModule } from "./modules/categories/categories.module";
 import { CreditFacilitiesModule } from "./modules/credit-facilities/credit-facilities.module";
 
 @Module({
@@ -16,6 +17,7 @@ import { CreditFacilitiesModule } from "./modules/credit-facilities/credit-facil
     }),
     InfrastructureModule,
     CreditApplicationsModule,
+    CategoriesModule,
     CreditFacilitiesModule,
   ],
   controllers: [AppController],

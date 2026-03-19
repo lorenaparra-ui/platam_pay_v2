@@ -1,4 +1,4 @@
-import type { Category } from "../../../modules/credit-facilities/domain/models/category.model";
+import type { Category } from "../../../modules/categories/domain/models/category.model";
 import { CategoryEntity } from "@libs/database";
 
 export class CategoryMapper {
