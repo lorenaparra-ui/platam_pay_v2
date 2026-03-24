@@ -7,7 +7,7 @@ import { MigrationInterface, QueryRunner } from "typeorm";
  * 3) bank_accounts → alter suppliers
  * 4) contracts → contract_signers → credit_facilities (FK contract_id) → categories
  *
- * Supuesto: la base ya tiene tablas users, statuses, suppliers, credit_applications_bnpl, persons
+ * Supuesto: la base ya tiene tablas users, statuses, suppliers, credit_applications, persons
  * y la función get_status_id. Si contracts/contract_signers ya existen, fallará el CREATE:
  * en ese caso omitir bloques 4–5 o adaptar a IF NOT EXISTS según el entorno.
  */
@@ -101,7 +101,7 @@ export class CreditFacilitiesCategoriesBankAccountsContracts1773072000000
         CONSTRAINT "fk_contracts_user_id"
           FOREIGN KEY ("user_id") REFERENCES "users" ("id") ON DELETE RESTRICT,
         CONSTRAINT "fk_contracts_application_id"
-          FOREIGN KEY ("application_id") REFERENCES "credit_applications_bnpl" ("id")
+          FOREIGN KEY ("application_id") REFERENCES "credit_applications" ("id")
           ON DELETE SET NULL,
         CONSTRAINT "fk_contracts_status_id"
           FOREIGN KEY ("status_id") REFERENCES "statuses" ("id") ON DELETE RESTRICT,
