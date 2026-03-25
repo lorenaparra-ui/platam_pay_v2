@@ -7,193 +7,139 @@
     {
       "name": "statuses",
       "schemaName": "public",
-      "x": 16,
-      "y": 16
-    },
-    {
-      "name": "options",
-      "schemaName": "public",
-      "x": 16,
-      "y": 1352
-    },
-    {
-      "name": "users",
-      "schemaName": "public",
-      "x": 560,
-      "y": 56
-    },
-    {
-      "name": "roles",
-      "schemaName": "public",
-      "x": 16,
-      "y": 376
+      "x": 0,
+      "y": 0
     },
     {
       "name": "permissions",
       "schemaName": "public",
-      "x": 16,
-      "y": 648
+      "x": 360,
+      "y": 0
+    },
+    {
+      "name": "roles",
+      "schemaName": "public",
+      "x": 0,
+      "y": 2650
     },
     {
       "name": "role_permissions",
       "schemaName": "public",
-      "x": 560,
-      "y": 448
+      "x": 744,
+      "y": 0
     },
     {
-      "name": "currencies",
+      "name": "users",
       "schemaName": "public",
-      "x": 16,
-      "y": 920
+      "x": 1136,
+      "y": 0
     },
     {
       "name": "cities",
       "schemaName": "public",
-      "x": 560,
-      "y": 720
+      "x": 0,
+      "y": 368
     },
     {
       "name": "persons",
       "schemaName": "public",
-      "x": 1136,
-      "y": 56
-    },
-    {
-      "name": "businesses",
-      "schemaName": "public",
-      "x": 1136,
-      "y": 680
-    },
-    {
-      "name": "legal_representatives",
-      "schemaName": "public",
-      "x": 1848,
-      "y": 136
-    },
-    {
-      "name": "shareholders",
-      "schemaName": "public",
-      "x": 1848,
-      "y": 440
-    },
-    {
-      "name": "guarantors",
-      "schemaName": "public",
-      "x": 5232,
-      "y": 16
-    },
-    {
-      "name": "partners",
-      "schemaName": "public",
-      "x": 1848,
-      "y": 872
-    },
-    {
-      "name": "partner_categories",
-      "schemaName": "public",
-      "x": 2688,
-      "y": 160
-    },
-    {
-      "name": "credit_applications_bnpl",
-      "schemaName": "public",
-      "x": 3448,
-      "y": 136
-    },
-    {
-      "name": "ai_agent_analysis",
-      "schemaName": "public",
-      "x": 4064,
-      "y": 488
-    },
-    {
-      "name": "sales_representatives",
-      "schemaName": "public",
-      "x": 2688,
-      "y": 648
-    },
-    {
-      "name": "contracts",
-      "schemaName": "public",
-      "x": 4064,
-      "y": 880
-    },
-    {
-      "name": "contract_signers",
-      "schemaName": "public",
-      "x": 4672,
-      "y": 16
-    },
-    {
-      "name": "user_products",
-      "schemaName": "public",
-      "x": 1136,
-      "y": 1280
-    },
-    {
-      "name": "product_bnpl",
-      "schemaName": "public",
-      "x": 1848,
-      "y": 1664
-    },
-    {
-      "name": "bnpl_categories",
-      "schemaName": "public",
-      "x": 3448,
-      "y": 1368
-    },
-    {
-      "name": "risk_profile",
-      "schemaName": "public",
-      "x": 1848,
-      "y": 2064
+      "x": 360,
+      "y": 272
     },
     {
       "name": "documents",
       "schemaName": "public",
-      "x": 4064,
-      "y": 56
+      "x": 744,
+      "y": 272
     },
     {
-      "name": "credit_reports",
+      "name": "business_seniority",
       "schemaName": "public",
-      "x": 4064,
-      "y": 1312
+      "x": 1136,
+      "y": 400
+    },
+    {
+      "name": "businesses",
+      "schemaName": "public",
+      "x": 0,
+      "y": 776
+    },
+    {
+      "name": "partners",
+      "schemaName": "public",
+      "x": 360,
+      "y": 904
+    },
+    {
+      "name": "bank_accounts",
+      "schemaName": "public",
+      "x": 744,
+      "y": 520
+    },
+    {
+      "name": "suppliers",
+      "schemaName": "public",
+      "x": 1136,
+      "y": 712
+    },
+    {
+      "name": "sales_representatives",
+      "schemaName": "public",
+      "x": 0,
+      "y": 1336
+    },
+    {
+      "name": "credit_facilities",
+      "schemaName": "public",
+      "x": 360,
+      "y": 1624
+    },
+    {
+      "name": "categories",
+      "schemaName": "public",
+      "x": 744,
+      "y": 824
+    },
+    {
+      "name": "credit_applications",
+      "schemaName": "public",
+      "x": 1136,
+      "y": 984
+    },
+    {
+      "name": "shareholders",
+      "schemaName": "public",
+      "x": 0,
+      "y": 1704
+    },
+    {
+      "name": "legal_representatives",
+      "schemaName": "public",
+      "x": 360,
+      "y": 1928
+    },
+    {
+      "name": "contract_signers",
+      "schemaName": "public",
+      "x": 744,
+      "y": 1352
+    },
+    {
+      "name": "guarantors",
+      "schemaName": "public",
+      "x": 1136,
+      "y": 2152
+    },
+    {
+      "name": "purchase_orders",
+      "schemaName": "public",
+      "x": 0,
+      "y": 2136
     }
   ],
   "tableGroupCollapseStates": [],
   "stickyNoteLayouts": [],
   "referencePaths": [
-    {
-      "firstFieldNames": [
-        "id"
-      ],
-      "firstTableName": "roles",
-      "firstSchemaName": "public",
-      "firstRelation": "1",
-      "secondFieldNames": [
-        "role_id"
-      ],
-      "secondTableName": "users",
-      "secondSchemaName": "public",
-      "secondRelation": "*",
-      "checkPoints": []
-    },
-    {
-      "firstFieldNames": [
-        "id"
-      ],
-      "firstTableName": "statuses",
-      "firstSchemaName": "public",
-      "firstRelation": "1",
-      "secondFieldNames": [
-        "status_id"
-      ],
-      "secondTableName": "users",
-      "secondSchemaName": "public",
-      "secondRelation": "*",
-      "checkPoints": []
-    },
     {
       "firstFieldNames": [
         "id"
@@ -228,13 +174,28 @@
       "firstFieldNames": [
         "id"
       ],
-      "firstTableName": "currencies",
+      "firstTableName": "roles",
       "firstSchemaName": "public",
       "firstRelation": "1",
       "secondFieldNames": [
-        "currency_id"
+        "role_id"
       ],
-      "secondTableName": "cities",
+      "secondTableName": "users",
+      "secondSchemaName": "public",
+      "secondRelation": "*",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "id"
+      ],
+      "firstTableName": "statuses",
+      "firstSchemaName": "public",
+      "firstRelation": "1",
+      "secondFieldNames": [
+        "status_id"
+      ],
+      "secondTableName": "users",
       "secondSchemaName": "public",
       "secondRelation": "*",
       "checkPoints": []
@@ -309,7 +270,7 @@
       "secondFieldNames": [
         "business_id"
       ],
-      "secondTableName": "legal_representatives",
+      "secondTableName": "partners",
       "secondSchemaName": "public",
       "secondRelation": "*",
       "checkPoints": []
@@ -318,13 +279,28 @@
       "firstFieldNames": [
         "id"
       ],
-      "firstTableName": "persons",
+      "firstTableName": "sales_representatives",
       "firstSchemaName": "public",
       "firstRelation": "1",
       "secondFieldNames": [
-        "person_id"
+        "default_rep_id"
       ],
-      "secondTableName": "legal_representatives",
+      "secondTableName": "partners",
+      "secondSchemaName": "public",
+      "secondRelation": "*",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "id"
+      ],
+      "firstTableName": "statuses",
+      "firstSchemaName": "public",
+      "firstRelation": "1",
+      "secondFieldNames": [
+        "status_id"
+      ],
+      "secondTableName": "partners",
       "secondSchemaName": "public",
       "secondRelation": "*",
       "checkPoints": []
@@ -339,6 +315,201 @@
       "secondFieldNames": [
         "business_id"
       ],
+      "secondTableName": "suppliers",
+      "secondSchemaName": "public",
+      "secondRelation": "*",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "id"
+      ],
+      "firstTableName": "bank_accounts",
+      "firstSchemaName": "public",
+      "firstRelation": "1",
+      "secondFieldNames": [
+        "bank_account_id"
+      ],
+      "secondTableName": "suppliers",
+      "secondSchemaName": "public",
+      "secondRelation": "*",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "id"
+      ],
+      "firstTableName": "partners",
+      "firstSchemaName": "public",
+      "firstRelation": "1",
+      "secondFieldNames": [
+        "partner_id"
+      ],
+      "secondTableName": "sales_representatives",
+      "secondSchemaName": "public",
+      "secondRelation": "*",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "id"
+      ],
+      "firstTableName": "users",
+      "firstSchemaName": "public",
+      "firstRelation": "1",
+      "secondFieldNames": [
+        "user_id"
+      ],
+      "secondTableName": "sales_representatives",
+      "secondSchemaName": "public",
+      "secondRelation": "*",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "id"
+      ],
+      "firstTableName": "statuses",
+      "firstSchemaName": "public",
+      "firstRelation": "1",
+      "secondFieldNames": [
+        "status_id"
+      ],
+      "secondTableName": "sales_representatives",
+      "secondSchemaName": "public",
+      "secondRelation": "*",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "id"
+      ],
+      "firstTableName": "statuses",
+      "firstSchemaName": "public",
+      "firstRelation": "1",
+      "secondFieldNames": [
+        "status_id"
+      ],
+      "secondTableName": "credit_facilities",
+      "secondSchemaName": "public",
+      "secondRelation": "*",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "id"
+      ],
+      "firstTableName": "credit_facilities",
+      "firstSchemaName": "public",
+      "firstRelation": "1",
+      "secondFieldNames": [
+        "credit_facility_id"
+      ],
+      "secondTableName": "categories",
+      "secondSchemaName": "public",
+      "secondRelation": "*",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "id"
+      ],
+      "firstTableName": "partners",
+      "firstSchemaName": "public",
+      "firstRelation": "1",
+      "secondFieldNames": [
+        "partner_id"
+      ],
+      "secondTableName": "categories",
+      "secondSchemaName": "public",
+      "secondRelation": "*",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "id"
+      ],
+      "firstTableName": "statuses",
+      "firstSchemaName": "public",
+      "firstRelation": "1",
+      "secondFieldNames": [
+        "status_id"
+      ],
+      "secondTableName": "categories",
+      "secondSchemaName": "public",
+      "secondRelation": "*",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "id"
+      ],
+      "firstTableName": "persons",
+      "firstSchemaName": "public",
+      "firstRelation": "1",
+      "secondFieldNames": [
+        "person_id"
+      ],
+      "secondTableName": "credit_applications",
+      "secondSchemaName": "public",
+      "secondRelation": "*",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "id"
+      ],
+      "firstTableName": "partners",
+      "firstSchemaName": "public",
+      "firstRelation": "1",
+      "secondFieldNames": [
+        "partner_id"
+      ],
+      "secondTableName": "credit_applications",
+      "secondSchemaName": "public",
+      "secondRelation": "*",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "id"
+      ],
+      "firstTableName": "businesses",
+      "firstSchemaName": "public",
+      "firstRelation": "1",
+      "secondFieldNames": [
+        "business_id"
+      ],
+      "secondTableName": "credit_applications",
+      "secondSchemaName": "public",
+      "secondRelation": "*",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "id"
+      ],
+      "firstTableName": "statuses",
+      "firstSchemaName": "public",
+      "firstRelation": "1",
+      "secondFieldNames": [
+        "status_id"
+      ],
+      "secondTableName": "credit_applications",
+      "secondSchemaName": "public",
+      "secondRelation": "*",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "id"
+      ],
+      "firstTableName": "businesses",
+      "firstSchemaName": "public",
+      "firstRelation": "1",
+      "secondFieldNames": [
+        "company_id"
+      ],
       "secondTableName": "shareholders",
       "secondSchemaName": "public",
       "secondRelation": "*",
@@ -363,7 +534,67 @@
       "firstFieldNames": [
         "id"
       ],
-      "firstTableName": "credit_applications_bnpl",
+      "firstTableName": "businesses",
+      "firstSchemaName": "public",
+      "firstRelation": "1",
+      "secondFieldNames": [
+        "company_id"
+      ],
+      "secondTableName": "legal_representatives",
+      "secondSchemaName": "public",
+      "secondRelation": "*",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "id"
+      ],
+      "firstTableName": "persons",
+      "firstSchemaName": "public",
+      "firstRelation": "1",
+      "secondFieldNames": [
+        "person_id"
+      ],
+      "secondTableName": "legal_representatives",
+      "secondSchemaName": "public",
+      "secondRelation": "*",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "id"
+      ],
+      "firstTableName": "persons",
+      "firstSchemaName": "public",
+      "firstRelation": "1",
+      "secondFieldNames": [
+        "person_id"
+      ],
+      "secondTableName": "contract_signers",
+      "secondSchemaName": "public",
+      "secondRelation": "*",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "id"
+      ],
+      "firstTableName": "statuses",
+      "firstSchemaName": "public",
+      "firstRelation": "1",
+      "secondFieldNames": [
+        "status_id"
+      ],
+      "secondTableName": "contract_signers",
+      "secondSchemaName": "public",
+      "secondRelation": "*",
+      "checkPoints": []
+    },
+    {
+      "firstFieldNames": [
+        "id"
+      ],
+      "firstTableName": "credit_applications",
       "firstSchemaName": "public",
       "firstRelation": "1",
       "secondFieldNames": [
@@ -408,583 +639,13 @@
       "firstFieldNames": [
         "id"
       ],
-      "firstTableName": "businesses",
+      "firstTableName": "suppliers",
       "firstSchemaName": "public",
       "firstRelation": "1",
       "secondFieldNames": [
-        "business_id"
+        "supplier_id"
       ],
-      "secondTableName": "partners",
-      "secondSchemaName": "public",
-      "secondRelation": "*",
-      "checkPoints": []
-    },
-    {
-      "firstFieldNames": [
-        "id"
-      ],
-      "firstTableName": "sales_representatives",
-      "firstSchemaName": "public",
-      "firstRelation": "1",
-      "secondFieldNames": [
-        "default_rep_id"
-      ],
-      "secondTableName": "partners",
-      "secondSchemaName": "public",
-      "secondRelation": "*",
-      "checkPoints": []
-    },
-    {
-      "firstFieldNames": [
-        "id"
-      ],
-      "firstTableName": "partner_categories",
-      "firstSchemaName": "public",
-      "firstRelation": "1",
-      "secondFieldNames": [
-        "default_category_id"
-      ],
-      "secondTableName": "partners",
-      "secondSchemaName": "public",
-      "secondRelation": "*",
-      "checkPoints": []
-    },
-    {
-      "firstFieldNames": [
-        "id"
-      ],
-      "firstTableName": "statuses",
-      "firstSchemaName": "public",
-      "firstRelation": "1",
-      "secondFieldNames": [
-        "status_id"
-      ],
-      "secondTableName": "partners",
-      "secondSchemaName": "public",
-      "secondRelation": "*",
-      "checkPoints": []
-    },
-    {
-      "firstFieldNames": [
-        "id"
-      ],
-      "firstTableName": "partners",
-      "firstSchemaName": "public",
-      "firstRelation": "1",
-      "secondFieldNames": [
-        "partner_id"
-      ],
-      "secondTableName": "partner_categories",
-      "secondSchemaName": "public",
-      "secondRelation": "*",
-      "checkPoints": []
-    },
-    {
-      "firstFieldNames": [
-        "id"
-      ],
-      "firstTableName": "statuses",
-      "firstSchemaName": "public",
-      "firstRelation": "1",
-      "secondFieldNames": [
-        "status_id"
-      ],
-      "secondTableName": "partner_categories",
-      "secondSchemaName": "public",
-      "secondRelation": "*",
-      "checkPoints": []
-    },
-    {
-      "firstFieldNames": [
-        "id"
-      ],
-      "firstTableName": "users",
-      "firstSchemaName": "public",
-      "firstRelation": "1",
-      "secondFieldNames": [
-        "user_id"
-      ],
-      "secondTableName": "credit_applications_bnpl",
-      "secondSchemaName": "public",
-      "secondRelation": "*",
-      "checkPoints": []
-    },
-    {
-      "firstFieldNames": [
-        "id"
-      ],
-      "firstTableName": "user_products",
-      "firstSchemaName": "public",
-      "firstRelation": "1",
-      "secondFieldNames": [
-        "user_product_id"
-      ],
-      "secondTableName": "credit_applications_bnpl",
-      "secondSchemaName": "public",
-      "secondRelation": "*",
-      "checkPoints": []
-    },
-    {
-      "firstFieldNames": [
-        "id"
-      ],
-      "firstTableName": "partners",
-      "firstSchemaName": "public",
-      "firstRelation": "1",
-      "secondFieldNames": [
-        "partner_id"
-      ],
-      "secondTableName": "credit_applications_bnpl",
-      "secondSchemaName": "public",
-      "secondRelation": "*",
-      "checkPoints": []
-    },
-    {
-      "firstFieldNames": [
-        "id"
-      ],
-      "firstTableName": "partner_categories",
-      "firstSchemaName": "public",
-      "firstRelation": "1",
-      "secondFieldNames": [
-        "partner_category_id"
-      ],
-      "secondTableName": "credit_applications_bnpl",
-      "secondSchemaName": "public",
-      "secondRelation": "*",
-      "checkPoints": []
-    },
-    {
-      "firstFieldNames": [
-        "id"
-      ],
-      "firstTableName": "sales_representatives",
-      "firstSchemaName": "public",
-      "firstRelation": "1",
-      "secondFieldNames": [
-        "sales_rep_id"
-      ],
-      "secondTableName": "credit_applications_bnpl",
-      "secondSchemaName": "public",
-      "secondRelation": "*",
-      "checkPoints": []
-    },
-    {
-      "firstFieldNames": [
-        "id"
-      ],
-      "firstTableName": "businesses",
-      "firstSchemaName": "public",
-      "firstRelation": "1",
-      "secondFieldNames": [
-        "business_id"
-      ],
-      "secondTableName": "credit_applications_bnpl",
-      "secondSchemaName": "public",
-      "secondRelation": "*",
-      "checkPoints": []
-    },
-    {
-      "firstFieldNames": [
-        "id"
-      ],
-      "firstTableName": "options",
-      "firstSchemaName": "public",
-      "firstRelation": "1",
-      "secondFieldNames": [
-        "business_seniority_id"
-      ],
-      "secondTableName": "credit_applications_bnpl",
-      "secondSchemaName": "public",
-      "secondRelation": "*",
-      "checkPoints": []
-    },
-    {
-      "firstFieldNames": [
-        "id"
-      ],
-      "firstTableName": "statuses",
-      "firstSchemaName": "public",
-      "firstRelation": "1",
-      "secondFieldNames": [
-        "status_id"
-      ],
-      "secondTableName": "credit_applications_bnpl",
-      "secondSchemaName": "public",
-      "secondRelation": "*",
-      "checkPoints": []
-    },
-    {
-      "firstFieldNames": [
-        "id"
-      ],
-      "firstTableName": "credit_applications_bnpl",
-      "firstSchemaName": "public",
-      "firstRelation": "1",
-      "secondFieldNames": [
-        "application_id"
-      ],
-      "secondTableName": "ai_agent_analysis",
-      "secondSchemaName": "public",
-      "secondRelation": "*",
-      "checkPoints": []
-    },
-    {
-      "firstFieldNames": [
-        "id"
-      ],
-      "firstTableName": "partners",
-      "firstSchemaName": "public",
-      "firstRelation": "1",
-      "secondFieldNames": [
-        "partner_id"
-      ],
-      "secondTableName": "sales_representatives",
-      "secondSchemaName": "public",
-      "secondRelation": "*",
-      "checkPoints": []
-    },
-    {
-      "firstFieldNames": [
-        "id"
-      ],
-      "firstTableName": "users",
-      "firstSchemaName": "public",
-      "firstRelation": "1",
-      "secondFieldNames": [
-        "user_id"
-      ],
-      "secondTableName": "sales_representatives",
-      "secondSchemaName": "public",
-      "secondRelation": "*",
-      "checkPoints": []
-    },
-    {
-      "firstFieldNames": [
-        "id"
-      ],
-      "firstTableName": "statuses",
-      "firstSchemaName": "public",
-      "firstRelation": "1",
-      "secondFieldNames": [
-        "status_id"
-      ],
-      "secondTableName": "sales_representatives",
-      "secondSchemaName": "public",
-      "secondRelation": "*",
-      "checkPoints": []
-    },
-    {
-      "firstFieldNames": [
-        "id"
-      ],
-      "firstTableName": "users",
-      "firstSchemaName": "public",
-      "firstRelation": "1",
-      "secondFieldNames": [
-        "user_id"
-      ],
-      "secondTableName": "contracts",
-      "secondSchemaName": "public",
-      "secondRelation": "*",
-      "checkPoints": []
-    },
-    {
-      "firstFieldNames": [
-        "id"
-      ],
-      "firstTableName": "credit_applications_bnpl",
-      "firstSchemaName": "public",
-      "firstRelation": "1",
-      "secondFieldNames": [
-        "application_id"
-      ],
-      "secondTableName": "contracts",
-      "secondSchemaName": "public",
-      "secondRelation": "*",
-      "checkPoints": []
-    },
-    {
-      "firstFieldNames": [
-        "id"
-      ],
-      "firstTableName": "statuses",
-      "firstSchemaName": "public",
-      "firstRelation": "1",
-      "secondFieldNames": [
-        "status_id"
-      ],
-      "secondTableName": "contracts",
-      "secondSchemaName": "public",
-      "secondRelation": "*",
-      "checkPoints": []
-    },
-    {
-      "firstFieldNames": [
-        "id"
-      ],
-      "firstTableName": "contracts",
-      "firstSchemaName": "public",
-      "firstRelation": "1",
-      "secondFieldNames": [
-        "contract_id"
-      ],
-      "secondTableName": "contract_signers",
-      "secondSchemaName": "public",
-      "secondRelation": "*",
-      "checkPoints": []
-    },
-    {
-      "firstFieldNames": [
-        "id"
-      ],
-      "firstTableName": "persons",
-      "firstSchemaName": "public",
-      "firstRelation": "1",
-      "secondFieldNames": [
-        "person_id"
-      ],
-      "secondTableName": "contract_signers",
-      "secondSchemaName": "public",
-      "secondRelation": "*",
-      "checkPoints": []
-    },
-    {
-      "firstFieldNames": [
-        "id"
-      ],
-      "firstTableName": "statuses",
-      "firstSchemaName": "public",
-      "firstRelation": "1",
-      "secondFieldNames": [
-        "status_id"
-      ],
-      "secondTableName": "contract_signers",
-      "secondSchemaName": "public",
-      "secondRelation": "*",
-      "checkPoints": []
-    },
-    {
-      "firstFieldNames": [
-        "id"
-      ],
-      "firstTableName": "users",
-      "firstSchemaName": "public",
-      "firstRelation": "1",
-      "secondFieldNames": [
-        "user_id"
-      ],
-      "secondTableName": "user_products",
-      "secondSchemaName": "public",
-      "secondRelation": "*",
-      "checkPoints": []
-    },
-    {
-      "firstFieldNames": [
-        "id"
-      ],
-      "firstTableName": "user_products",
-      "firstSchemaName": "public",
-      "firstRelation": "1",
-      "secondFieldNames": [
-        "user_product_id"
-      ],
-      "secondTableName": "product_bnpl",
-      "secondSchemaName": "public",
-      "secondRelation": "*",
-      "checkPoints": []
-    },
-    {
-      "firstFieldNames": [
-        "id"
-      ],
-      "firstTableName": "statuses",
-      "firstSchemaName": "public",
-      "firstRelation": "1",
-      "secondFieldNames": [
-        "status_id"
-      ],
-      "secondTableName": "product_bnpl",
-      "secondSchemaName": "public",
-      "secondRelation": "*",
-      "checkPoints": []
-    },
-    {
-      "firstFieldNames": [
-        "id"
-      ],
-      "firstTableName": "product_bnpl",
-      "firstSchemaName": "public",
-      "firstRelation": "1",
-      "secondFieldNames": [
-        "product_bnpl_id"
-      ],
-      "secondTableName": "bnpl_categories",
-      "secondSchemaName": "public",
-      "secondRelation": "*",
-      "checkPoints": []
-    },
-    {
-      "firstFieldNames": [
-        "id"
-      ],
-      "firstTableName": "partner_categories",
-      "firstSchemaName": "public",
-      "firstRelation": "1",
-      "secondFieldNames": [
-        "category_id"
-      ],
-      "secondTableName": "bnpl_categories",
-      "secondSchemaName": "public",
-      "secondRelation": "*",
-      "checkPoints": []
-    },
-    {
-      "firstFieldNames": [
-        "id"
-      ],
-      "firstTableName": "users",
-      "firstSchemaName": "public",
-      "firstRelation": "1",
-      "secondFieldNames": [
-        "user_id"
-      ],
-      "secondTableName": "risk_profile",
-      "secondSchemaName": "public",
-      "secondRelation": "*",
-      "checkPoints": []
-    },
-    {
-      "firstFieldNames": [
-        "id"
-      ],
-      "firstTableName": "user_products",
-      "firstSchemaName": "public",
-      "firstRelation": "1",
-      "secondFieldNames": [
-        "user_product_id"
-      ],
-      "secondTableName": "risk_profile",
-      "secondSchemaName": "public",
-      "secondRelation": "*",
-      "checkPoints": []
-    },
-    {
-      "firstFieldNames": [
-        "id"
-      ],
-      "firstTableName": "persons",
-      "firstSchemaName": "public",
-      "firstRelation": "1",
-      "secondFieldNames": [
-        "person_id"
-      ],
-      "secondTableName": "documents",
-      "secondSchemaName": "public",
-      "secondRelation": "*",
-      "checkPoints": []
-    },
-    {
-      "firstFieldNames": [
-        "id"
-      ],
-      "firstTableName": "businesses",
-      "firstSchemaName": "public",
-      "firstRelation": "1",
-      "secondFieldNames": [
-        "business_id"
-      ],
-      "secondTableName": "documents",
-      "secondSchemaName": "public",
-      "secondRelation": "*",
-      "checkPoints": []
-    },
-    {
-      "firstFieldNames": [
-        "id"
-      ],
-      "firstTableName": "credit_applications_bnpl",
-      "firstSchemaName": "public",
-      "firstRelation": "1",
-      "secondFieldNames": [
-        "application_id"
-      ],
-      "secondTableName": "documents",
-      "secondSchemaName": "public",
-      "secondRelation": "*",
-      "checkPoints": []
-    },
-    {
-      "firstFieldNames": [
-        "id"
-      ],
-      "firstTableName": "statuses",
-      "firstSchemaName": "public",
-      "firstRelation": "1",
-      "secondFieldNames": [
-        "verification_status_id"
-      ],
-      "secondTableName": "documents",
-      "secondSchemaName": "public",
-      "secondRelation": "*",
-      "checkPoints": []
-    },
-    {
-      "firstFieldNames": [
-        "id"
-      ],
-      "firstTableName": "users",
-      "firstSchemaName": "public",
-      "firstRelation": "1",
-      "secondFieldNames": [
-        "user_id"
-      ],
-      "secondTableName": "credit_reports",
-      "secondSchemaName": "public",
-      "secondRelation": "*",
-      "checkPoints": []
-    },
-    {
-      "firstFieldNames": [
-        "id"
-      ],
-      "firstTableName": "persons",
-      "firstSchemaName": "public",
-      "firstRelation": "1",
-      "secondFieldNames": [
-        "person_id"
-      ],
-      "secondTableName": "credit_reports",
-      "secondSchemaName": "public",
-      "secondRelation": "*",
-      "checkPoints": []
-    },
-    {
-      "firstFieldNames": [
-        "id"
-      ],
-      "firstTableName": "businesses",
-      "firstSchemaName": "public",
-      "firstRelation": "1",
-      "secondFieldNames": [
-        "business_id"
-      ],
-      "secondTableName": "credit_reports",
-      "secondSchemaName": "public",
-      "secondRelation": "*",
-      "checkPoints": []
-    },
-    {
-      "firstFieldNames": [
-        "id"
-      ],
-      "firstTableName": "credit_applications_bnpl",
-      "firstSchemaName": "public",
-      "firstRelation": "1",
-      "secondFieldNames": [
-        "application_id"
-      ],
-      "secondTableName": "credit_reports",
+      "secondTableName": "purchase_orders",
       "secondSchemaName": "public",
       "secondRelation": "*",
       "checkPoints": []
