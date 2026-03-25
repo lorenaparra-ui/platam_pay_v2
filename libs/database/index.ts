@@ -10,6 +10,7 @@ export { LegalRepresentativeEntity } from "./entities/legal-representative.entit
 export { PermissionEntity } from "./entities/permission.entity";
 export { DocumentTypeEntity } from "./entities/document-type.entity";
 export { ContractSignerEntity } from "./entities/contract-signer.entity";
+export { ContractEntity } from "./entities/contract.entity";
 export { CityEntity } from "./entities/city.entity";
 export { OnboardingEntity } from "./entities/onboarding.entity";
 export { BusinessSeniorityEntity } from "./entities/business-seniority.entity";
@@ -33,6 +34,7 @@ import { LegalRepresentativeEntity } from "./entities/legal-representative.entit
 import { PermissionEntity } from "./entities/permission.entity";
 import { DocumentTypeEntity } from "./entities/document-type.entity";
 import { ContractSignerEntity } from "./entities/contract-signer.entity";
+import { ContractEntity } from "./entities/contract.entity";
 import { CityEntity } from "./entities/city.entity";
 import { OnboardingEntity } from "./entities/onboarding.entity";
 import { BusinessSeniorityEntity } from "./entities/business-seniority.entity";
@@ -56,6 +58,7 @@ export const DATABASE_ENTITIES: (new () => unknown)[] = [
   PermissionEntity,
   DocumentTypeEntity,
   ContractSignerEntity,
+  ContractEntity,
   CityEntity,
   OnboardingEntity,
   BusinessSeniorityEntity,
