@@ -1,5 +1,6 @@
-import { PersonReferenceLookupPort } from '@modules/persons/domain/ports/person-reference-lookup.port';
 import { Person } from '@modules/persons/domain/models/person.models';
+import type { UserRepository } from '@modules/users/domain/ports/user.ports';
+import type { CityRepository } from '@modules/transversal/catalog/domain/ports/city.repository.port';
 
 export interface PersonPublicFields {
   external_id: string;
@@ -22,14 +23,17 @@ export interface PersonPublicFields {
 
 export async function build_person_public_fields(
   row: Person,
-  lookup: PersonReferenceLookupPort,
+  user_repo: UserRepository,
+  city_repo: CityRepository,
 ): Promise<PersonPublicFields> {
-  const user_external_id = await lookup.get_user_external_id_by_internal_id(
+  const user_external_id = await user_repo.find_external_id_by_internal_id(
     row.user_id,
   );
-  const city_external_id = await lookup.get_city_external_id_by_internal_id(
-    row.city_id,
-  );
+  let city_external_id: string | null = null;
+  if (row.city_id !== null) {
+    const city = await city_repo.find_by_internal_id(row.city_id);
+    city_external_id = city?.external_id ?? null;
+  }
 
   if (user_external_id === null) {
     throw new Error('person user reference resolution failed');

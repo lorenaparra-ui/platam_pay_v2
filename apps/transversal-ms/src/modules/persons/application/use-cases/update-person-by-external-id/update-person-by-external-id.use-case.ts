@@ -1,9 +1,9 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { PERSON_REPOSITORY } from '@modules/persons/persons.tokens';
-import {
-  PERSON_REFERENCE_LOOKUP,
-  PersonReferenceLookupPort,
-} from '@modules/persons/domain/ports/person-reference-lookup.port';
+import { USER_REPOSITORY } from '@modules/users/users.tokens';
+import { CITY_REPOSITORY } from '@modules/transversal/catalog.tokens';
+import type { CityRepository } from '@modules/transversal/catalog/domain/ports/city.repository.port';
+import { UserRepository } from '@modules/users/domain/ports/user.ports';
 import { PersonRepository } from '@modules/persons/domain/ports/person.ports';
 import { UpdatePersonProps } from '@modules/persons/domain/models/person.models';
 import { build_person_public_fields } from '@modules/persons/application/mapping/person-public-fields.builder';
@@ -15,8 +15,10 @@ export class UpdatePersonByExternalIdUseCase {
   constructor(
     @Inject(PERSON_REPOSITORY)
     private readonly person_repository: PersonRepository,
-    @Inject(PERSON_REFERENCE_LOOKUP)
-    private readonly reference_lookup: PersonReferenceLookupPort,
+    @Inject(USER_REPOSITORY)
+    private readonly user_repository: UserRepository,
+    @Inject(CITY_REPOSITORY)
+    private readonly city_repository: CityRepository,
   ) {}
 
   async execute(
@@ -26,7 +28,7 @@ export class UpdatePersonByExternalIdUseCase {
 
     if (req.user_external_id !== undefined) {
       const user_id =
-        await this.reference_lookup.get_user_internal_id_by_external_id(
+        await this.user_repository.find_internal_id_by_external_id(
           req.user_external_id,
         );
       if (user_id === null) {
@@ -71,14 +73,13 @@ export class UpdatePersonByExternalIdUseCase {
       if (req.city_external_id === null) {
         patch.city_id = null;
       } else {
-        const city_id =
-          await this.reference_lookup.get_city_internal_id_by_external_id(
-            req.city_external_id,
-          );
-        if (city_id === null) {
+        const city = await this.city_repository.find_by_external_id(
+          req.city_external_id,
+        );
+        if (city === null) {
           throw new NotFoundException('city not found');
         }
-        patch.city_id = city_id;
+        patch.city_id = city.id;
       }
     }
 
@@ -92,7 +93,8 @@ export class UpdatePersonByExternalIdUseCase {
 
     const fields = await build_person_public_fields(
       updated,
-      this.reference_lookup,
+      this.user_repository,
+      this.city_repository,
     );
     return new UpdatePersonByExternalIdResponse(fields);
   }

@@ -73,6 +73,7 @@ const users_module_1 = __webpack_require__(/*! @modules/users/users.module */ ".
 const app_config_1 = __importDefault(__webpack_require__(/*! ./config/app.config */ "./apps/transversal-ms/src/config/app.config.ts"));
 const sqs_config_1 = __webpack_require__(/*! ./config/sqs.config */ "./apps/transversal-ms/src/config/sqs.config.ts");
 const app_controller_1 = __webpack_require__(/*! ./app.controller */ "./apps/transversal-ms/src/app.controller.ts");
+const transversal_catalog_module_1 = __webpack_require__(/*! @modules/transversal/transversal-catalog.module */ "./apps/transversal-ms/src/modules/transversal/transversal-catalog.module.ts");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -87,6 +88,7 @@ exports.AppModule = AppModule = __decorate([
             infrastructure_module_1.InfrastructureModule,
             persons_module_1.PersonsModule,
             users_module_1.UsersModule,
+            transversal_catalog_module_1.TransversalCatalogModule,
         ],
         controllers: [app_controller_1.appController],
     })
@@ -125,6 +127,27 @@ __decorate([
     (0, swagger_1.ApiProperty)({ example: 'transversal-ms' }),
     __metadata("design:type", String)
 ], HealthResponseDto.prototype, "service", void 0);
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/common/utils/pg-error.util.ts"
+/*!***************************************************************!*\
+  !*** ./apps/transversal-ms/src/common/utils/pg-error.util.ts ***!
+  \***************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.is_pg_unique_violation = is_pg_unique_violation;
+const typeorm_1 = __webpack_require__(/*! typeorm */ "typeorm");
+function is_pg_unique_violation(err) {
+    if (!(err instanceof typeorm_1.QueryFailedError)) {
+        return false;
+    }
+    const driver = err.driverError;
+    return driver?.code === '23505';
+}
 
 
 /***/ },
@@ -477,144 +500,35 @@ exports.TypeormUploadFilesIdempotencyAdapter = TypeormUploadFilesIdempotencyAdap
 
 /***/ },
 
-/***/ "./apps/transversal-ms/src/infrastructure/database/common/typeorm-person-reference-lookup.adapter.ts"
-/*!***********************************************************************************************************!*\
-  !*** ./apps/transversal-ms/src/infrastructure/database/common/typeorm-person-reference-lookup.adapter.ts ***!
-  \***********************************************************************************************************/
-(__unused_webpack_module, exports, __webpack_require__) {
+/***/ "./apps/transversal-ms/src/infrastructure/database/mappers/city.mapper.ts"
+/*!********************************************************************************!*\
+  !*** ./apps/transversal-ms/src/infrastructure/database/mappers/city.mapper.ts ***!
+  \********************************************************************************/
+(__unused_webpack_module, exports) {
 
 
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
-var __param = (this && this.__param) || function (paramIndex, decorator) {
-    return function (target, key) { decorator(target, key, paramIndex); }
-};
-var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.TypeormPersonReferenceLookupAdapter = void 0;
-const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
-const typeorm_1 = __webpack_require__(/*! @nestjs/typeorm */ "@nestjs/typeorm");
-const typeorm_2 = __webpack_require__(/*! typeorm */ "typeorm");
-let TypeormPersonReferenceLookupAdapter = class TypeormPersonReferenceLookupAdapter {
-    constructor(data_source) {
-        this.data_source = data_source;
+exports.CityMapper = void 0;
+class CityMapper {
+    static from_raw_row(row) {
+        return {
+            id: Number(row['id']),
+            external_id: String(row['external_id']),
+            country_name: String(row['country_name']),
+            country_code: String(row['country_code']),
+            state_name: String(row['state_name']),
+            state_code: row['state_code'] === null || row['state_code'] === undefined
+                ? null
+                : String(row['state_code']),
+            city_name: String(row['city_name']),
+            currency_id: Number(row['currency_id']),
+            currency_external_id: String(row['currency_external_id']),
+            created_at: new Date(String(row['created_at'])),
+            updated_at: new Date(String(row['updated_at'])),
+        };
     }
-    async get_user_internal_id_by_external_id(external_id) {
-        const rows = (await this.data_source.query(`SELECT id FROM transversal_schema.users WHERE external_id = $1::uuid LIMIT 1`, [external_id]));
-        if (!rows?.length) {
-            return null;
-        }
-        return Number(rows[0].id);
-    }
-    async get_user_external_id_by_internal_id(internal_id) {
-        const rows = (await this.data_source.query(`SELECT external_id::text AS external_id FROM transversal_schema.users WHERE id = $1 LIMIT 1`, [internal_id]));
-        if (!rows?.length) {
-            return null;
-        }
-        return rows[0].external_id;
-    }
-    async get_city_internal_id_by_external_id(external_id) {
-        const rows = (await this.data_source.query(`SELECT id FROM transversal_schema.cities WHERE external_id = $1::uuid LIMIT 1`, [external_id]));
-        if (!rows?.length) {
-            return null;
-        }
-        return Number(rows[0].id);
-    }
-    async get_city_external_id_by_internal_id(internal_id) {
-        if (internal_id === null) {
-            return null;
-        }
-        const rows = (await this.data_source.query(`SELECT external_id::text AS external_id FROM transversal_schema.cities WHERE id = $1 LIMIT 1`, [internal_id]));
-        if (!rows?.length) {
-            return null;
-        }
-        return rows[0].external_id;
-    }
-};
-exports.TypeormPersonReferenceLookupAdapter = TypeormPersonReferenceLookupAdapter;
-exports.TypeormPersonReferenceLookupAdapter = TypeormPersonReferenceLookupAdapter = __decorate([
-    (0, common_1.Injectable)(),
-    __param(0, (0, typeorm_1.InjectDataSource)()),
-    __metadata("design:paramtypes", [typeof (_a = typeof typeorm_2.DataSource !== "undefined" && typeorm_2.DataSource) === "function" ? _a : Object])
-], TypeormPersonReferenceLookupAdapter);
-
-
-/***/ },
-
-/***/ "./apps/transversal-ms/src/infrastructure/database/common/typeorm-user-reference-lookup.adapter.ts"
-/*!*********************************************************************************************************!*\
-  !*** ./apps/transversal-ms/src/infrastructure/database/common/typeorm-user-reference-lookup.adapter.ts ***!
-  \*********************************************************************************************************/
-(__unused_webpack_module, exports, __webpack_require__) {
-
-
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
-var __param = (this && this.__param) || function (paramIndex, decorator) {
-    return function (target, key) { decorator(target, key, paramIndex); }
-};
-var _a;
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.TypeormUserReferenceLookupAdapter = void 0;
-const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
-const typeorm_1 = __webpack_require__(/*! @nestjs/typeorm */ "@nestjs/typeorm");
-const typeorm_2 = __webpack_require__(/*! typeorm */ "typeorm");
-let TypeormUserReferenceLookupAdapter = class TypeormUserReferenceLookupAdapter {
-    constructor(data_source) {
-        this.data_source = data_source;
-    }
-    async get_role_internal_id_by_external_id(external_id) {
-        const rows = (await this.data_source.query(`SELECT id FROM transversal_schema.roles WHERE external_id = $1::uuid LIMIT 1`, [external_id]));
-        if (!rows?.length) {
-            return null;
-        }
-        return Number(rows[0].id);
-    }
-    async get_role_external_id_by_internal_id(internal_id) {
-        if (internal_id === null) {
-            return null;
-        }
-        const rows = (await this.data_source.query(`SELECT external_id::text AS external_id FROM transversal_schema.roles WHERE id = $1 LIMIT 1`, [internal_id]));
-        if (!rows?.length) {
-            return null;
-        }
-        return rows[0].external_id;
-    }
-    async get_status_internal_id_by_external_id(external_id) {
-        const rows = (await this.data_source.query(`SELECT id FROM transversal_schema.statuses WHERE external_id = $1::uuid LIMIT 1`, [external_id]));
-        if (!rows?.length) {
-            return null;
-        }
-        return Number(rows[0].id);
-    }
-    async get_status_external_id_by_internal_id(internal_id) {
-        const rows = (await this.data_source.query(`SELECT external_id::text AS external_id FROM transversal_schema.statuses WHERE id = $1 LIMIT 1`, [internal_id]));
-        if (!rows?.length) {
-            return null;
-        }
-        return rows[0].external_id;
-    }
-};
-exports.TypeormUserReferenceLookupAdapter = TypeormUserReferenceLookupAdapter;
-exports.TypeormUserReferenceLookupAdapter = TypeormUserReferenceLookupAdapter = __decorate([
-    (0, common_1.Injectable)(),
-    __param(0, (0, typeorm_1.InjectDataSource)()),
-    __metadata("design:paramtypes", [typeof (_a = typeof typeorm_2.DataSource !== "undefined" && typeorm_2.DataSource) === "function" ? _a : Object])
-], TypeormUserReferenceLookupAdapter);
+}
+exports.CityMapper = CityMapper;
 
 
 /***/ },
@@ -665,6 +579,84 @@ exports.PersonMapper = PersonMapper;
 
 /***/ },
 
+/***/ "./apps/transversal-ms/src/infrastructure/database/mappers/role.mapper.ts"
+/*!********************************************************************************!*\
+  !*** ./apps/transversal-ms/src/infrastructure/database/mappers/role.mapper.ts ***!
+  \********************************************************************************/
+(__unused_webpack_module, exports) {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.RoleMapper = void 0;
+class RoleMapper {
+    static to_domain(row) {
+        return {
+            id: row.id,
+            external_id: row.externalId,
+            name: row.name,
+            description: row.description ?? null,
+            created_at: row.createdAt,
+            updated_at: row.updatedAt,
+        };
+    }
+    static from_raw_row(row) {
+        return {
+            id: Number(row['id']),
+            external_id: String(row['external_id']),
+            name: String(row['name']),
+            description: row['description'] === null || row['description'] === undefined
+                ? null
+                : String(row['description']),
+            created_at: new Date(String(row['created_at'])),
+            updated_at: new Date(String(row['updated_at'])),
+        };
+    }
+}
+exports.RoleMapper = RoleMapper;
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/infrastructure/database/mappers/state.mapper.ts"
+/*!*********************************************************************************!*\
+  !*** ./apps/transversal-ms/src/infrastructure/database/mappers/state.mapper.ts ***!
+  \*********************************************************************************/
+(__unused_webpack_module, exports) {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.StateMapper = void 0;
+class StateMapper {
+    static to_domain(row) {
+        return {
+            id: row.id,
+            external_id: row.externalId,
+            country_code: row.countryCode,
+            state_name: row.stateName,
+            state_code: row.stateCode ?? null,
+            created_at: row.createdAt,
+            updated_at: row.updatedAt,
+        };
+    }
+    static from_raw_row(row) {
+        return {
+            id: Number(row['id']),
+            external_id: String(row['external_id']),
+            country_code: String(row['country_code']),
+            state_name: String(row['state_name']),
+            state_code: row['state_code'] === null || row['state_code'] === undefined
+                ? null
+                : String(row['state_code']),
+            created_at: new Date(String(row['created_at'])),
+            updated_at: new Date(String(row['updated_at'])),
+        };
+    }
+}
+exports.StateMapper = StateMapper;
+
+
+/***/ },
+
 /***/ "./apps/transversal-ms/src/infrastructure/database/mappers/user.mapper.ts"
 /*!********************************************************************************!*\
   !*** ./apps/transversal-ms/src/infrastructure/database/mappers/user.mapper.ts ***!
@@ -688,6 +680,236 @@ class UserMapper {
     }
 }
 exports.UserMapper = UserMapper;
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/infrastructure/database/repositories/typeorm-city.repository.ts"
+/*!*************************************************************************************************!*\
+  !*** ./apps/transversal-ms/src/infrastructure/database/repositories/typeorm-city.repository.ts ***!
+  \*************************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+var _a;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.TypeormCityRepository = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const typeorm_1 = __webpack_require__(/*! @nestjs/typeorm */ "@nestjs/typeorm");
+const typeorm_2 = __webpack_require__(/*! typeorm */ "typeorm");
+const transversal_data_1 = __webpack_require__(/*! @app/transversal-data */ "./libs/transversal-data/src/index.ts");
+const city_mapper_1 = __webpack_require__(/*! @infrastructure/database/mappers/city.mapper */ "./apps/transversal-ms/src/infrastructure/database/mappers/city.mapper.ts");
+const CITY_ROW_SQL = `c.id, c.external_id, c.country_name, c.country_code, c.state_name, c.state_code,
+  c.city_name, c.currency_id, cur.external_id::text AS currency_external_id, c.created_at, c.updated_at`;
+const CITY_FROM = `transversal_schema.cities c
+  INNER JOIN transversal_schema.currencies cur ON cur.id = c.currency_id`;
+let TypeormCityRepository = class TypeormCityRepository {
+    constructor(repo) {
+        this.repo = repo;
+    }
+    build_where(params, values) {
+        const parts = [];
+        let i = values.length + 1;
+        if (params.country_code !== undefined && params.country_code !== '') {
+            parts.push(`c.country_code = $${i}`);
+            values.push(params.country_code);
+            i += 1;
+        }
+        if (params.state_name !== undefined && params.state_name !== '') {
+            parts.push(`c.state_name = $${i}`);
+            values.push(params.state_name);
+            i += 1;
+        }
+        if (params.city_name_contains !== undefined &&
+            params.city_name_contains !== '') {
+            parts.push(`LOWER(c.city_name) LIKE LOWER($${i})`);
+            values.push(`%${params.city_name_contains}%`);
+            i += 1;
+        }
+        return {
+            clause: parts.length ? `WHERE ${parts.join(' AND ')}` : '',
+            next_idx: i,
+        };
+    }
+    async find_by_external_id(external_id) {
+        const rows = (await this.repo.query(`SELECT ${CITY_ROW_SQL} FROM ${CITY_FROM} WHERE c.external_id = $1::uuid LIMIT 1`, [external_id]));
+        if (!rows?.length) {
+            return null;
+        }
+        return city_mapper_1.CityMapper.from_raw_row(rows[0]);
+    }
+    async find_by_internal_id(internal_id) {
+        const rows = (await this.repo.query(`SELECT ${CITY_ROW_SQL} FROM ${CITY_FROM} WHERE c.id = $1 LIMIT 1`, [internal_id]));
+        if (!rows?.length) {
+            return null;
+        }
+        return city_mapper_1.CityMapper.from_raw_row(rows[0]);
+    }
+    async list(params) {
+        const count_values = [];
+        const { clause } = this.build_where(params, count_values);
+        const count_rows = (await this.repo.query(`SELECT COUNT(*)::int AS n FROM transversal_schema.cities c ${clause}`, count_values));
+        const total = count_rows[0]?.n ?? 0;
+        const list_values = [];
+        const { clause: list_clause, next_idx } = this.build_where(params, list_values);
+        const limit = params.limit;
+        const offset = (params.page - 1) * limit;
+        list_values.push(limit, offset);
+        const rows = (await this.repo.query(`SELECT ${CITY_ROW_SQL} FROM ${CITY_FROM} ${list_clause}
+       ORDER BY c.id ASC LIMIT $${next_idx} OFFSET $${next_idx + 1}`, list_values));
+        return {
+            items: rows.map((r) => city_mapper_1.CityMapper.from_raw_row(r)),
+            total,
+        };
+    }
+    async create(props) {
+        const rows = (await this.repo.query(`INSERT INTO transversal_schema.cities (
+        country_name, country_code, state_name, state_code, city_name, currency_id
+      ) VALUES ($1, $2, $3, $4, $5, $6)
+      RETURNING id`, [
+            props.country_name,
+            props.country_code,
+            props.state_name,
+            props.state_code,
+            props.city_name,
+            props.currency_id,
+        ]));
+        const id = rows[0]?.id;
+        if (id === undefined) {
+            throw new Error('city insert failed');
+        }
+        const loaded = await this.find_by_internal_id(id);
+        if (!loaded) {
+            throw new Error('city load after insert failed');
+        }
+        return loaded;
+    }
+    async update_by_external_id(external_id, patch) {
+        const existing = await this.repo.findOne({
+            where: { externalId: external_id },
+            select: { id: true },
+        });
+        if (!existing) {
+            return null;
+        }
+        const columns = [];
+        const values = [];
+        let i = 1;
+        const add = (col, val) => {
+            columns.push(`"${col}" = $${i}`);
+            values.push(val);
+            i += 1;
+        };
+        if (patch.country_name !== undefined) {
+            add('country_name', patch.country_name);
+        }
+        if (patch.country_code !== undefined) {
+            add('country_code', patch.country_code);
+        }
+        if (patch.state_name !== undefined) {
+            add('state_name', patch.state_name);
+        }
+        if (patch.state_code !== undefined) {
+            add('state_code', patch.state_code);
+        }
+        if (patch.city_name !== undefined) {
+            add('city_name', patch.city_name);
+        }
+        if (patch.currency_id !== undefined) {
+            add('currency_id', patch.currency_id);
+        }
+        if (columns.length === 0) {
+            return this.find_by_external_id(external_id);
+        }
+        columns.push(`"updated_at" = now()`);
+        values.push(external_id);
+        await this.repo.query(`UPDATE transversal_schema.cities SET ${columns.join(', ')} WHERE external_id = $${i}::uuid`, values);
+        return this.find_by_external_id(external_id);
+    }
+    async delete_by_external_id(external_id) {
+        const rows = (await this.repo.query(`DELETE FROM transversal_schema.cities c
+       WHERE c.external_id = $1::uuid
+       AND NOT EXISTS (SELECT 1 FROM transversal_schema.persons p WHERE p.city_id = c.id)
+       AND NOT EXISTS (SELECT 1 FROM transversal_schema.businesses b WHERE b.city_id = c.id)
+       RETURNING c.id`, [external_id]));
+        return rows.length > 0;
+    }
+};
+exports.TypeormCityRepository = TypeormCityRepository;
+exports.TypeormCityRepository = TypeormCityRepository = __decorate([
+    (0, common_1.Injectable)(),
+    __param(0, (0, typeorm_1.InjectRepository)(transversal_data_1.CityEntity)),
+    __metadata("design:paramtypes", [typeof (_a = typeof typeorm_2.Repository !== "undefined" && typeorm_2.Repository) === "function" ? _a : Object])
+], TypeormCityRepository);
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/infrastructure/database/repositories/typeorm-currency-read.repository.ts"
+/*!**********************************************************************************************************!*\
+  !*** ./apps/transversal-ms/src/infrastructure/database/repositories/typeorm-currency-read.repository.ts ***!
+  \**********************************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+var _a;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.TypeormCurrencyReadRepository = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const typeorm_1 = __webpack_require__(/*! @nestjs/typeorm */ "@nestjs/typeorm");
+const typeorm_2 = __webpack_require__(/*! typeorm */ "typeorm");
+const transversal_data_1 = __webpack_require__(/*! @app/transversal-data */ "./libs/transversal-data/src/index.ts");
+const CURRENCY_ID_SELECT = { id: true };
+const CURRENCY_EXT_SELECT = { externalId: true };
+let TypeormCurrencyReadRepository = class TypeormCurrencyReadRepository {
+    constructor(repo) {
+        this.repo = repo;
+    }
+    async find_internal_id_by_external_id(external_id) {
+        const row = await this.repo.findOne({
+            where: { externalId: external_id },
+            select: CURRENCY_ID_SELECT,
+        });
+        return row?.id ?? null;
+    }
+    async find_external_id_by_internal_id(internal_id) {
+        const row = await this.repo.findOne({
+            where: { id: internal_id },
+            select: CURRENCY_EXT_SELECT,
+        });
+        return row?.externalId ?? null;
+    }
+};
+exports.TypeormCurrencyReadRepository = TypeormCurrencyReadRepository;
+exports.TypeormCurrencyReadRepository = TypeormCurrencyReadRepository = __decorate([
+    (0, common_1.Injectable)(),
+    __param(0, (0, typeorm_1.InjectRepository)(transversal_data_1.CurrencyEntity)),
+    __metadata("design:paramtypes", [typeof (_a = typeof typeorm_2.Repository !== "undefined" && typeorm_2.Repository) === "function" ? _a : Object])
+], TypeormCurrencyReadRepository);
 
 
 /***/ },
@@ -860,6 +1082,347 @@ exports.TypeormPersonRepository = TypeormPersonRepository = __decorate([
 
 /***/ },
 
+/***/ "./apps/transversal-ms/src/infrastructure/database/repositories/typeorm-role.repository.ts"
+/*!*************************************************************************************************!*\
+  !*** ./apps/transversal-ms/src/infrastructure/database/repositories/typeorm-role.repository.ts ***!
+  \*************************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+var _a;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.TypeormRoleRepository = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const typeorm_1 = __webpack_require__(/*! @nestjs/typeorm */ "@nestjs/typeorm");
+const typeorm_2 = __webpack_require__(/*! typeorm */ "typeorm");
+const transversal_data_1 = __webpack_require__(/*! @app/transversal-data */ "./libs/transversal-data/src/index.ts");
+const role_mapper_1 = __webpack_require__(/*! @infrastructure/database/mappers/role.mapper */ "./apps/transversal-ms/src/infrastructure/database/mappers/role.mapper.ts");
+const ROLE_SELECT = {
+    id: true,
+    externalId: true,
+    name: true,
+    description: true,
+    createdAt: true,
+    updatedAt: true,
+};
+let TypeormRoleRepository = class TypeormRoleRepository {
+    constructor(repo) {
+        this.repo = repo;
+    }
+    async find_by_external_id(external_id) {
+        const row = await this.repo.findOne({
+            where: { externalId: external_id },
+            select: ROLE_SELECT,
+        });
+        return row ? role_mapper_1.RoleMapper.to_domain(row) : null;
+    }
+    async find_by_internal_id(internal_id) {
+        const row = await this.repo.findOne({
+            where: { id: internal_id },
+            select: ROLE_SELECT,
+        });
+        return row ? role_mapper_1.RoleMapper.to_domain(row) : null;
+    }
+    async list(params) {
+        const qb = this.repo.createQueryBuilder('r').select([
+            'r.id',
+            'r.externalId',
+            'r.name',
+            'r.description',
+            'r.createdAt',
+            'r.updatedAt',
+        ]);
+        if (params.name_contains !== undefined && params.name_contains !== '') {
+            qb.andWhere('LOWER(r.name) LIKE LOWER(:n)', {
+                n: `%${params.name_contains}%`,
+            });
+        }
+        const total = await qb.clone().getCount();
+        const skip = (params.page - 1) * params.limit;
+        const rows = await qb
+            .orderBy('r.id', 'ASC')
+            .skip(skip)
+            .take(params.limit)
+            .getMany();
+        return {
+            items: rows.map((x) => role_mapper_1.RoleMapper.to_domain(x)),
+            total,
+        };
+    }
+    async create(props) {
+        const rows = (await this.repo.query(`INSERT INTO transversal_schema.roles (name, description)
+       VALUES ($1, $2)
+       RETURNING id, external_id, name, description, created_at, updated_at`, [props.name, props.description]));
+        return role_mapper_1.RoleMapper.from_raw_row(rows[0]);
+    }
+    async update_by_external_id(external_id, patch) {
+        const existing = await this.repo.findOne({
+            where: { externalId: external_id },
+            select: { id: true },
+        });
+        if (!existing) {
+            return null;
+        }
+        const columns = [];
+        const values = [];
+        let i = 1;
+        const add = (col, val) => {
+            columns.push(`"${col}" = $${i}`);
+            values.push(val);
+            i += 1;
+        };
+        if (patch.name !== undefined) {
+            add('name', patch.name);
+        }
+        if (patch.description !== undefined) {
+            add('description', patch.description);
+        }
+        if (columns.length === 0) {
+            return this.find_by_external_id(external_id);
+        }
+        columns.push(`"updated_at" = now()`);
+        values.push(external_id);
+        const rows = (await this.repo.query(`UPDATE transversal_schema.roles SET ${columns.join(', ')}
+       WHERE external_id = $${i}::uuid
+       RETURNING id, external_id, name, description, created_at, updated_at`, values));
+        if (!rows?.length) {
+            return null;
+        }
+        return role_mapper_1.RoleMapper.from_raw_row(rows[0]);
+    }
+    async delete_by_external_id(external_id) {
+        const rows = (await this.repo.query(`DELETE FROM transversal_schema.roles r
+       WHERE r.external_id = $1::uuid
+       AND NOT EXISTS (
+         SELECT 1 FROM transversal_schema.users u WHERE u.role_id = r.id
+       )
+       RETURNING r.id`, [external_id]));
+        return rows.length > 0;
+    }
+};
+exports.TypeormRoleRepository = TypeormRoleRepository;
+exports.TypeormRoleRepository = TypeormRoleRepository = __decorate([
+    (0, common_1.Injectable)(),
+    __param(0, (0, typeorm_1.InjectRepository)(transversal_data_1.RoleEntity)),
+    __metadata("design:paramtypes", [typeof (_a = typeof typeorm_2.Repository !== "undefined" && typeorm_2.Repository) === "function" ? _a : Object])
+], TypeormRoleRepository);
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/infrastructure/database/repositories/typeorm-state.repository.ts"
+/*!**************************************************************************************************!*\
+  !*** ./apps/transversal-ms/src/infrastructure/database/repositories/typeorm-state.repository.ts ***!
+  \**************************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+var _a;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.TypeormStateRepository = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const typeorm_1 = __webpack_require__(/*! @nestjs/typeorm */ "@nestjs/typeorm");
+const typeorm_2 = __webpack_require__(/*! typeorm */ "typeorm");
+const transversal_data_1 = __webpack_require__(/*! @app/transversal-data */ "./libs/transversal-data/src/index.ts");
+const state_mapper_1 = __webpack_require__(/*! @infrastructure/database/mappers/state.mapper */ "./apps/transversal-ms/src/infrastructure/database/mappers/state.mapper.ts");
+const STATE_SELECT = {
+    id: true,
+    externalId: true,
+    countryCode: true,
+    stateName: true,
+    stateCode: true,
+    createdAt: true,
+    updatedAt: true,
+};
+let TypeormStateRepository = class TypeormStateRepository {
+    constructor(repo) {
+        this.repo = repo;
+    }
+    async find_by_external_id(external_id) {
+        const row = await this.repo.findOne({
+            where: { externalId: external_id },
+            select: STATE_SELECT,
+        });
+        return row ? state_mapper_1.StateMapper.to_domain(row) : null;
+    }
+    async list(params) {
+        const qb = this.repo.createQueryBuilder('s').select([
+            's.id',
+            's.externalId',
+            's.countryCode',
+            's.stateName',
+            's.stateCode',
+            's.createdAt',
+            's.updatedAt',
+        ]);
+        if (params.country_code !== undefined && params.country_code !== '') {
+            qb.andWhere('s.countryCode = :cc', { cc: params.country_code });
+        }
+        if (params.state_name_contains !== undefined &&
+            params.state_name_contains !== '') {
+            qb.andWhere('LOWER(s.stateName) LIKE LOWER(:sn)', {
+                sn: `%${params.state_name_contains}%`,
+            });
+        }
+        const total = await qb.clone().getCount();
+        const skip = (params.page - 1) * params.limit;
+        const rows = await qb
+            .orderBy('s.countryCode', 'ASC')
+            .addOrderBy('s.stateName', 'ASC')
+            .skip(skip)
+            .take(params.limit)
+            .getMany();
+        return {
+            items: rows.map((x) => state_mapper_1.StateMapper.to_domain(x)),
+            total,
+        };
+    }
+    async create(props) {
+        const rows = (await this.repo.query(`INSERT INTO transversal_schema.states (country_code, state_name, state_code)
+       VALUES ($1, $2, $3)
+       RETURNING id, external_id, country_code, state_name, state_code, created_at, updated_at`, [props.country_code, props.state_name, props.state_code]));
+        return state_mapper_1.StateMapper.from_raw_row(rows[0]);
+    }
+    async update_by_external_id(external_id, patch) {
+        const existing = await this.repo.findOne({
+            where: { externalId: external_id },
+            select: { id: true },
+        });
+        if (!existing) {
+            return null;
+        }
+        const columns = [];
+        const values = [];
+        let i = 1;
+        const add = (col, val) => {
+            columns.push(`"${col}" = $${i}`);
+            values.push(val);
+            i += 1;
+        };
+        if (patch.country_code !== undefined) {
+            add('country_code', patch.country_code);
+        }
+        if (patch.state_name !== undefined) {
+            add('state_name', patch.state_name);
+        }
+        if (patch.state_code !== undefined) {
+            add('state_code', patch.state_code);
+        }
+        if (columns.length === 0) {
+            return this.find_by_external_id(external_id);
+        }
+        columns.push(`"updated_at" = now()`);
+        values.push(external_id);
+        const rows = (await this.repo.query(`UPDATE transversal_schema.states SET ${columns.join(', ')}
+       WHERE external_id = $${i}::uuid
+       RETURNING id, external_id, country_code, state_name, state_code, created_at, updated_at`, values));
+        if (!rows?.length) {
+            return null;
+        }
+        return state_mapper_1.StateMapper.from_raw_row(rows[0]);
+    }
+    async delete_by_external_id(external_id) {
+        const result = await this.repo.delete({ externalId: external_id });
+        return (result.affected ?? 0) > 0;
+    }
+};
+exports.TypeormStateRepository = TypeormStateRepository;
+exports.TypeormStateRepository = TypeormStateRepository = __decorate([
+    (0, common_1.Injectable)(),
+    __param(0, (0, typeorm_1.InjectRepository)(transversal_data_1.StateEntity)),
+    __metadata("design:paramtypes", [typeof (_a = typeof typeorm_2.Repository !== "undefined" && typeorm_2.Repository) === "function" ? _a : Object])
+], TypeormStateRepository);
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/infrastructure/database/repositories/typeorm-status.repository.ts"
+/*!***************************************************************************************************!*\
+  !*** ./apps/transversal-ms/src/infrastructure/database/repositories/typeorm-status.repository.ts ***!
+  \***************************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+var _a;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.TypeormStatusRepository = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const typeorm_1 = __webpack_require__(/*! @nestjs/typeorm */ "@nestjs/typeorm");
+const typeorm_2 = __webpack_require__(/*! typeorm */ "typeorm");
+const transversal_data_1 = __webpack_require__(/*! @app/transversal-data */ "./libs/transversal-data/src/index.ts");
+const STATUS_REF_SELECT = {
+    id: true,
+    externalId: true,
+};
+let TypeormStatusRepository = class TypeormStatusRepository {
+    constructor(repo) {
+        this.repo = repo;
+    }
+    async find_by_external_id(external_id) {
+        const row = await this.repo.findOne({
+            where: { externalId: external_id },
+            select: STATUS_REF_SELECT,
+        });
+        return row
+            ? { id: row.id, external_id: row.externalId }
+            : null;
+    }
+    async find_by_internal_id(internal_id) {
+        const row = await this.repo.findOne({
+            where: { id: internal_id },
+            select: STATUS_REF_SELECT,
+        });
+        return row
+            ? { id: row.id, external_id: row.externalId }
+            : null;
+    }
+};
+exports.TypeormStatusRepository = TypeormStatusRepository;
+exports.TypeormStatusRepository = TypeormStatusRepository = __decorate([
+    (0, common_1.Injectable)(),
+    __param(0, (0, typeorm_1.InjectRepository)(transversal_data_1.StatusEntity)),
+    __metadata("design:paramtypes", [typeof (_a = typeof typeorm_2.Repository !== "undefined" && typeorm_2.Repository) === "function" ? _a : Object])
+], TypeormStatusRepository);
+
+
+/***/ },
+
 /***/ "./apps/transversal-ms/src/infrastructure/database/repositories/typeorm-user.repository.ts"
 /*!*************************************************************************************************!*\
   !*** ./apps/transversal-ms/src/infrastructure/database/repositories/typeorm-user.repository.ts ***!
@@ -908,6 +1471,20 @@ let TypeormUserRepository = class TypeormUserRepository {
             select: USER_SELECT,
         });
         return row ? user_mapper_1.UserMapper.to_domain(row) : null;
+    }
+    async find_external_id_by_internal_id(internal_id) {
+        const row = await this.repo.findOne({
+            where: { id: internal_id },
+            select: { externalId: true },
+        });
+        return row?.externalId ?? null;
+    }
+    async find_internal_id_by_external_id(external_id) {
+        const row = await this.repo.findOne({
+            where: { externalId: external_id },
+            select: { id: true },
+        });
+        return row?.id ?? null;
     }
     async find_all() {
         const rows = await this.repo.find({
@@ -1049,12 +1626,14 @@ const typeorm_upload_files_idempotency_adapter_1 = __webpack_require__(/*! @infr
 const transversal_tokens_1 = __webpack_require__(/*! @modules/transversal/transversal.tokens */ "./apps/transversal-ms/src/modules/transversal/transversal.tokens.ts");
 const typeorm_person_repository_1 = __webpack_require__(/*! @infrastructure/database/repositories/typeorm-person.repository */ "./apps/transversal-ms/src/infrastructure/database/repositories/typeorm-person.repository.ts");
 const typeorm_user_repository_1 = __webpack_require__(/*! @infrastructure/database/repositories/typeorm-user.repository */ "./apps/transversal-ms/src/infrastructure/database/repositories/typeorm-user.repository.ts");
+const typeorm_role_repository_1 = __webpack_require__(/*! @infrastructure/database/repositories/typeorm-role.repository */ "./apps/transversal-ms/src/infrastructure/database/repositories/typeorm-role.repository.ts");
+const typeorm_city_repository_1 = __webpack_require__(/*! @infrastructure/database/repositories/typeorm-city.repository */ "./apps/transversal-ms/src/infrastructure/database/repositories/typeorm-city.repository.ts");
+const typeorm_state_repository_1 = __webpack_require__(/*! @infrastructure/database/repositories/typeorm-state.repository */ "./apps/transversal-ms/src/infrastructure/database/repositories/typeorm-state.repository.ts");
+const typeorm_status_repository_1 = __webpack_require__(/*! @infrastructure/database/repositories/typeorm-status.repository */ "./apps/transversal-ms/src/infrastructure/database/repositories/typeorm-status.repository.ts");
+const typeorm_currency_read_repository_1 = __webpack_require__(/*! @infrastructure/database/repositories/typeorm-currency-read.repository */ "./apps/transversal-ms/src/infrastructure/database/repositories/typeorm-currency-read.repository.ts");
 const persons_tokens_1 = __webpack_require__(/*! @modules/persons/persons.tokens */ "./apps/transversal-ms/src/modules/persons/persons.tokens.ts");
 const users_tokens_1 = __webpack_require__(/*! @modules/users/users.tokens */ "./apps/transversal-ms/src/modules/users/users.tokens.ts");
-const person_reference_lookup_port_1 = __webpack_require__(/*! @modules/persons/domain/ports/person-reference-lookup.port */ "./apps/transversal-ms/src/modules/persons/domain/ports/person-reference-lookup.port.ts");
-const user_reference_lookup_port_1 = __webpack_require__(/*! @modules/users/domain/ports/user-reference-lookup.port */ "./apps/transversal-ms/src/modules/users/domain/ports/user-reference-lookup.port.ts");
-const typeorm_person_reference_lookup_adapter_1 = __webpack_require__(/*! @infrastructure/database/common/typeorm-person-reference-lookup.adapter */ "./apps/transversal-ms/src/infrastructure/database/common/typeorm-person-reference-lookup.adapter.ts");
-const typeorm_user_reference_lookup_adapter_1 = __webpack_require__(/*! @infrastructure/database/common/typeorm-user-reference-lookup.adapter */ "./apps/transversal-ms/src/infrastructure/database/common/typeorm-user-reference-lookup.adapter.ts");
+const catalog_tokens_1 = __webpack_require__(/*! @modules/transversal/catalog.tokens */ "./apps/transversal-ms/src/modules/transversal/catalog.tokens.ts");
 let InfrastructureModule = class InfrastructureModule {
 };
 exports.InfrastructureModule = InfrastructureModule;
@@ -1084,15 +1663,25 @@ exports.InfrastructureModule = InfrastructureModule = __decorate([
                 provide: users_tokens_1.USER_REPOSITORY,
                 useClass: typeorm_user_repository_1.TypeormUserRepository,
             },
-            typeorm_person_reference_lookup_adapter_1.TypeormPersonReferenceLookupAdapter,
-            typeorm_user_reference_lookup_adapter_1.TypeormUserReferenceLookupAdapter,
             {
-                provide: person_reference_lookup_port_1.PERSON_REFERENCE_LOOKUP,
-                useExisting: typeorm_person_reference_lookup_adapter_1.TypeormPersonReferenceLookupAdapter,
+                provide: catalog_tokens_1.ROLE_REPOSITORY,
+                useClass: typeorm_role_repository_1.TypeormRoleRepository,
             },
             {
-                provide: user_reference_lookup_port_1.USER_REFERENCE_LOOKUP,
-                useExisting: typeorm_user_reference_lookup_adapter_1.TypeormUserReferenceLookupAdapter,
+                provide: catalog_tokens_1.CITY_REPOSITORY,
+                useClass: typeorm_city_repository_1.TypeormCityRepository,
+            },
+            {
+                provide: catalog_tokens_1.STATE_REPOSITORY,
+                useClass: typeorm_state_repository_1.TypeormStateRepository,
+            },
+            {
+                provide: catalog_tokens_1.STATUS_REPOSITORY,
+                useClass: typeorm_status_repository_1.TypeormStatusRepository,
+            },
+            {
+                provide: catalog_tokens_1.CURRENCY_READ_PORT,
+                useClass: typeorm_currency_read_repository_1.TypeormCurrencyReadRepository,
             },
         ],
         exports: [
@@ -1100,8 +1689,11 @@ exports.InfrastructureModule = InfrastructureModule = __decorate([
             transversal_tokens_1.UPLOAD_FILES_IDEMPOTENCY_PORT,
             persons_tokens_1.PERSON_REPOSITORY,
             users_tokens_1.USER_REPOSITORY,
-            person_reference_lookup_port_1.PERSON_REFERENCE_LOOKUP,
-            user_reference_lookup_port_1.USER_REFERENCE_LOOKUP,
+            catalog_tokens_1.ROLE_REPOSITORY,
+            catalog_tokens_1.CITY_REPOSITORY,
+            catalog_tokens_1.STATE_REPOSITORY,
+            catalog_tokens_1.STATUS_REPOSITORY,
+            catalog_tokens_1.CURRENCY_READ_PORT,
         ],
     })
 ], InfrastructureModule);
@@ -2094,9 +2686,13 @@ exports.MessagingApplicationModule = MessagingApplicationModule = __decorate([
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.build_person_public_fields = build_person_public_fields;
-async function build_person_public_fields(row, lookup) {
-    const user_external_id = await lookup.get_user_external_id_by_internal_id(row.user_id);
-    const city_external_id = await lookup.get_city_external_id_by_internal_id(row.city_id);
+async function build_person_public_fields(row, user_repo, city_repo) {
+    const user_external_id = await user_repo.find_external_id_by_internal_id(row.user_id);
+    let city_external_id = null;
+    if (row.city_id !== null) {
+        const city = await city_repo.find_by_internal_id(row.city_id);
+        city_external_id = city?.external_id ?? null;
+    }
     if (user_external_id === null) {
         throw new Error('person user reference resolution failed');
     }
@@ -2169,26 +2765,30 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CreatePersonUseCase = void 0;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
 const persons_tokens_1 = __webpack_require__(/*! @modules/persons/persons.tokens */ "./apps/transversal-ms/src/modules/persons/persons.tokens.ts");
-const person_reference_lookup_port_1 = __webpack_require__(/*! @modules/persons/domain/ports/person-reference-lookup.port */ "./apps/transversal-ms/src/modules/persons/domain/ports/person-reference-lookup.port.ts");
+const users_tokens_1 = __webpack_require__(/*! @modules/users/users.tokens */ "./apps/transversal-ms/src/modules/users/users.tokens.ts");
+const catalog_tokens_1 = __webpack_require__(/*! @modules/transversal/catalog.tokens */ "./apps/transversal-ms/src/modules/transversal/catalog.tokens.ts");
+const user_ports_1 = __webpack_require__(/*! @modules/users/domain/ports/user.ports */ "./apps/transversal-ms/src/modules/users/domain/ports/user.ports.ts");
 const person_ports_1 = __webpack_require__(/*! @modules/persons/domain/ports/person.ports */ "./apps/transversal-ms/src/modules/persons/domain/ports/person.ports.ts");
 const person_public_fields_builder_1 = __webpack_require__(/*! @modules/persons/application/mapping/person-public-fields.builder */ "./apps/transversal-ms/src/modules/persons/application/mapping/person-public-fields.builder.ts");
 const create_person_response_1 = __webpack_require__(/*! ./create-person.response */ "./apps/transversal-ms/src/modules/persons/application/use-cases/create-person/create-person.response.ts");
 let CreatePersonUseCase = class CreatePersonUseCase {
-    constructor(person_repository, reference_lookup) {
+    constructor(person_repository, user_repository, city_repository) {
         this.person_repository = person_repository;
-        this.reference_lookup = reference_lookup;
+        this.user_repository = user_repository;
+        this.city_repository = city_repository;
     }
     async execute(req) {
-        const user_id = await this.reference_lookup.get_user_internal_id_by_external_id(req.user_external_id);
+        const user_id = await this.user_repository.find_internal_id_by_external_id(req.user_external_id);
         if (user_id === null) {
             throw new common_1.NotFoundException('user not found');
         }
         let city_id = null;
         if (req.city_external_id !== null) {
-            city_id = await this.reference_lookup.get_city_internal_id_by_external_id(req.city_external_id);
-            if (city_id === null) {
+            const city = await this.city_repository.find_by_external_id(req.city_external_id);
+            if (city === null) {
                 throw new common_1.NotFoundException('city not found');
             }
+            city_id = city.id;
         }
         const created = await this.person_repository.create({
             user_id,
@@ -2205,7 +2805,7 @@ let CreatePersonUseCase = class CreatePersonUseCase {
             business_address: req.business_address,
             city_id,
         });
-        const fields = await (0, person_public_fields_builder_1.build_person_public_fields)(created, this.reference_lookup);
+        const fields = await (0, person_public_fields_builder_1.build_person_public_fields)(created, this.user_repository, this.city_repository);
         return new create_person_response_1.CreatePersonResponse(fields);
     }
 };
@@ -2213,8 +2813,9 @@ exports.CreatePersonUseCase = CreatePersonUseCase;
 exports.CreatePersonUseCase = CreatePersonUseCase = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, common_1.Inject)(persons_tokens_1.PERSON_REPOSITORY)),
-    __param(1, (0, common_1.Inject)(person_reference_lookup_port_1.PERSON_REFERENCE_LOOKUP)),
-    __metadata("design:paramtypes", [typeof (_a = typeof person_ports_1.PersonRepository !== "undefined" && person_ports_1.PersonRepository) === "function" ? _a : Object, typeof (_b = typeof person_reference_lookup_port_1.PersonReferenceLookupPort !== "undefined" && person_reference_lookup_port_1.PersonReferenceLookupPort) === "function" ? _b : Object])
+    __param(1, (0, common_1.Inject)(users_tokens_1.USER_REPOSITORY)),
+    __param(2, (0, common_1.Inject)(catalog_tokens_1.CITY_REPOSITORY)),
+    __metadata("design:paramtypes", [typeof (_a = typeof person_ports_1.PersonRepository !== "undefined" && person_ports_1.PersonRepository) === "function" ? _a : Object, typeof (_b = typeof user_ports_1.UserRepository !== "undefined" && user_ports_1.UserRepository) === "function" ? _b : Object, Object])
 ], CreatePersonUseCase);
 
 
@@ -2309,21 +2910,24 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.GetPersonByExternalIdUseCase = void 0;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
 const persons_tokens_1 = __webpack_require__(/*! @modules/persons/persons.tokens */ "./apps/transversal-ms/src/modules/persons/persons.tokens.ts");
-const person_reference_lookup_port_1 = __webpack_require__(/*! @modules/persons/domain/ports/person-reference-lookup.port */ "./apps/transversal-ms/src/modules/persons/domain/ports/person-reference-lookup.port.ts");
+const users_tokens_1 = __webpack_require__(/*! @modules/users/users.tokens */ "./apps/transversal-ms/src/modules/users/users.tokens.ts");
+const catalog_tokens_1 = __webpack_require__(/*! @modules/transversal/catalog.tokens */ "./apps/transversal-ms/src/modules/transversal/catalog.tokens.ts");
+const user_ports_1 = __webpack_require__(/*! @modules/users/domain/ports/user.ports */ "./apps/transversal-ms/src/modules/users/domain/ports/user.ports.ts");
 const person_ports_1 = __webpack_require__(/*! @modules/persons/domain/ports/person.ports */ "./apps/transversal-ms/src/modules/persons/domain/ports/person.ports.ts");
 const person_public_fields_builder_1 = __webpack_require__(/*! @modules/persons/application/mapping/person-public-fields.builder */ "./apps/transversal-ms/src/modules/persons/application/mapping/person-public-fields.builder.ts");
 const get_person_by_external_id_response_1 = __webpack_require__(/*! ./get-person-by-external-id.response */ "./apps/transversal-ms/src/modules/persons/application/use-cases/get-person-by-external-id/get-person-by-external-id.response.ts");
 let GetPersonByExternalIdUseCase = class GetPersonByExternalIdUseCase {
-    constructor(person_repository, reference_lookup) {
+    constructor(person_repository, user_repository, city_repository) {
         this.person_repository = person_repository;
-        this.reference_lookup = reference_lookup;
+        this.user_repository = user_repository;
+        this.city_repository = city_repository;
     }
     async execute(req) {
         const row = await this.person_repository.find_by_external_id(req.external_id);
         if (row === null) {
             throw new common_1.NotFoundException('person not found');
         }
-        const fields = await (0, person_public_fields_builder_1.build_person_public_fields)(row, this.reference_lookup);
+        const fields = await (0, person_public_fields_builder_1.build_person_public_fields)(row, this.user_repository, this.city_repository);
         return new get_person_by_external_id_response_1.GetPersonByExternalIdResponse(fields);
     }
 };
@@ -2331,8 +2935,9 @@ exports.GetPersonByExternalIdUseCase = GetPersonByExternalIdUseCase;
 exports.GetPersonByExternalIdUseCase = GetPersonByExternalIdUseCase = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, common_1.Inject)(persons_tokens_1.PERSON_REPOSITORY)),
-    __param(1, (0, common_1.Inject)(person_reference_lookup_port_1.PERSON_REFERENCE_LOOKUP)),
-    __metadata("design:paramtypes", [typeof (_a = typeof person_ports_1.PersonRepository !== "undefined" && person_ports_1.PersonRepository) === "function" ? _a : Object, typeof (_b = typeof person_reference_lookup_port_1.PersonReferenceLookupPort !== "undefined" && person_reference_lookup_port_1.PersonReferenceLookupPort) === "function" ? _b : Object])
+    __param(1, (0, common_1.Inject)(users_tokens_1.USER_REPOSITORY)),
+    __param(2, (0, common_1.Inject)(catalog_tokens_1.CITY_REPOSITORY)),
+    __metadata("design:paramtypes", [typeof (_a = typeof person_ports_1.PersonRepository !== "undefined" && person_ports_1.PersonRepository) === "function" ? _a : Object, typeof (_b = typeof user_ports_1.UserRepository !== "undefined" && user_ports_1.UserRepository) === "function" ? _b : Object, Object])
 ], GetPersonByExternalIdUseCase);
 
 
@@ -2381,20 +2986,23 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ListPersonsUseCase = void 0;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
 const persons_tokens_1 = __webpack_require__(/*! @modules/persons/persons.tokens */ "./apps/transversal-ms/src/modules/persons/persons.tokens.ts");
-const person_reference_lookup_port_1 = __webpack_require__(/*! @modules/persons/domain/ports/person-reference-lookup.port */ "./apps/transversal-ms/src/modules/persons/domain/ports/person-reference-lookup.port.ts");
+const users_tokens_1 = __webpack_require__(/*! @modules/users/users.tokens */ "./apps/transversal-ms/src/modules/users/users.tokens.ts");
+const catalog_tokens_1 = __webpack_require__(/*! @modules/transversal/catalog.tokens */ "./apps/transversal-ms/src/modules/transversal/catalog.tokens.ts");
+const user_ports_1 = __webpack_require__(/*! @modules/users/domain/ports/user.ports */ "./apps/transversal-ms/src/modules/users/domain/ports/user.ports.ts");
 const person_ports_1 = __webpack_require__(/*! @modules/persons/domain/ports/person.ports */ "./apps/transversal-ms/src/modules/persons/domain/ports/person.ports.ts");
 const person_public_fields_builder_1 = __webpack_require__(/*! @modules/persons/application/mapping/person-public-fields.builder */ "./apps/transversal-ms/src/modules/persons/application/mapping/person-public-fields.builder.ts");
 const list_persons_response_1 = __webpack_require__(/*! ./list-persons.response */ "./apps/transversal-ms/src/modules/persons/application/use-cases/list-persons/list-persons.response.ts");
 let ListPersonsUseCase = class ListPersonsUseCase {
-    constructor(person_repository, reference_lookup) {
+    constructor(person_repository, user_repository, city_repository) {
         this.person_repository = person_repository;
-        this.reference_lookup = reference_lookup;
+        this.user_repository = user_repository;
+        this.city_repository = city_repository;
     }
     async execute() {
         const rows = await this.person_repository.find_all();
         const out = [];
         for (const row of rows) {
-            const fields = await (0, person_public_fields_builder_1.build_person_public_fields)(row, this.reference_lookup);
+            const fields = await (0, person_public_fields_builder_1.build_person_public_fields)(row, this.user_repository, this.city_repository);
             out.push(new list_persons_response_1.ListPersonsItemResponse(fields));
         }
         return out;
@@ -2404,8 +3012,9 @@ exports.ListPersonsUseCase = ListPersonsUseCase;
 exports.ListPersonsUseCase = ListPersonsUseCase = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, common_1.Inject)(persons_tokens_1.PERSON_REPOSITORY)),
-    __param(1, (0, common_1.Inject)(person_reference_lookup_port_1.PERSON_REFERENCE_LOOKUP)),
-    __metadata("design:paramtypes", [typeof (_a = typeof person_ports_1.PersonRepository !== "undefined" && person_ports_1.PersonRepository) === "function" ? _a : Object, typeof (_b = typeof person_reference_lookup_port_1.PersonReferenceLookupPort !== "undefined" && person_reference_lookup_port_1.PersonReferenceLookupPort) === "function" ? _b : Object])
+    __param(1, (0, common_1.Inject)(users_tokens_1.USER_REPOSITORY)),
+    __param(2, (0, common_1.Inject)(catalog_tokens_1.CITY_REPOSITORY)),
+    __metadata("design:paramtypes", [typeof (_a = typeof person_ports_1.PersonRepository !== "undefined" && person_ports_1.PersonRepository) === "function" ? _a : Object, typeof (_b = typeof user_ports_1.UserRepository !== "undefined" && user_ports_1.UserRepository) === "function" ? _b : Object, Object])
 ], ListPersonsUseCase);
 
 
@@ -2454,19 +3063,22 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.UpdatePersonByExternalIdUseCase = void 0;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
 const persons_tokens_1 = __webpack_require__(/*! @modules/persons/persons.tokens */ "./apps/transversal-ms/src/modules/persons/persons.tokens.ts");
-const person_reference_lookup_port_1 = __webpack_require__(/*! @modules/persons/domain/ports/person-reference-lookup.port */ "./apps/transversal-ms/src/modules/persons/domain/ports/person-reference-lookup.port.ts");
+const users_tokens_1 = __webpack_require__(/*! @modules/users/users.tokens */ "./apps/transversal-ms/src/modules/users/users.tokens.ts");
+const catalog_tokens_1 = __webpack_require__(/*! @modules/transversal/catalog.tokens */ "./apps/transversal-ms/src/modules/transversal/catalog.tokens.ts");
+const user_ports_1 = __webpack_require__(/*! @modules/users/domain/ports/user.ports */ "./apps/transversal-ms/src/modules/users/domain/ports/user.ports.ts");
 const person_ports_1 = __webpack_require__(/*! @modules/persons/domain/ports/person.ports */ "./apps/transversal-ms/src/modules/persons/domain/ports/person.ports.ts");
 const person_public_fields_builder_1 = __webpack_require__(/*! @modules/persons/application/mapping/person-public-fields.builder */ "./apps/transversal-ms/src/modules/persons/application/mapping/person-public-fields.builder.ts");
 const update_person_by_external_id_response_1 = __webpack_require__(/*! ./update-person-by-external-id.response */ "./apps/transversal-ms/src/modules/persons/application/use-cases/update-person-by-external-id/update-person-by-external-id.response.ts");
 let UpdatePersonByExternalIdUseCase = class UpdatePersonByExternalIdUseCase {
-    constructor(person_repository, reference_lookup) {
+    constructor(person_repository, user_repository, city_repository) {
         this.person_repository = person_repository;
-        this.reference_lookup = reference_lookup;
+        this.user_repository = user_repository;
+        this.city_repository = city_repository;
     }
     async execute(req) {
         const patch = {};
         if (req.user_external_id !== undefined) {
-            const user_id = await this.reference_lookup.get_user_internal_id_by_external_id(req.user_external_id);
+            const user_id = await this.user_repository.find_internal_id_by_external_id(req.user_external_id);
             if (user_id === null) {
                 throw new common_1.NotFoundException('user not found');
             }
@@ -2510,18 +3122,18 @@ let UpdatePersonByExternalIdUseCase = class UpdatePersonByExternalIdUseCase {
                 patch.city_id = null;
             }
             else {
-                const city_id = await this.reference_lookup.get_city_internal_id_by_external_id(req.city_external_id);
-                if (city_id === null) {
+                const city = await this.city_repository.find_by_external_id(req.city_external_id);
+                if (city === null) {
                     throw new common_1.NotFoundException('city not found');
                 }
-                patch.city_id = city_id;
+                patch.city_id = city.id;
             }
         }
         const updated = await this.person_repository.update_by_external_id(req.external_id, patch);
         if (updated === null) {
             throw new common_1.NotFoundException('person not found');
         }
-        const fields = await (0, person_public_fields_builder_1.build_person_public_fields)(updated, this.reference_lookup);
+        const fields = await (0, person_public_fields_builder_1.build_person_public_fields)(updated, this.user_repository, this.city_repository);
         return new update_person_by_external_id_response_1.UpdatePersonByExternalIdResponse(fields);
     }
 };
@@ -2529,8 +3141,9 @@ exports.UpdatePersonByExternalIdUseCase = UpdatePersonByExternalIdUseCase;
 exports.UpdatePersonByExternalIdUseCase = UpdatePersonByExternalIdUseCase = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, common_1.Inject)(persons_tokens_1.PERSON_REPOSITORY)),
-    __param(1, (0, common_1.Inject)(person_reference_lookup_port_1.PERSON_REFERENCE_LOOKUP)),
-    __metadata("design:paramtypes", [typeof (_a = typeof person_ports_1.PersonRepository !== "undefined" && person_ports_1.PersonRepository) === "function" ? _a : Object, typeof (_b = typeof person_reference_lookup_port_1.PersonReferenceLookupPort !== "undefined" && person_reference_lookup_port_1.PersonReferenceLookupPort) === "function" ? _b : Object])
+    __param(1, (0, common_1.Inject)(users_tokens_1.USER_REPOSITORY)),
+    __param(2, (0, common_1.Inject)(catalog_tokens_1.CITY_REPOSITORY)),
+    __metadata("design:paramtypes", [typeof (_a = typeof person_ports_1.PersonRepository !== "undefined" && person_ports_1.PersonRepository) === "function" ? _a : Object, typeof (_b = typeof user_ports_1.UserRepository !== "undefined" && user_ports_1.UserRepository) === "function" ? _b : Object, Object])
 ], UpdatePersonByExternalIdUseCase);
 
 
@@ -2567,20 +3180,6 @@ class Person {
     }
 }
 exports.Person = Person;
-
-
-/***/ },
-
-/***/ "./apps/transversal-ms/src/modules/persons/domain/ports/person-reference-lookup.port.ts"
-/*!**********************************************************************************************!*\
-  !*** ./apps/transversal-ms/src/modules/persons/domain/ports/person-reference-lookup.port.ts ***!
-  \**********************************************************************************************/
-(__unused_webpack_module, exports) {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.PERSON_REFERENCE_LOOKUP = void 0;
-exports.PERSON_REFERENCE_LOOKUP = Symbol('PERSON_REFERENCE_LOOKUP');
 
 
 /***/ },
@@ -3069,6 +3668,1733 @@ exports.UploadFilesUseCase = UploadFilesUseCase = UploadFilesUseCase_1 = __decor
 
 /***/ },
 
+/***/ "./apps/transversal-ms/src/modules/transversal/catalog.tokens.ts"
+/*!***********************************************************************!*\
+  !*** ./apps/transversal-ms/src/modules/transversal/catalog.tokens.ts ***!
+  \***********************************************************************/
+(__unused_webpack_module, exports) {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.CURRENCY_READ_PORT = exports.STATUS_REPOSITORY = exports.STATE_REPOSITORY = exports.CITY_REPOSITORY = exports.ROLE_REPOSITORY = void 0;
+exports.ROLE_REPOSITORY = Symbol('ROLE_REPOSITORY');
+exports.CITY_REPOSITORY = Symbol('CITY_REPOSITORY');
+exports.STATE_REPOSITORY = Symbol('STATE_REPOSITORY');
+exports.STATUS_REPOSITORY = Symbol('STATUS_REPOSITORY');
+exports.CURRENCY_READ_PORT = Symbol('CURRENCY_READ_PORT');
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/modules/transversal/catalog/application/use-cases/cities/create-city.use-case.ts"
+/*!******************************************************************************************************************!*\
+  !*** ./apps/transversal-ms/src/modules/transversal/catalog/application/use-cases/cities/create-city.use-case.ts ***!
+  \******************************************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+var CreateCityUseCase_1;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.CreateCityUseCase = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const catalog_tokens_1 = __webpack_require__(/*! @modules/transversal/catalog.tokens */ "./apps/transversal-ms/src/modules/transversal/catalog.tokens.ts");
+const pg_error_util_1 = __webpack_require__(/*! @common/utils/pg-error.util */ "./apps/transversal-ms/src/common/utils/pg-error.util.ts");
+let CreateCityUseCase = CreateCityUseCase_1 = class CreateCityUseCase {
+    constructor(city_repository, currency_read) {
+        this.city_repository = city_repository;
+        this.currency_read = currency_read;
+        this.logger = new common_1.Logger(CreateCityUseCase_1.name);
+    }
+    async execute(body) {
+        const currency_id = await this.currency_read.find_internal_id_by_external_id(body.currency_external_id);
+        if (currency_id === null) {
+            throw new common_1.NotFoundException('currency not found');
+        }
+        try {
+            return await this.city_repository.create({
+                country_name: body.country_name,
+                country_code: body.country_code,
+                state_name: body.state_name,
+                state_code: body.state_code,
+                city_name: body.city_name,
+                currency_id,
+            });
+        }
+        catch (err) {
+            if ((0, pg_error_util_1.is_pg_unique_violation)(err)) {
+                throw new common_1.ConflictException('city already exists for this location');
+            }
+            this.logger.error('create city failed');
+            throw err;
+        }
+    }
+};
+exports.CreateCityUseCase = CreateCityUseCase;
+exports.CreateCityUseCase = CreateCityUseCase = CreateCityUseCase_1 = __decorate([
+    (0, common_1.Injectable)(),
+    __param(0, (0, common_1.Inject)(catalog_tokens_1.CITY_REPOSITORY)),
+    __param(1, (0, common_1.Inject)(catalog_tokens_1.CURRENCY_READ_PORT)),
+    __metadata("design:paramtypes", [Object, Object])
+], CreateCityUseCase);
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/modules/transversal/catalog/application/use-cases/cities/delete-city-by-external-id.use-case.ts"
+/*!*********************************************************************************************************************************!*\
+  !*** ./apps/transversal-ms/src/modules/transversal/catalog/application/use-cases/cities/delete-city-by-external-id.use-case.ts ***!
+  \*********************************************************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.DeleteCityByExternalIdUseCase = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const catalog_tokens_1 = __webpack_require__(/*! @modules/transversal/catalog.tokens */ "./apps/transversal-ms/src/modules/transversal/catalog.tokens.ts");
+let DeleteCityByExternalIdUseCase = class DeleteCityByExternalIdUseCase {
+    constructor(city_repository) {
+        this.city_repository = city_repository;
+    }
+    async execute(external_id) {
+        const deleted = await this.city_repository.delete_by_external_id(external_id);
+        if (deleted) {
+            return;
+        }
+        const exists = await this.city_repository.find_by_external_id(external_id);
+        if (exists === null) {
+            throw new common_1.NotFoundException('city not found');
+        }
+        throw new common_1.ConflictException('city is referenced by persons or businesses');
+    }
+};
+exports.DeleteCityByExternalIdUseCase = DeleteCityByExternalIdUseCase;
+exports.DeleteCityByExternalIdUseCase = DeleteCityByExternalIdUseCase = __decorate([
+    (0, common_1.Injectable)(),
+    __param(0, (0, common_1.Inject)(catalog_tokens_1.CITY_REPOSITORY)),
+    __metadata("design:paramtypes", [Object])
+], DeleteCityByExternalIdUseCase);
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/modules/transversal/catalog/application/use-cases/cities/get-city-by-external-id.use-case.ts"
+/*!******************************************************************************************************************************!*\
+  !*** ./apps/transversal-ms/src/modules/transversal/catalog/application/use-cases/cities/get-city-by-external-id.use-case.ts ***!
+  \******************************************************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.GetCityByExternalIdUseCase = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const catalog_tokens_1 = __webpack_require__(/*! @modules/transversal/catalog.tokens */ "./apps/transversal-ms/src/modules/transversal/catalog.tokens.ts");
+let GetCityByExternalIdUseCase = class GetCityByExternalIdUseCase {
+    constructor(city_repository) {
+        this.city_repository = city_repository;
+    }
+    async execute(external_id) {
+        const city = await this.city_repository.find_by_external_id(external_id);
+        if (city === null) {
+            throw new common_1.NotFoundException('city not found');
+        }
+        return city;
+    }
+};
+exports.GetCityByExternalIdUseCase = GetCityByExternalIdUseCase;
+exports.GetCityByExternalIdUseCase = GetCityByExternalIdUseCase = __decorate([
+    (0, common_1.Injectable)(),
+    __param(0, (0, common_1.Inject)(catalog_tokens_1.CITY_REPOSITORY)),
+    __metadata("design:paramtypes", [Object])
+], GetCityByExternalIdUseCase);
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/modules/transversal/catalog/application/use-cases/cities/list-cities.use-case.ts"
+/*!******************************************************************************************************************!*\
+  !*** ./apps/transversal-ms/src/modules/transversal/catalog/application/use-cases/cities/list-cities.use-case.ts ***!
+  \******************************************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ListCitiesUseCase = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const catalog_tokens_1 = __webpack_require__(/*! @modules/transversal/catalog.tokens */ "./apps/transversal-ms/src/modules/transversal/catalog.tokens.ts");
+let ListCitiesUseCase = class ListCitiesUseCase {
+    constructor(city_repository) {
+        this.city_repository = city_repository;
+    }
+    async execute(query) {
+        const { items, total } = await this.city_repository.list(query);
+        return {
+            items,
+            total,
+            page: query.page,
+            limit: query.limit,
+        };
+    }
+};
+exports.ListCitiesUseCase = ListCitiesUseCase;
+exports.ListCitiesUseCase = ListCitiesUseCase = __decorate([
+    (0, common_1.Injectable)(),
+    __param(0, (0, common_1.Inject)(catalog_tokens_1.CITY_REPOSITORY)),
+    __metadata("design:paramtypes", [Object])
+], ListCitiesUseCase);
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/modules/transversal/catalog/application/use-cases/cities/update-city-by-external-id.use-case.ts"
+/*!*********************************************************************************************************************************!*\
+  !*** ./apps/transversal-ms/src/modules/transversal/catalog/application/use-cases/cities/update-city-by-external-id.use-case.ts ***!
+  \*********************************************************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+var UpdateCityByExternalIdUseCase_1;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.UpdateCityByExternalIdUseCase = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const catalog_tokens_1 = __webpack_require__(/*! @modules/transversal/catalog.tokens */ "./apps/transversal-ms/src/modules/transversal/catalog.tokens.ts");
+const pg_error_util_1 = __webpack_require__(/*! @common/utils/pg-error.util */ "./apps/transversal-ms/src/common/utils/pg-error.util.ts");
+let UpdateCityByExternalIdUseCase = UpdateCityByExternalIdUseCase_1 = class UpdateCityByExternalIdUseCase {
+    constructor(city_repository, currency_read) {
+        this.city_repository = city_repository;
+        this.currency_read = currency_read;
+        this.logger = new common_1.Logger(UpdateCityByExternalIdUseCase_1.name);
+    }
+    async execute(external_id, body) {
+        const patch = {};
+        if (body.country_name !== undefined) {
+            patch.country_name = body.country_name;
+        }
+        if (body.country_code !== undefined) {
+            patch.country_code = body.country_code;
+        }
+        if (body.state_name !== undefined) {
+            patch.state_name = body.state_name;
+        }
+        if (body.state_code !== undefined) {
+            patch.state_code = body.state_code;
+        }
+        if (body.city_name !== undefined) {
+            patch.city_name = body.city_name;
+        }
+        if (body.currency_external_id !== undefined) {
+            const currency_id = await this.currency_read.find_internal_id_by_external_id(body.currency_external_id);
+            if (currency_id === null) {
+                throw new common_1.NotFoundException('currency not found');
+            }
+            patch.currency_id = currency_id;
+        }
+        try {
+            const updated = await this.city_repository.update_by_external_id(external_id, patch);
+            if (updated === null) {
+                throw new common_1.NotFoundException('city not found');
+            }
+            return updated;
+        }
+        catch (err) {
+            if (err instanceof common_1.NotFoundException) {
+                throw err;
+            }
+            if ((0, pg_error_util_1.is_pg_unique_violation)(err)) {
+                throw new common_1.ConflictException('city already exists for this location');
+            }
+            this.logger.error('update city failed');
+            throw err;
+        }
+    }
+};
+exports.UpdateCityByExternalIdUseCase = UpdateCityByExternalIdUseCase;
+exports.UpdateCityByExternalIdUseCase = UpdateCityByExternalIdUseCase = UpdateCityByExternalIdUseCase_1 = __decorate([
+    (0, common_1.Injectable)(),
+    __param(0, (0, common_1.Inject)(catalog_tokens_1.CITY_REPOSITORY)),
+    __param(1, (0, common_1.Inject)(catalog_tokens_1.CURRENCY_READ_PORT)),
+    __metadata("design:paramtypes", [Object, Object])
+], UpdateCityByExternalIdUseCase);
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/modules/transversal/catalog/application/use-cases/roles/create-role.use-case.ts"
+/*!*****************************************************************************************************************!*\
+  !*** ./apps/transversal-ms/src/modules/transversal/catalog/application/use-cases/roles/create-role.use-case.ts ***!
+  \*****************************************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+var CreateRoleUseCase_1;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.CreateRoleUseCase = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const catalog_tokens_1 = __webpack_require__(/*! @modules/transversal/catalog.tokens */ "./apps/transversal-ms/src/modules/transversal/catalog.tokens.ts");
+const pg_error_util_1 = __webpack_require__(/*! @common/utils/pg-error.util */ "./apps/transversal-ms/src/common/utils/pg-error.util.ts");
+let CreateRoleUseCase = CreateRoleUseCase_1 = class CreateRoleUseCase {
+    constructor(role_repository) {
+        this.role_repository = role_repository;
+        this.logger = new common_1.Logger(CreateRoleUseCase_1.name);
+    }
+    async execute(body) {
+        try {
+            const role = await this.role_repository.create({
+                name: body.name,
+                description: body.description,
+            });
+            return role;
+        }
+        catch (err) {
+            if ((0, pg_error_util_1.is_pg_unique_violation)(err)) {
+                throw new common_1.ConflictException('role already exists');
+            }
+            this.logger.error('create role failed');
+            throw err;
+        }
+    }
+};
+exports.CreateRoleUseCase = CreateRoleUseCase;
+exports.CreateRoleUseCase = CreateRoleUseCase = CreateRoleUseCase_1 = __decorate([
+    (0, common_1.Injectable)(),
+    __param(0, (0, common_1.Inject)(catalog_tokens_1.ROLE_REPOSITORY)),
+    __metadata("design:paramtypes", [Object])
+], CreateRoleUseCase);
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/modules/transversal/catalog/application/use-cases/roles/delete-role-by-external-id.use-case.ts"
+/*!********************************************************************************************************************************!*\
+  !*** ./apps/transversal-ms/src/modules/transversal/catalog/application/use-cases/roles/delete-role-by-external-id.use-case.ts ***!
+  \********************************************************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.DeleteRoleByExternalIdUseCase = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const catalog_tokens_1 = __webpack_require__(/*! @modules/transversal/catalog.tokens */ "./apps/transversal-ms/src/modules/transversal/catalog.tokens.ts");
+let DeleteRoleByExternalIdUseCase = class DeleteRoleByExternalIdUseCase {
+    constructor(role_repository) {
+        this.role_repository = role_repository;
+    }
+    async execute(external_id) {
+        const deleted = await this.role_repository.delete_by_external_id(external_id);
+        if (deleted) {
+            return;
+        }
+        const exists = await this.role_repository.find_by_external_id(external_id);
+        if (exists === null) {
+            throw new common_1.NotFoundException('role not found');
+        }
+        throw new common_1.ConflictException('role is assigned to users');
+    }
+};
+exports.DeleteRoleByExternalIdUseCase = DeleteRoleByExternalIdUseCase;
+exports.DeleteRoleByExternalIdUseCase = DeleteRoleByExternalIdUseCase = __decorate([
+    (0, common_1.Injectable)(),
+    __param(0, (0, common_1.Inject)(catalog_tokens_1.ROLE_REPOSITORY)),
+    __metadata("design:paramtypes", [Object])
+], DeleteRoleByExternalIdUseCase);
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/modules/transversal/catalog/application/use-cases/roles/get-role-by-external-id.use-case.ts"
+/*!*****************************************************************************************************************************!*\
+  !*** ./apps/transversal-ms/src/modules/transversal/catalog/application/use-cases/roles/get-role-by-external-id.use-case.ts ***!
+  \*****************************************************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.GetRoleByExternalIdUseCase = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const catalog_tokens_1 = __webpack_require__(/*! @modules/transversal/catalog.tokens */ "./apps/transversal-ms/src/modules/transversal/catalog.tokens.ts");
+let GetRoleByExternalIdUseCase = class GetRoleByExternalIdUseCase {
+    constructor(role_repository) {
+        this.role_repository = role_repository;
+    }
+    async execute(external_id) {
+        const role = await this.role_repository.find_by_external_id(external_id);
+        if (role === null) {
+            throw new common_1.NotFoundException('role not found');
+        }
+        return role;
+    }
+};
+exports.GetRoleByExternalIdUseCase = GetRoleByExternalIdUseCase;
+exports.GetRoleByExternalIdUseCase = GetRoleByExternalIdUseCase = __decorate([
+    (0, common_1.Injectable)(),
+    __param(0, (0, common_1.Inject)(catalog_tokens_1.ROLE_REPOSITORY)),
+    __metadata("design:paramtypes", [Object])
+], GetRoleByExternalIdUseCase);
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/modules/transversal/catalog/application/use-cases/roles/list-roles.use-case.ts"
+/*!****************************************************************************************************************!*\
+  !*** ./apps/transversal-ms/src/modules/transversal/catalog/application/use-cases/roles/list-roles.use-case.ts ***!
+  \****************************************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ListRolesUseCase = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const catalog_tokens_1 = __webpack_require__(/*! @modules/transversal/catalog.tokens */ "./apps/transversal-ms/src/modules/transversal/catalog.tokens.ts");
+let ListRolesUseCase = class ListRolesUseCase {
+    constructor(role_repository) {
+        this.role_repository = role_repository;
+    }
+    async execute(query) {
+        const { items, total } = await this.role_repository.list(query);
+        return {
+            items,
+            total,
+            page: query.page,
+            limit: query.limit,
+        };
+    }
+};
+exports.ListRolesUseCase = ListRolesUseCase;
+exports.ListRolesUseCase = ListRolesUseCase = __decorate([
+    (0, common_1.Injectable)(),
+    __param(0, (0, common_1.Inject)(catalog_tokens_1.ROLE_REPOSITORY)),
+    __metadata("design:paramtypes", [Object])
+], ListRolesUseCase);
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/modules/transversal/catalog/application/use-cases/roles/update-role-by-external-id.use-case.ts"
+/*!********************************************************************************************************************************!*\
+  !*** ./apps/transversal-ms/src/modules/transversal/catalog/application/use-cases/roles/update-role-by-external-id.use-case.ts ***!
+  \********************************************************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+var UpdateRoleByExternalIdUseCase_1;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.UpdateRoleByExternalIdUseCase = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const catalog_tokens_1 = __webpack_require__(/*! @modules/transversal/catalog.tokens */ "./apps/transversal-ms/src/modules/transversal/catalog.tokens.ts");
+const pg_error_util_1 = __webpack_require__(/*! @common/utils/pg-error.util */ "./apps/transversal-ms/src/common/utils/pg-error.util.ts");
+let UpdateRoleByExternalIdUseCase = UpdateRoleByExternalIdUseCase_1 = class UpdateRoleByExternalIdUseCase {
+    constructor(role_repository) {
+        this.role_repository = role_repository;
+        this.logger = new common_1.Logger(UpdateRoleByExternalIdUseCase_1.name);
+    }
+    async execute(external_id, patch) {
+        try {
+            const updated = await this.role_repository.update_by_external_id(external_id, patch);
+            if (updated === null) {
+                throw new common_1.NotFoundException('role not found');
+            }
+            return updated;
+        }
+        catch (err) {
+            if (err instanceof common_1.NotFoundException) {
+                throw err;
+            }
+            if ((0, pg_error_util_1.is_pg_unique_violation)(err)) {
+                throw new common_1.ConflictException('role name already exists');
+            }
+            this.logger.error('update role failed');
+            throw err;
+        }
+    }
+};
+exports.UpdateRoleByExternalIdUseCase = UpdateRoleByExternalIdUseCase;
+exports.UpdateRoleByExternalIdUseCase = UpdateRoleByExternalIdUseCase = UpdateRoleByExternalIdUseCase_1 = __decorate([
+    (0, common_1.Injectable)(),
+    __param(0, (0, common_1.Inject)(catalog_tokens_1.ROLE_REPOSITORY)),
+    __metadata("design:paramtypes", [Object])
+], UpdateRoleByExternalIdUseCase);
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/modules/transversal/catalog/application/use-cases/states/create-state.use-case.ts"
+/*!*******************************************************************************************************************!*\
+  !*** ./apps/transversal-ms/src/modules/transversal/catalog/application/use-cases/states/create-state.use-case.ts ***!
+  \*******************************************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+var CreateStateUseCase_1;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.CreateStateUseCase = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const catalog_tokens_1 = __webpack_require__(/*! @modules/transversal/catalog.tokens */ "./apps/transversal-ms/src/modules/transversal/catalog.tokens.ts");
+const pg_error_util_1 = __webpack_require__(/*! @common/utils/pg-error.util */ "./apps/transversal-ms/src/common/utils/pg-error.util.ts");
+let CreateStateUseCase = CreateStateUseCase_1 = class CreateStateUseCase {
+    constructor(state_repository) {
+        this.state_repository = state_repository;
+        this.logger = new common_1.Logger(CreateStateUseCase_1.name);
+    }
+    async execute(body) {
+        try {
+            return await this.state_repository.create({
+                country_code: body.country_code,
+                state_name: body.state_name,
+                state_code: body.state_code,
+            });
+        }
+        catch (err) {
+            if ((0, pg_error_util_1.is_pg_unique_violation)(err)) {
+                throw new common_1.ConflictException('state already exists for this country');
+            }
+            this.logger.error('create state failed');
+            throw err;
+        }
+    }
+};
+exports.CreateStateUseCase = CreateStateUseCase;
+exports.CreateStateUseCase = CreateStateUseCase = CreateStateUseCase_1 = __decorate([
+    (0, common_1.Injectable)(),
+    __param(0, (0, common_1.Inject)(catalog_tokens_1.STATE_REPOSITORY)),
+    __metadata("design:paramtypes", [Object])
+], CreateStateUseCase);
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/modules/transversal/catalog/application/use-cases/states/delete-state-by-external-id.use-case.ts"
+/*!**********************************************************************************************************************************!*\
+  !*** ./apps/transversal-ms/src/modules/transversal/catalog/application/use-cases/states/delete-state-by-external-id.use-case.ts ***!
+  \**********************************************************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.DeleteStateByExternalIdUseCase = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const catalog_tokens_1 = __webpack_require__(/*! @modules/transversal/catalog.tokens */ "./apps/transversal-ms/src/modules/transversal/catalog.tokens.ts");
+let DeleteStateByExternalIdUseCase = class DeleteStateByExternalIdUseCase {
+    constructor(state_repository) {
+        this.state_repository = state_repository;
+    }
+    async execute(external_id) {
+        const deleted = await this.state_repository.delete_by_external_id(external_id);
+        if (!deleted) {
+            throw new common_1.NotFoundException('state not found');
+        }
+    }
+};
+exports.DeleteStateByExternalIdUseCase = DeleteStateByExternalIdUseCase;
+exports.DeleteStateByExternalIdUseCase = DeleteStateByExternalIdUseCase = __decorate([
+    (0, common_1.Injectable)(),
+    __param(0, (0, common_1.Inject)(catalog_tokens_1.STATE_REPOSITORY)),
+    __metadata("design:paramtypes", [Object])
+], DeleteStateByExternalIdUseCase);
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/modules/transversal/catalog/application/use-cases/states/get-state-by-external-id.use-case.ts"
+/*!*******************************************************************************************************************************!*\
+  !*** ./apps/transversal-ms/src/modules/transversal/catalog/application/use-cases/states/get-state-by-external-id.use-case.ts ***!
+  \*******************************************************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.GetStateByExternalIdUseCase = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const catalog_tokens_1 = __webpack_require__(/*! @modules/transversal/catalog.tokens */ "./apps/transversal-ms/src/modules/transversal/catalog.tokens.ts");
+let GetStateByExternalIdUseCase = class GetStateByExternalIdUseCase {
+    constructor(state_repository) {
+        this.state_repository = state_repository;
+    }
+    async execute(external_id) {
+        const state = await this.state_repository.find_by_external_id(external_id);
+        if (state === null) {
+            throw new common_1.NotFoundException('state not found');
+        }
+        return state;
+    }
+};
+exports.GetStateByExternalIdUseCase = GetStateByExternalIdUseCase;
+exports.GetStateByExternalIdUseCase = GetStateByExternalIdUseCase = __decorate([
+    (0, common_1.Injectable)(),
+    __param(0, (0, common_1.Inject)(catalog_tokens_1.STATE_REPOSITORY)),
+    __metadata("design:paramtypes", [Object])
+], GetStateByExternalIdUseCase);
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/modules/transversal/catalog/application/use-cases/states/list-states.use-case.ts"
+/*!******************************************************************************************************************!*\
+  !*** ./apps/transversal-ms/src/modules/transversal/catalog/application/use-cases/states/list-states.use-case.ts ***!
+  \******************************************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ListStatesUseCase = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const catalog_tokens_1 = __webpack_require__(/*! @modules/transversal/catalog.tokens */ "./apps/transversal-ms/src/modules/transversal/catalog.tokens.ts");
+let ListStatesUseCase = class ListStatesUseCase {
+    constructor(state_repository) {
+        this.state_repository = state_repository;
+    }
+    async execute(query) {
+        const { items, total } = await this.state_repository.list(query);
+        return {
+            items,
+            total,
+            page: query.page,
+            limit: query.limit,
+        };
+    }
+};
+exports.ListStatesUseCase = ListStatesUseCase;
+exports.ListStatesUseCase = ListStatesUseCase = __decorate([
+    (0, common_1.Injectable)(),
+    __param(0, (0, common_1.Inject)(catalog_tokens_1.STATE_REPOSITORY)),
+    __metadata("design:paramtypes", [Object])
+], ListStatesUseCase);
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/modules/transversal/catalog/application/use-cases/states/update-state-by-external-id.use-case.ts"
+/*!**********************************************************************************************************************************!*\
+  !*** ./apps/transversal-ms/src/modules/transversal/catalog/application/use-cases/states/update-state-by-external-id.use-case.ts ***!
+  \**********************************************************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+var UpdateStateByExternalIdUseCase_1;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.UpdateStateByExternalIdUseCase = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const catalog_tokens_1 = __webpack_require__(/*! @modules/transversal/catalog.tokens */ "./apps/transversal-ms/src/modules/transversal/catalog.tokens.ts");
+const pg_error_util_1 = __webpack_require__(/*! @common/utils/pg-error.util */ "./apps/transversal-ms/src/common/utils/pg-error.util.ts");
+let UpdateStateByExternalIdUseCase = UpdateStateByExternalIdUseCase_1 = class UpdateStateByExternalIdUseCase {
+    constructor(state_repository) {
+        this.state_repository = state_repository;
+        this.logger = new common_1.Logger(UpdateStateByExternalIdUseCase_1.name);
+    }
+    async execute(external_id, patch) {
+        try {
+            const updated = await this.state_repository.update_by_external_id(external_id, patch);
+            if (updated === null) {
+                throw new common_1.NotFoundException('state not found');
+            }
+            return updated;
+        }
+        catch (err) {
+            if (err instanceof common_1.NotFoundException) {
+                throw err;
+            }
+            if ((0, pg_error_util_1.is_pg_unique_violation)(err)) {
+                throw new common_1.ConflictException('state already exists for this country');
+            }
+            this.logger.error('update state failed');
+            throw err;
+        }
+    }
+};
+exports.UpdateStateByExternalIdUseCase = UpdateStateByExternalIdUseCase;
+exports.UpdateStateByExternalIdUseCase = UpdateStateByExternalIdUseCase = UpdateStateByExternalIdUseCase_1 = __decorate([
+    (0, common_1.Injectable)(),
+    __param(0, (0, common_1.Inject)(catalog_tokens_1.STATE_REPOSITORY)),
+    __metadata("design:paramtypes", [Object])
+], UpdateStateByExternalIdUseCase);
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/modules/transversal/catalog/presentation/cities.controller.ts"
+/*!***********************************************************************************************!*\
+  !*** ./apps/transversal-ms/src/modules/transversal/catalog/presentation/cities.controller.ts ***!
+  \***********************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.CitiesController = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const swagger_1 = __webpack_require__(/*! @nestjs/swagger */ "@nestjs/swagger");
+const create_city_use_case_1 = __webpack_require__(/*! @modules/transversal/catalog/application/use-cases/cities/create-city.use-case */ "./apps/transversal-ms/src/modules/transversal/catalog/application/use-cases/cities/create-city.use-case.ts");
+const get_city_by_external_id_use_case_1 = __webpack_require__(/*! @modules/transversal/catalog/application/use-cases/cities/get-city-by-external-id.use-case */ "./apps/transversal-ms/src/modules/transversal/catalog/application/use-cases/cities/get-city-by-external-id.use-case.ts");
+const list_cities_use_case_1 = __webpack_require__(/*! @modules/transversal/catalog/application/use-cases/cities/list-cities.use-case */ "./apps/transversal-ms/src/modules/transversal/catalog/application/use-cases/cities/list-cities.use-case.ts");
+const update_city_by_external_id_use_case_1 = __webpack_require__(/*! @modules/transversal/catalog/application/use-cases/cities/update-city-by-external-id.use-case */ "./apps/transversal-ms/src/modules/transversal/catalog/application/use-cases/cities/update-city-by-external-id.use-case.ts");
+const delete_city_by_external_id_use_case_1 = __webpack_require__(/*! @modules/transversal/catalog/application/use-cases/cities/delete-city-by-external-id.use-case */ "./apps/transversal-ms/src/modules/transversal/catalog/application/use-cases/cities/delete-city-by-external-id.use-case.ts");
+const cities_api_dto_1 = __webpack_require__(/*! ./dto/cities.api.dto */ "./apps/transversal-ms/src/modules/transversal/catalog/presentation/dto/cities.api.dto.ts");
+const catalog_response_mappers_1 = __webpack_require__(/*! ./mappers/catalog-response.mappers */ "./apps/transversal-ms/src/modules/transversal/catalog/presentation/mappers/catalog-response.mappers.ts");
+let CitiesController = class CitiesController {
+    constructor(create_city, get_city, list_cities, update_city, delete_city) {
+        this.create_city = create_city;
+        this.get_city = get_city;
+        this.list_cities = list_cities;
+        this.update_city = update_city;
+        this.delete_city = delete_city;
+    }
+    async create(body) {
+        const city = await this.create_city.execute({
+            country_name: body.country_name,
+            country_code: body.country_code,
+            state_name: body.state_name,
+            state_code: body.state_code ?? null,
+            city_name: body.city_name,
+            currency_external_id: body.currency_external_id,
+        });
+        return (0, catalog_response_mappers_1.to_city_response_dto)(city);
+    }
+    async list(query) {
+        const result = await this.list_cities.execute({
+            page: query.page,
+            limit: query.limit,
+            country_code: query.country_code,
+            state_name: query.state_name,
+            city_name_contains: query.city_name_contains,
+        });
+        return {
+            items: result.items.map((c) => (0, catalog_response_mappers_1.to_city_response_dto)(c)),
+            total: result.total,
+            page: result.page,
+            limit: result.limit,
+        };
+    }
+    async get(external_id) {
+        const city = await this.get_city.execute(external_id);
+        return (0, catalog_response_mappers_1.to_city_response_dto)(city);
+    }
+    async update(external_id, body) {
+        const payload = {};
+        if (body.country_name !== undefined) {
+            payload.country_name = body.country_name;
+        }
+        if (body.country_code !== undefined) {
+            payload.country_code = body.country_code;
+        }
+        if (body.state_name !== undefined) {
+            payload.state_name = body.state_name;
+        }
+        if (body.state_code !== undefined) {
+            payload.state_code = body.state_code;
+        }
+        if (body.city_name !== undefined) {
+            payload.city_name = body.city_name;
+        }
+        if (body.currency_external_id !== undefined) {
+            payload.currency_external_id = body.currency_external_id;
+        }
+        const city = await this.update_city.execute(external_id, payload);
+        return (0, catalog_response_mappers_1.to_city_response_dto)(city);
+    }
+    async remove(external_id) {
+        await this.delete_city.execute(external_id);
+    }
+};
+exports.CitiesController = CitiesController;
+__decorate([
+    (0, common_1.Post)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Crear ciudad' }),
+    (0, swagger_1.ApiCreatedResponse)({ type: cities_api_dto_1.CityResponseDto }),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [typeof (_f = typeof cities_api_dto_1.CreateCityBodyDto !== "undefined" && cities_api_dto_1.CreateCityBodyDto) === "function" ? _f : Object]),
+    __metadata("design:returntype", typeof (_g = typeof Promise !== "undefined" && Promise) === "function" ? _g : Object)
+], CitiesController.prototype, "create", null);
+__decorate([
+    (0, common_1.Get)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Listar ciudades (paginado, filtros opcionales)' }),
+    (0, swagger_1.ApiOkResponse)({ type: cities_api_dto_1.PaginatedCitiesResponseDto }),
+    __param(0, (0, common_1.Query)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [typeof (_h = typeof cities_api_dto_1.ListCitiesQueryDto !== "undefined" && cities_api_dto_1.ListCitiesQueryDto) === "function" ? _h : Object]),
+    __metadata("design:returntype", typeof (_j = typeof Promise !== "undefined" && Promise) === "function" ? _j : Object)
+], CitiesController.prototype, "list", null);
+__decorate([
+    (0, common_1.Get)(':external_id'),
+    (0, swagger_1.ApiOperation)({ summary: 'Obtener ciudad por external_id (UUID)' }),
+    (0, swagger_1.ApiOkResponse)({ type: cities_api_dto_1.CityResponseDto }),
+    __param(0, (0, common_1.Param)('external_id', new common_1.ParseUUIDPipe({ version: '4' }))),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", typeof (_k = typeof Promise !== "undefined" && Promise) === "function" ? _k : Object)
+], CitiesController.prototype, "get", null);
+__decorate([
+    (0, common_1.Patch)(':external_id'),
+    (0, swagger_1.ApiOperation)({ summary: 'Actualizar ciudad por external_id' }),
+    (0, swagger_1.ApiOkResponse)({ type: cities_api_dto_1.CityResponseDto }),
+    __param(0, (0, common_1.Param)('external_id', new common_1.ParseUUIDPipe({ version: '4' }))),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, typeof (_l = typeof cities_api_dto_1.UpdateCityBodyDto !== "undefined" && cities_api_dto_1.UpdateCityBodyDto) === "function" ? _l : Object]),
+    __metadata("design:returntype", typeof (_m = typeof Promise !== "undefined" && Promise) === "function" ? _m : Object)
+], CitiesController.prototype, "update", null);
+__decorate([
+    (0, common_1.Delete)(':external_id'),
+    (0, common_1.HttpCode)(204),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Eliminar ciudad si no está referenciada por personas ni negocios',
+    }),
+    (0, swagger_1.ApiNoContentResponse)(),
+    __param(0, (0, common_1.Param)('external_id', new common_1.ParseUUIDPipe({ version: '4' }))),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", typeof (_o = typeof Promise !== "undefined" && Promise) === "function" ? _o : Object)
+], CitiesController.prototype, "remove", null);
+exports.CitiesController = CitiesController = __decorate([
+    (0, swagger_1.ApiTags)('catalog-cities'),
+    (0, common_1.Controller)('v1/catalog/cities'),
+    __metadata("design:paramtypes", [typeof (_a = typeof create_city_use_case_1.CreateCityUseCase !== "undefined" && create_city_use_case_1.CreateCityUseCase) === "function" ? _a : Object, typeof (_b = typeof get_city_by_external_id_use_case_1.GetCityByExternalIdUseCase !== "undefined" && get_city_by_external_id_use_case_1.GetCityByExternalIdUseCase) === "function" ? _b : Object, typeof (_c = typeof list_cities_use_case_1.ListCitiesUseCase !== "undefined" && list_cities_use_case_1.ListCitiesUseCase) === "function" ? _c : Object, typeof (_d = typeof update_city_by_external_id_use_case_1.UpdateCityByExternalIdUseCase !== "undefined" && update_city_by_external_id_use_case_1.UpdateCityByExternalIdUseCase) === "function" ? _d : Object, typeof (_e = typeof delete_city_by_external_id_use_case_1.DeleteCityByExternalIdUseCase !== "undefined" && delete_city_by_external_id_use_case_1.DeleteCityByExternalIdUseCase) === "function" ? _e : Object])
+], CitiesController);
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/modules/transversal/catalog/presentation/dto/cities.api.dto.ts"
+/*!************************************************************************************************!*\
+  !*** ./apps/transversal-ms/src/modules/transversal/catalog/presentation/dto/cities.api.dto.ts ***!
+  \************************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var _a, _b;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ListCitiesQueryDto = exports.UpdateCityBodyDto = exports.CreateCityBodyDto = exports.PaginatedCitiesResponseDto = exports.CityResponseDto = void 0;
+const swagger_1 = __webpack_require__(/*! @nestjs/swagger */ "@nestjs/swagger");
+const class_validator_1 = __webpack_require__(/*! class-validator */ "class-validator");
+const pagination_query_dto_1 = __webpack_require__(/*! ./pagination-query.dto */ "./apps/transversal-ms/src/modules/transversal/catalog/presentation/dto/pagination-query.dto.ts");
+class CityResponseDto {
+}
+exports.CityResponseDto = CityResponseDto;
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        description: 'Identificador público de la ciudad (UUID). El id bigint interno no se expone.',
+        format: 'uuid',
+    }),
+    __metadata("design:type", String)
+], CityResponseDto.prototype, "external_id", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    __metadata("design:type", String)
+], CityResponseDto.prototype, "country_name", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ description: 'ISO 3166-1 alpha-2' }),
+    __metadata("design:type", String)
+], CityResponseDto.prototype, "country_code", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    __metadata("design:type", String)
+], CityResponseDto.prototype, "state_name", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ nullable: true }),
+    __metadata("design:type", Object)
+], CityResponseDto.prototype, "state_code", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    __metadata("design:type", String)
+], CityResponseDto.prototype, "city_name", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        description: 'UUID de la moneda en transversal_schema.currencies.',
+        format: 'uuid',
+    }),
+    __metadata("design:type", String)
+], CityResponseDto.prototype, "currency_external_id", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    __metadata("design:type", typeof (_a = typeof Date !== "undefined" && Date) === "function" ? _a : Object)
+], CityResponseDto.prototype, "created_at", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    __metadata("design:type", typeof (_b = typeof Date !== "undefined" && Date) === "function" ? _b : Object)
+], CityResponseDto.prototype, "updated_at", void 0);
+class PaginatedCitiesResponseDto {
+}
+exports.PaginatedCitiesResponseDto = PaginatedCitiesResponseDto;
+__decorate([
+    (0, swagger_1.ApiProperty)({ type: [CityResponseDto] }),
+    __metadata("design:type", Array)
+], PaginatedCitiesResponseDto.prototype, "items", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    __metadata("design:type", Number)
+], PaginatedCitiesResponseDto.prototype, "total", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    __metadata("design:type", Number)
+], PaginatedCitiesResponseDto.prototype, "page", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    __metadata("design:type", Number)
+], PaginatedCitiesResponseDto.prototype, "limit", void 0);
+class CreateCityBodyDto {
+}
+exports.CreateCityBodyDto = CreateCityBodyDto;
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MaxLength)(120),
+    __metadata("design:type", String)
+], CreateCityBodyDto.prototype, "country_name", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.Length)(2, 2),
+    (0, class_validator_1.Matches)(/^[A-Z]{2}$/),
+    __metadata("design:type", String)
+], CreateCityBodyDto.prototype, "country_code", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MaxLength)(120),
+    __metadata("design:type", String)
+], CreateCityBodyDto.prototype, "state_name", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.Length)(2, 3),
+    (0, class_validator_1.Matches)(/^[A-Z0-9]{2,3}$/),
+    __metadata("design:type", Object)
+], CreateCityBodyDto.prototype, "state_code", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MaxLength)(120),
+    __metadata("design:type", String)
+], CreateCityBodyDto.prototype, "city_name", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ format: 'uuid' }),
+    (0, class_validator_1.IsUUID)('4'),
+    __metadata("design:type", String)
+], CreateCityBodyDto.prototype, "currency_external_id", void 0);
+class UpdateCityBodyDto extends (0, swagger_1.PartialType)(CreateCityBodyDto) {
+}
+exports.UpdateCityBodyDto = UpdateCityBodyDto;
+class ListCitiesQueryDto extends pagination_query_dto_1.PaginationQueryDto {
+}
+exports.ListCitiesQueryDto = ListCitiesQueryDto;
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)(),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.Length)(2, 2),
+    (0, class_validator_1.Matches)(/^[A-Z]{2}$/),
+    __metadata("design:type", String)
+], ListCitiesQueryDto.prototype, "country_code", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)(),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MaxLength)(120),
+    __metadata("design:type", String)
+], ListCitiesQueryDto.prototype, "state_name", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)(),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MaxLength)(120),
+    __metadata("design:type", String)
+], ListCitiesQueryDto.prototype, "city_name_contains", void 0);
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/modules/transversal/catalog/presentation/dto/pagination-query.dto.ts"
+/*!******************************************************************************************************!*\
+  !*** ./apps/transversal-ms/src/modules/transversal/catalog/presentation/dto/pagination-query.dto.ts ***!
+  \******************************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.PaginationQueryDto = void 0;
+const swagger_1 = __webpack_require__(/*! @nestjs/swagger */ "@nestjs/swagger");
+const class_transformer_1 = __webpack_require__(/*! class-transformer */ "class-transformer");
+const class_validator_1 = __webpack_require__(/*! class-validator */ "class-validator");
+class PaginationQueryDto {
+    constructor() {
+        this.page = 1;
+        this.limit = 20;
+    }
+}
+exports.PaginationQueryDto = PaginationQueryDto;
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ default: 1, minimum: 1 }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_transformer_1.Type)(() => Number),
+    (0, class_validator_1.IsInt)(),
+    (0, class_validator_1.Min)(1),
+    __metadata("design:type", Number)
+], PaginationQueryDto.prototype, "page", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ default: 20, minimum: 1, maximum: 100 }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_transformer_1.Type)(() => Number),
+    (0, class_validator_1.IsInt)(),
+    (0, class_validator_1.Min)(1),
+    (0, class_validator_1.Max)(100),
+    __metadata("design:type", Number)
+], PaginationQueryDto.prototype, "limit", void 0);
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/modules/transversal/catalog/presentation/dto/roles.api.dto.ts"
+/*!***********************************************************************************************!*\
+  !*** ./apps/transversal-ms/src/modules/transversal/catalog/presentation/dto/roles.api.dto.ts ***!
+  \***********************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var _a, _b;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ListRolesQueryDto = exports.UpdateRoleBodyDto = exports.CreateRoleBodyDto = exports.PaginatedRolesResponseDto = exports.RoleResponseDto = void 0;
+const swagger_1 = __webpack_require__(/*! @nestjs/swagger */ "@nestjs/swagger");
+const class_validator_1 = __webpack_require__(/*! class-validator */ "class-validator");
+const pagination_query_dto_1 = __webpack_require__(/*! ./pagination-query.dto */ "./apps/transversal-ms/src/modules/transversal/catalog/presentation/dto/pagination-query.dto.ts");
+class RoleResponseDto {
+}
+exports.RoleResponseDto = RoleResponseDto;
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        description: 'Identificador público (UUID). Se usa en API; el id numérico interno no se expone.',
+        format: 'uuid',
+    }),
+    __metadata("design:type", String)
+], RoleResponseDto.prototype, "external_id", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    __metadata("design:type", String)
+], RoleResponseDto.prototype, "name", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ nullable: true }),
+    __metadata("design:type", Object)
+], RoleResponseDto.prototype, "description", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    __metadata("design:type", typeof (_a = typeof Date !== "undefined" && Date) === "function" ? _a : Object)
+], RoleResponseDto.prototype, "created_at", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    __metadata("design:type", typeof (_b = typeof Date !== "undefined" && Date) === "function" ? _b : Object)
+], RoleResponseDto.prototype, "updated_at", void 0);
+class PaginatedRolesResponseDto {
+}
+exports.PaginatedRolesResponseDto = PaginatedRolesResponseDto;
+__decorate([
+    (0, swagger_1.ApiProperty)({ type: [RoleResponseDto] }),
+    __metadata("design:type", Array)
+], PaginatedRolesResponseDto.prototype, "items", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    __metadata("design:type", Number)
+], PaginatedRolesResponseDto.prototype, "total", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    __metadata("design:type", Number)
+], PaginatedRolesResponseDto.prototype, "page", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    __metadata("design:type", Number)
+], PaginatedRolesResponseDto.prototype, "limit", void 0);
+class CreateRoleBodyDto {
+}
+exports.CreateRoleBodyDto = CreateRoleBodyDto;
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MaxLength)(80),
+    __metadata("design:type", String)
+], CreateRoleBodyDto.prototype, "name", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", Object)
+], CreateRoleBodyDto.prototype, "description", void 0);
+class UpdateRoleBodyDto extends (0, swagger_1.PartialType)(CreateRoleBodyDto) {
+}
+exports.UpdateRoleBodyDto = UpdateRoleBodyDto;
+class ListRolesQueryDto extends pagination_query_dto_1.PaginationQueryDto {
+}
+exports.ListRolesQueryDto = ListRolesQueryDto;
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)(),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MaxLength)(80),
+    __metadata("design:type", String)
+], ListRolesQueryDto.prototype, "name_contains", void 0);
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/modules/transversal/catalog/presentation/dto/states.api.dto.ts"
+/*!************************************************************************************************!*\
+  !*** ./apps/transversal-ms/src/modules/transversal/catalog/presentation/dto/states.api.dto.ts ***!
+  \************************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var _a, _b;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ListStatesQueryDto = exports.UpdateStateBodyDto = exports.CreateStateBodyDto = exports.PaginatedStatesResponseDto = exports.StateResponseDto = void 0;
+const swagger_1 = __webpack_require__(/*! @nestjs/swagger */ "@nestjs/swagger");
+const class_validator_1 = __webpack_require__(/*! class-validator */ "class-validator");
+const pagination_query_dto_1 = __webpack_require__(/*! ./pagination-query.dto */ "./apps/transversal-ms/src/modules/transversal/catalog/presentation/dto/pagination-query.dto.ts");
+class StateResponseDto {
+}
+exports.StateResponseDto = StateResponseDto;
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        description: 'Identificador público del estado/departamento (UUID). El id bigint interno no se expone.',
+        format: 'uuid',
+    }),
+    __metadata("design:type", String)
+], StateResponseDto.prototype, "external_id", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ description: 'ISO 3166-1 alpha-2' }),
+    __metadata("design:type", String)
+], StateResponseDto.prototype, "country_code", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    __metadata("design:type", String)
+], StateResponseDto.prototype, "state_name", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ nullable: true }),
+    __metadata("design:type", Object)
+], StateResponseDto.prototype, "state_code", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    __metadata("design:type", typeof (_a = typeof Date !== "undefined" && Date) === "function" ? _a : Object)
+], StateResponseDto.prototype, "created_at", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    __metadata("design:type", typeof (_b = typeof Date !== "undefined" && Date) === "function" ? _b : Object)
+], StateResponseDto.prototype, "updated_at", void 0);
+class PaginatedStatesResponseDto {
+}
+exports.PaginatedStatesResponseDto = PaginatedStatesResponseDto;
+__decorate([
+    (0, swagger_1.ApiProperty)({ type: [StateResponseDto] }),
+    __metadata("design:type", Array)
+], PaginatedStatesResponseDto.prototype, "items", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    __metadata("design:type", Number)
+], PaginatedStatesResponseDto.prototype, "total", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    __metadata("design:type", Number)
+], PaginatedStatesResponseDto.prototype, "page", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    __metadata("design:type", Number)
+], PaginatedStatesResponseDto.prototype, "limit", void 0);
+class CreateStateBodyDto {
+}
+exports.CreateStateBodyDto = CreateStateBodyDto;
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.Length)(2, 2),
+    (0, class_validator_1.Matches)(/^[A-Z]{2}$/),
+    __metadata("design:type", String)
+], CreateStateBodyDto.prototype, "country_code", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MaxLength)(120),
+    __metadata("design:type", String)
+], CreateStateBodyDto.prototype, "state_name", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.Length)(2, 3),
+    (0, class_validator_1.Matches)(/^[A-Z0-9]{2,3}$/),
+    __metadata("design:type", Object)
+], CreateStateBodyDto.prototype, "state_code", void 0);
+class UpdateStateBodyDto extends (0, swagger_1.PartialType)(CreateStateBodyDto) {
+}
+exports.UpdateStateBodyDto = UpdateStateBodyDto;
+class ListStatesQueryDto extends pagination_query_dto_1.PaginationQueryDto {
+}
+exports.ListStatesQueryDto = ListStatesQueryDto;
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)(),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.Length)(2, 2),
+    (0, class_validator_1.Matches)(/^[A-Z]{2}$/),
+    __metadata("design:type", String)
+], ListStatesQueryDto.prototype, "country_code", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)(),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MaxLength)(120),
+    __metadata("design:type", String)
+], ListStatesQueryDto.prototype, "state_name_contains", void 0);
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/modules/transversal/catalog/presentation/mappers/catalog-response.mappers.ts"
+/*!**************************************************************************************************************!*\
+  !*** ./apps/transversal-ms/src/modules/transversal/catalog/presentation/mappers/catalog-response.mappers.ts ***!
+  \**************************************************************************************************************/
+(__unused_webpack_module, exports) {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.to_role_response_dto = to_role_response_dto;
+exports.to_city_response_dto = to_city_response_dto;
+exports.to_state_response_dto = to_state_response_dto;
+function to_role_response_dto(role) {
+    return {
+        external_id: role.external_id,
+        name: role.name,
+        description: role.description,
+        created_at: role.created_at,
+        updated_at: role.updated_at,
+    };
+}
+function to_city_response_dto(city) {
+    return {
+        external_id: city.external_id,
+        country_name: city.country_name,
+        country_code: city.country_code,
+        state_name: city.state_name,
+        state_code: city.state_code,
+        city_name: city.city_name,
+        currency_external_id: city.currency_external_id,
+        created_at: city.created_at,
+        updated_at: city.updated_at,
+    };
+}
+function to_state_response_dto(state) {
+    return {
+        external_id: state.external_id,
+        country_code: state.country_code,
+        state_name: state.state_name,
+        state_code: state.state_code,
+        created_at: state.created_at,
+        updated_at: state.updated_at,
+    };
+}
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/modules/transversal/catalog/presentation/roles.controller.ts"
+/*!**********************************************************************************************!*\
+  !*** ./apps/transversal-ms/src/modules/transversal/catalog/presentation/roles.controller.ts ***!
+  \**********************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.RolesController = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const swagger_1 = __webpack_require__(/*! @nestjs/swagger */ "@nestjs/swagger");
+const create_role_use_case_1 = __webpack_require__(/*! @modules/transversal/catalog/application/use-cases/roles/create-role.use-case */ "./apps/transversal-ms/src/modules/transversal/catalog/application/use-cases/roles/create-role.use-case.ts");
+const get_role_by_external_id_use_case_1 = __webpack_require__(/*! @modules/transversal/catalog/application/use-cases/roles/get-role-by-external-id.use-case */ "./apps/transversal-ms/src/modules/transversal/catalog/application/use-cases/roles/get-role-by-external-id.use-case.ts");
+const list_roles_use_case_1 = __webpack_require__(/*! @modules/transversal/catalog/application/use-cases/roles/list-roles.use-case */ "./apps/transversal-ms/src/modules/transversal/catalog/application/use-cases/roles/list-roles.use-case.ts");
+const update_role_by_external_id_use_case_1 = __webpack_require__(/*! @modules/transversal/catalog/application/use-cases/roles/update-role-by-external-id.use-case */ "./apps/transversal-ms/src/modules/transversal/catalog/application/use-cases/roles/update-role-by-external-id.use-case.ts");
+const delete_role_by_external_id_use_case_1 = __webpack_require__(/*! @modules/transversal/catalog/application/use-cases/roles/delete-role-by-external-id.use-case */ "./apps/transversal-ms/src/modules/transversal/catalog/application/use-cases/roles/delete-role-by-external-id.use-case.ts");
+const roles_api_dto_1 = __webpack_require__(/*! ./dto/roles.api.dto */ "./apps/transversal-ms/src/modules/transversal/catalog/presentation/dto/roles.api.dto.ts");
+const catalog_response_mappers_1 = __webpack_require__(/*! ./mappers/catalog-response.mappers */ "./apps/transversal-ms/src/modules/transversal/catalog/presentation/mappers/catalog-response.mappers.ts");
+let RolesController = class RolesController {
+    constructor(create_role, get_role, list_roles, update_role, delete_role) {
+        this.create_role = create_role;
+        this.get_role = get_role;
+        this.list_roles = list_roles;
+        this.update_role = update_role;
+        this.delete_role = delete_role;
+    }
+    async create(body) {
+        const role = await this.create_role.execute({
+            name: body.name,
+            description: body.description ?? null,
+        });
+        return (0, catalog_response_mappers_1.to_role_response_dto)(role);
+    }
+    async list(query) {
+        const result = await this.list_roles.execute({
+            page: query.page,
+            limit: query.limit,
+            name_contains: query.name_contains,
+        });
+        return {
+            items: result.items.map((r) => (0, catalog_response_mappers_1.to_role_response_dto)(r)),
+            total: result.total,
+            page: result.page,
+            limit: result.limit,
+        };
+    }
+    async get(external_id) {
+        const role = await this.get_role.execute(external_id);
+        return (0, catalog_response_mappers_1.to_role_response_dto)(role);
+    }
+    async update(external_id, body) {
+        const patch = {};
+        if (body.name !== undefined) {
+            patch.name = body.name;
+        }
+        if (body.description !== undefined) {
+            patch.description = body.description;
+        }
+        const role = await this.update_role.execute(external_id, patch);
+        return (0, catalog_response_mappers_1.to_role_response_dto)(role);
+    }
+    async remove(external_id) {
+        await this.delete_role.execute(external_id);
+    }
+};
+exports.RolesController = RolesController;
+__decorate([
+    (0, common_1.Post)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Crear rol' }),
+    (0, swagger_1.ApiCreatedResponse)({ type: roles_api_dto_1.RoleResponseDto }),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [typeof (_f = typeof roles_api_dto_1.CreateRoleBodyDto !== "undefined" && roles_api_dto_1.CreateRoleBodyDto) === "function" ? _f : Object]),
+    __metadata("design:returntype", typeof (_g = typeof Promise !== "undefined" && Promise) === "function" ? _g : Object)
+], RolesController.prototype, "create", null);
+__decorate([
+    (0, common_1.Get)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Listar roles (paginado)' }),
+    (0, swagger_1.ApiOkResponse)({ type: roles_api_dto_1.PaginatedRolesResponseDto }),
+    __param(0, (0, common_1.Query)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [typeof (_h = typeof roles_api_dto_1.ListRolesQueryDto !== "undefined" && roles_api_dto_1.ListRolesQueryDto) === "function" ? _h : Object]),
+    __metadata("design:returntype", typeof (_j = typeof Promise !== "undefined" && Promise) === "function" ? _j : Object)
+], RolesController.prototype, "list", null);
+__decorate([
+    (0, common_1.Get)(':external_id'),
+    (0, swagger_1.ApiOperation)({ summary: 'Obtener rol por external_id (UUID)' }),
+    (0, swagger_1.ApiOkResponse)({ type: roles_api_dto_1.RoleResponseDto }),
+    __param(0, (0, common_1.Param)('external_id', new common_1.ParseUUIDPipe({ version: '4' }))),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", typeof (_k = typeof Promise !== "undefined" && Promise) === "function" ? _k : Object)
+], RolesController.prototype, "get", null);
+__decorate([
+    (0, common_1.Patch)(':external_id'),
+    (0, swagger_1.ApiOperation)({ summary: 'Actualizar rol por external_id' }),
+    (0, swagger_1.ApiOkResponse)({ type: roles_api_dto_1.RoleResponseDto }),
+    __param(0, (0, common_1.Param)('external_id', new common_1.ParseUUIDPipe({ version: '4' }))),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, typeof (_l = typeof roles_api_dto_1.UpdateRoleBodyDto !== "undefined" && roles_api_dto_1.UpdateRoleBodyDto) === "function" ? _l : Object]),
+    __metadata("design:returntype", typeof (_m = typeof Promise !== "undefined" && Promise) === "function" ? _m : Object)
+], RolesController.prototype, "update", null);
+__decorate([
+    (0, common_1.Delete)(':external_id'),
+    (0, common_1.HttpCode)(204),
+    (0, swagger_1.ApiOperation)({ summary: 'Eliminar rol (si no está asignado a usuarios)' }),
+    (0, swagger_1.ApiNoContentResponse)(),
+    __param(0, (0, common_1.Param)('external_id', new common_1.ParseUUIDPipe({ version: '4' }))),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", typeof (_o = typeof Promise !== "undefined" && Promise) === "function" ? _o : Object)
+], RolesController.prototype, "remove", null);
+exports.RolesController = RolesController = __decorate([
+    (0, swagger_1.ApiTags)('catalog-roles'),
+    (0, common_1.Controller)('v1/catalog/roles'),
+    __metadata("design:paramtypes", [typeof (_a = typeof create_role_use_case_1.CreateRoleUseCase !== "undefined" && create_role_use_case_1.CreateRoleUseCase) === "function" ? _a : Object, typeof (_b = typeof get_role_by_external_id_use_case_1.GetRoleByExternalIdUseCase !== "undefined" && get_role_by_external_id_use_case_1.GetRoleByExternalIdUseCase) === "function" ? _b : Object, typeof (_c = typeof list_roles_use_case_1.ListRolesUseCase !== "undefined" && list_roles_use_case_1.ListRolesUseCase) === "function" ? _c : Object, typeof (_d = typeof update_role_by_external_id_use_case_1.UpdateRoleByExternalIdUseCase !== "undefined" && update_role_by_external_id_use_case_1.UpdateRoleByExternalIdUseCase) === "function" ? _d : Object, typeof (_e = typeof delete_role_by_external_id_use_case_1.DeleteRoleByExternalIdUseCase !== "undefined" && delete_role_by_external_id_use_case_1.DeleteRoleByExternalIdUseCase) === "function" ? _e : Object])
+], RolesController);
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/modules/transversal/catalog/presentation/states.controller.ts"
+/*!***********************************************************************************************!*\
+  !*** ./apps/transversal-ms/src/modules/transversal/catalog/presentation/states.controller.ts ***!
+  \***********************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.StatesController = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const swagger_1 = __webpack_require__(/*! @nestjs/swagger */ "@nestjs/swagger");
+const create_state_use_case_1 = __webpack_require__(/*! @modules/transversal/catalog/application/use-cases/states/create-state.use-case */ "./apps/transversal-ms/src/modules/transversal/catalog/application/use-cases/states/create-state.use-case.ts");
+const get_state_by_external_id_use_case_1 = __webpack_require__(/*! @modules/transversal/catalog/application/use-cases/states/get-state-by-external-id.use-case */ "./apps/transversal-ms/src/modules/transversal/catalog/application/use-cases/states/get-state-by-external-id.use-case.ts");
+const list_states_use_case_1 = __webpack_require__(/*! @modules/transversal/catalog/application/use-cases/states/list-states.use-case */ "./apps/transversal-ms/src/modules/transversal/catalog/application/use-cases/states/list-states.use-case.ts");
+const update_state_by_external_id_use_case_1 = __webpack_require__(/*! @modules/transversal/catalog/application/use-cases/states/update-state-by-external-id.use-case */ "./apps/transversal-ms/src/modules/transversal/catalog/application/use-cases/states/update-state-by-external-id.use-case.ts");
+const delete_state_by_external_id_use_case_1 = __webpack_require__(/*! @modules/transversal/catalog/application/use-cases/states/delete-state-by-external-id.use-case */ "./apps/transversal-ms/src/modules/transversal/catalog/application/use-cases/states/delete-state-by-external-id.use-case.ts");
+const states_api_dto_1 = __webpack_require__(/*! ./dto/states.api.dto */ "./apps/transversal-ms/src/modules/transversal/catalog/presentation/dto/states.api.dto.ts");
+const catalog_response_mappers_1 = __webpack_require__(/*! ./mappers/catalog-response.mappers */ "./apps/transversal-ms/src/modules/transversal/catalog/presentation/mappers/catalog-response.mappers.ts");
+let StatesController = class StatesController {
+    constructor(create_state, get_state, list_states, update_state, delete_state) {
+        this.create_state = create_state;
+        this.get_state = get_state;
+        this.list_states = list_states;
+        this.update_state = update_state;
+        this.delete_state = delete_state;
+    }
+    async create(body) {
+        const state = await this.create_state.execute({
+            country_code: body.country_code,
+            state_name: body.state_name,
+            state_code: body.state_code ?? null,
+        });
+        return (0, catalog_response_mappers_1.to_state_response_dto)(state);
+    }
+    async list(query) {
+        const result = await this.list_states.execute({
+            page: query.page,
+            limit: query.limit,
+            country_code: query.country_code,
+            state_name_contains: query.state_name_contains,
+        });
+        return {
+            items: result.items.map((s) => (0, catalog_response_mappers_1.to_state_response_dto)(s)),
+            total: result.total,
+            page: result.page,
+            limit: result.limit,
+        };
+    }
+    async get(external_id) {
+        const state = await this.get_state.execute(external_id);
+        return (0, catalog_response_mappers_1.to_state_response_dto)(state);
+    }
+    async update(external_id, body) {
+        const patch = {};
+        if (body.country_code !== undefined) {
+            patch.country_code = body.country_code;
+        }
+        if (body.state_name !== undefined) {
+            patch.state_name = body.state_name;
+        }
+        if (body.state_code !== undefined) {
+            patch.state_code = body.state_code;
+        }
+        const state = await this.update_state.execute(external_id, patch);
+        return (0, catalog_response_mappers_1.to_state_response_dto)(state);
+    }
+    async remove(external_id) {
+        await this.delete_state.execute(external_id);
+    }
+};
+exports.StatesController = StatesController;
+__decorate([
+    (0, common_1.Post)(),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Crear estado/departamento (tabla transversal_schema.states)',
+    }),
+    (0, swagger_1.ApiCreatedResponse)({ type: states_api_dto_1.StateResponseDto }),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [typeof (_f = typeof states_api_dto_1.CreateStateBodyDto !== "undefined" && states_api_dto_1.CreateStateBodyDto) === "function" ? _f : Object]),
+    __metadata("design:returntype", typeof (_g = typeof Promise !== "undefined" && Promise) === "function" ? _g : Object)
+], StatesController.prototype, "create", null);
+__decorate([
+    (0, common_1.Get)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Listar estados (paginado)' }),
+    (0, swagger_1.ApiOkResponse)({ type: states_api_dto_1.PaginatedStatesResponseDto }),
+    __param(0, (0, common_1.Query)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [typeof (_h = typeof states_api_dto_1.ListStatesQueryDto !== "undefined" && states_api_dto_1.ListStatesQueryDto) === "function" ? _h : Object]),
+    __metadata("design:returntype", typeof (_j = typeof Promise !== "undefined" && Promise) === "function" ? _j : Object)
+], StatesController.prototype, "list", null);
+__decorate([
+    (0, common_1.Get)(':external_id'),
+    (0, swagger_1.ApiOperation)({ summary: 'Obtener estado por external_id (UUID)' }),
+    (0, swagger_1.ApiOkResponse)({ type: states_api_dto_1.StateResponseDto }),
+    __param(0, (0, common_1.Param)('external_id', new common_1.ParseUUIDPipe({ version: '4' }))),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", typeof (_k = typeof Promise !== "undefined" && Promise) === "function" ? _k : Object)
+], StatesController.prototype, "get", null);
+__decorate([
+    (0, common_1.Patch)(':external_id'),
+    (0, swagger_1.ApiOperation)({ summary: 'Actualizar estado por external_id' }),
+    (0, swagger_1.ApiOkResponse)({ type: states_api_dto_1.StateResponseDto }),
+    __param(0, (0, common_1.Param)('external_id', new common_1.ParseUUIDPipe({ version: '4' }))),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, typeof (_l = typeof states_api_dto_1.UpdateStateBodyDto !== "undefined" && states_api_dto_1.UpdateStateBodyDto) === "function" ? _l : Object]),
+    __metadata("design:returntype", typeof (_m = typeof Promise !== "undefined" && Promise) === "function" ? _m : Object)
+], StatesController.prototype, "update", null);
+__decorate([
+    (0, common_1.Delete)(':external_id'),
+    (0, common_1.HttpCode)(204),
+    (0, swagger_1.ApiOperation)({ summary: 'Eliminar estado' }),
+    (0, swagger_1.ApiNoContentResponse)(),
+    __param(0, (0, common_1.Param)('external_id', new common_1.ParseUUIDPipe({ version: '4' }))),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", typeof (_o = typeof Promise !== "undefined" && Promise) === "function" ? _o : Object)
+], StatesController.prototype, "remove", null);
+exports.StatesController = StatesController = __decorate([
+    (0, swagger_1.ApiTags)('catalog-states'),
+    (0, common_1.Controller)('v1/catalog/states'),
+    __metadata("design:paramtypes", [typeof (_a = typeof create_state_use_case_1.CreateStateUseCase !== "undefined" && create_state_use_case_1.CreateStateUseCase) === "function" ? _a : Object, typeof (_b = typeof get_state_by_external_id_use_case_1.GetStateByExternalIdUseCase !== "undefined" && get_state_by_external_id_use_case_1.GetStateByExternalIdUseCase) === "function" ? _b : Object, typeof (_c = typeof list_states_use_case_1.ListStatesUseCase !== "undefined" && list_states_use_case_1.ListStatesUseCase) === "function" ? _c : Object, typeof (_d = typeof update_state_by_external_id_use_case_1.UpdateStateByExternalIdUseCase !== "undefined" && update_state_by_external_id_use_case_1.UpdateStateByExternalIdUseCase) === "function" ? _d : Object, typeof (_e = typeof delete_state_by_external_id_use_case_1.DeleteStateByExternalIdUseCase !== "undefined" && delete_state_by_external_id_use_case_1.DeleteStateByExternalIdUseCase) === "function" ? _e : Object])
+], StatesController);
+
+
+/***/ },
+
 /***/ "./apps/transversal-ms/src/modules/transversal/domain/errors/storage.error.ts"
 /*!************************************************************************************!*\
   !*** ./apps/transversal-ms/src/modules/transversal/domain/errors/storage.error.ts ***!
@@ -3087,6 +5413,69 @@ class StorageDomainError extends Error {
     }
 }
 exports.StorageDomainError = StorageDomainError;
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/modules/transversal/transversal-catalog.module.ts"
+/*!***********************************************************************************!*\
+  !*** ./apps/transversal-ms/src/modules/transversal/transversal-catalog.module.ts ***!
+  \***********************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.TransversalCatalogModule = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const roles_controller_1 = __webpack_require__(/*! @modules/transversal/catalog/presentation/roles.controller */ "./apps/transversal-ms/src/modules/transversal/catalog/presentation/roles.controller.ts");
+const cities_controller_1 = __webpack_require__(/*! @modules/transversal/catalog/presentation/cities.controller */ "./apps/transversal-ms/src/modules/transversal/catalog/presentation/cities.controller.ts");
+const states_controller_1 = __webpack_require__(/*! @modules/transversal/catalog/presentation/states.controller */ "./apps/transversal-ms/src/modules/transversal/catalog/presentation/states.controller.ts");
+const create_role_use_case_1 = __webpack_require__(/*! @modules/transversal/catalog/application/use-cases/roles/create-role.use-case */ "./apps/transversal-ms/src/modules/transversal/catalog/application/use-cases/roles/create-role.use-case.ts");
+const get_role_by_external_id_use_case_1 = __webpack_require__(/*! @modules/transversal/catalog/application/use-cases/roles/get-role-by-external-id.use-case */ "./apps/transversal-ms/src/modules/transversal/catalog/application/use-cases/roles/get-role-by-external-id.use-case.ts");
+const list_roles_use_case_1 = __webpack_require__(/*! @modules/transversal/catalog/application/use-cases/roles/list-roles.use-case */ "./apps/transversal-ms/src/modules/transversal/catalog/application/use-cases/roles/list-roles.use-case.ts");
+const update_role_by_external_id_use_case_1 = __webpack_require__(/*! @modules/transversal/catalog/application/use-cases/roles/update-role-by-external-id.use-case */ "./apps/transversal-ms/src/modules/transversal/catalog/application/use-cases/roles/update-role-by-external-id.use-case.ts");
+const delete_role_by_external_id_use_case_1 = __webpack_require__(/*! @modules/transversal/catalog/application/use-cases/roles/delete-role-by-external-id.use-case */ "./apps/transversal-ms/src/modules/transversal/catalog/application/use-cases/roles/delete-role-by-external-id.use-case.ts");
+const create_city_use_case_1 = __webpack_require__(/*! @modules/transversal/catalog/application/use-cases/cities/create-city.use-case */ "./apps/transversal-ms/src/modules/transversal/catalog/application/use-cases/cities/create-city.use-case.ts");
+const get_city_by_external_id_use_case_1 = __webpack_require__(/*! @modules/transversal/catalog/application/use-cases/cities/get-city-by-external-id.use-case */ "./apps/transversal-ms/src/modules/transversal/catalog/application/use-cases/cities/get-city-by-external-id.use-case.ts");
+const list_cities_use_case_1 = __webpack_require__(/*! @modules/transversal/catalog/application/use-cases/cities/list-cities.use-case */ "./apps/transversal-ms/src/modules/transversal/catalog/application/use-cases/cities/list-cities.use-case.ts");
+const update_city_by_external_id_use_case_1 = __webpack_require__(/*! @modules/transversal/catalog/application/use-cases/cities/update-city-by-external-id.use-case */ "./apps/transversal-ms/src/modules/transversal/catalog/application/use-cases/cities/update-city-by-external-id.use-case.ts");
+const delete_city_by_external_id_use_case_1 = __webpack_require__(/*! @modules/transversal/catalog/application/use-cases/cities/delete-city-by-external-id.use-case */ "./apps/transversal-ms/src/modules/transversal/catalog/application/use-cases/cities/delete-city-by-external-id.use-case.ts");
+const create_state_use_case_1 = __webpack_require__(/*! @modules/transversal/catalog/application/use-cases/states/create-state.use-case */ "./apps/transversal-ms/src/modules/transversal/catalog/application/use-cases/states/create-state.use-case.ts");
+const get_state_by_external_id_use_case_1 = __webpack_require__(/*! @modules/transversal/catalog/application/use-cases/states/get-state-by-external-id.use-case */ "./apps/transversal-ms/src/modules/transversal/catalog/application/use-cases/states/get-state-by-external-id.use-case.ts");
+const list_states_use_case_1 = __webpack_require__(/*! @modules/transversal/catalog/application/use-cases/states/list-states.use-case */ "./apps/transversal-ms/src/modules/transversal/catalog/application/use-cases/states/list-states.use-case.ts");
+const update_state_by_external_id_use_case_1 = __webpack_require__(/*! @modules/transversal/catalog/application/use-cases/states/update-state-by-external-id.use-case */ "./apps/transversal-ms/src/modules/transversal/catalog/application/use-cases/states/update-state-by-external-id.use-case.ts");
+const delete_state_by_external_id_use_case_1 = __webpack_require__(/*! @modules/transversal/catalog/application/use-cases/states/delete-state-by-external-id.use-case */ "./apps/transversal-ms/src/modules/transversal/catalog/application/use-cases/states/delete-state-by-external-id.use-case.ts");
+let TransversalCatalogModule = class TransversalCatalogModule {
+};
+exports.TransversalCatalogModule = TransversalCatalogModule;
+exports.TransversalCatalogModule = TransversalCatalogModule = __decorate([
+    (0, common_1.Module)({
+        controllers: [roles_controller_1.RolesController, cities_controller_1.CitiesController, states_controller_1.StatesController],
+        providers: [
+            create_role_use_case_1.CreateRoleUseCase,
+            get_role_by_external_id_use_case_1.GetRoleByExternalIdUseCase,
+            list_roles_use_case_1.ListRolesUseCase,
+            update_role_by_external_id_use_case_1.UpdateRoleByExternalIdUseCase,
+            delete_role_by_external_id_use_case_1.DeleteRoleByExternalIdUseCase,
+            create_city_use_case_1.CreateCityUseCase,
+            get_city_by_external_id_use_case_1.GetCityByExternalIdUseCase,
+            list_cities_use_case_1.ListCitiesUseCase,
+            update_city_by_external_id_use_case_1.UpdateCityByExternalIdUseCase,
+            delete_city_by_external_id_use_case_1.DeleteCityByExternalIdUseCase,
+            create_state_use_case_1.CreateStateUseCase,
+            get_state_by_external_id_use_case_1.GetStateByExternalIdUseCase,
+            list_states_use_case_1.ListStatesUseCase,
+            update_state_by_external_id_use_case_1.UpdateStateByExternalIdUseCase,
+            delete_state_by_external_id_use_case_1.DeleteStateByExternalIdUseCase,
+        ],
+    })
+], TransversalCatalogModule);
 
 
 /***/ },
@@ -3150,9 +5539,12 @@ exports.UPLOAD_FILES_IDEMPOTENCY_PORT = Symbol('UPLOAD_FILES_IDEMPOTENCY_PORT');
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.build_user_public_fields = build_user_public_fields;
-async function build_user_public_fields(row, lookup) {
-    const role_external_id = await lookup.get_role_external_id_by_internal_id(row.role_id);
-    const status_external_id = await lookup.get_status_external_id_by_internal_id(row.status_id);
+async function build_user_public_fields(row, role_repo, status_repo) {
+    const role_external_id = row.role_id === null
+        ? null
+        : (await role_repo.find_by_internal_id(row.role_id))?.external_id ?? null;
+    const status_ref = await status_repo.find_by_internal_id(row.status_id);
+    const status_external_id = status_ref?.external_id ?? null;
     if (status_external_id === null) {
         throw new Error('user status reference resolution failed');
     }
@@ -3212,31 +5604,34 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var _a, _b;
+var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CreateUserUseCase = void 0;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
 const users_tokens_1 = __webpack_require__(/*! @modules/users/users.tokens */ "./apps/transversal-ms/src/modules/users/users.tokens.ts");
-const user_reference_lookup_port_1 = __webpack_require__(/*! @modules/users/domain/ports/user-reference-lookup.port */ "./apps/transversal-ms/src/modules/users/domain/ports/user-reference-lookup.port.ts");
+const catalog_tokens_1 = __webpack_require__(/*! @modules/transversal/catalog.tokens */ "./apps/transversal-ms/src/modules/transversal/catalog.tokens.ts");
 const user_ports_1 = __webpack_require__(/*! @modules/users/domain/ports/user.ports */ "./apps/transversal-ms/src/modules/users/domain/ports/user.ports.ts");
 const user_public_fields_builder_1 = __webpack_require__(/*! @modules/users/application/mapping/user-public-fields.builder */ "./apps/transversal-ms/src/modules/users/application/mapping/user-public-fields.builder.ts");
 const create_user_response_1 = __webpack_require__(/*! ./create-user.response */ "./apps/transversal-ms/src/modules/users/application/use-cases/create-user/create-user.response.ts");
 let CreateUserUseCase = class CreateUserUseCase {
-    constructor(user_repository, reference_lookup) {
+    constructor(user_repository, status_repository, role_repository) {
         this.user_repository = user_repository;
-        this.reference_lookup = reference_lookup;
+        this.status_repository = status_repository;
+        this.role_repository = role_repository;
     }
     async execute(req) {
-        const status_id = await this.reference_lookup.get_status_internal_id_by_external_id(req.status_external_id);
-        if (status_id === null) {
+        const status_ref = await this.status_repository.find_by_external_id(req.status_external_id);
+        if (status_ref === null) {
             throw new common_1.NotFoundException('status not found');
         }
+        const status_id = status_ref.id;
         let role_id = null;
         if (req.role_external_id !== null) {
-            role_id = await this.reference_lookup.get_role_internal_id_by_external_id(req.role_external_id);
-            if (role_id === null) {
+            const role = await this.role_repository.find_by_external_id(req.role_external_id);
+            if (role === null) {
                 throw new common_1.NotFoundException('role not found');
             }
+            role_id = role.id;
         }
         const created = await this.user_repository.create({
             cognito_sub: req.cognito_sub,
@@ -3245,7 +5640,7 @@ let CreateUserUseCase = class CreateUserUseCase {
             status_id,
             last_login_at: req.last_login_at,
         });
-        const fields = await (0, user_public_fields_builder_1.build_user_public_fields)(created, this.reference_lookup);
+        const fields = await (0, user_public_fields_builder_1.build_user_public_fields)(created, this.role_repository, this.status_repository);
         return new create_user_response_1.CreateUserResponse(fields);
     }
 };
@@ -3253,8 +5648,9 @@ exports.CreateUserUseCase = CreateUserUseCase;
 exports.CreateUserUseCase = CreateUserUseCase = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, common_1.Inject)(users_tokens_1.USER_REPOSITORY)),
-    __param(1, (0, common_1.Inject)(user_reference_lookup_port_1.USER_REFERENCE_LOOKUP)),
-    __metadata("design:paramtypes", [typeof (_a = typeof user_ports_1.UserRepository !== "undefined" && user_ports_1.UserRepository) === "function" ? _a : Object, typeof (_b = typeof user_reference_lookup_port_1.UserReferenceLookupPort !== "undefined" && user_reference_lookup_port_1.UserReferenceLookupPort) === "function" ? _b : Object])
+    __param(1, (0, common_1.Inject)(catalog_tokens_1.STATUS_REPOSITORY)),
+    __param(2, (0, common_1.Inject)(catalog_tokens_1.ROLE_REPOSITORY)),
+    __metadata("design:paramtypes", [typeof (_a = typeof user_ports_1.UserRepository !== "undefined" && user_ports_1.UserRepository) === "function" ? _a : Object, Object, Object])
 ], CreateUserUseCase);
 
 
@@ -3344,26 +5740,27 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var _a, _b;
+var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.GetUserByExternalIdUseCase = void 0;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
 const users_tokens_1 = __webpack_require__(/*! @modules/users/users.tokens */ "./apps/transversal-ms/src/modules/users/users.tokens.ts");
-const user_reference_lookup_port_1 = __webpack_require__(/*! @modules/users/domain/ports/user-reference-lookup.port */ "./apps/transversal-ms/src/modules/users/domain/ports/user-reference-lookup.port.ts");
+const catalog_tokens_1 = __webpack_require__(/*! @modules/transversal/catalog.tokens */ "./apps/transversal-ms/src/modules/transversal/catalog.tokens.ts");
 const user_ports_1 = __webpack_require__(/*! @modules/users/domain/ports/user.ports */ "./apps/transversal-ms/src/modules/users/domain/ports/user.ports.ts");
 const user_public_fields_builder_1 = __webpack_require__(/*! @modules/users/application/mapping/user-public-fields.builder */ "./apps/transversal-ms/src/modules/users/application/mapping/user-public-fields.builder.ts");
 const get_user_by_external_id_response_1 = __webpack_require__(/*! ./get-user-by-external-id.response */ "./apps/transversal-ms/src/modules/users/application/use-cases/get-user-by-external-id/get-user-by-external-id.response.ts");
 let GetUserByExternalIdUseCase = class GetUserByExternalIdUseCase {
-    constructor(user_repository, reference_lookup) {
+    constructor(user_repository, role_repository, status_repository) {
         this.user_repository = user_repository;
-        this.reference_lookup = reference_lookup;
+        this.role_repository = role_repository;
+        this.status_repository = status_repository;
     }
     async execute(req) {
         const row = await this.user_repository.find_by_external_id(req.external_id);
         if (row === null) {
             throw new common_1.NotFoundException('user not found');
         }
-        const fields = await (0, user_public_fields_builder_1.build_user_public_fields)(row, this.reference_lookup);
+        const fields = await (0, user_public_fields_builder_1.build_user_public_fields)(row, this.role_repository, this.status_repository);
         return new get_user_by_external_id_response_1.GetUserByExternalIdResponse(fields);
     }
 };
@@ -3371,8 +5768,9 @@ exports.GetUserByExternalIdUseCase = GetUserByExternalIdUseCase;
 exports.GetUserByExternalIdUseCase = GetUserByExternalIdUseCase = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, common_1.Inject)(users_tokens_1.USER_REPOSITORY)),
-    __param(1, (0, common_1.Inject)(user_reference_lookup_port_1.USER_REFERENCE_LOOKUP)),
-    __metadata("design:paramtypes", [typeof (_a = typeof user_ports_1.UserRepository !== "undefined" && user_ports_1.UserRepository) === "function" ? _a : Object, typeof (_b = typeof user_reference_lookup_port_1.UserReferenceLookupPort !== "undefined" && user_reference_lookup_port_1.UserReferenceLookupPort) === "function" ? _b : Object])
+    __param(1, (0, common_1.Inject)(catalog_tokens_1.ROLE_REPOSITORY)),
+    __param(2, (0, common_1.Inject)(catalog_tokens_1.STATUS_REPOSITORY)),
+    __metadata("design:paramtypes", [typeof (_a = typeof user_ports_1.UserRepository !== "undefined" && user_ports_1.UserRepository) === "function" ? _a : Object, Object, Object])
 ], GetUserByExternalIdUseCase);
 
 
@@ -3416,25 +5814,26 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var _a, _b;
+var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ListUsersUseCase = void 0;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
 const users_tokens_1 = __webpack_require__(/*! @modules/users/users.tokens */ "./apps/transversal-ms/src/modules/users/users.tokens.ts");
-const user_reference_lookup_port_1 = __webpack_require__(/*! @modules/users/domain/ports/user-reference-lookup.port */ "./apps/transversal-ms/src/modules/users/domain/ports/user-reference-lookup.port.ts");
+const catalog_tokens_1 = __webpack_require__(/*! @modules/transversal/catalog.tokens */ "./apps/transversal-ms/src/modules/transversal/catalog.tokens.ts");
 const user_ports_1 = __webpack_require__(/*! @modules/users/domain/ports/user.ports */ "./apps/transversal-ms/src/modules/users/domain/ports/user.ports.ts");
 const user_public_fields_builder_1 = __webpack_require__(/*! @modules/users/application/mapping/user-public-fields.builder */ "./apps/transversal-ms/src/modules/users/application/mapping/user-public-fields.builder.ts");
 const list_users_response_1 = __webpack_require__(/*! ./list-users.response */ "./apps/transversal-ms/src/modules/users/application/use-cases/list-users/list-users.response.ts");
 let ListUsersUseCase = class ListUsersUseCase {
-    constructor(user_repository, reference_lookup) {
+    constructor(user_repository, role_repository, status_repository) {
         this.user_repository = user_repository;
-        this.reference_lookup = reference_lookup;
+        this.role_repository = role_repository;
+        this.status_repository = status_repository;
     }
     async execute() {
         const rows = await this.user_repository.find_all();
         const out = [];
         for (const row of rows) {
-            const fields = await (0, user_public_fields_builder_1.build_user_public_fields)(row, this.reference_lookup);
+            const fields = await (0, user_public_fields_builder_1.build_user_public_fields)(row, this.role_repository, this.status_repository);
             out.push(new list_users_response_1.ListUsersItemResponse(fields));
         }
         return out;
@@ -3444,8 +5843,9 @@ exports.ListUsersUseCase = ListUsersUseCase;
 exports.ListUsersUseCase = ListUsersUseCase = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, common_1.Inject)(users_tokens_1.USER_REPOSITORY)),
-    __param(1, (0, common_1.Inject)(user_reference_lookup_port_1.USER_REFERENCE_LOOKUP)),
-    __metadata("design:paramtypes", [typeof (_a = typeof user_ports_1.UserRepository !== "undefined" && user_ports_1.UserRepository) === "function" ? _a : Object, typeof (_b = typeof user_reference_lookup_port_1.UserReferenceLookupPort !== "undefined" && user_reference_lookup_port_1.UserReferenceLookupPort) === "function" ? _b : Object])
+    __param(1, (0, common_1.Inject)(catalog_tokens_1.ROLE_REPOSITORY)),
+    __param(2, (0, common_1.Inject)(catalog_tokens_1.STATUS_REPOSITORY)),
+    __metadata("design:paramtypes", [typeof (_a = typeof user_ports_1.UserRepository !== "undefined" && user_ports_1.UserRepository) === "function" ? _a : Object, Object, Object])
 ], ListUsersUseCase);
 
 
@@ -3489,19 +5889,20 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var _a, _b;
+var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.UpdateUserByExternalIdUseCase = void 0;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
 const users_tokens_1 = __webpack_require__(/*! @modules/users/users.tokens */ "./apps/transversal-ms/src/modules/users/users.tokens.ts");
-const user_reference_lookup_port_1 = __webpack_require__(/*! @modules/users/domain/ports/user-reference-lookup.port */ "./apps/transversal-ms/src/modules/users/domain/ports/user-reference-lookup.port.ts");
+const catalog_tokens_1 = __webpack_require__(/*! @modules/transversal/catalog.tokens */ "./apps/transversal-ms/src/modules/transversal/catalog.tokens.ts");
 const user_ports_1 = __webpack_require__(/*! @modules/users/domain/ports/user.ports */ "./apps/transversal-ms/src/modules/users/domain/ports/user.ports.ts");
 const user_public_fields_builder_1 = __webpack_require__(/*! @modules/users/application/mapping/user-public-fields.builder */ "./apps/transversal-ms/src/modules/users/application/mapping/user-public-fields.builder.ts");
 const update_user_by_external_id_response_1 = __webpack_require__(/*! ./update-user-by-external-id.response */ "./apps/transversal-ms/src/modules/users/application/use-cases/update-user-by-external-id/update-user-by-external-id.response.ts");
 let UpdateUserByExternalIdUseCase = class UpdateUserByExternalIdUseCase {
-    constructor(user_repository, reference_lookup) {
+    constructor(user_repository, status_repository, role_repository) {
         this.user_repository = user_repository;
-        this.reference_lookup = reference_lookup;
+        this.status_repository = status_repository;
+        this.role_repository = role_repository;
     }
     async execute(req) {
         const patch = {};
@@ -3515,29 +5916,29 @@ let UpdateUserByExternalIdUseCase = class UpdateUserByExternalIdUseCase {
             patch.last_login_at = req.last_login_at;
         }
         if (req.status_external_id !== undefined) {
-            const status_id = await this.reference_lookup.get_status_internal_id_by_external_id(req.status_external_id);
-            if (status_id === null) {
+            const status_ref = await this.status_repository.find_by_external_id(req.status_external_id);
+            if (status_ref === null) {
                 throw new common_1.NotFoundException('status not found');
             }
-            patch.status_id = status_id;
+            patch.status_id = status_ref.id;
         }
         if (req.role_external_id !== undefined) {
             if (req.role_external_id === null) {
                 patch.role_id = null;
             }
             else {
-                const role_id = await this.reference_lookup.get_role_internal_id_by_external_id(req.role_external_id);
-                if (role_id === null) {
+                const role = await this.role_repository.find_by_external_id(req.role_external_id);
+                if (role === null) {
                     throw new common_1.NotFoundException('role not found');
                 }
-                patch.role_id = role_id;
+                patch.role_id = role.id;
             }
         }
         const updated = await this.user_repository.update_by_external_id(req.external_id, patch);
         if (updated === null) {
             throw new common_1.NotFoundException('user not found');
         }
-        const fields = await (0, user_public_fields_builder_1.build_user_public_fields)(updated, this.reference_lookup);
+        const fields = await (0, user_public_fields_builder_1.build_user_public_fields)(updated, this.role_repository, this.status_repository);
         return new update_user_by_external_id_response_1.UpdateUserByExternalIdResponse(fields);
     }
 };
@@ -3545,8 +5946,9 @@ exports.UpdateUserByExternalIdUseCase = UpdateUserByExternalIdUseCase;
 exports.UpdateUserByExternalIdUseCase = UpdateUserByExternalIdUseCase = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, common_1.Inject)(users_tokens_1.USER_REPOSITORY)),
-    __param(1, (0, common_1.Inject)(user_reference_lookup_port_1.USER_REFERENCE_LOOKUP)),
-    __metadata("design:paramtypes", [typeof (_a = typeof user_ports_1.UserRepository !== "undefined" && user_ports_1.UserRepository) === "function" ? _a : Object, typeof (_b = typeof user_reference_lookup_port_1.UserReferenceLookupPort !== "undefined" && user_reference_lookup_port_1.UserReferenceLookupPort) === "function" ? _b : Object])
+    __param(1, (0, common_1.Inject)(catalog_tokens_1.STATUS_REPOSITORY)),
+    __param(2, (0, common_1.Inject)(catalog_tokens_1.ROLE_REPOSITORY)),
+    __metadata("design:paramtypes", [typeof (_a = typeof user_ports_1.UserRepository !== "undefined" && user_ports_1.UserRepository) === "function" ? _a : Object, Object, Object])
 ], UpdateUserByExternalIdUseCase);
 
 
@@ -3575,20 +5977,6 @@ class User {
     }
 }
 exports.User = User;
-
-
-/***/ },
-
-/***/ "./apps/transversal-ms/src/modules/users/domain/ports/user-reference-lookup.port.ts"
-/*!******************************************************************************************!*\
-  !*** ./apps/transversal-ms/src/modules/users/domain/ports/user-reference-lookup.port.ts ***!
-  \******************************************************************************************/
-(__unused_webpack_module, exports) {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.USER_REFERENCE_LOOKUP = void 0;
-exports.USER_REFERENCE_LOOKUP = Symbol('USER_REFERENCE_LOOKUP');
 
 
 /***/ },
@@ -4893,6 +7281,49 @@ exports.ShareholderEntity = ShareholderEntity = __decorate([
 
 /***/ },
 
+/***/ "./libs/transversal-data/src/entities/state.entity.ts"
+/*!************************************************************!*\
+  !*** ./libs/transversal-data/src/entities/state.entity.ts ***!
+  \************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.StateEntity = void 0;
+const typeorm_1 = __webpack_require__(/*! typeorm */ "typeorm");
+const base_external_id_entity_1 = __webpack_require__(/*! ../../../products-data/src/entities/base-external-id.entity */ "./libs/products-data/src/entities/base-external-id.entity.ts");
+let StateEntity = class StateEntity extends base_external_id_entity_1.BaseExternalIdEntity {
+};
+exports.StateEntity = StateEntity;
+__decorate([
+    (0, typeorm_1.Column)({ name: 'country_code', type: 'varchar', length: 2 }),
+    __metadata("design:type", String)
+], StateEntity.prototype, "countryCode", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'state_name', type: 'varchar', length: 120 }),
+    __metadata("design:type", String)
+], StateEntity.prototype, "stateName", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'state_code', type: 'varchar', length: 3, nullable: true }),
+    __metadata("design:type", Object)
+], StateEntity.prototype, "stateCode", void 0);
+exports.StateEntity = StateEntity = __decorate([
+    (0, typeorm_1.Entity)({ name: 'states', schema: 'transversal_schema' }),
+    (0, typeorm_1.Index)(['countryCode', 'stateName'], { unique: true })
+], StateEntity);
+
+
+/***/ },
+
 /***/ "./libs/transversal-data/src/entities/status.entity.ts"
 /*!*************************************************************!*\
   !*** ./libs/transversal-data/src/entities/status.entity.ts ***!
@@ -5083,6 +7514,7 @@ __exportStar(__webpack_require__(/*! ./entities/person.entity */ "./libs/transve
 __exportStar(__webpack_require__(/*! ./entities/role.entity */ "./libs/transversal-data/src/entities/role.entity.ts"), exports);
 __exportStar(__webpack_require__(/*! ./entities/role-permission.entity */ "./libs/transversal-data/src/entities/role-permission.entity.ts"), exports);
 __exportStar(__webpack_require__(/*! ./entities/shareholder.entity */ "./libs/transversal-data/src/entities/shareholder.entity.ts"), exports);
+__exportStar(__webpack_require__(/*! ./entities/state.entity */ "./libs/transversal-data/src/entities/state.entity.ts"), exports);
 __exportStar(__webpack_require__(/*! ./entities/status.entity */ "./libs/transversal-data/src/entities/status.entity.ts"), exports);
 __exportStar(__webpack_require__(/*! ./entities/upload-files-idempotency.entity */ "./libs/transversal-data/src/entities/upload-files-idempotency.entity.ts"), exports);
 __exportStar(__webpack_require__(/*! ./entities/user.entity */ "./libs/transversal-data/src/entities/user.entity.ts"), exports);
@@ -5121,6 +7553,7 @@ const person_entity_1 = __webpack_require__(/*! ./entities/person.entity */ "./l
 const role_entity_1 = __webpack_require__(/*! ./entities/role.entity */ "./libs/transversal-data/src/entities/role.entity.ts");
 const role_permission_entity_1 = __webpack_require__(/*! ./entities/role-permission.entity */ "./libs/transversal-data/src/entities/role-permission.entity.ts");
 const shareholder_entity_1 = __webpack_require__(/*! ./entities/shareholder.entity */ "./libs/transversal-data/src/entities/shareholder.entity.ts");
+const state_entity_1 = __webpack_require__(/*! ./entities/state.entity */ "./libs/transversal-data/src/entities/state.entity.ts");
 const status_entity_1 = __webpack_require__(/*! ./entities/status.entity */ "./libs/transversal-data/src/entities/status.entity.ts");
 const upload_files_idempotency_entity_1 = __webpack_require__(/*! ./entities/upload-files-idempotency.entity */ "./libs/transversal-data/src/entities/upload-files-idempotency.entity.ts");
 const user_entity_1 = __webpack_require__(/*! ./entities/user.entity */ "./libs/transversal-data/src/entities/user.entity.ts");
@@ -5138,6 +7571,7 @@ exports.TRANSVERSAL_DATA_ENTITIES = [
     role_entity_1.RoleEntity,
     role_permission_entity_1.RolePermissionEntity,
     shareholder_entity_1.ShareholderEntity,
+    state_entity_1.StateEntity,
     status_entity_1.StatusEntity,
     upload_files_idempotency_entity_1.UploadFilesIdempotencyEntity,
     user_entity_1.UserEntity,

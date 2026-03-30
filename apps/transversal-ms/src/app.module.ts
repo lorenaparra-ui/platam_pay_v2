@@ -7,7 +7,7 @@ import { UsersModule } from '@modules/users/users.module';
 import appConfig from './config/app.config';
 import { sqs_config } from './config/sqs.config';
 import { appController } from './app.controller';
-
+import { TransversalCatalogModule } from '@modules/transversal/transversal-catalog.module';
 
 @Module({
   imports: [
@@ -20,6 +20,7 @@ import { appController } from './app.controller';
    // TransversalModule,
     PersonsModule,
     UsersModule,
+    TransversalCatalogModule,
   ],
   controllers: [appController],
 })

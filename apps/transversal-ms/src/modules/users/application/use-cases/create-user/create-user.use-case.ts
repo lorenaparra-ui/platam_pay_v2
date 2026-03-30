@@ -1,9 +1,11 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { USER_REPOSITORY } from '@modules/users/users.tokens';
 import {
-  USER_REFERENCE_LOOKUP,
-  UserReferenceLookupPort,
-} from '@modules/users/domain/ports/user-reference-lookup.port';
+  ROLE_REPOSITORY,
+  STATUS_REPOSITORY,
+} from '@modules/transversal/catalog.tokens';
+import type { RoleRepository } from '@modules/transversal/catalog/domain/ports/role.repository.port';
+import type { StatusRepository } from '@modules/transversal/catalog/domain/ports/status.repository.port';
 import { UserRepository } from '@modules/users/domain/ports/user.ports';
 import { build_user_public_fields } from '@modules/users/application/mapping/user-public-fields.builder';
 import { CreateUserRequest } from './create-user.request';
@@ -14,27 +16,30 @@ export class CreateUserUseCase {
   constructor(
     @Inject(USER_REPOSITORY)
     private readonly user_repository: UserRepository,
-    @Inject(USER_REFERENCE_LOOKUP)
-    private readonly reference_lookup: UserReferenceLookupPort,
+    @Inject(STATUS_REPOSITORY)
+    private readonly status_repository: StatusRepository,
+    @Inject(ROLE_REPOSITORY)
+    private readonly role_repository: RoleRepository,
   ) {}
 
   async execute(req: CreateUserRequest): Promise<CreateUserResponse> {
-    const status_id =
-      await this.reference_lookup.get_status_internal_id_by_external_id(
-        req.status_external_id,
-      );
-    if (status_id === null) {
+    const status_ref = await this.status_repository.find_by_external_id(
+      req.status_external_id,
+    );
+    if (status_ref === null) {
       throw new NotFoundException('status not found');
     }
+    const status_id = status_ref.id;
 
     let role_id: number | null = null;
     if (req.role_external_id !== null) {
-      role_id = await this.reference_lookup.get_role_internal_id_by_external_id(
+      const role = await this.role_repository.find_by_external_id(
         req.role_external_id,
       );
-      if (role_id === null) {
+      if (role === null) {
         throw new NotFoundException('role not found');
       }
+      role_id = role.id;
     }
 
     const created = await this.user_repository.create({
@@ -45,7 +50,11 @@ export class CreateUserUseCase {
       last_login_at: req.last_login_at,
     });
 
-    const fields = await build_user_public_fields(created, this.reference_lookup);
+    const fields = await build_user_public_fields(
+      created,
+      this.role_repository,
+      this.status_repository,
+    );
     return new CreateUserResponse(fields);
   }
 }

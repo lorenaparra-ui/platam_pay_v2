@@ -1,9 +1,11 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { USER_REPOSITORY } from '@modules/users/users.tokens';
 import {
-  USER_REFERENCE_LOOKUP,
-  UserReferenceLookupPort,
-} from '@modules/users/domain/ports/user-reference-lookup.port';
+  ROLE_REPOSITORY,
+  STATUS_REPOSITORY,
+} from '@modules/transversal/catalog.tokens';
+import type { RoleRepository } from '@modules/transversal/catalog/domain/ports/role.repository.port';
+import type { StatusRepository } from '@modules/transversal/catalog/domain/ports/status.repository.port';
 import { UserRepository } from '@modules/users/domain/ports/user.ports';
 import { build_user_public_fields } from '@modules/users/application/mapping/user-public-fields.builder';
 import { GetUserByExternalIdRequest } from './get-user-by-external-id.request';
@@ -14,8 +16,10 @@ export class GetUserByExternalIdUseCase {
   constructor(
     @Inject(USER_REPOSITORY)
     private readonly user_repository: UserRepository,
-    @Inject(USER_REFERENCE_LOOKUP)
-    private readonly reference_lookup: UserReferenceLookupPort,
+    @Inject(ROLE_REPOSITORY)
+    private readonly role_repository: RoleRepository,
+    @Inject(STATUS_REPOSITORY)
+    private readonly status_repository: StatusRepository,
   ) {}
 
   async execute(
@@ -25,7 +29,11 @@ export class GetUserByExternalIdUseCase {
     if (row === null) {
       throw new NotFoundException('user not found');
     }
-    const fields = await build_user_public_fields(row, this.reference_lookup);
+    const fields = await build_user_public_fields(
+      row,
+      this.role_repository,
+      this.status_repository,
+    );
     return new GetUserByExternalIdResponse(fields);
   }
 }

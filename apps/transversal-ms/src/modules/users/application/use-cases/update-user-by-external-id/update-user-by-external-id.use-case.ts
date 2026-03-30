@@ -1,9 +1,11 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { USER_REPOSITORY } from '@modules/users/users.tokens';
 import {
-  USER_REFERENCE_LOOKUP,
-  UserReferenceLookupPort,
-} from '@modules/users/domain/ports/user-reference-lookup.port';
+  ROLE_REPOSITORY,
+  STATUS_REPOSITORY,
+} from '@modules/transversal/catalog.tokens';
+import type { RoleRepository } from '@modules/transversal/catalog/domain/ports/role.repository.port';
+import type { StatusRepository } from '@modules/transversal/catalog/domain/ports/status.repository.port';
 import { UserRepository } from '@modules/users/domain/ports/user.ports';
 import { UpdateUserProps } from '@modules/users/domain/models/user.models';
 import { build_user_public_fields } from '@modules/users/application/mapping/user-public-fields.builder';
@@ -15,8 +17,10 @@ export class UpdateUserByExternalIdUseCase {
   constructor(
     @Inject(USER_REPOSITORY)
     private readonly user_repository: UserRepository,
-    @Inject(USER_REFERENCE_LOOKUP)
-    private readonly reference_lookup: UserReferenceLookupPort,
+    @Inject(STATUS_REPOSITORY)
+    private readonly status_repository: StatusRepository,
+    @Inject(ROLE_REPOSITORY)
+    private readonly role_repository: RoleRepository,
   ) {}
 
   async execute(
@@ -34,27 +38,25 @@ export class UpdateUserByExternalIdUseCase {
       patch.last_login_at = req.last_login_at;
     }
     if (req.status_external_id !== undefined) {
-      const status_id =
-        await this.reference_lookup.get_status_internal_id_by_external_id(
-          req.status_external_id,
-        );
-      if (status_id === null) {
+      const status_ref = await this.status_repository.find_by_external_id(
+        req.status_external_id,
+      );
+      if (status_ref === null) {
         throw new NotFoundException('status not found');
       }
-      patch.status_id = status_id;
+      patch.status_id = status_ref.id;
     }
     if (req.role_external_id !== undefined) {
       if (req.role_external_id === null) {
         patch.role_id = null;
       } else {
-        const role_id =
-          await this.reference_lookup.get_role_internal_id_by_external_id(
-            req.role_external_id,
-          );
-        if (role_id === null) {
+        const role = await this.role_repository.find_by_external_id(
+          req.role_external_id,
+        );
+        if (role === null) {
           throw new NotFoundException('role not found');
         }
-        patch.role_id = role_id;
+        patch.role_id = role.id;
       }
     }
 
@@ -66,7 +68,11 @@ export class UpdateUserByExternalIdUseCase {
       throw new NotFoundException('user not found');
     }
 
-    const fields = await build_user_public_fields(updated, this.reference_lookup);
+    const fields = await build_user_public_fields(
+      updated,
+      this.role_repository,
+      this.status_repository,
+    );
     return new UpdateUserByExternalIdResponse(fields);
   }
 }

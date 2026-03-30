@@ -9,12 +9,20 @@ import { TypeormUploadFilesIdempotencyAdapter } from '@infrastructure/database/a
 import { UPLOAD_FILES_IDEMPOTENCY_PORT } from '@modules/transversal/transversal.tokens';
 import { TypeormPersonRepository } from '@infrastructure/database/repositories/typeorm-person.repository';
 import { TypeormUserRepository } from '@infrastructure/database/repositories/typeorm-user.repository';
+import { TypeormRoleRepository } from '@infrastructure/database/repositories/typeorm-role.repository';
+import { TypeormCityRepository } from '@infrastructure/database/repositories/typeorm-city.repository';
+import { TypeormStateRepository } from '@infrastructure/database/repositories/typeorm-state.repository';
+import { TypeormStatusRepository } from '@infrastructure/database/repositories/typeorm-status.repository';
+import { TypeormCurrencyReadRepository } from '@infrastructure/database/repositories/typeorm-currency-read.repository';
 import { PERSON_REPOSITORY } from '@modules/persons/persons.tokens';
 import { USER_REPOSITORY } from '@modules/users/users.tokens';
-import { PERSON_REFERENCE_LOOKUP } from '@modules/persons/domain/ports/person-reference-lookup.port';
-import { USER_REFERENCE_LOOKUP } from '@modules/users/domain/ports/user-reference-lookup.port';
-import { TypeormPersonReferenceLookupAdapter } from '@infrastructure/database/common/typeorm-person-reference-lookup.adapter';
-import { TypeormUserReferenceLookupAdapter } from '@infrastructure/database/common/typeorm-user-reference-lookup.adapter';
+import {
+  ROLE_REPOSITORY,
+  CITY_REPOSITORY,
+  STATE_REPOSITORY,
+  STATUS_REPOSITORY,
+  CURRENCY_READ_PORT,
+} from '@modules/transversal/catalog.tokens';
 
 @Global()
 @Module({
@@ -41,15 +49,25 @@ import { TypeormUserReferenceLookupAdapter } from '@infrastructure/database/comm
       provide: USER_REPOSITORY,
       useClass: TypeormUserRepository,
     },
-    TypeormPersonReferenceLookupAdapter,
-    TypeormUserReferenceLookupAdapter,
     {
-      provide: PERSON_REFERENCE_LOOKUP,
-      useExisting: TypeormPersonReferenceLookupAdapter,
+      provide: ROLE_REPOSITORY,
+      useClass: TypeormRoleRepository,
     },
     {
-      provide: USER_REFERENCE_LOOKUP,
-      useExisting: TypeormUserReferenceLookupAdapter,
+      provide: CITY_REPOSITORY,
+      useClass: TypeormCityRepository,
+    },
+    {
+      provide: STATE_REPOSITORY,
+      useClass: TypeormStateRepository,
+    },
+    {
+      provide: STATUS_REPOSITORY,
+      useClass: TypeormStatusRepository,
+    },
+    {
+      provide: CURRENCY_READ_PORT,
+      useClass: TypeormCurrencyReadRepository,
     },
   ],
   exports: [
@@ -57,8 +75,11 @@ import { TypeormUserReferenceLookupAdapter } from '@infrastructure/database/comm
     UPLOAD_FILES_IDEMPOTENCY_PORT,
     PERSON_REPOSITORY,
     USER_REPOSITORY,
-    PERSON_REFERENCE_LOOKUP,
-    USER_REFERENCE_LOOKUP,
+    ROLE_REPOSITORY,
+    CITY_REPOSITORY,
+    STATE_REPOSITORY,
+    STATUS_REPOSITORY,
+    CURRENCY_READ_PORT,
   ],
 })
 export class InfrastructureModule {}

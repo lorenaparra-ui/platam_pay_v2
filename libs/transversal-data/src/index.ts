@@ -10,6 +10,7 @@ export * from './entities/person.entity';
 export * from './entities/role.entity';
 export * from './entities/role-permission.entity';
 export * from './entities/shareholder.entity';
+export * from './entities/state.entity';
 export * from './entities/status.entity';
 export * from './entities/upload-files-idempotency.entity';
 export * from './entities/user.entity';

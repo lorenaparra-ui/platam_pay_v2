@@ -37,6 +37,26 @@ export class TypeormUserRepository implements UserRepository {
     return row ? UserMapper.to_domain(row) : null;
   }
 
+  async find_external_id_by_internal_id(
+    internal_id: number,
+  ): Promise<string | null> {
+    const row = await this.repo.findOne({
+      where: { id: internal_id },
+      select: { externalId: true },
+    });
+    return row?.externalId ?? null;
+  }
+
+  async find_internal_id_by_external_id(
+    external_id: string,
+  ): Promise<number | null> {
+    const row = await this.repo.findOne({
+      where: { externalId: external_id },
+      select: { id: true },
+    });
+    return row?.id ?? null;
+  }
+
   async find_all(): Promise<User[]> {
     const rows = await this.repo.find({
       select: USER_SELECT,
