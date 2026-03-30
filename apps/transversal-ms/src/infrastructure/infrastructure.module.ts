@@ -5,7 +5,6 @@ import { TransversalDataModule } from '@app/transversal-data';
 import { PostgresTypeOrmConfigService } from './database/services/postgres-type-orm-config.service';
 import { StorageModule } from '@infrastructure/storage/storage.module';
 import { SqsModule } from './messaging/sqs/sqs.module';
-import { UploadFilesIdempotencyEntity } from '@infrastructure/database/entities/upload-files-idempotency.entity';
 import { TypeormUploadFilesIdempotencyAdapter } from '@infrastructure/database/adapters/typeorm-upload-files-idempotency.adapter';
 import { UPLOAD_FILES_IDEMPOTENCY_PORT } from '@modules/transversal/transversal.tokens';
 import { TypeormPersonRepository } from '@infrastructure/database/repositories/typeorm-person.repository';
@@ -25,7 +24,6 @@ import { TypeormUserReferenceLookupAdapter } from '@infrastructure/database/comm
       useClass: PostgresTypeOrmConfigService,
     }),
     TransversalDataModule,
-    TypeOrmModule.forFeature([UploadFilesIdempotencyEntity]),
     StorageModule,
     SqsModule,
   ],

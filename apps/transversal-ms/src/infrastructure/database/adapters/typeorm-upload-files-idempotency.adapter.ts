@@ -6,7 +6,7 @@ import type {
   UploadFilesIdempotencyPort,
   UploadIdempotencyBeginResult,
 } from '@modules/transversal/domain/ports/upload-files-idempotency.port';
-import { UploadFilesIdempotencyEntity } from '../entities/upload-files-idempotency.entity';
+import { UploadFilesIdempotencyEntity } from '@app/transversal-data';
 
 const PG_UNIQUE_VIOLATION = '23505';
 const STALE_PROCESSING_MS = 30 * 60 * 1000;

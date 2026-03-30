@@ -7390,6 +7390,56 @@ exports.StatusEntity = StatusEntity = __decorate([
 
 /***/ },
 
+/***/ "./libs/transversal-data/src/entities/upload-files-idempotency.entity.ts"
+/*!*******************************************************************************!*\
+  !*** ./libs/transversal-data/src/entities/upload-files-idempotency.entity.ts ***!
+  \*******************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var _a;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.UploadFilesIdempotencyEntity = void 0;
+const typeorm_1 = __webpack_require__(/*! typeorm */ "typeorm");
+let UploadFilesIdempotencyEntity = class UploadFilesIdempotencyEntity {
+};
+exports.UploadFilesIdempotencyEntity = UploadFilesIdempotencyEntity;
+__decorate([
+    (0, typeorm_1.PrimaryGeneratedColumn)({ type: 'bigint' }),
+    __metadata("design:type", String)
+], UploadFilesIdempotencyEntity.prototype, "id", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'idempotency_key', type: 'varchar', length: 512, unique: true }),
+    __metadata("design:type", String)
+], UploadFilesIdempotencyEntity.prototype, "idempotency_key", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'correlation_id', type: 'uuid' }),
+    __metadata("design:type", String)
+], UploadFilesIdempotencyEntity.prototype, "correlation_id", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'result_files', type: 'jsonb', nullable: true }),
+    __metadata("design:type", Object)
+], UploadFilesIdempotencyEntity.prototype, "result_files", void 0);
+__decorate([
+    (0, typeorm_1.CreateDateColumn)({ name: 'created_at', type: 'timestamptz' }),
+    __metadata("design:type", typeof (_a = typeof Date !== "undefined" && Date) === "function" ? _a : Object)
+], UploadFilesIdempotencyEntity.prototype, "created_at", void 0);
+exports.UploadFilesIdempotencyEntity = UploadFilesIdempotencyEntity = __decorate([
+    (0, typeorm_1.Entity)({ schema: 'transversal_schema', name: 'upload_files_idempotency' })
+], UploadFilesIdempotencyEntity);
+
+
+/***/ },
+
 /***/ "./libs/transversal-data/src/entities/user.entity.ts"
 /*!***********************************************************!*\
   !*** ./libs/transversal-data/src/entities/user.entity.ts ***!
@@ -7480,6 +7530,7 @@ __exportStar(__webpack_require__(/*! ./entities/role.entity */ "./libs/transvers
 __exportStar(__webpack_require__(/*! ./entities/role-permission.entity */ "./libs/transversal-data/src/entities/role-permission.entity.ts"), exports);
 __exportStar(__webpack_require__(/*! ./entities/shareholder.entity */ "./libs/transversal-data/src/entities/shareholder.entity.ts"), exports);
 __exportStar(__webpack_require__(/*! ./entities/status.entity */ "./libs/transversal-data/src/entities/status.entity.ts"), exports);
+__exportStar(__webpack_require__(/*! ./entities/upload-files-idempotency.entity */ "./libs/transversal-data/src/entities/upload-files-idempotency.entity.ts"), exports);
 __exportStar(__webpack_require__(/*! ./entities/user.entity */ "./libs/transversal-data/src/entities/user.entity.ts"), exports);
 __exportStar(__webpack_require__(/*! ./transversal-data.module */ "./libs/transversal-data/src/transversal-data.module.ts"), exports);
 __exportStar(__webpack_require__(/*! ./transversal-data.service */ "./libs/transversal-data/src/transversal-data.service.ts"), exports);
@@ -7517,6 +7568,7 @@ const role_entity_1 = __webpack_require__(/*! ./entities/role.entity */ "./libs/
 const role_permission_entity_1 = __webpack_require__(/*! ./entities/role-permission.entity */ "./libs/transversal-data/src/entities/role-permission.entity.ts");
 const shareholder_entity_1 = __webpack_require__(/*! ./entities/shareholder.entity */ "./libs/transversal-data/src/entities/shareholder.entity.ts");
 const status_entity_1 = __webpack_require__(/*! ./entities/status.entity */ "./libs/transversal-data/src/entities/status.entity.ts");
+const upload_files_idempotency_entity_1 = __webpack_require__(/*! ./entities/upload-files-idempotency.entity */ "./libs/transversal-data/src/entities/upload-files-idempotency.entity.ts");
 const user_entity_1 = __webpack_require__(/*! ./entities/user.entity */ "./libs/transversal-data/src/entities/user.entity.ts");
 const transversal_data_service_1 = __webpack_require__(/*! ./transversal-data.service */ "./libs/transversal-data/src/transversal-data.service.ts");
 exports.TRANSVERSAL_DATA_ENTITIES = [
@@ -7533,6 +7585,7 @@ exports.TRANSVERSAL_DATA_ENTITIES = [
     role_permission_entity_1.RolePermissionEntity,
     shareholder_entity_1.ShareholderEntity,
     status_entity_1.StatusEntity,
+    upload_files_idempotency_entity_1.UploadFilesIdempotencyEntity,
     user_entity_1.UserEntity,
 ];
 let TransversalDataModule = class TransversalDataModule {

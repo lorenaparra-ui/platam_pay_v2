@@ -372,7 +372,6 @@ exports.sqs_config = (0, config_1.registerAs)('sqs', () => get_sqs_config_from_e
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 __webpack_require__(/*! ./dotenv.config */ "./apps/transversal-ms/src/config/dotenv.config.ts");
 const transversal_data_1 = __webpack_require__(/*! @app/transversal-data */ "./libs/transversal-data/src/index.ts");
-const upload_files_idempotency_entity_1 = __webpack_require__(/*! @infrastructure/database/entities/upload-files-idempotency.entity */ "./apps/transversal-ms/src/infrastructure/database/entities/upload-files-idempotency.entity.ts");
 const TypeormConfig = {
     type: "postgres",
     host: process.env.POSTGRES_HOST,
@@ -380,10 +379,7 @@ const TypeormConfig = {
     port: Number(process.env.TYPEORM_PORT ?? 5432),
     database: process.env.POSTGRES_DATABASE,
     password: process.env.POSTGRES_PASSWORD,
-    entities: [
-        ...transversal_data_1.TRANSVERSAL_DATA_ENTITIES,
-        upload_files_idempotency_entity_1.UploadFilesIdempotencyEntity,
-    ],
+    entities: [...transversal_data_1.TRANSVERSAL_DATA_ENTITIES],
     synchronize: false,
     migrationsRun: false,
     migrationsTableName: "typeorm_migrations",
@@ -418,7 +414,7 @@ exports.TypeormUploadFilesIdempotencyAdapter = void 0;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
 const typeorm_1 = __webpack_require__(/*! @nestjs/typeorm */ "@nestjs/typeorm");
 const typeorm_2 = __webpack_require__(/*! typeorm */ "typeorm");
-const upload_files_idempotency_entity_1 = __webpack_require__(/*! ../entities/upload-files-idempotency.entity */ "./apps/transversal-ms/src/infrastructure/database/entities/upload-files-idempotency.entity.ts");
+const transversal_data_1 = __webpack_require__(/*! @app/transversal-data */ "./libs/transversal-data/src/index.ts");
 const PG_UNIQUE_VIOLATION = '23505';
 const STALE_PROCESSING_MS = 30 * 60 * 1000;
 let TypeormUploadFilesIdempotencyAdapter = class TypeormUploadFilesIdempotencyAdapter {
@@ -474,7 +470,7 @@ let TypeormUploadFilesIdempotencyAdapter = class TypeormUploadFilesIdempotencyAd
 exports.TypeormUploadFilesIdempotencyAdapter = TypeormUploadFilesIdempotencyAdapter;
 exports.TypeormUploadFilesIdempotencyAdapter = TypeormUploadFilesIdempotencyAdapter = __decorate([
     (0, common_1.Injectable)(),
-    __param(0, (0, typeorm_1.InjectRepository)(upload_files_idempotency_entity_1.UploadFilesIdempotencyEntity)),
+    __param(0, (0, typeorm_1.InjectRepository)(transversal_data_1.UploadFilesIdempotencyEntity)),
     __metadata("design:paramtypes", [typeof (_a = typeof typeorm_2.Repository !== "undefined" && typeorm_2.Repository) === "function" ? _a : Object])
 ], TypeormUploadFilesIdempotencyAdapter);
 
@@ -619,56 +615,6 @@ exports.TypeormUserReferenceLookupAdapter = TypeormUserReferenceLookupAdapter = 
     __param(0, (0, typeorm_1.InjectDataSource)()),
     __metadata("design:paramtypes", [typeof (_a = typeof typeorm_2.DataSource !== "undefined" && typeorm_2.DataSource) === "function" ? _a : Object])
 ], TypeormUserReferenceLookupAdapter);
-
-
-/***/ },
-
-/***/ "./apps/transversal-ms/src/infrastructure/database/entities/upload-files-idempotency.entity.ts"
-/*!*****************************************************************************************************!*\
-  !*** ./apps/transversal-ms/src/infrastructure/database/entities/upload-files-idempotency.entity.ts ***!
-  \*****************************************************************************************************/
-(__unused_webpack_module, exports, __webpack_require__) {
-
-
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
-var _a;
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.UploadFilesIdempotencyEntity = void 0;
-const typeorm_1 = __webpack_require__(/*! typeorm */ "typeorm");
-let UploadFilesIdempotencyEntity = class UploadFilesIdempotencyEntity {
-};
-exports.UploadFilesIdempotencyEntity = UploadFilesIdempotencyEntity;
-__decorate([
-    (0, typeorm_1.PrimaryGeneratedColumn)({ type: 'bigint' }),
-    __metadata("design:type", String)
-], UploadFilesIdempotencyEntity.prototype, "id", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ name: 'idempotency_key', type: 'varchar', length: 512, unique: true }),
-    __metadata("design:type", String)
-], UploadFilesIdempotencyEntity.prototype, "idempotency_key", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ name: 'correlation_id', type: 'uuid' }),
-    __metadata("design:type", String)
-], UploadFilesIdempotencyEntity.prototype, "correlation_id", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ name: 'result_files', type: 'jsonb', nullable: true }),
-    __metadata("design:type", Object)
-], UploadFilesIdempotencyEntity.prototype, "result_files", void 0);
-__decorate([
-    (0, typeorm_1.CreateDateColumn)({ name: 'created_at', type: 'timestamptz' }),
-    __metadata("design:type", typeof (_a = typeof Date !== "undefined" && Date) === "function" ? _a : Object)
-], UploadFilesIdempotencyEntity.prototype, "created_at", void 0);
-exports.UploadFilesIdempotencyEntity = UploadFilesIdempotencyEntity = __decorate([
-    (0, typeorm_1.Entity)({ schema: 'transversal_schema', name: 'upload_files_idempotency' })
-], UploadFilesIdempotencyEntity);
 
 
 /***/ },
@@ -1099,7 +1045,6 @@ const transversal_data_1 = __webpack_require__(/*! @app/transversal-data */ "./l
 const postgres_type_orm_config_service_1 = __webpack_require__(/*! ./database/services/postgres-type-orm-config.service */ "./apps/transversal-ms/src/infrastructure/database/services/postgres-type-orm-config.service.ts");
 const storage_module_1 = __webpack_require__(/*! @infrastructure/storage/storage.module */ "./apps/transversal-ms/src/infrastructure/storage/storage.module.ts");
 const sqs_module_1 = __webpack_require__(/*! ./messaging/sqs/sqs.module */ "./apps/transversal-ms/src/infrastructure/messaging/sqs/sqs.module.ts");
-const upload_files_idempotency_entity_1 = __webpack_require__(/*! @infrastructure/database/entities/upload-files-idempotency.entity */ "./apps/transversal-ms/src/infrastructure/database/entities/upload-files-idempotency.entity.ts");
 const typeorm_upload_files_idempotency_adapter_1 = __webpack_require__(/*! @infrastructure/database/adapters/typeorm-upload-files-idempotency.adapter */ "./apps/transversal-ms/src/infrastructure/database/adapters/typeorm-upload-files-idempotency.adapter.ts");
 const transversal_tokens_1 = __webpack_require__(/*! @modules/transversal/transversal.tokens */ "./apps/transversal-ms/src/modules/transversal/transversal.tokens.ts");
 const typeorm_person_repository_1 = __webpack_require__(/*! @infrastructure/database/repositories/typeorm-person.repository */ "./apps/transversal-ms/src/infrastructure/database/repositories/typeorm-person.repository.ts");
@@ -1122,7 +1067,6 @@ exports.InfrastructureModule = InfrastructureModule = __decorate([
                 useClass: postgres_type_orm_config_service_1.PostgresTypeOrmConfigService,
             }),
             transversal_data_1.TransversalDataModule,
-            typeorm_1.TypeOrmModule.forFeature([upload_files_idempotency_entity_1.UploadFilesIdempotencyEntity]),
             storage_module_1.StorageModule,
             sqs_module_1.SqsModule,
         ],
@@ -5000,6 +4944,56 @@ exports.StatusEntity = StatusEntity = __decorate([
 
 /***/ },
 
+/***/ "./libs/transversal-data/src/entities/upload-files-idempotency.entity.ts"
+/*!*******************************************************************************!*\
+  !*** ./libs/transversal-data/src/entities/upload-files-idempotency.entity.ts ***!
+  \*******************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var _a;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.UploadFilesIdempotencyEntity = void 0;
+const typeorm_1 = __webpack_require__(/*! typeorm */ "typeorm");
+let UploadFilesIdempotencyEntity = class UploadFilesIdempotencyEntity {
+};
+exports.UploadFilesIdempotencyEntity = UploadFilesIdempotencyEntity;
+__decorate([
+    (0, typeorm_1.PrimaryGeneratedColumn)({ type: 'bigint' }),
+    __metadata("design:type", String)
+], UploadFilesIdempotencyEntity.prototype, "id", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'idempotency_key', type: 'varchar', length: 512, unique: true }),
+    __metadata("design:type", String)
+], UploadFilesIdempotencyEntity.prototype, "idempotency_key", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'correlation_id', type: 'uuid' }),
+    __metadata("design:type", String)
+], UploadFilesIdempotencyEntity.prototype, "correlation_id", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'result_files', type: 'jsonb', nullable: true }),
+    __metadata("design:type", Object)
+], UploadFilesIdempotencyEntity.prototype, "result_files", void 0);
+__decorate([
+    (0, typeorm_1.CreateDateColumn)({ name: 'created_at', type: 'timestamptz' }),
+    __metadata("design:type", typeof (_a = typeof Date !== "undefined" && Date) === "function" ? _a : Object)
+], UploadFilesIdempotencyEntity.prototype, "created_at", void 0);
+exports.UploadFilesIdempotencyEntity = UploadFilesIdempotencyEntity = __decorate([
+    (0, typeorm_1.Entity)({ schema: 'transversal_schema', name: 'upload_files_idempotency' })
+], UploadFilesIdempotencyEntity);
+
+
+/***/ },
+
 /***/ "./libs/transversal-data/src/entities/user.entity.ts"
 /*!***********************************************************!*\
   !*** ./libs/transversal-data/src/entities/user.entity.ts ***!
@@ -5090,6 +5084,7 @@ __exportStar(__webpack_require__(/*! ./entities/role.entity */ "./libs/transvers
 __exportStar(__webpack_require__(/*! ./entities/role-permission.entity */ "./libs/transversal-data/src/entities/role-permission.entity.ts"), exports);
 __exportStar(__webpack_require__(/*! ./entities/shareholder.entity */ "./libs/transversal-data/src/entities/shareholder.entity.ts"), exports);
 __exportStar(__webpack_require__(/*! ./entities/status.entity */ "./libs/transversal-data/src/entities/status.entity.ts"), exports);
+__exportStar(__webpack_require__(/*! ./entities/upload-files-idempotency.entity */ "./libs/transversal-data/src/entities/upload-files-idempotency.entity.ts"), exports);
 __exportStar(__webpack_require__(/*! ./entities/user.entity */ "./libs/transversal-data/src/entities/user.entity.ts"), exports);
 __exportStar(__webpack_require__(/*! ./transversal-data.module */ "./libs/transversal-data/src/transversal-data.module.ts"), exports);
 __exportStar(__webpack_require__(/*! ./transversal-data.service */ "./libs/transversal-data/src/transversal-data.service.ts"), exports);
@@ -5127,6 +5122,7 @@ const role_entity_1 = __webpack_require__(/*! ./entities/role.entity */ "./libs/
 const role_permission_entity_1 = __webpack_require__(/*! ./entities/role-permission.entity */ "./libs/transversal-data/src/entities/role-permission.entity.ts");
 const shareholder_entity_1 = __webpack_require__(/*! ./entities/shareholder.entity */ "./libs/transversal-data/src/entities/shareholder.entity.ts");
 const status_entity_1 = __webpack_require__(/*! ./entities/status.entity */ "./libs/transversal-data/src/entities/status.entity.ts");
+const upload_files_idempotency_entity_1 = __webpack_require__(/*! ./entities/upload-files-idempotency.entity */ "./libs/transversal-data/src/entities/upload-files-idempotency.entity.ts");
 const user_entity_1 = __webpack_require__(/*! ./entities/user.entity */ "./libs/transversal-data/src/entities/user.entity.ts");
 const transversal_data_service_1 = __webpack_require__(/*! ./transversal-data.service */ "./libs/transversal-data/src/transversal-data.service.ts");
 exports.TRANSVERSAL_DATA_ENTITIES = [
@@ -5143,6 +5139,7 @@ exports.TRANSVERSAL_DATA_ENTITIES = [
     role_permission_entity_1.RolePermissionEntity,
     shareholder_entity_1.ShareholderEntity,
     status_entity_1.StatusEntity,
+    upload_files_idempotency_entity_1.UploadFilesIdempotencyEntity,
     user_entity_1.UserEntity,
 ];
 let TransversalDataModule = class TransversalDataModule {
