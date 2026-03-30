@@ -1,0 +1,73 @@
+{
+  "projects": {
+    "transversal-ms": {
+      "type": "application",
+      "root": "apps/transversal-ms",
+      "entryFile": "main",
+      "sourceRoot": "apps/transversal-ms/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/transversal-ms/tsconfig.build.json",
+        "webpack": true
+      }
+    },
+    "suppliers-ms": {
+      "type": "application",
+      "root": "apps/suppliers-ms",
+      "entryFile": "main",
+      "sourceRoot": "apps/suppliers-ms/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/suppliers-ms/tsconfig.build.json",
+        "webpack": true
+      }
+    },
+    "products-ms": {
+      "type": "application",
+      "root": "apps/products-ms",
+      "entryFile": "main",
+      "sourceRoot": "apps/products-ms/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/products-ms/tsconfig.build.json",
+        "webpack": true
+      }
+    },
+    "products-data": {
+      "type": "library",
+      "root": "libs/products-data",
+      "entryFile": "index",
+      "sourceRoot": "libs/products-data/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/products-data/tsconfig.lib.json"
+      }
+    },
+    "suppliers-data": {
+      "type": "library",
+      "root": "libs/suppliers-data",
+      "entryFile": "index",
+      "sourceRoot": "libs/suppliers-data/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/suppliers-data/tsconfig.lib.json"
+      }
+    },
+    "transversal-data": {
+      "type": "library",
+      "root": "libs/transversal-data",
+      "entryFile": "index",
+      "sourceRoot": "libs/transversal-data/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/transversal-data/tsconfig.lib.json"
+      }
+    },
+    "shared": {
+      "type": "library",
+      "root": "libs/shared",
+      "entryFile": "index",
+      "sourceRoot": "libs/shared/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/shared/tsconfig.lib.json"
+      }
+    }
+  },
+  "compilerOptions": {
+    "webpack": true
+  }
+}  

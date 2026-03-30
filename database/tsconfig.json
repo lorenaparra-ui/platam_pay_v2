@@ -1,0 +1,19 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "noEmit": true,
+    "baseUrl": "./src",
+    "paths": {
+      "@migrations": ["migrations"],
+      "@migrations/*": ["migrations/*"],
+      "@libs/transversal-data": ["../../libs/transversal-data/src/transversal-data.module"],
+      "@libs/products-data": ["../../libs/products-data/src/products-data.module"],
+      "@libs/suppliers-data": ["../../libs/suppliers-data/src/suppliers-data.module"]
+    }
+  },
+  "ts-node": {
+    "require": ["tsconfig-paths/register"]
+  },
+  "include": ["src/**/*"]
+}
