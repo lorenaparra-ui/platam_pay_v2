@@ -1,0 +1,36 @@
+{
+  "name": "@platam/contracts-ms",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "build": "cd ../.. && npx nest build contracts-ms --builder webpack",
+    "start": "cd ../.. && npx nest start contracts-ms --builder webpack",
+    "start:dev": "cd ../.. && npx nest start contracts-ms --watch --builder webpack",
+    "start:prod": "node ../../dist/apps/contracts-ms/main.js"
+  },
+  "dependencies": {
+    "@aws-sdk/client-sqs": "^3.700.0",
+    "@nestjs/common": "^11.0.0",
+    "@nestjs/config": "^4.0.0",
+    "@nestjs/core": "^11.0.0",
+    "@nestjs/microservices": "^11.0.0",
+    "@nestjs/platform-express": "^11.0.0",
+    "@nestjs/swagger": "^11.2.6",
+    "@nestjs/typeorm": "^11.0.0",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.1",
+    "dotenv": "^16.4.5",
+    "pg": "^8.13.0",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.1",
+    "typeorm": "^0.3.20"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^11.0.0",
+    "@types/node": "^22.10.0",
+    "ts-loader": "^9.5.4",
+    "typescript": "^5.7.2",
+    "webpack": "^5.104.1",
+    "webpack-node-externals": "^3.0.0"
+  }
+}

@@ -18,4 +18,12 @@ export type SqsQueuesUrlsConfig = Readonly<{
    * Opcional; si no se define, se usa inbound_queue_url y luego outbound.
    */
   suppliers_callback_queue_url?: string;
+  /**
+   * contracts-ms: cola dedicada a comandos create-contract (cuerpo JSON validado en el consumer).
+   */
+  contracts_create_inbound_queue_url?: string;
+  /**
+   * contracts-ms: cola dedicada a comandos get-contract (por external_id).
+   */
+  contracts_get_inbound_queue_url?: string;
 }>;

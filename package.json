@@ -10,6 +10,7 @@
     "start:transversal-ms:dev": "npx nest start transversal-ms --watch --builder webpack",
     "start:suppliers-ms:dev": "npx nest start suppliers-ms --watch --builder webpack",
     "start:products-ms:dev": "npx nest start products-ms --watch --builder webpack",
+    "start:contracts-ms:dev": "npx nest start contracts-ms --watch --builder webpack",
     "migration:show": "npm run migration:show -w @platam/database",
     "migration:run": "npm run migration:run -w @platam/database",
     "migration:revert": "npm run migration:revert -w @platam/database"

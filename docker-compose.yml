@@ -226,6 +226,58 @@ services:
     networks:
       - backend-network
 
+  # ------------------------------------------------
+  # Microservicio: Contracts (NestJS + TypeORM + SQS)
+  # ------------------------------------------------
+  contracts-service:
+    build:
+      context: .
+      dockerfile: apps/contracts-ms/Dockerfile
+    image: platam/contracts-ms:local
+    container_name: platam_contracts
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      localstack:
+        condition: service_healthy
+      localstack-bootstrap:
+        condition: service_completed_successfully
+    env_file:
+      - ./.env.docker
+    environment:
+      NODE_ENV: production
+      POSTGRES_HOST: postgres
+      POSTGRES_USERNAME: ${POSTGRES_USERNAME:-admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DATABASE: ${POSTGRES_DATABASE:-platam_pay}
+      TYPEORM_TYPE: postgres
+      TYPEORM_PORT: 5432
+      CONTRACTS_MS_PORT: 8080
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      AWS_SQS_ENDPOINT: http://localstack:4566
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-test}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-test}
+      CONTRACTS_SQS_OUTBOUND_QUEUE_URL: ${CONTRACTS_SQS_OUTBOUND_QUEUE_URL:-}
+      CONTRACTS_SQS_CREATE_CONTRACT_QUEUE_URL: ${CONTRACTS_SQS_CREATE_CONTRACT_QUEUE_URL:-}
+      CONTRACTS_SQS_GET_CONTRACT_QUEUE_URL: ${CONTRACTS_SQS_GET_CONTRACT_QUEUE_URL:-}
+    ports:
+      - "8084:8080"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "-qO-",
+          "http://127.0.0.1:8080/api/health",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+    networks:
+      - backend-network
+
 # ------------------------------------------------
 # Redes y Volúmenes
 # ------------------------------------------------

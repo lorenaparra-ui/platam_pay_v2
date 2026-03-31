@@ -30,6 +30,16 @@
         "webpack": true
       }
     },
+    "contracts-ms": {
+      "type": "application",
+      "root": "apps/contracts-ms",
+      "entryFile": "main",
+      "sourceRoot": "apps/contracts-ms/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/contracts-ms/tsconfig.build.json",
+        "webpack": true
+      }
+    },
     "products-data": {
       "type": "library",
       "root": "libs/products-data",
