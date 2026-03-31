@@ -33,7 +33,7 @@ export class CreateContractHttpDto {
   @ApiPropertyOptional({
     format: 'uuid',
     description:
-      'Plantilla (products_schema.contract_templates). Si no se envía, se usa la semilla legacy_default v1.',
+      'Plantilla (products_schema.contract_templates; sin anclaje por categoría/facility en DDL). Si no se envía, se usa la primera plantilla con version = 1.',
   })
   contract_template_external_id?: string;
 

@@ -13,12 +13,6 @@ export class ContractTemplateEntity extends BaseExternalIdEntity {
   @Column({ name: 'version', type: 'int' })
   version: number;
 
-  @Column({ name: 'category_id', type: 'bigint', nullable: true })
-  categoryId: number | null;
-
-  @Column({ name: 'credit_facility_id', type: 'bigint', nullable: true })
-  creditFacilityId: number | null;
-
   @Column({ name: 'effective_from', type: 'timestamptz', nullable: true })
   effectiveFrom: Date | null;
 

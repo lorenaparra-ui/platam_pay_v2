@@ -1,15 +1,13 @@
-import { Column, Entity, OneToMany } from 'typeorm';
+import { Column, Entity, JoinColumn, OneToMany, OneToOne } from 'typeorm';
 import { BaseExternalIdEntity } from './base-external-id.entity';
 import { CategoryEntity } from './category.entity';
+import { ContractEntity } from './contract.entity';
 
-/**
- * Entidad TypeORM para credit_facilities.
- * Relaciones: status, categories (1:N). El vínculo opcional con partner pasa por categories.partner_id.
- */
 @Entity({ name: 'credit_facilities', schema: 'products_schema' })
 export class CreditFacilityEntity extends BaseExternalIdEntity {
-  @Column({ name: 'contract_id', type: 'varchar', length: 255, nullable: true })
-  contractId: string | null;
+  @OneToOne(() => ContractEntity, { nullable: true })
+  @JoinColumn({ name: 'contract_id', referencedColumnName: 'id' })
+  contractId: ContractEntity | null;
 
   @Column({ name: 'status_id', type: 'bigint' })
   statusId: number;
