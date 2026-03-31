@@ -11,7 +11,6 @@ import { TypeormPersonRepository } from '@infrastructure/database/repositories/t
 import { TypeormUserRepository } from '@infrastructure/database/repositories/typeorm-user.repository';
 import { TypeormRoleRepository } from '@infrastructure/database/repositories/typeorm-role.repository';
 import { TypeormCityRepository } from '@infrastructure/database/repositories/typeorm-city.repository';
-import { TypeormStateRepository } from '@infrastructure/database/repositories/typeorm-state.repository';
 import { TypeormStatusRepository } from '@infrastructure/database/repositories/typeorm-status.repository';
 import { TypeormCurrencyReadRepository } from '@infrastructure/database/repositories/typeorm-currency-read.repository';
 import { PERSON_REPOSITORY } from '@modules/persons/persons.tokens';
@@ -19,7 +18,6 @@ import { USER_REPOSITORY } from '@modules/users/users.tokens';
 import {
   ROLE_REPOSITORY,
   CITY_REPOSITORY,
-  STATE_REPOSITORY,
   STATUS_REPOSITORY,
   CURRENCY_READ_PORT,
 } from '@modules/transversal/catalog.tokens';
@@ -58,10 +56,6 @@ import {
       useClass: TypeormCityRepository,
     },
     {
-      provide: STATE_REPOSITORY,
-      useClass: TypeormStateRepository,
-    },
-    {
       provide: STATUS_REPOSITORY,
       useClass: TypeormStatusRepository,
     },
@@ -77,7 +71,6 @@ import {
     USER_REPOSITORY,
     ROLE_REPOSITORY,
     CITY_REPOSITORY,
-    STATE_REPOSITORY,
     STATUS_REPOSITORY,
     CURRENCY_READ_PORT,
   ],

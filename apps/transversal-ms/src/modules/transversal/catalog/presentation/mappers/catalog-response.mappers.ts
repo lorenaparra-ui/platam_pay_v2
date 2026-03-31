@@ -1,9 +1,9 @@
 import type { Role } from '@modules/transversal/catalog/domain/models/role.models';
 import type { City } from '@modules/transversal/catalog/domain/models/city.models';
-import type { State } from '@modules/transversal/catalog/domain/models/state.models';
+import type { CatalogStatus } from '@modules/transversal/catalog/domain/models/status.models';
 import type { RoleResponseDto } from '../dto/roles.api.dto';
 import type { CityResponseDto } from '../dto/cities.api.dto';
-import type { StateResponseDto } from '../dto/states.api.dto';
+import type { StatusResponseDto } from '../dto/statuses.api.dto';
 
 export function to_role_response_dto(role: Role): RoleResponseDto {
   return {
@@ -29,13 +29,15 @@ export function to_city_response_dto(city: City): CityResponseDto {
   };
 }
 
-export function to_state_response_dto(state: State): StateResponseDto {
+export function to_status_response_dto(row: CatalogStatus): StatusResponseDto {
   return {
-    external_id: state.external_id,
-    country_code: state.country_code,
-    state_name: state.state_name,
-    state_code: state.state_code,
-    created_at: state.created_at,
-    updated_at: state.updated_at,
+    external_id: row.external_id,
+    entity_type: row.entity_type,
+    code: row.code,
+    display_name: row.display_name,
+    description: row.description,
+    is_active: row.is_active,
+    created_at: row.created_at,
+    updated_at: row.updated_at,
   };
 }

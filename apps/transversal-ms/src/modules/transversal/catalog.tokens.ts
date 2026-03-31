@@ -1,5 +1,4 @@
 export const ROLE_REPOSITORY = Symbol('ROLE_REPOSITORY');
 export const CITY_REPOSITORY = Symbol('CITY_REPOSITORY');
-export const STATE_REPOSITORY = Symbol('STATE_REPOSITORY');
 export const STATUS_REPOSITORY = Symbol('STATUS_REPOSITORY');
 export const CURRENCY_READ_PORT = Symbol('CURRENCY_READ_PORT');
