@@ -1,5 +1,5 @@
 import { User } from '@modules/users/domain/models/user.models';
-import type { RoleRepository } from '@modules/transversal/catalog/domain/ports/role.repository.port';
+import type { RoleRepository } from '@modules/transversal/domain/ports/catalog/role.repository.port';
 import type { StatusRepository } from '@modules/transversal/catalog/domain/ports/status.repository.port';
 
 export interface UserPublicFields {

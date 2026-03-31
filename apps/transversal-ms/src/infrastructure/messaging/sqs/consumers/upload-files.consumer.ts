@@ -1,7 +1,7 @@
 import { Inject, Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { SQSClient } from '@aws-sdk/client-sqs';
-import { IngestUploadFilesSqsMessageUseCase } from '@modules/transversal/application/use-cases/ingest-upload-files-sqs-message.use-case';
+import { IngestUploadFilesSqsMessageUseCase } from '@modules/transversal/application/use-cases/upload-files/ingest-upload-files-sqs-message.use-case';
 import {
   BaseConsumer,
   QUEUES_CONFIG,

@@ -2,13 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { RoleEntity } from '@app/transversal-data';
-import type { RoleRepository } from '@modules/transversal/catalog/domain/ports/role.repository.port';
+import type { RoleRepository } from '@modules/transversal/domain/ports/catalog/role.repository.port';
 import type {
   Role,
   CreateRoleProps,
   UpdateRoleProps,
   ListRolesParams,
-} from '@modules/transversal/catalog/domain/models/role.models';
+} from '@modules/transversal/domain/models/role.models';
 import { RoleMapper } from '@infrastructure/database/mappers/role.mapper';
 
 const ROLE_SELECT = {

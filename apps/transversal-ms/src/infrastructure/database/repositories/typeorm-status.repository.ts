@@ -2,13 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { StatusEntity } from '@app/transversal-data';
-import type { StatusRepository } from '@modules/transversal/catalog/domain/ports/status.repository.port';
+import type { StatusRepository } from '@modules/transversal/domain/ports/catalog/status.repository.port';
 import type {
   CatalogStatus,
   CreateStatusProps,
   UpdateStatusProps,
   ListStatusesParams,
-} from '@modules/transversal/catalog/domain/models/status.models';
+} from '@modules/transversal/domain/models/status.models';
 import { StatusMapper } from '@infrastructure/database/mappers/status.mapper';
 
 const STATUS_SELECT = {

@@ -1,6 +1,6 @@
 import { Person } from '@modules/persons/domain/models/person.models';
 import type { UserRepository } from '@modules/users/domain/ports/user.ports';
-import type { CityRepository } from '@modules/transversal/catalog/domain/ports/city.repository.port';
+import type { CityRepository } from '@modules/transversal/domain/ports/catalog/city.repository.port';
 
 export interface PersonPublicFields {
   external_id: string;

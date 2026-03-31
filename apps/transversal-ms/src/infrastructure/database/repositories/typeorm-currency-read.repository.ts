@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CurrencyEntity } from '@app/transversal-data';
-import type { CurrencyReadPort } from '@modules/transversal/catalog/domain/ports/currency.read.port';
+import type { CurrencyReadPort } from '@modules/transversal/domain/ports/catalog/currency.read.port';
 
 const CURRENCY_ID_SELECT = { id: true } as const;
 const CURRENCY_EXT_SELECT = { externalId: true } as const;

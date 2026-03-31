@@ -5,7 +5,7 @@ import type {
   CachedUploadFilesResult,
   UploadFilesIdempotencyPort,
   UploadIdempotencyBeginResult,
-} from '@modules/transversal/domain/ports/upload-files-idempotency.port';
+} from '@modules/transversal/domain/ports/storage/upload-files-idempotency.port';
 import { UploadFilesIdempotencyEntity } from '@app/transversal-data';
 
 const PG_UNIQUE_VIOLATION = '23505';

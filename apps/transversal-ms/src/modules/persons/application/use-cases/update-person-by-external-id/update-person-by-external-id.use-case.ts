@@ -1,8 +1,8 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { PERSON_REPOSITORY } from '@modules/persons/persons.tokens';
 import { USER_REPOSITORY } from '@modules/users/users.tokens';
-import { CITY_REPOSITORY } from '@modules/transversal/catalog.tokens';
-import type { CityRepository } from '@modules/transversal/catalog/domain/ports/city.repository.port';
+import { CITY_REPOSITORY } from '@modules/transversal/transversal.tokens';
+import type { CityRepository } from '@modules/transversal/domain/ports/catalog/city.repository.port';
 import { UserRepository } from '@modules/users/domain/ports/user.ports';
 import { PersonRepository } from '@modules/persons/domain/ports/person.ports';
 import { UpdatePersonProps } from '@modules/persons/domain/models/person.models';

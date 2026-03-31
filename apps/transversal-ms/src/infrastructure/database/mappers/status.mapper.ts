@@ -1,5 +1,5 @@
 import { StatusEntity } from '@app/transversal-data';
-import type { CatalogStatus } from '@modules/transversal/catalog/domain/models/status.models';
+import type { CatalogStatus } from '@modules/transversal/domain/models/status.models';
 
 export class StatusMapper {
   static to_domain(row: StatusEntity): CatalogStatus {

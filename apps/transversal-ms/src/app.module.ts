@@ -7,7 +7,8 @@ import { UsersModule } from '@modules/users/users.module';
 import appConfig from './config/app.config';
 import { sqs_config } from './config/sqs.config';
 import { appController } from './app.controller';
-import { TransversalCatalogModule } from '@modules/transversal/transversal-catalog.module';
+import { TransversalModule } from '@modules/transversal/transversal.module';
+
 
 @Module({
   imports: [
@@ -17,10 +18,9 @@ import { TransversalCatalogModule } from '@modules/transversal/transversal-catal
       envFilePath: MONOREPO_ENV_PATH,
     }),
     InfrastructureModule,
-   // TransversalModule,
+    TransversalModule,
     PersonsModule,
     UsersModule,
-    TransversalCatalogModule,
   ],
   controllers: [appController],
 })

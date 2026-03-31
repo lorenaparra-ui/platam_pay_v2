@@ -2,13 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CityEntity } from '@app/transversal-data';
-import type { CityRepository } from '@modules/transversal/catalog/domain/ports/city.repository.port';
+import type { CityRepository } from '@modules/transversal/domain/ports/catalog/city.repository.port';
 import type {
   City,
   CreateCityProps,
   UpdateCityProps,
   ListCitiesParams,
-} from '@modules/transversal/catalog/domain/models/city.models';
+} from '@modules/transversal/domain/models/city.models';
 import { CityMapper } from '@infrastructure/database/mappers/city.mapper';
 
 const CITY_ROW_SQL = `c.id, c.external_id, c.country_name, c.country_code, c.state_name, c.state_code,

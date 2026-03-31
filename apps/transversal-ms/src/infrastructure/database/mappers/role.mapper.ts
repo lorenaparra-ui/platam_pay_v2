@@ -1,5 +1,5 @@
 import { RoleEntity } from '@app/transversal-data';
-import type { Role } from '@modules/transversal/catalog/domain/models/role.models';
+import type { Role } from '@modules/transversal/domain/models/role.models';
 
 export class RoleMapper {
   static to_domain(row: RoleEntity): Role {

@@ -20,7 +20,7 @@ import {
   CITY_REPOSITORY,
   STATUS_REPOSITORY,
   CURRENCY_READ_PORT,
-} from '@modules/transversal/catalog.tokens';
+} from '@modules/transversal/transversal.tokens';
 
 @Global()
 @Module({

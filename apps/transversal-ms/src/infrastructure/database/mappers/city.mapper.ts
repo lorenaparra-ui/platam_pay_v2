@@ -1,4 +1,4 @@
-import type { City } from '@modules/transversal/catalog/domain/models/city.models';
+import type { City } from '@modules/transversal/domain/models/city.models';
 
 export class CityMapper {
   static from_raw_row(row: Record<string, unknown>): City {

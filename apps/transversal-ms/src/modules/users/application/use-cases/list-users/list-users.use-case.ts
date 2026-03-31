@@ -3,9 +3,9 @@ import { USER_REPOSITORY } from '@modules/users/users.tokens';
 import {
   ROLE_REPOSITORY,
   STATUS_REPOSITORY,
-} from '@modules/transversal/catalog.tokens';
-import type { RoleRepository } from '@modules/transversal/catalog/domain/ports/role.repository.port';
-import type { StatusRepository } from '@modules/transversal/catalog/domain/ports/status.repository.port';
+} from '@modules/transversal/transversal.tokens';
+import type { RoleRepository } from '@modules/transversal/domain/ports/catalog/role.repository.port';
+import type { StatusRepository } from '@modules/transversal/domain/ports/catalog/status.repository.port';
 import { UserRepository } from '@modules/users/domain/ports/user.ports';
 import { build_user_public_fields } from '@modules/users/application/mapping/user-public-fields.builder';
 import { ListUsersItemResponse } from './list-users.response';

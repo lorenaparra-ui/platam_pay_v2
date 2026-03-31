@@ -9,13 +9,13 @@ import { ConfigOutboundTransversalQueueUrlAdapter } from './adapters/config-outb
 import { TransversalInboundSqsConsumer } from './consumers/transversal-inbound-sqs.consumer';
 import { UploadFilesSqsConsumer } from './consumers/upload-files.consumer';
 import { MessagingApplicationModule } from '@messaging/messaging-application.module';
-import { TransversalUploadModule } from '@modules/transversal/transversal-upload.module';
+import { TransversalModule } from '@modules/transversal/transversal.module';
 import { OUTBOUND_MESSAGE_PUBLISHER_PORT } from '@messaging/domain/ports/outbound-message-publisher.port';
 import { TRANSVERSAL_OUTBOUND_QUEUE_URL_PORT } from '@messaging/domain/ports/transversal-outbound-queue-url.port';
 
 @Global()
 @Module({
-  imports: [ConfigModule, MessagingApplicationModule, TransversalUploadModule],
+  imports: [ConfigModule, MessagingApplicationModule, TransversalModule],
   providers: [
     {
       provide: QUEUES_CONFIG,
