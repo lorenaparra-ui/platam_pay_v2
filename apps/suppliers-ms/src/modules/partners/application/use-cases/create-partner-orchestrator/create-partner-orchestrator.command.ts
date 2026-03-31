@@ -12,6 +12,10 @@ export interface CreatePartnerOrchestratorCategoryItem {
  * Entrada ya mapeada desde HTTP (sin Multer): el caso de uso recibe metadatos de archivos por separado.
  */
 export interface CreatePartnerOrchestratorCommand {
+  /**
+   * UUID de ciudad en transversal (external_id). En el mensaje SQS `create-partner-user` v1.0
+   * se envía como `payload.city_external_id`; suppliers-ms no valida el catálogo.
+   */
   readonly city_id: string | null;
   readonly entity_type: string;
   readonly business_name: string | null;

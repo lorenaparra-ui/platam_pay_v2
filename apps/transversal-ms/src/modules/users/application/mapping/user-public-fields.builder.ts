@@ -1,6 +1,6 @@
 import { User } from '@modules/users/domain/models/user.models';
 import type { RoleRepository } from '@modules/transversal/domain/ports/catalog/role.repository.port';
-import type { StatusRepository } from '@modules/transversal/catalog/domain/ports/status.repository.port';
+import type { StatusRepository } from '@modules/transversal/domain/ports/catalog/status.repository.port';
 
 export interface UserPublicFields {
   external_id: string;

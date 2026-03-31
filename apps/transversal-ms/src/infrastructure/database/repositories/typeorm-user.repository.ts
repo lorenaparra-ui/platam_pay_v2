@@ -37,6 +37,14 @@ export class TypeormUserRepository implements UserRepository {
     return row ? UserMapper.to_domain(row) : null;
   }
 
+  async find_by_email(email: string): Promise<User | null> {
+    const row = await this.repo.findOne({
+      where: { email: email.trim().toLowerCase() },
+      select: USER_SELECT,
+    });
+    return row ? UserMapper.to_domain(row) : null;
+  }
+
   async find_external_id_by_internal_id(
     internal_id: number,
   ): Promise<string | null> {

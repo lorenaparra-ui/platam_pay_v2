@@ -12,6 +12,8 @@ import { TRANSVERSAL_OUTBOUND_QUEUE_URL_PORT } from '@messaging/domain/ports/tra
 import { PRODUCTS_OUTBOUND_QUEUE_URL_PORT } from '@messaging/domain/ports/products-outbound-queue-url.port';
 import { TRANSVERSAL_UPLOAD_FILES_QUEUE_URL_PORT } from '@messaging/domain/ports/transversal-upload-files-queue-url.port';
 import { ConfigTransversalUploadFilesQueueUrlAdapter } from './adapters/config-transversal-upload-files-queue-url.adapter';
+import { TRANSVERSAL_CREATE_PARTNER_USER_QUEUE_URL_PORT } from '@messaging/domain/ports/transversal-create-partner-user-queue-url.port';
+import { ConfigTransversalCreatePartnerUserQueueUrlAdapter } from './adapters/config-transversal-create-partner-user-queue-url.adapter';
 import { PublishProductsEventUseCase } from '@messaging/application/use-cases/publish-products-event.use-case';
 
 @Global()
@@ -24,6 +26,8 @@ import { PublishProductsEventUseCase } from '@messaging/application/use-cases/pu
         outbound_queue_url: config_service.getOrThrow<string>('sqs.outbound_queue_url'),
         inbound_queue_url: config_service.get<string>('sqs.inbound_queue_url'),
         upload_files_queue_url: config_service.get<string>('sqs.upload_files_queue_url'),
+        create_partner_user_queue_url: config_service.get<string>('sqs.create_partner_user_queue_url'),
+        suppliers_callback_queue_url: config_service.get<string>('sqs.suppliers_callback_queue_url'),
       }),
       inject: [ConfigService],
     },
@@ -45,6 +49,7 @@ import { PublishProductsEventUseCase } from '@messaging/application/use-cases/pu
     },
     ConfigOutboundTransversalQueueUrlAdapter,
     ConfigTransversalUploadFilesQueueUrlAdapter,
+    ConfigTransversalCreatePartnerUserQueueUrlAdapter,
     {
       provide: TRANSVERSAL_OUTBOUND_QUEUE_URL_PORT,
       useExisting: ConfigOutboundTransversalQueueUrlAdapter,
@@ -52,6 +57,10 @@ import { PublishProductsEventUseCase } from '@messaging/application/use-cases/pu
     {
       provide: TRANSVERSAL_UPLOAD_FILES_QUEUE_URL_PORT,
       useExisting: ConfigTransversalUploadFilesQueueUrlAdapter,
+    },
+    {
+      provide: TRANSVERSAL_CREATE_PARTNER_USER_QUEUE_URL_PORT,
+      useExisting: ConfigTransversalCreatePartnerUserQueueUrlAdapter,
     },
     ConfigOutboundProductsQueueUrlAdapter,
     {
@@ -65,6 +74,7 @@ import { PublishProductsEventUseCase } from '@messaging/application/use-cases/pu
     OUTBOUND_MESSAGE_PUBLISHER_PORT,
     TRANSVERSAL_OUTBOUND_QUEUE_URL_PORT,
     TRANSVERSAL_UPLOAD_FILES_QUEUE_URL_PORT,
+    TRANSVERSAL_CREATE_PARTNER_USER_QUEUE_URL_PORT,
     PRODUCTS_OUTBOUND_QUEUE_URL_PORT,
     PublishProductsEventUseCase,
   ],

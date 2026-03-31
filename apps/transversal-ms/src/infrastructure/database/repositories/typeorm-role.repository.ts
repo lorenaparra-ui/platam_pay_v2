@@ -35,6 +35,14 @@ export class TypeormRoleRepository implements RoleRepository {
     return row ? RoleMapper.to_domain(row) : null;
   }
 
+  async find_by_name(name: string): Promise<Role | null> {
+    const row = await this.repo.findOne({
+      where: { name },
+      select: ROLE_SELECT,
+    });
+    return row ? RoleMapper.to_domain(row) : null;
+  }
+
   async find_by_internal_id(internal_id: number): Promise<Role | null> {
     const row = await this.repo.findOne({
       where: { id: internal_id },

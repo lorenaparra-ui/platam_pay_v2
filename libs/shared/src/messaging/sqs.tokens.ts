@@ -11,4 +11,11 @@ export type SqsQueuesUrlsConfig = Readonly<{
   inbound_queue_url?: string;
   /** Cola dedicada a eventos upload-files (transversal-ms). */
   upload_files_queue_url?: string;
+  /** Cola alta usuario+persona partner (transversal-ms). */
+  create_partner_user_queue_url?: string;
+  /**
+   * Cola donde suppliers-ms (u otros) reciben callbacks como files-uploaded.
+   * Opcional; si no se define, se usa inbound_queue_url y luego outbound.
+   */
+  suppliers_callback_queue_url?: string;
 }>;

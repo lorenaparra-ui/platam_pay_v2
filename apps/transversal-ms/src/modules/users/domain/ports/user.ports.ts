@@ -7,6 +7,8 @@ import type {
 export interface UserRepository {
   find_by_external_id(external_id: string): Promise<User | null>;
 
+  find_by_email(email: string): Promise<User | null>;
+
   find_external_id_by_internal_id(
     internal_id: number,
   ): Promise<string | null>;

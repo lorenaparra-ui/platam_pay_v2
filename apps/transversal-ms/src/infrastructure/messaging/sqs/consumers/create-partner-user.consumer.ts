@@ -1,7 +1,7 @@
 import { Inject, Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { SQSClient } from '@aws-sdk/client-sqs';
-import { IngestTransversalInboundSqsMessageUseCase } from '@messaging/application/use-cases/ingest-transversal-inbound-sqs-message.use-case';
+import { IngestPartnerCreateUserSqsMessageUseCase } from '@modules/users/application/use-cases/partner-create-user/ingest-partner-create-user-sqs-message.use-case';
 import {
   BaseConsumer,
   QUEUES_CONFIG,
@@ -11,17 +11,17 @@ import {
 } from '@platam/shared';
 
 @Injectable()
-export class TransversalInboundSqsConsumer
+export class CreatePartnerUserSqsConsumer
   extends BaseConsumer
   implements OnModuleInit, OnModuleDestroy
 {
-  private readonly nest_logger = new Logger(TransversalInboundSqsConsumer.name);
+  private readonly nest_logger = new Logger(CreatePartnerUserSqsConsumer.name);
 
   constructor(
     @Inject(SQS_CLIENT) sqs_client: SQSClient,
     @Inject(QUEUES_CONFIG) private readonly queues_config: SqsQueuesUrlsConfig,
     private readonly config_service: ConfigService,
-    private readonly ingest_transversal_inbound: IngestTransversalInboundSqsMessageUseCase,
+    private readonly ingest: IngestPartnerCreateUserSqsMessageUseCase,
   ) {
     super(sqs_client, {
       log: (m) => this.nest_logger.log(m),
@@ -39,11 +39,7 @@ export class TransversalInboundSqsConsumer
   }
 
   protected resolve_queue_url(): string | undefined {
-    const enabled = this.config_service.get<boolean>('sqs.inbound_consumer_enabled') ?? false;
-    if (!enabled) {
-      return undefined;
-    }
-    return this.queues_config.inbound_queue_url;
+    return this.queues_config.create_partner_user_queue_url;
   }
 
   protected get_poll_settings() {
@@ -57,13 +53,16 @@ export class TransversalInboundSqsConsumer
   }
 
   protected inactive_reason_message(): string {
-    return 'Consumer inbound inactivo: sin TRANSVERSAL_SQS_INBOUND_QUEUE_URL o TRANSVERSAL_SQS_INBOUND_CONSUMER_ENABLED=false (evita competir con suppliers-ms por files-uploaded).';
+    return 'Cola create-partner-user SQS no configurada (TRANSVERSAL_SQS_CREATE_USER_QUEUE_URL); worker inactivo. Configure DLQ y maxReceiveCount en la cola.';
   }
 
   protected async handle(message: SqsReceivedMessage): Promise<boolean> {
     const delete_on_validation_error =
       this.config_service.get<boolean>('sqs.delete_on_validation_error') ?? false;
-    return this.ingest_transversal_inbound.execute({
+    this.nest_logger.log(
+      `[CreatePartnerUser][step=consumer_handle][messageId=${message.message_id ?? 'n/a'}]`,
+    );
+    return this.ingest.execute({
       body: message.body,
       delete_on_validation_error,
     });

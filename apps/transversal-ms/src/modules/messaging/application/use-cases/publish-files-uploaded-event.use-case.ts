@@ -4,9 +4,9 @@ import {
   type OutboundMessagePublisherPort,
 } from '@messaging/domain/ports/outbound-message-publisher.port';
 import {
-  TRANSVERSAL_OUTBOUND_QUEUE_URL_PORT,
-  type TransversalOutboundQueueUrlPort,
-} from '@messaging/domain/ports/transversal-outbound-queue-url.port';
+  TRANSVERSAL_FILES_UPLOADED_PUBLISH_QUEUE_URL_PORT,
+  type TransversalFilesUploadedPublishQueueUrlPort,
+} from '@messaging/domain/ports/transversal-files-uploaded-publish-queue-url.port';
 
 export type PublishFilesUploadedCommand = Readonly<{
   correlation_id: string;
@@ -21,12 +21,12 @@ export class PublishFilesUploadedEventUseCase {
   constructor(
     @Inject(OUTBOUND_MESSAGE_PUBLISHER_PORT)
     private readonly message_publisher: OutboundMessagePublisherPort,
-    @Inject(TRANSVERSAL_OUTBOUND_QUEUE_URL_PORT)
-    private readonly outbound_queue_url: TransversalOutboundQueueUrlPort,
+    @Inject(TRANSVERSAL_FILES_UPLOADED_PUBLISH_QUEUE_URL_PORT)
+    private readonly files_upload_publish_queue: TransversalFilesUploadedPublishQueueUrlPort,
   ) {}
 
   async execute(command: PublishFilesUploadedCommand): Promise<void> {
-    const queue_url = this.outbound_queue_url.get_outbound_queue_url();
+    const queue_url = this.files_upload_publish_queue.get_publish_queue_url();
     const body = JSON.stringify({
       event: 'files-uploaded',
       correlationId: command.correlation_id,

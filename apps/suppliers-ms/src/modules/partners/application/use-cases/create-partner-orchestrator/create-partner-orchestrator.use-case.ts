@@ -112,9 +112,32 @@ export class CreatePartnerOrchestratorUseCase {
         current_step: 1,
       });
 
-      /** Respuesta de ejemplo (stub); sustituir por IDs reales al completar la saga. */
-      const example_user_external_id = 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d';
-      const example_person_external_id = 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e';
+      this.log_step(
+        2,
+        correlation_id,
+        'usuario/persona: cola TRANSVERSAL_SQS_CREATE_USER_QUEUE_URL → transversal-ms (rol partner_operations)',
+      );
+      const city_external_id =
+        command.city_id !== null && command.city_id.trim().length > 0
+          ? command.city_id.trim()
+          : null;
+      await this.user_person_writer.publish_create_partner_user_command({
+        correlation_id,
+        idempotency_key: saga_external_id,
+        email: command.email,
+        country_code: command.country_code,
+        first_name: command.first_name,
+        last_name: command.last_name,
+        doc_type: command.doc_type,
+        doc_number: command.doc_number,
+        phone: command.phone,
+        city_external_id,
+      });
+      await this.saga_repository.update_by_external_id(saga_external_id, {
+        current_step: 2,
+      });
+
+      /** Pasos posteriores aún no orquestados; IDs de negocio pendientes de la saga. */
       const example_business_external_id = 'c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f';
       const example_bank_account_external_id = 'd4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f8a';
       const example_partner_external_id = 'e5f6a7b8-c9d0-4e1f-2a3b-4c5d6e7f8a9b';
@@ -123,8 +146,8 @@ export class CreatePartnerOrchestratorUseCase {
         saga_external_id,
         correlation_id,
         credit_facility_external_id,
-        example_user_external_id,
-        example_person_external_id,
+        null,
+        null,
         example_business_external_id,
         file_urls.bank_certification_url,
         file_urls.logo_url,

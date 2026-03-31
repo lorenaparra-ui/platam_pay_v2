@@ -5,8 +5,12 @@ import { TransversalDataModule } from '@app/transversal-data';
 import { PostgresTypeOrmConfigService } from './database/services/postgres-type-orm-config.service';
 import { StorageModule } from '@infrastructure/storage/storage.module';
 import { SqsModule } from './messaging/sqs/sqs.module';
+import { TypeormPartnerCreateUserSqsIdempotencyAdapter } from '@infrastructure/database/adapters/typeorm-partner-create-user-sqs-idempotency.adapter';
 import { TypeormUploadFilesIdempotencyAdapter } from '@infrastructure/database/adapters/typeorm-upload-files-idempotency.adapter';
-import { UPLOAD_FILES_IDEMPOTENCY_PORT } from '@modules/transversal/transversal.tokens';
+import {
+  PARTNER_CREATE_USER_SQS_IDEMPOTENCY_PORT,
+  UPLOAD_FILES_IDEMPOTENCY_PORT,
+} from '@modules/transversal/transversal.tokens';
 import { TypeormPersonRepository } from '@infrastructure/database/repositories/typeorm-person.repository';
 import { TypeormUserRepository } from '@infrastructure/database/repositories/typeorm-user.repository';
 import { TypeormRoleRepository } from '@infrastructure/database/repositories/typeorm-role.repository';
@@ -35,9 +39,14 @@ import {
   ],
   providers: [
     TypeormUploadFilesIdempotencyAdapter,
+    TypeormPartnerCreateUserSqsIdempotencyAdapter,
     {
       provide: UPLOAD_FILES_IDEMPOTENCY_PORT,
       useExisting: TypeormUploadFilesIdempotencyAdapter,
+    },
+    {
+      provide: PARTNER_CREATE_USER_SQS_IDEMPOTENCY_PORT,
+      useExisting: TypeormPartnerCreateUserSqsIdempotencyAdapter,
     },
     {
       provide: PERSON_REPOSITORY,
@@ -67,6 +76,7 @@ import {
   exports: [
     TransversalDataModule,
     UPLOAD_FILES_IDEMPOTENCY_PORT,
+    PARTNER_CREATE_USER_SQS_IDEMPOTENCY_PORT,
     PERSON_REPOSITORY,
     USER_REPOSITORY,
     ROLE_REPOSITORY,

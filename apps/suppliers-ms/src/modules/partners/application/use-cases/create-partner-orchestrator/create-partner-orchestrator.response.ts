@@ -3,8 +3,9 @@ export class CreatePartnerOrchestratorResponse {
     readonly saga_external_id: string,
     readonly correlation_id: string,
     readonly credit_facility_external_id: string,
-    readonly user_external_id: string,
-    readonly person_external_id: string,
+    /** `null` mientras transversal-ms procesa la cola create-partner-user (saga asíncrona). */
+    readonly user_external_id: string | null,
+    readonly person_external_id: string | null,
     readonly business_external_id: string,
     readonly bank_certification_url: string,
     readonly logo_url: string,

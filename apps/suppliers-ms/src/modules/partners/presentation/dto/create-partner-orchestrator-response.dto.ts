@@ -10,11 +10,18 @@ export class CreatePartnerOrchestratorResponseDto {
   @ApiProperty()
   creditFacilityExternalId!: string;
 
-  @ApiProperty()
-  userExternalId!: string;
+  @ApiProperty({
+    nullable: true,
+    description:
+      'Pendiente hasta que transversal-ms complete create-partner-user (mensaje SQS). Correlación: correlationId.',
+  })
+  userExternalId!: string | null;
 
-  @ApiProperty()
-  personExternalId!: string;
+  @ApiProperty({
+    nullable: true,
+    description: 'Pendiente hasta creación asíncrona de persona en transversal-ms.',
+  })
+  personExternalId!: string | null;
 
   @ApiProperty()
   businessExternalId!: string;

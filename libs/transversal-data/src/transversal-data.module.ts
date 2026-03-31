@@ -13,6 +13,7 @@ import { RoleEntity } from './entities/role.entity';
 import { RolePermissionEntity } from './entities/role-permission.entity';
 import { ShareholderEntity } from './entities/shareholder.entity';
 import { StatusEntity } from './entities/status.entity';
+import { PartnerCreateUserSqsIdempotencyEntity } from './entities/partner-create-user-sqs-idempotency.entity';
 import { UploadFilesIdempotencyEntity } from './entities/upload-files-idempotency.entity';
 import { UserEntity } from './entities/user.entity';
 import { TransversalDataService } from './transversal-data.service';
@@ -33,6 +34,7 @@ export const TRANSVERSAL_DATA_ENTITIES = [
   ShareholderEntity,
   StatusEntity,
   UploadFilesIdempotencyEntity,
+  PartnerCreateUserSqsIdempotencyEntity,
   UserEntity,
 ] as const;
 

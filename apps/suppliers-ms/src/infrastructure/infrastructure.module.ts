@@ -11,7 +11,7 @@ import { TypeormBankAccountRepository } from './database/repositories/typeorm-ba
 import { TypeormSuppliersReferenceLookupAdapter } from './database/common/typeorm-suppliers-reference-lookup.adapter';
 import { TypeormPartnerOnboardingSagaRepository } from './database/repositories/typeorm-partner-onboarding-saga.repository';
 import { SqlProductsCreditFacilitySyncAdapter } from './database/adapters/sql-products-credit-facility-sync.adapter';
-import { SqlTransversalUserPersonWriterAdapter } from './database/adapters/sql-transversal-user-person-writer.adapter';
+import { SqsTransversalUserPersonWriterAdapter } from './messaging/sqs/adapters/sqs-transversal-user-person-writer.adapter';
 import { PARTNER_ONBOARDING_SAGA_REPOSITORY } from '@modules/partners/application/ports/partner-onboarding-saga.repository.port';
 import { PRODUCTS_CREDIT_FACILITY_SYNC_PORT } from '@modules/partners/application/ports/products-credit-facility-sync.port';
 import { TRANSVERSAL_USER_PERSON_WRITER_PORT } from '@modules/partners/application/ports/transversal-user-person-writer.port';
@@ -56,7 +56,7 @@ import { CityEntity, PersonEntity, UserEntity } from '@app/transversal-data';
     TypeormBankAccountRepository,
     TypeormPartnerOnboardingSagaRepository,
     SqlProductsCreditFacilitySyncAdapter,
-    SqlTransversalUserPersonWriterAdapter,
+    SqsTransversalUserPersonWriterAdapter,
     TypeormSuppliersReferenceLookupAdapter,
     {
       provide: SUPPLIERS_REFERENCE_LOOKUP,
@@ -72,7 +72,7 @@ import { CityEntity, PersonEntity, UserEntity } from '@app/transversal-data';
     },
     {
       provide: TRANSVERSAL_USER_PERSON_WRITER_PORT,
-      useExisting: SqlTransversalUserPersonWriterAdapter,
+      useExisting: SqsTransversalUserPersonWriterAdapter,
     },
     SqsPartnerOnboardingFilesAdapter,
     {

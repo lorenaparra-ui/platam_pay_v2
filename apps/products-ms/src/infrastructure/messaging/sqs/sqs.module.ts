@@ -18,6 +18,7 @@ import { PRODUCTS_OUTBOUND_QUEUE_URL_PORT } from '@messaging/domain/ports/produc
       useFactory: (config_service: ConfigService): SqsQueuesUrlsConfig => ({
         outbound_queue_url: config_service.getOrThrow<string>('sqs.outbound_queue_url'),
         inbound_queue_url: config_service.get<string>('sqs.inbound_queue_url'),
+        suppliers_callback_queue_url: config_service.get<string>('sqs.suppliers_callback_queue_url'),
       }),
       inject: [ConfigService],
     },

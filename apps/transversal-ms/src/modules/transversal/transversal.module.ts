@@ -1,8 +1,11 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { MessagingApplicationModule } from '@messaging/messaging-application.module';
+import { UsersModule } from '@modules/users/users.module';
+import { PersonsModule } from '@modules/persons/persons.module';
 import { UploadFilesUseCase } from './application/use-cases/upload-files/upload-files.use-case';
 import { IngestUploadFilesSqsMessageUseCase } from './application/use-cases/upload-files/ingest-upload-files-sqs-message.use-case';
+import { IngestPartnerCreateUserSqsMessageUseCase } from '../users/application/use-cases/partner-create-user/ingest-partner-create-user-sqs-message.use-case';
 import { RolesController } from './presentation/roles.controller';
 import { CitiesController } from './presentation/cities.controller';
 import { StatusesController } from './presentation/statuses.controller';
@@ -24,10 +27,11 @@ import { DeleteStatusByExternalIdUseCase } from './application/use-cases/statuse
 
 @Module({
   controllers: [RolesController, CitiesController, StatusesController],
-  imports: [ConfigModule, MessagingApplicationModule],
+  imports: [ConfigModule, MessagingApplicationModule, UsersModule, PersonsModule],
   providers: [
-    UploadFilesUseCase, 
+    UploadFilesUseCase,
     IngestUploadFilesSqsMessageUseCase,
+    IngestPartnerCreateUserSqsMessageUseCase,
   
     CreateRoleUseCase,
     GetRoleByExternalIdUseCase,
@@ -46,6 +50,10 @@ import { DeleteStatusByExternalIdUseCase } from './application/use-cases/statuse
     DeleteStatusByExternalIdUseCase,
   
   ],
-  exports: [IngestUploadFilesSqsMessageUseCase, UploadFilesUseCase],
+  exports: [
+    IngestUploadFilesSqsMessageUseCase,
+    IngestPartnerCreateUserSqsMessageUseCase,
+    UploadFilesUseCase,
+  ],
 })
 export class TransversalModule {}

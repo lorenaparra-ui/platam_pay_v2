@@ -8,6 +8,11 @@ import type {
 export interface StatusRepository {
   find_by_external_id(external_id: string): Promise<CatalogStatus | null>;
 
+  find_by_entity_type_and_code(
+    entity_type: string,
+    code: string,
+  ): Promise<CatalogStatus | null>;
+
   find_by_internal_id(internal_id: number): Promise<CatalogStatus | null>;
 
   list(

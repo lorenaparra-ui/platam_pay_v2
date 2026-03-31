@@ -33,6 +33,16 @@ class SqsEnv {
   transversal_sqs_upload_files_queue_url?: string;
 
   @IsOptional()
+  @Transform(({ value }) => (value === '' || value === undefined ? undefined : value))
+  @IsUrl({ require_tld: false })
+  transversal_sqs_create_user_queue_url?: string;
+
+  @IsOptional()
+  @Transform(({ value }) => (value === '' || value === undefined ? undefined : value))
+  @IsUrl({ require_tld: false })
+  transversal_sqs_suppliers_callback_queue_url?: string;
+
+  @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(0)
@@ -74,6 +84,8 @@ export function get_sqs_config_from_env(): {
   outbound_queue_url: string;
   inbound_queue_url?: string;
   upload_files_queue_url?: string;
+  create_partner_user_queue_url?: string;
+  suppliers_callback_queue_url?: string;
   wait_time_seconds: number;
   max_number_of_messages: number;
   visibility_timeout_seconds: number;
@@ -84,6 +96,9 @@ export function get_sqs_config_from_env(): {
     transversal_sqs_outbound_queue_url: process.env.TRANSVERSAL_SQS_OUTBOUND_QUEUE_URL,
     transversal_sqs_inbound_queue_url: process.env.TRANSVERSAL_SQS_INBOUND_QUEUE_URL,
     transversal_sqs_upload_files_queue_url: process.env.TRANSVERSAL_SQS_UPLOAD_FILES_QUEUE_URL,
+    transversal_sqs_create_user_queue_url: process.env.TRANSVERSAL_SQS_CREATE_USER_QUEUE_URL,
+    transversal_sqs_suppliers_callback_queue_url:
+      process.env.TRANSVERSAL_SQS_SUPPLIERS_CALLBACK_QUEUE_URL,
     transversal_sqs_wait_time_seconds: process.env.TRANSVERSAL_SQS_WAIT_TIME_SECONDS ?? 20,
     transversal_sqs_max_number_of_messages:
       process.env.TRANSVERSAL_SQS_MAX_NUMBER_OF_MESSAGES ?? 10,
@@ -106,6 +121,8 @@ export function get_sqs_config_from_env(): {
     outbound_queue_url: env.transversal_sqs_outbound_queue_url.trim(),
     inbound_queue_url: trim_url(env.transversal_sqs_inbound_queue_url),
     upload_files_queue_url: trim_url(env.transversal_sqs_upload_files_queue_url),
+    create_partner_user_queue_url: trim_url(env.transversal_sqs_create_user_queue_url),
+    suppliers_callback_queue_url: trim_url(env.transversal_sqs_suppliers_callback_queue_url),
     wait_time_seconds: env.transversal_sqs_wait_time_seconds,
     max_number_of_messages: env.transversal_sqs_max_number_of_messages,
     visibility_timeout_seconds: env.transversal_sqs_visibility_timeout_seconds,

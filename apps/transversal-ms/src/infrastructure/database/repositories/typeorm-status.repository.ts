@@ -40,6 +40,17 @@ export class TypeormStatusRepository implements StatusRepository {
     return row ? StatusMapper.to_domain(row) : null;
   }
 
+  async find_by_entity_type_and_code(
+    entity_type: string,
+    code: string,
+  ): Promise<CatalogStatus | null> {
+    const row = await this.repo.findOne({
+      where: { entityType: entity_type, code },
+      select: STATUS_SELECT,
+    });
+    return row ? StatusMapper.to_domain(row) : null;
+  }
+
   async find_by_internal_id(internal_id: number): Promise<CatalogStatus | null> {
     const row = await this.repo.findOne({
       where: { id: internal_id },
