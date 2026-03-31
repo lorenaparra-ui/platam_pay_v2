@@ -51,6 +51,7 @@ export class ContractsController {
       external_id: body.external_id,
       user_external_id: body.user_external_id,
       application_external_id: body.application_external_id,
+      contract_template_external_id: body.contract_template_external_id,
       status_external_id: body.status_external_id,
       zapsign_token: body.zapsign_token,
       original_file_url: body.original_file_url,
@@ -69,7 +70,7 @@ export class ContractsController {
       offset: query.offset,
       limit: query.limit,
       user_id: query.user_id,
-      application_id: query.application_id,
+      credit_application_id: query.credit_application_id,
       status_external_id: query.status_external_id,
     });
   }
@@ -101,6 +102,7 @@ export class ContractsController {
   ): Promise<ContractPublicResponseDto> {
     return this.update_contract.execute(externalId, {
       application_external_id: body.application_external_id,
+      contract_template_external_id: body.contract_template_external_id,
       status_external_id: body.status_external_id,
       zapsign_token: body.zapsign_token,
       original_file_url: body.original_file_url,

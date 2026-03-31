@@ -138,10 +138,10 @@ const dotenv_config_1 = __webpack_require__(2);
 const common_1 = __webpack_require__(6);
 const config_1 = __webpack_require__(8);
 const infrastructure_module_1 = __webpack_require__(11);
-const contracts_module_1 = __webpack_require__(80);
-const app_config_1 = __importDefault(__webpack_require__(85));
-const sqs_config_1 = __webpack_require__(86);
-const app_controller_1 = __webpack_require__(87);
+const contracts_module_1 = __webpack_require__(81);
+const app_config_1 = __importDefault(__webpack_require__(86));
+const sqs_config_1 = __webpack_require__(87);
+const app_controller_1 = __webpack_require__(88);
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -178,12 +178,12 @@ const common_1 = __webpack_require__(6);
 const typeorm_1 = __webpack_require__(12);
 const config_1 = __webpack_require__(8);
 const products_data_1 = __webpack_require__(13);
-const postgres_type_orm_config_service_1 = __webpack_require__(35);
-const typeorm_contract_repository_1 = __webpack_require__(37);
-const typeorm_contract_reference_lookup_adapter_1 = __webpack_require__(40);
-const contracts_tokens_1 = __webpack_require__(41);
-const contract_reference_lookup_port_1 = __webpack_require__(42);
-const sqs_module_1 = __webpack_require__(43);
+const postgres_type_orm_config_service_1 = __webpack_require__(36);
+const typeorm_contract_repository_1 = __webpack_require__(38);
+const typeorm_contract_reference_lookup_adapter_1 = __webpack_require__(41);
+const contracts_tokens_1 = __webpack_require__(42);
+const contract_reference_lookup_port_1 = __webpack_require__(43);
+const sqs_module_1 = __webpack_require__(44);
 let InfrastructureModule = class InfrastructureModule {
 };
 exports.InfrastructureModule = InfrastructureModule;
@@ -243,9 +243,10 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 __exportStar(__webpack_require__(14), exports);
 __exportStar(__webpack_require__(20), exports);
 __exportStar(__webpack_require__(21), exports);
-__exportStar(__webpack_require__(17), exports);
 __exportStar(__webpack_require__(22), exports);
-__exportStar(__webpack_require__(34), exports);
+__exportStar(__webpack_require__(17), exports);
+__exportStar(__webpack_require__(23), exports);
+__exportStar(__webpack_require__(35), exports);
 
 
 /***/ }),
@@ -671,13 +672,13 @@ let ContractEntity = class ContractEntity extends base_external_id_entity_1.Base
 };
 exports.ContractEntity = ContractEntity;
 __decorate([
-    (0, typeorm_1.Column)({ name: 'user_id', type: 'bigint' }),
-    __metadata("design:type", Number)
+    (0, typeorm_1.Column)({ name: 'user_id', type: 'bigint', nullable: true }),
+    __metadata("design:type", Object)
 ], ContractEntity.prototype, "userId", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ name: 'application_id', type: 'bigint', nullable: true }),
+    (0, typeorm_1.Column)({ name: 'contract_template_id', type: 'bigint', nullable: true }),
     __metadata("design:type", Object)
-], ContractEntity.prototype, "applicationId", void 0);
+], ContractEntity.prototype, "contractTemplateId", void 0);
 __decorate([
     (0, typeorm_1.Column)({ name: 'zapsign_token', type: 'varchar', nullable: true, unique: true }),
     __metadata("design:type", Object)
@@ -717,11 +718,76 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var _a, _b, _c, _d;
+var _a, _b;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ContractTemplateEntity = void 0;
+const typeorm_1 = __webpack_require__(15);
+const base_external_id_entity_1 = __webpack_require__(16);
+let ContractTemplateEntity = class ContractTemplateEntity extends base_external_id_entity_1.BaseExternalIdEntity {
+};
+exports.ContractTemplateEntity = ContractTemplateEntity;
+__decorate([
+    (0, typeorm_1.Column)({ name: 'template_family_key', type: 'varchar', length: 120 }),
+    __metadata("design:type", String)
+], ContractTemplateEntity.prototype, "templateFamilyKey", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'version', type: 'int' }),
+    __metadata("design:type", Number)
+], ContractTemplateEntity.prototype, "version", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'category_id', type: 'bigint', nullable: true }),
+    __metadata("design:type", Object)
+], ContractTemplateEntity.prototype, "categoryId", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'credit_facility_id', type: 'bigint', nullable: true }),
+    __metadata("design:type", Object)
+], ContractTemplateEntity.prototype, "creditFacilityId", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'effective_from', type: 'timestamptz', nullable: true }),
+    __metadata("design:type", Object)
+], ContractTemplateEntity.prototype, "effectiveFrom", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'effective_to', type: 'timestamptz', nullable: true }),
+    __metadata("design:type", Object)
+], ContractTemplateEntity.prototype, "effectiveTo", void 0);
+__decorate([
+    (0, typeorm_1.Column)({
+        name: 'zapsign_template_ref',
+        type: 'varchar',
+        length: 255,
+        nullable: true,
+    }),
+    __metadata("design:type", Object)
+], ContractTemplateEntity.prototype, "zapsignTemplateRef", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'status_id', type: 'bigint' }),
+    __metadata("design:type", Number)
+], ContractTemplateEntity.prototype, "statusId", void 0);
+exports.ContractTemplateEntity = ContractTemplateEntity = __decorate([
+    (0, typeorm_1.Entity)({ name: 'contract_templates', schema: 'products_schema' })
+], ContractTemplateEntity);
+
+
+/***/ }),
+/* 22 */
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var _a, _b, _c, _d, _e;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CreditApplicationEntity = void 0;
 const typeorm_1 = __webpack_require__(15);
 const base_external_id_entity_1 = __webpack_require__(16);
+const contract_entity_1 = __webpack_require__(20);
 let CreditApplicationEntity = class CreditApplicationEntity extends base_external_id_entity_1.BaseExternalIdEntity {
 };
 exports.CreditApplicationEntity = CreditApplicationEntity;
@@ -807,6 +873,11 @@ __decorate([
     __metadata("design:type", Number)
 ], CreditApplicationEntity.prototype, "statusId", void 0);
 __decorate([
+    (0, typeorm_1.OneToOne)(() => contract_entity_1.ContractEntity, { nullable: true }),
+    (0, typeorm_1.JoinColumn)({ name: 'contract_id', referencedColumnName: 'id' }),
+    __metadata("design:type", Object)
+], CreditApplicationEntity.prototype, "contract", void 0);
+__decorate([
     (0, typeorm_1.Column)({ name: 'submission_date', type: 'timestamptz', nullable: true }),
     __metadata("design:type", Object)
 ], CreditApplicationEntity.prototype, "submissionDate", void 0);
@@ -872,7 +943,7 @@ exports.CreditApplicationEntity = CreditApplicationEntity = __decorate([
 
 
 /***/ }),
-/* 22 */
+/* 23 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -886,18 +957,20 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ProductsDataModule = exports.PRODUCTS_MS_TYPEORM_ENTITIES = exports.PRODUCTS_DATA_ENTITIES = void 0;
 const common_1 = __webpack_require__(6);
 const typeorm_1 = __webpack_require__(12);
-const suppliers_data_module_1 = __webpack_require__(23);
-const person_entity_1 = __webpack_require__(27);
+const suppliers_data_module_1 = __webpack_require__(24);
+const person_entity_1 = __webpack_require__(28);
 const category_entity_1 = __webpack_require__(14);
 const contract_entity_1 = __webpack_require__(20);
-const credit_application_entity_1 = __webpack_require__(21);
+const contract_template_entity_1 = __webpack_require__(21);
+const credit_application_entity_1 = __webpack_require__(22);
 const credit_facility_entity_1 = __webpack_require__(17);
-const products_data_service_1 = __webpack_require__(34);
+const products_data_service_1 = __webpack_require__(35);
 exports.PRODUCTS_DATA_ENTITIES = [
     credit_facility_entity_1.CreditFacilityEntity,
     category_entity_1.CategoryEntity,
     credit_application_entity_1.CreditApplicationEntity,
     contract_entity_1.ContractEntity,
+    contract_template_entity_1.ContractTemplateEntity,
 ];
 exports.PRODUCTS_MS_TYPEORM_ENTITIES = [
     person_entity_1.PersonEntity,
@@ -917,7 +990,7 @@ exports.ProductsDataModule = ProductsDataModule = __decorate([
 
 
 /***/ }),
-/* 23 */
+/* 24 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -931,15 +1004,15 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SuppliersDataModule = exports.SUPPLIERS_DATA_ENTITIES = void 0;
 const common_1 = __webpack_require__(6);
 const typeorm_1 = __webpack_require__(12);
-const bank_account_entity_1 = __webpack_require__(24);
-const business_entity_1 = __webpack_require__(26);
-const onboarding_entity_1 = __webpack_require__(28);
+const bank_account_entity_1 = __webpack_require__(25);
+const business_entity_1 = __webpack_require__(27);
+const onboarding_entity_1 = __webpack_require__(29);
 const partners_entity_1 = __webpack_require__(18);
-const order_entity_1 = __webpack_require__(29);
-const sales_representative_entity_1 = __webpack_require__(30);
-const supplier_entity_1 = __webpack_require__(31);
-const partner_onboarding_saga_entity_1 = __webpack_require__(32);
-const suppliers_data_service_1 = __webpack_require__(33);
+const order_entity_1 = __webpack_require__(30);
+const sales_representative_entity_1 = __webpack_require__(31);
+const supplier_entity_1 = __webpack_require__(32);
+const partner_onboarding_saga_entity_1 = __webpack_require__(33);
+const suppliers_data_service_1 = __webpack_require__(34);
 exports.SUPPLIERS_DATA_ENTITIES = [
     bank_account_entity_1.BankAccountEntity,
     business_entity_1.BusinessEntity,
@@ -963,7 +1036,7 @@ exports.SuppliersDataModule = SuppliersDataModule = __decorate([
 
 
 /***/ }),
-/* 24 */
+/* 25 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -980,7 +1053,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.BankAccountEntity = void 0;
 const typeorm_1 = __webpack_require__(15);
 const base_external_id_entity_1 = __webpack_require__(19);
-const aes_256_transformer_1 = __webpack_require__(25);
+const aes_256_transformer_1 = __webpack_require__(26);
 let BankAccountEntity = class BankAccountEntity extends base_external_id_entity_1.BaseExternalIdEntity {
 };
 exports.BankAccountEntity = BankAccountEntity;
@@ -1007,7 +1080,7 @@ exports.BankAccountEntity = BankAccountEntity = __decorate([
 
 
 /***/ }),
-/* 25 */
+/* 26 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -1020,7 +1093,7 @@ exports.BankAccountEncryptionTransformer = {
 
 
 /***/ }),
-/* 26 */
+/* 27 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -1037,7 +1110,7 @@ var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.BusinessEntity = void 0;
 const typeorm_1 = __webpack_require__(15);
-const person_entity_1 = __webpack_require__(27);
+const person_entity_1 = __webpack_require__(28);
 const base_external_id_entity_1 = __webpack_require__(19);
 let BusinessEntity = class BusinessEntity extends base_external_id_entity_1.BaseExternalIdEntity {
 };
@@ -1097,7 +1170,7 @@ exports.BusinessEntity = BusinessEntity = __decorate([
 
 
 /***/ }),
-/* 27 */
+/* 28 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -1176,7 +1249,7 @@ exports.PersonEntity = PersonEntity = __decorate([
 
 
 /***/ }),
-/* 28 */
+/* 29 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -1382,7 +1455,7 @@ exports.OnboardingEntity = OnboardingEntity = __decorate([
 
 
 /***/ }),
-/* 29 */
+/* 30 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -1429,7 +1502,7 @@ exports.PurchaseOrderEntity = PurchaseOrderEntity = __decorate([
 
 
 /***/ }),
-/* 30 */
+/* 31 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -1475,7 +1548,7 @@ exports.SalesRepresentativeEntity = SalesRepresentativeEntity = __decorate([
 
 
 /***/ }),
-/* 31 */
+/* 32 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -1493,7 +1566,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SupplierEntity = void 0;
 const typeorm_1 = __webpack_require__(15);
 const base_external_id_entity_1 = __webpack_require__(19);
-const bank_account_entity_1 = __webpack_require__(24);
+const bank_account_entity_1 = __webpack_require__(25);
 let SupplierEntity = class SupplierEntity extends base_external_id_entity_1.BaseExternalIdEntity {
 };
 exports.SupplierEntity = SupplierEntity;
@@ -1512,7 +1585,7 @@ exports.SupplierEntity = SupplierEntity = __decorate([
 
 
 /***/ }),
-/* 32 */
+/* 33 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -1594,7 +1667,7 @@ exports.PartnerOnboardingSagaEntity = PartnerOnboardingSagaEntity = __decorate([
 
 
 /***/ }),
-/* 33 */
+/* 34 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -1616,7 +1689,7 @@ exports.SuppliersDataService = SuppliersDataService = __decorate([
 
 
 /***/ }),
-/* 34 */
+/* 35 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -1638,7 +1711,7 @@ exports.ProductsDataService = ProductsDataService = __decorate([
 
 
 /***/ }),
-/* 35 */
+/* 36 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -1654,7 +1727,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.PostgresTypeOrmConfigService = void 0;
 const common_1 = __webpack_require__(6);
-const typeorm_config_1 = __importDefault(__webpack_require__(36));
+const typeorm_config_1 = __importDefault(__webpack_require__(37));
 let PostgresTypeOrmConfigService = class PostgresTypeOrmConfigService {
     createTypeOrmOptions() {
         return typeorm_config_1.default;
@@ -1667,7 +1740,7 @@ exports.PostgresTypeOrmConfigService = PostgresTypeOrmConfigService = __decorate
 
 
 /***/ }),
-/* 36 */
+/* 37 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
@@ -1690,7 +1763,7 @@ exports["default"] = TypeormConfig;
 
 
 /***/ }),
-/* 37 */
+/* 38 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -1713,12 +1786,12 @@ const common_1 = __webpack_require__(6);
 const typeorm_1 = __webpack_require__(12);
 const typeorm_2 = __webpack_require__(15);
 const products_data_1 = __webpack_require__(13);
-const contract_mapper_1 = __webpack_require__(38);
+const contract_mapper_1 = __webpack_require__(39);
 const CONTRACT_SELECT = {
     id: true,
     externalId: true,
     userId: true,
-    applicationId: true,
+    contractTemplateId: true,
     zapsignToken: true,
     statusId: true,
     originalFileUrl: true,
@@ -1730,6 +1803,16 @@ const CONTRACT_SELECT = {
 let TypeormContractRepository = class TypeormContractRepository {
     constructor(repo) {
         this.repo = repo;
+    }
+    async sync_credit_application_contract_link(contract_internal_id, credit_application_internal_id) {
+        await this.repo.query(`UPDATE products_schema.credit_applications
+       SET contract_id = NULL
+       WHERE contract_id = $1`, [contract_internal_id]);
+        if (credit_application_internal_id !== null) {
+            await this.repo.query(`UPDATE products_schema.credit_applications
+         SET contract_id = $1
+         WHERE id = $2`, [contract_internal_id, credit_application_internal_id]);
+        }
     }
     async find_by_id(internal_id) {
         const row = await this.repo.findOne({
@@ -1746,37 +1829,35 @@ let TypeormContractRepository = class TypeormContractRepository {
         return row ? contract_mapper_1.ContractMapper.to_domain(row) : null;
     }
     async find_page(filters, offset, limit) {
-        const where = {};
+        const qb = this.repo.createQueryBuilder('contract');
         if (filters.user_id !== undefined) {
-            where.userId = filters.user_id;
+            qb.andWhere('contract.userId = :uid', { uid: filters.user_id });
         }
-        if (filters.application_id !== undefined) {
-            where.applicationId = filters.application_id;
+        if (filters.credit_application_internal_id !== undefined) {
+            qb.andWhere(`contract.id IN (
+          SELECT ca.contract_id FROM products_schema.credit_applications ca
+          WHERE ca.id = :app_id AND ca.contract_id IS NOT NULL
+        )`, { app_id: filters.credit_application_internal_id });
         }
         if (filters.status_id !== undefined) {
-            where.statusId = filters.status_id;
+            qb.andWhere('contract.statusId = :sid', { sid: filters.status_id });
         }
-        const [rows, total] = await this.repo.findAndCount({
-            where,
-            select: CONTRACT_SELECT,
-            order: { id: 'ASC' },
-            skip: offset,
-            take: limit,
-        });
+        qb.orderBy('contract.id', 'ASC').skip(offset).take(limit);
+        const [rows, total] = await qb.getManyAndCount();
         return { items: rows.map((r) => contract_mapper_1.ContractMapper.to_domain(r)), total };
     }
     async create(props) {
         const rows = await this.repo.query(`INSERT INTO products_schema.contracts (
-        external_id, user_id, application_id, zapsign_token, status_id,
+        external_id, user_id, contract_template_id, zapsign_token, status_id,
         original_file_url, signed_file_url, form_answers_json
       ) VALUES (
         COALESCE($1::uuid, gen_random_uuid()), $2, $3, $4, $5, $6, $7, $8::jsonb
       )
-      RETURNING id, external_id, created_at, updated_at, user_id, application_id,
-        zapsign_token, status_id, original_file_url, signed_file_url, form_answers_json`, [
+      RETURNING id, external_id, created_at, updated_at, user_id,
+        contract_template_id, zapsign_token, status_id, original_file_url, signed_file_url, form_answers_json`, [
             props.external_id ?? null,
             props.user_id,
-            props.application_id,
+            props.contract_template_id,
             props.zapsign_token,
             props.status_id,
             props.original_file_url,
@@ -1785,7 +1866,9 @@ let TypeormContractRepository = class TypeormContractRepository {
                 ? null
                 : JSON.stringify(props.form_answers_json),
         ]);
-        return contract_mapper_1.ContractMapper.from_raw_row(rows[0]);
+        const created = contract_mapper_1.ContractMapper.from_raw_row(rows[0]);
+        await this.sync_credit_application_contract_link(created.internal_id, props.credit_application_internal_id);
+        return created;
     }
     async update_by_external_id(external_id, patch) {
         const existing = await this.repo.findOne({
@@ -1803,8 +1886,8 @@ let TypeormContractRepository = class TypeormContractRepository {
             values.push(val);
             i += 1;
         };
-        if (patch.application_id !== undefined) {
-            add('application_id', patch.application_id);
+        if (patch.contract_template_id !== undefined) {
+            add('contract_template_id', patch.contract_template_id);
         }
         if (patch.zapsign_token !== undefined) {
             add('zapsign_token', patch.zapsign_token);
@@ -1825,12 +1908,14 @@ let TypeormContractRepository = class TypeormContractRepository {
                 : JSON.stringify(patch.form_answers_json));
             i += 1;
         }
-        if (columns.length === 0) {
-            return this.find_by_external_id(external_id);
+        if (columns.length > 0) {
+            columns.push(`"updated_at" = now()`);
+            values.push(existing.id);
+            await this.repo.query(`UPDATE products_schema.contracts SET ${columns.join(', ')} WHERE id = $${i}`, values);
         }
-        columns.push(`"updated_at" = now()`);
-        values.push(existing.id);
-        await this.repo.query(`UPDATE products_schema.contracts SET ${columns.join(', ')} WHERE id = $${i}`, values);
+        if (patch.credit_application_internal_id !== undefined) {
+            await this.sync_credit_application_contract_link(existing.id, patch.credit_application_internal_id);
+        }
         return this.find_by_external_id(external_id);
     }
     async delete_by_external_id(external_id) {
@@ -1847,22 +1932,24 @@ exports.TypeormContractRepository = TypeormContractRepository = __decorate([
 
 
 /***/ }),
-/* 38 */
+/* 39 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ContractMapper = void 0;
-const contract_models_1 = __webpack_require__(39);
+const contract_models_1 = __webpack_require__(40);
 class ContractMapper {
     static to_domain(row) {
-        return new contract_models_1.Contract(row.id, row.externalId, row.userId, row.applicationId ?? null, row.zapsignToken ?? null, row.statusId, row.originalFileUrl ?? null, row.signedFileUrl ?? null, row.formAnswersJson ?? null, row.createdAt, row.updatedAt);
+        return new contract_models_1.Contract(row.id, row.externalId, row.userId ?? null, row.contractTemplateId ?? null, row.zapsignToken ?? null, row.statusId, row.originalFileUrl ?? null, row.signedFileUrl ?? null, row.formAnswersJson ?? null, row.createdAt, row.updatedAt);
     }
     static from_raw_row(row) {
         const form_json = row['form_answers_json'];
-        return new contract_models_1.Contract(Number(row['id']), String(row['external_id']), Number(row['user_id']), row['application_id'] === null || row['application_id'] === undefined
+        return new contract_models_1.Contract(Number(row['id']), String(row['external_id']), row['user_id'] === null || row['user_id'] === undefined
             ? null
-            : Number(row['application_id']), row['zapsign_token'] === null || row['zapsign_token'] === undefined
+            : Number(row['user_id']), row['contract_template_id'] === null || row['contract_template_id'] === undefined
+            ? null
+            : Number(row['contract_template_id']), row['zapsign_token'] === null || row['zapsign_token'] === undefined
             ? null
             : String(row['zapsign_token']), Number(row['status_id']), row['original_file_url'] === null || row['original_file_url'] === undefined
             ? null
@@ -1880,18 +1967,18 @@ exports.ContractMapper = ContractMapper;
 
 
 /***/ }),
-/* 39 */
+/* 40 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Contract = void 0;
 class Contract {
-    constructor(internal_id, external_id, user_id, application_id, zapsign_token, status_id, original_file_url, signed_file_url, form_answers_json, created_at, updated_at) {
+    constructor(internal_id, external_id, user_id, contract_template_id, zapsign_token, status_id, original_file_url, signed_file_url, form_answers_json, created_at, updated_at) {
         this.internal_id = internal_id;
         this.external_id = external_id;
         this.user_id = user_id;
-        this.application_id = application_id;
+        this.contract_template_id = contract_template_id;
         this.zapsign_token = zapsign_token;
         this.status_id = status_id;
         this.original_file_url = original_file_url;
@@ -1905,7 +1992,7 @@ exports.Contract = Contract;
 
 
 /***/ }),
-/* 40 */
+/* 41 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -1966,6 +2053,28 @@ let TypeormContractReferenceLookupAdapter = class TypeormContractReferenceLookup
         const v = rows[0]?.external_id;
         return v === undefined || v === null || v.length === 0 ? null : v;
     }
+    async get_contract_template_internal_id_by_external_id(external_id) {
+        const rows = await this.data_source.query(`SELECT id FROM products_schema.contract_templates
+       WHERE external_id = $1::uuid
+       LIMIT 1`, [external_id]);
+        return rows.length === 0 ? null : row_id_as_number(rows[0].id);
+    }
+    async get_default_contract_template_internal_id() {
+        const rows = await this.data_source.query(`SELECT id
+       FROM products_schema.contract_templates
+       WHERE version = 1
+       ORDER BY id ASC
+       LIMIT 1`);
+        return rows.length === 0 ? null : row_id_as_number(rows[0].id);
+    }
+    async get_contract_template_external_id_by_internal_id(internal_id) {
+        const rows = await this.data_source.query(`SELECT external_id::text AS external_id
+       FROM products_schema.contract_templates
+       WHERE id = $1
+       LIMIT 1`, [internal_id]);
+        const v = rows[0]?.external_id;
+        return v === undefined || v === null || v.length === 0 ? null : v;
+    }
 };
 exports.TypeormContractReferenceLookupAdapter = TypeormContractReferenceLookupAdapter;
 exports.TypeormContractReferenceLookupAdapter = TypeormContractReferenceLookupAdapter = __decorate([
@@ -1976,7 +2085,7 @@ exports.TypeormContractReferenceLookupAdapter = TypeormContractReferenceLookupAd
 
 
 /***/ }),
-/* 41 */
+/* 42 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -1986,7 +2095,7 @@ exports.CONTRACT_REPOSITORY = Symbol('CONTRACT_REPOSITORY');
 
 
 /***/ }),
-/* 42 */
+/* 43 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -1996,7 +2105,7 @@ exports.CONTRACT_REFERENCE_LOOKUP = Symbol('CONTRACT_REFERENCE_LOOKUP');
 
 
 /***/ }),
-/* 43 */
+/* 44 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -2010,10 +2119,10 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SqsModule = void 0;
 const common_1 = __webpack_require__(6);
 const config_1 = __webpack_require__(8);
-const shared_1 = __webpack_require__(44);
-const contracts_create_inbound_sqs_consumer_1 = __webpack_require__(64);
-const contracts_get_inbound_sqs_consumer_1 = __webpack_require__(70);
-const messaging_application_module_1 = __webpack_require__(74);
+const shared_1 = __webpack_require__(45);
+const contracts_create_inbound_sqs_consumer_1 = __webpack_require__(65);
+const contracts_get_inbound_sqs_consumer_1 = __webpack_require__(71);
+const messaging_application_module_1 = __webpack_require__(75);
 let SqsModule = class SqsModule {
 };
 exports.SqsModule = SqsModule;
@@ -2048,7 +2157,7 @@ exports.SqsModule = SqsModule = __decorate([
 
 
 /***/ }),
-/* 44 */
+/* 45 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -2068,11 +2177,10 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SQS_CLIENT = exports.QUEUES_CONFIG = void 0;
-var sqs_tokens_1 = __webpack_require__(45);
+var sqs_tokens_1 = __webpack_require__(46);
 Object.defineProperty(exports, "QUEUES_CONFIG", ({ enumerable: true, get: function () { return sqs_tokens_1.QUEUES_CONFIG; } }));
 Object.defineProperty(exports, "SQS_CLIENT", ({ enumerable: true, get: function () { return sqs_tokens_1.SQS_CLIENT; } }));
-__exportStar(__webpack_require__(46), exports);
-__exportStar(__webpack_require__(48), exports);
+__exportStar(__webpack_require__(47), exports);
 __exportStar(__webpack_require__(49), exports);
 __exportStar(__webpack_require__(50), exports);
 __exportStar(__webpack_require__(51), exports);
@@ -2082,13 +2190,14 @@ __exportStar(__webpack_require__(54), exports);
 __exportStar(__webpack_require__(55), exports);
 __exportStar(__webpack_require__(56), exports);
 __exportStar(__webpack_require__(57), exports);
-__exportStar(__webpack_require__(59), exports);
+__exportStar(__webpack_require__(58), exports);
 __exportStar(__webpack_require__(60), exports);
-__exportStar(__webpack_require__(63), exports);
+__exportStar(__webpack_require__(61), exports);
+__exportStar(__webpack_require__(64), exports);
 
 
 /***/ }),
-/* 45 */
+/* 46 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -2099,13 +2208,13 @@ exports.QUEUES_CONFIG = Symbol('QUEUES_CONFIG');
 
 
 /***/ }),
-/* 46 */
+/* 47 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.create_sqs_client = create_sqs_client;
-const client_sqs_1 = __webpack_require__(47);
+const client_sqs_1 = __webpack_require__(48);
 function create_sqs_client(options) {
     const config = {
         region: options.region,
@@ -2117,13 +2226,13 @@ function create_sqs_client(options) {
 
 
 /***/ }),
-/* 47 */
+/* 48 */
 /***/ ((module) => {
 
 module.exports = require("@aws-sdk/client-sqs");
 
 /***/ }),
-/* 48 */
+/* 49 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -2131,7 +2240,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 
 
 /***/ }),
-/* 49 */
+/* 50 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -2148,13 +2257,13 @@ exports.SqsPublishFailedError = SqsPublishFailedError;
 
 
 /***/ }),
-/* 50 */
+/* 51 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.BaseConsumer = exports.BaseSqsConsumer = void 0;
-const client_sqs_1 = __webpack_require__(47);
+const client_sqs_1 = __webpack_require__(48);
 const sleep_ms = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const INITIAL_BACKOFF_MS = 1000;
 const MAX_BACKOFF_MS = 30_000;
@@ -2243,14 +2352,14 @@ exports.BaseConsumer = BaseSqsConsumer;
 
 
 /***/ }),
-/* 51 */
+/* 52 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.BasePublisher = exports.BaseSqsPublisher = void 0;
-const client_sqs_1 = __webpack_require__(47);
-const sqs_publish_failed_error_1 = __webpack_require__(49);
+const client_sqs_1 = __webpack_require__(48);
+const sqs_publish_failed_error_1 = __webpack_require__(50);
 class BaseSqsPublisher {
     constructor(sqs_client) {
         this.sqs_client = sqs_client;
@@ -2274,7 +2383,7 @@ exports.BasePublisher = BaseSqsPublisher;
 
 
 /***/ }),
-/* 52 */
+/* 53 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -2282,7 +2391,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 
 
 /***/ }),
-/* 53 */
+/* 54 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -2303,14 +2412,6 @@ exports.Entity = Entity;
 
 
 /***/ }),
-/* 54 */
-/***/ ((__unused_webpack_module, exports) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-
-
-/***/ }),
 /* 55 */
 /***/ ((__unused_webpack_module, exports) => {
 
@@ -2320,6 +2421,14 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 
 /***/ }),
 /* 56 */
+/***/ ((__unused_webpack_module, exports) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+
+
+/***/ }),
+/* 57 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -2350,26 +2459,26 @@ function create_prefixed_logger(scope, trace_id) {
 
 
 /***/ }),
-/* 57 */
+/* 58 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.new_uuid = new_uuid;
-const crypto_1 = __webpack_require__(58);
+const crypto_1 = __webpack_require__(59);
 function new_uuid() {
     return (0, crypto_1.randomUUID)();
 }
 
 
 /***/ }),
-/* 58 */
+/* 59 */
 /***/ ((module) => {
 
 module.exports = require("crypto");
 
 /***/ }),
-/* 59 */
+/* 60 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -2385,7 +2494,7 @@ function is_before(a, b) {
 
 
 /***/ }),
-/* 60 */
+/* 61 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -2400,8 +2509,8 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.PaginationRequestDto = void 0;
-const class_transformer_1 = __webpack_require__(61);
-const class_validator_1 = __webpack_require__(62);
+const class_transformer_1 = __webpack_require__(62);
+const class_validator_1 = __webpack_require__(63);
 class PaginationRequestDto {
     constructor() {
         this.offset = 0;
@@ -2427,19 +2536,19 @@ __decorate([
 
 
 /***/ }),
-/* 61 */
+/* 62 */
 /***/ ((module) => {
 
 module.exports = require("class-transformer");
 
 /***/ }),
-/* 62 */
+/* 63 */
 /***/ ((module) => {
 
 module.exports = require("class-validator");
 
 /***/ }),
-/* 63 */
+/* 64 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -2455,7 +2564,7 @@ var ServiceErrorCode;
 
 
 /***/ }),
-/* 64 */
+/* 65 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -2477,8 +2586,8 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ContractsCreateInboundSqsConsumer = void 0;
 const common_1 = __webpack_require__(6);
 const config_1 = __webpack_require__(8);
-const ingest_contracts_create_sqs_message_use_case_1 = __webpack_require__(65);
-const shared_1 = __webpack_require__(44);
+const ingest_contracts_create_sqs_message_use_case_1 = __webpack_require__(66);
+const shared_1 = __webpack_require__(45);
 let ContractsCreateInboundSqsConsumer = ContractsCreateInboundSqsConsumer_1 = class ContractsCreateInboundSqsConsumer extends shared_1.BaseConsumer {
     constructor(sqs_client, queues_config, config_service, ingest) {
         super(sqs_client, {
@@ -2528,7 +2637,7 @@ exports.ContractsCreateInboundSqsConsumer = ContractsCreateInboundSqsConsumer = 
 
 
 /***/ }),
-/* 65 */
+/* 66 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -2546,10 +2655,10 @@ var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.IngestContractsCreateSqsMessageUseCase = void 0;
 const common_1 = __webpack_require__(6);
-const class_transformer_1 = __webpack_require__(61);
-const class_validator_1 = __webpack_require__(62);
-const contracts_sqs_create_payload_dto_1 = __webpack_require__(66);
-const create_contract_use_case_1 = __webpack_require__(67);
+const class_transformer_1 = __webpack_require__(62);
+const class_validator_1 = __webpack_require__(63);
+const contracts_sqs_create_payload_dto_1 = __webpack_require__(67);
+const create_contract_use_case_1 = __webpack_require__(68);
 let IngestContractsCreateSqsMessageUseCase = IngestContractsCreateSqsMessageUseCase_1 = class IngestContractsCreateSqsMessageUseCase {
     constructor(create_contract) {
         this.create_contract = create_contract;
@@ -2580,6 +2689,7 @@ let IngestContractsCreateSqsMessageUseCase = IngestContractsCreateSqsMessageUseC
                 external_id: dto.external_id,
                 user_external_id: dto.user_external_id,
                 application_external_id: dto.application_external_id,
+                contract_template_external_id: dto.contract_template_external_id,
                 status_external_id: dto.status_external_id,
                 zapsign_token: dto.zapsign_token,
                 original_file_url: dto.original_file_url,
@@ -2606,7 +2716,7 @@ exports.IngestContractsCreateSqsMessageUseCase = IngestContractsCreateSqsMessage
 
 
 /***/ }),
-/* 66 */
+/* 67 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -2622,7 +2732,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ContractsSqsCreatePayloadDto = void 0;
-const class_validator_1 = __webpack_require__(62);
+const class_validator_1 = __webpack_require__(63);
 class ContractsSqsCreatePayloadDto {
 }
 exports.ContractsSqsCreatePayloadDto = ContractsSqsCreatePayloadDto;
@@ -2637,6 +2747,7 @@ __decorate([
     __metadata("design:type", String)
 ], ContractsSqsCreatePayloadDto.prototype, "external_id", void 0);
 __decorate([
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsUUID)('4'),
     __metadata("design:type", String)
 ], ContractsSqsCreatePayloadDto.prototype, "user_external_id", void 0);
@@ -2645,6 +2756,11 @@ __decorate([
     (0, class_validator_1.IsUUID)('4'),
     __metadata("design:type", String)
 ], ContractsSqsCreatePayloadDto.prototype, "application_external_id", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsUUID)('4'),
+    __metadata("design:type", String)
+], ContractsSqsCreatePayloadDto.prototype, "contract_template_external_id", void 0);
 __decorate([
     (0, class_validator_1.IsUUID)('4'),
     __metadata("design:type", String)
@@ -2676,7 +2792,7 @@ __decorate([
 
 
 /***/ }),
-/* 67 */
+/* 68 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -2695,40 +2811,61 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CreateContractUseCase = void 0;
 const common_1 = __webpack_require__(6);
-const contract_reference_lookup_port_1 = __webpack_require__(42);
-const contracts_tokens_1 = __webpack_require__(41);
-const contract_public_fields_builder_1 = __webpack_require__(68);
+const contract_reference_lookup_port_1 = __webpack_require__(43);
+const contracts_tokens_1 = __webpack_require__(42);
+const contract_public_fields_builder_1 = __webpack_require__(69);
 let CreateContractUseCase = class CreateContractUseCase {
     constructor(contract_repository, lookup) {
         this.contract_repository = contract_repository;
         this.lookup = lookup;
     }
     async execute(command) {
-        const user_id = await this.lookup.get_user_internal_id_by_external_id(command.user_external_id);
-        if (user_id === null) {
-            throw new common_1.NotFoundException('user not found');
+        let user_id = null;
+        const user_ext = command.user_external_id;
+        if (user_ext !== undefined && user_ext !== null && String(user_ext).trim().length > 0) {
+            const resolved = await this.lookup.get_user_internal_id_by_external_id(user_ext);
+            if (resolved === null) {
+                throw new common_1.NotFoundException('user not found');
+            }
+            user_id = resolved;
         }
-        let application_id = null;
+        let credit_application_internal_id = null;
         if (command.application_external_id !== undefined) {
             const app_id = await this.lookup.get_application_internal_id_by_external_id(command.application_external_id);
             if (app_id === null) {
                 throw new common_1.NotFoundException('application not found');
             }
-            application_id = app_id;
+            credit_application_internal_id = app_id;
         }
         const status_id = await this.lookup.get_contract_status_internal_id_by_external_id(command.status_external_id);
         if (status_id === null) {
             throw new common_1.NotFoundException('status not found');
         }
+        let contract_template_id = null;
+        if (command.contract_template_external_id !== undefined) {
+            const tid = await this.lookup.get_contract_template_internal_id_by_external_id(command.contract_template_external_id);
+            if (tid === null) {
+                throw new common_1.NotFoundException('contract template not found');
+            }
+            contract_template_id = tid;
+        }
+        else {
+            const defaulted = await this.lookup.get_default_contract_template_internal_id();
+            if (defaulted === null) {
+                throw new common_1.NotFoundException('default contract template not configured');
+            }
+            contract_template_id = defaulted;
+        }
         const created = await this.contract_repository.create({
             external_id: command.external_id,
             user_id,
-            application_id,
+            contract_template_id,
             zapsign_token: command.zapsign_token ?? null,
             status_id,
             original_file_url: command.original_file_url ?? null,
             signed_file_url: command.signed_file_url ?? null,
             form_answers_json: command.form_answers_json ?? null,
+            credit_application_internal_id,
         });
         return (0, contract_public_fields_builder_1.build_contract_public_response)(created, this.lookup);
     }
@@ -2743,20 +2880,23 @@ exports.CreateContractUseCase = CreateContractUseCase = __decorate([
 
 
 /***/ }),
-/* 68 */
+/* 69 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.build_contract_public_response = build_contract_public_response;
-const contract_public_response_dto_1 = __webpack_require__(69);
+const contract_public_response_dto_1 = __webpack_require__(70);
 async function build_contract_public_response(contract, lookup) {
     const status_external_id = await lookup.get_status_external_id_by_internal_id(contract.status_id);
+    const contract_template_external_id = contract.contract_template_id === null
+        ? null
+        : await lookup.get_contract_template_external_id_by_internal_id(contract.contract_template_id);
     return new contract_public_response_dto_1.ContractPublicResponseDto({
         id: contract.internal_id,
         external_id: contract.external_id,
         user_id: contract.user_id,
-        application_id: contract.application_id,
+        contract_template_external_id,
         status_external_id,
         original_file_url: contract.original_file_url,
         signed_file_url: contract.signed_file_url,
@@ -2768,7 +2908,7 @@ async function build_contract_public_response(contract, lookup) {
 
 
 /***/ }),
-/* 69 */
+/* 70 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -2800,13 +2940,17 @@ __decorate([
     __metadata("design:type", String)
 ], ContractPublicResponseDto.prototype, "external_id", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)(),
-    __metadata("design:type", Number)
-], ContractPublicResponseDto.prototype, "user_id", void 0);
-__decorate([
     (0, swagger_1.ApiPropertyOptional)({ nullable: true }),
     __metadata("design:type", Object)
-], ContractPublicResponseDto.prototype, "application_id", void 0);
+], ContractPublicResponseDto.prototype, "user_id", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        format: 'uuid',
+        nullable: true,
+        description: 'Plantilla usada para instanciar el contrato (si aplica).',
+    }),
+    __metadata("design:type", Object)
+], ContractPublicResponseDto.prototype, "contract_template_external_id", void 0);
 __decorate([
     (0, swagger_1.ApiPropertyOptional)({ format: 'uuid', nullable: true }),
     __metadata("design:type", Object)
@@ -2837,7 +2981,7 @@ __decorate([
 
 
 /***/ }),
-/* 70 */
+/* 71 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -2859,8 +3003,8 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ContractsGetInboundSqsConsumer = void 0;
 const common_1 = __webpack_require__(6);
 const config_1 = __webpack_require__(8);
-const ingest_contracts_get_sqs_message_use_case_1 = __webpack_require__(71);
-const shared_1 = __webpack_require__(44);
+const ingest_contracts_get_sqs_message_use_case_1 = __webpack_require__(72);
+const shared_1 = __webpack_require__(45);
 let ContractsGetInboundSqsConsumer = ContractsGetInboundSqsConsumer_1 = class ContractsGetInboundSqsConsumer extends shared_1.BaseConsumer {
     constructor(sqs_client, queues_config, config_service, ingest) {
         super(sqs_client, {
@@ -2910,7 +3054,7 @@ exports.ContractsGetInboundSqsConsumer = ContractsGetInboundSqsConsumer = Contra
 
 
 /***/ }),
-/* 71 */
+/* 72 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -2928,10 +3072,10 @@ var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.IngestContractsGetSqsMessageUseCase = void 0;
 const common_1 = __webpack_require__(6);
-const class_transformer_1 = __webpack_require__(61);
-const class_validator_1 = __webpack_require__(62);
-const contracts_sqs_get_payload_dto_1 = __webpack_require__(72);
-const get_contract_by_external_id_use_case_1 = __webpack_require__(73);
+const class_transformer_1 = __webpack_require__(62);
+const class_validator_1 = __webpack_require__(63);
+const contracts_sqs_get_payload_dto_1 = __webpack_require__(73);
+const get_contract_by_external_id_use_case_1 = __webpack_require__(74);
 let IngestContractsGetSqsMessageUseCase = IngestContractsGetSqsMessageUseCase_1 = class IngestContractsGetSqsMessageUseCase {
     constructor(get_contract) {
         this.get_contract = get_contract;
@@ -2978,7 +3122,7 @@ exports.IngestContractsGetSqsMessageUseCase = IngestContractsGetSqsMessageUseCas
 
 
 /***/ }),
-/* 72 */
+/* 73 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -2993,7 +3137,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ContractsSqsGetPayloadDto = void 0;
-const class_validator_1 = __webpack_require__(62);
+const class_validator_1 = __webpack_require__(63);
 class ContractsSqsGetPayloadDto {
 }
 exports.ContractsSqsGetPayloadDto = ContractsSqsGetPayloadDto;
@@ -3009,7 +3153,7 @@ __decorate([
 
 
 /***/ }),
-/* 73 */
+/* 74 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -3028,9 +3172,9 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.GetContractByExternalIdUseCase = void 0;
 const common_1 = __webpack_require__(6);
-const contract_reference_lookup_port_1 = __webpack_require__(42);
-const contracts_tokens_1 = __webpack_require__(41);
-const contract_public_fields_builder_1 = __webpack_require__(68);
+const contract_reference_lookup_port_1 = __webpack_require__(43);
+const contracts_tokens_1 = __webpack_require__(42);
+const contract_public_fields_builder_1 = __webpack_require__(69);
 let GetContractByExternalIdUseCase = class GetContractByExternalIdUseCase {
     constructor(contract_repository, lookup) {
         this.contract_repository = contract_repository;
@@ -3054,7 +3198,7 @@ exports.GetContractByExternalIdUseCase = GetContractByExternalIdUseCase = __deco
 
 
 /***/ }),
-/* 74 */
+/* 75 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -3067,9 +3211,9 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.MessagingApplicationModule = void 0;
 const common_1 = __webpack_require__(6);
-const contracts_application_module_1 = __webpack_require__(75);
-const ingest_contracts_create_sqs_message_use_case_1 = __webpack_require__(65);
-const ingest_contracts_get_sqs_message_use_case_1 = __webpack_require__(71);
+const contracts_application_module_1 = __webpack_require__(76);
+const ingest_contracts_create_sqs_message_use_case_1 = __webpack_require__(66);
+const ingest_contracts_get_sqs_message_use_case_1 = __webpack_require__(72);
 let MessagingApplicationModule = class MessagingApplicationModule {
 };
 exports.MessagingApplicationModule = MessagingApplicationModule;
@@ -3083,7 +3227,7 @@ exports.MessagingApplicationModule = MessagingApplicationModule = __decorate([
 
 
 /***/ }),
-/* 75 */
+/* 76 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -3096,12 +3240,12 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ContractsApplicationModule = void 0;
 const common_1 = __webpack_require__(6);
-const create_contract_use_case_1 = __webpack_require__(67);
-const get_contract_by_external_id_use_case_1 = __webpack_require__(73);
-const get_contract_by_id_use_case_1 = __webpack_require__(76);
-const list_contracts_use_case_1 = __webpack_require__(77);
-const update_contract_by_external_id_use_case_1 = __webpack_require__(78);
-const delete_contract_by_external_id_use_case_1 = __webpack_require__(79);
+const create_contract_use_case_1 = __webpack_require__(68);
+const get_contract_by_external_id_use_case_1 = __webpack_require__(74);
+const get_contract_by_id_use_case_1 = __webpack_require__(77);
+const list_contracts_use_case_1 = __webpack_require__(78);
+const update_contract_by_external_id_use_case_1 = __webpack_require__(79);
+const delete_contract_by_external_id_use_case_1 = __webpack_require__(80);
 let ContractsApplicationModule = class ContractsApplicationModule {
 };
 exports.ContractsApplicationModule = ContractsApplicationModule;
@@ -3128,7 +3272,7 @@ exports.ContractsApplicationModule = ContractsApplicationModule = __decorate([
 
 
 /***/ }),
-/* 76 */
+/* 77 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -3147,9 +3291,9 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.GetContractByIdUseCase = void 0;
 const common_1 = __webpack_require__(6);
-const contract_reference_lookup_port_1 = __webpack_require__(42);
-const contracts_tokens_1 = __webpack_require__(41);
-const contract_public_fields_builder_1 = __webpack_require__(68);
+const contract_reference_lookup_port_1 = __webpack_require__(43);
+const contracts_tokens_1 = __webpack_require__(42);
+const contract_public_fields_builder_1 = __webpack_require__(69);
 let GetContractByIdUseCase = class GetContractByIdUseCase {
     constructor(contract_repository, lookup) {
         this.contract_repository = contract_repository;
@@ -3173,7 +3317,7 @@ exports.GetContractByIdUseCase = GetContractByIdUseCase = __decorate([
 
 
 /***/ }),
-/* 77 */
+/* 78 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -3192,9 +3336,9 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ListContractsUseCase = void 0;
 const common_1 = __webpack_require__(6);
-const contract_reference_lookup_port_1 = __webpack_require__(42);
-const contracts_tokens_1 = __webpack_require__(41);
-const contract_public_fields_builder_1 = __webpack_require__(68);
+const contract_reference_lookup_port_1 = __webpack_require__(43);
+const contracts_tokens_1 = __webpack_require__(42);
+const contract_public_fields_builder_1 = __webpack_require__(69);
 let ListContractsUseCase = class ListContractsUseCase {
     constructor(contract_repository, lookup) {
         this.contract_repository = contract_repository;
@@ -3216,7 +3360,7 @@ let ListContractsUseCase = class ListContractsUseCase {
         }
         const filters = {
             user_id: query.user_id,
-            application_id: query.application_id,
+            credit_application_internal_id: query.credit_application_id,
             status_id,
         };
         const { items, total } = await this.contract_repository.find_page(filters, query.offset, query.limit);
@@ -3239,7 +3383,7 @@ exports.ListContractsUseCase = ListContractsUseCase = __decorate([
 
 
 /***/ }),
-/* 78 */
+/* 79 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -3258,9 +3402,9 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.UpdateContractByExternalIdUseCase = void 0;
 const common_1 = __webpack_require__(6);
-const contract_reference_lookup_port_1 = __webpack_require__(42);
-const contracts_tokens_1 = __webpack_require__(41);
-const contract_public_fields_builder_1 = __webpack_require__(68);
+const contract_reference_lookup_port_1 = __webpack_require__(43);
+const contracts_tokens_1 = __webpack_require__(42);
+const contract_public_fields_builder_1 = __webpack_require__(69);
 let UpdateContractByExternalIdUseCase = class UpdateContractByExternalIdUseCase {
     constructor(contract_repository, lookup) {
         this.contract_repository = contract_repository;
@@ -3270,14 +3414,26 @@ let UpdateContractByExternalIdUseCase = class UpdateContractByExternalIdUseCase 
         const patch = {};
         if (command.application_external_id !== undefined) {
             if (command.application_external_id === null) {
-                patch.application_id = null;
+                patch.credit_application_internal_id = null;
             }
             else {
                 const app_id = await this.lookup.get_application_internal_id_by_external_id(command.application_external_id);
                 if (app_id === null) {
                     throw new common_1.NotFoundException('application not found');
                 }
-                patch.application_id = app_id;
+                patch.credit_application_internal_id = app_id;
+            }
+        }
+        if (command.contract_template_external_id !== undefined) {
+            if (command.contract_template_external_id === null) {
+                patch.contract_template_id = null;
+            }
+            else {
+                const tpl_id = await this.lookup.get_contract_template_internal_id_by_external_id(command.contract_template_external_id);
+                if (tpl_id === null) {
+                    throw new common_1.NotFoundException('contract template not found');
+                }
+                patch.contract_template_id = tpl_id;
             }
         }
         if (command.status_external_id !== undefined) {
@@ -3316,7 +3472,7 @@ exports.UpdateContractByExternalIdUseCase = UpdateContractByExternalIdUseCase = 
 
 
 /***/ }),
-/* 79 */
+/* 80 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -3335,7 +3491,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.DeleteContractByExternalIdUseCase = void 0;
 const common_1 = __webpack_require__(6);
-const contracts_tokens_1 = __webpack_require__(41);
+const contracts_tokens_1 = __webpack_require__(42);
 let DeleteContractByExternalIdUseCase = class DeleteContractByExternalIdUseCase {
     constructor(contract_repository) {
         this.contract_repository = contract_repository;
@@ -3356,7 +3512,7 @@ exports.DeleteContractByExternalIdUseCase = DeleteContractByExternalIdUseCase = 
 
 
 /***/ }),
-/* 80 */
+/* 81 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -3369,8 +3525,8 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ContractsModule = void 0;
 const common_1 = __webpack_require__(6);
-const contracts_application_module_1 = __webpack_require__(75);
-const contracts_controller_1 = __webpack_require__(81);
+const contracts_application_module_1 = __webpack_require__(76);
+const contracts_controller_1 = __webpack_require__(82);
 let ContractsModule = class ContractsModule {
 };
 exports.ContractsModule = ContractsModule;
@@ -3383,7 +3539,7 @@ exports.ContractsModule = ContractsModule = __decorate([
 
 
 /***/ }),
-/* 81 */
+/* 82 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -3404,16 +3560,16 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ContractsController = void 0;
 const common_1 = __webpack_require__(6);
 const swagger_1 = __webpack_require__(9);
-const create_contract_http_dto_1 = __webpack_require__(82);
-const update_contract_http_dto_1 = __webpack_require__(83);
-const list_contracts_query_dto_1 = __webpack_require__(84);
-const contract_public_response_dto_1 = __webpack_require__(69);
-const create_contract_use_case_1 = __webpack_require__(67);
-const get_contract_by_id_use_case_1 = __webpack_require__(76);
-const get_contract_by_external_id_use_case_1 = __webpack_require__(73);
-const list_contracts_use_case_1 = __webpack_require__(77);
-const update_contract_by_external_id_use_case_1 = __webpack_require__(78);
-const delete_contract_by_external_id_use_case_1 = __webpack_require__(79);
+const create_contract_http_dto_1 = __webpack_require__(83);
+const update_contract_http_dto_1 = __webpack_require__(84);
+const list_contracts_query_dto_1 = __webpack_require__(85);
+const contract_public_response_dto_1 = __webpack_require__(70);
+const create_contract_use_case_1 = __webpack_require__(68);
+const get_contract_by_id_use_case_1 = __webpack_require__(77);
+const get_contract_by_external_id_use_case_1 = __webpack_require__(74);
+const list_contracts_use_case_1 = __webpack_require__(78);
+const update_contract_by_external_id_use_case_1 = __webpack_require__(79);
+const delete_contract_by_external_id_use_case_1 = __webpack_require__(80);
 let ContractsController = class ContractsController {
     constructor(create_contract, get_by_id, get_by_external_id, list_contracts, update_contract, delete_contract) {
         this.create_contract = create_contract;
@@ -3428,6 +3584,7 @@ let ContractsController = class ContractsController {
             external_id: body.external_id,
             user_external_id: body.user_external_id,
             application_external_id: body.application_external_id,
+            contract_template_external_id: body.contract_template_external_id,
             status_external_id: body.status_external_id,
             zapsign_token: body.zapsign_token,
             original_file_url: body.original_file_url,
@@ -3440,7 +3597,7 @@ let ContractsController = class ContractsController {
             offset: query.offset,
             limit: query.limit,
             user_id: query.user_id,
-            application_id: query.application_id,
+            credit_application_id: query.credit_application_id,
             status_external_id: query.status_external_id,
         });
     }
@@ -3453,6 +3610,7 @@ let ContractsController = class ContractsController {
     async update(externalId, body) {
         return this.update_contract.execute(externalId, {
             application_external_id: body.application_external_id,
+            contract_template_external_id: body.contract_template_external_id,
             status_external_id: body.status_external_id,
             zapsign_token: body.zapsign_token,
             original_file_url: body.original_file_url,
@@ -3529,7 +3687,7 @@ exports.ContractsController = ContractsController = __decorate([
 
 
 /***/ }),
-/* 82 */
+/* 83 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -3546,7 +3704,7 @@ var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CreateContractHttpDto = void 0;
 const swagger_1 = __webpack_require__(9);
-const class_validator_1 = __webpack_require__(62);
+const class_validator_1 = __webpack_require__(63);
 class CreateContractHttpDto {
 }
 exports.CreateContractHttpDto = CreateContractHttpDto;
@@ -3557,8 +3715,12 @@ __decorate([
     __metadata("design:type", String)
 ], CreateContractHttpDto.prototype, "external_id", void 0);
 __decorate([
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsUUID)('4'),
-    (0, swagger_1.ApiProperty)({ format: 'uuid', description: 'Usuario (transversal_schema.users)' }),
+    (0, swagger_1.ApiPropertyOptional)({
+        format: 'uuid',
+        description: 'Usuario (transversal_schema.users). Opcional si el flujo crea el contrato antes del titular.',
+    }),
     __metadata("design:type", String)
 ], CreateContractHttpDto.prototype, "user_external_id", void 0);
 __decorate([
@@ -3567,6 +3729,15 @@ __decorate([
     (0, swagger_1.ApiPropertyOptional)({ format: 'uuid' }),
     __metadata("design:type", String)
 ], CreateContractHttpDto.prototype, "application_external_id", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsUUID)('4'),
+    (0, swagger_1.ApiPropertyOptional)({
+        format: 'uuid',
+        description: 'Plantilla (products_schema.contract_templates). Si no se envía, se usa la semilla legacy_default v1.',
+    }),
+    __metadata("design:type", String)
+], CreateContractHttpDto.prototype, "contract_template_external_id", void 0);
 __decorate([
     (0, class_validator_1.IsUUID)('4'),
     (0, swagger_1.ApiProperty)({ format: 'uuid' }),
@@ -3603,7 +3774,7 @@ __decorate([
 
 
 /***/ }),
-/* 83 */
+/* 84 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -3620,7 +3791,7 @@ var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.UpdateContractHttpDto = void 0;
 const swagger_1 = __webpack_require__(9);
-const class_validator_1 = __webpack_require__(62);
+const class_validator_1 = __webpack_require__(63);
 class UpdateContractHttpDto {
 }
 exports.UpdateContractHttpDto = UpdateContractHttpDto;
@@ -3630,6 +3801,17 @@ __decorate([
     (0, swagger_1.ApiPropertyOptional)({ format: 'uuid' }),
     __metadata("design:type", Object)
 ], UpdateContractHttpDto.prototype, "application_external_id", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.ValidateIf)((_, v) => v !== null && v !== undefined),
+    (0, class_validator_1.IsUUID)('4'),
+    (0, swagger_1.ApiPropertyOptional)({
+        format: 'uuid',
+        nullable: true,
+        description: 'Plantilla; null desvincula contract_template_id.',
+    }),
+    __metadata("design:type", Object)
+], UpdateContractHttpDto.prototype, "contract_template_external_id", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsUUID)('4'),
@@ -3667,7 +3849,7 @@ __decorate([
 
 
 /***/ }),
-/* 84 */
+/* 85 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -3683,9 +3865,9 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ListContractsQueryDto = void 0;
 const swagger_1 = __webpack_require__(9);
-const class_transformer_1 = __webpack_require__(61);
-const class_validator_1 = __webpack_require__(62);
-const shared_1 = __webpack_require__(44);
+const class_transformer_1 = __webpack_require__(62);
+const class_validator_1 = __webpack_require__(63);
+const shared_1 = __webpack_require__(45);
 class ListContractsQueryDto extends shared_1.PaginationRequestDto {
 }
 exports.ListContractsQueryDto = ListContractsQueryDto;
@@ -3702,9 +3884,11 @@ __decorate([
     (0, class_transformer_1.Type)(() => Number),
     (0, class_validator_1.IsInt)(),
     (0, class_validator_1.Min)(1),
-    (0, swagger_1.ApiPropertyOptional)(),
+    (0, swagger_1.ApiPropertyOptional)({
+        description: 'Filtra por solicitud vinculada (credit_applications.id interno).',
+    }),
     __metadata("design:type", Number)
-], ListContractsQueryDto.prototype, "application_id", void 0);
+], ListContractsQueryDto.prototype, "credit_application_id", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsUUID)('4'),
@@ -3714,7 +3898,7 @@ __decorate([
 
 
 /***/ }),
-/* 85 */
+/* 86 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
@@ -3729,7 +3913,7 @@ exports["default"] = (0, config_1.registerAs)('config', () => {
 
 
 /***/ }),
-/* 86 */
+/* 87 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -3746,8 +3930,8 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.sqs_config = void 0;
 exports.get_contracts_sqs_config_from_env = get_contracts_sqs_config_from_env;
 const config_1 = __webpack_require__(8);
-const class_transformer_1 = __webpack_require__(61);
-const class_validator_1 = __webpack_require__(62);
+const class_transformer_1 = __webpack_require__(62);
+const class_validator_1 = __webpack_require__(63);
 const CONTRACTS_SQS_OUTBOUND_QUEUE_URL_DEFAULT = 'http://127.0.0.1:4566/000000000000/contracts-ms-outbound-placeholder';
 class ContractsSqsEnv {
     constructor() {
@@ -3854,7 +4038,7 @@ exports.sqs_config = (0, config_1.registerAs)('sqs', () => get_contracts_sqs_con
 
 
 /***/ }),
-/* 87 */
+/* 88 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -3872,7 +4056,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.appController = void 0;
 const common_1 = __webpack_require__(6);
 const swagger_1 = __webpack_require__(9);
-const health_response_dto_1 = __webpack_require__(88);
+const health_response_dto_1 = __webpack_require__(89);
 let appController = class appController {
     health() {
         return { status: 'ok', service: 'contracts-ms' };
@@ -3894,7 +4078,7 @@ exports.appController = appController = __decorate([
 
 
 /***/ }),
-/* 88 */
+/* 89 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 

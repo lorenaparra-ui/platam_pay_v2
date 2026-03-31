@@ -13,12 +13,17 @@ export class ContractsSqsCreatePayloadDto {
   @IsUUID('4')
   external_id?: string;
 
+  @IsOptional()
   @IsUUID('4')
-  user_external_id!: string;
+  user_external_id?: string;
 
   @IsOptional()
   @IsUUID('4')
   application_external_id?: string;
+
+  @IsOptional()
+  @IsUUID('4')
+  contract_template_external_id?: string;
 
   @IsUUID('4')
   status_external_id!: string;

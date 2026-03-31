@@ -8,11 +8,15 @@ export class ContractPublicResponseDto {
   @ApiProperty({ format: 'uuid' })
   external_id: string;
 
-  @ApiProperty()
-  user_id: number;
-
   @ApiPropertyOptional({ nullable: true })
-  application_id: number | null;
+  user_id: number | null;
+
+  @ApiPropertyOptional({
+    format: 'uuid',
+    nullable: true,
+    description: 'Plantilla usada para instanciar el contrato (si aplica).',
+  })
+  contract_template_external_id: string | null;
 
   @ApiPropertyOptional({ format: 'uuid', nullable: true })
   status_external_id: string | null;

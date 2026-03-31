@@ -2,8 +2,8 @@ export class Contract {
   constructor(
     readonly internal_id: number,
     readonly external_id: string,
-    readonly user_id: number,
-    readonly application_id: number | null,
+    readonly user_id: number | null,
+    readonly contract_template_id: number | null,
     readonly zapsign_token: string | null,
     readonly status_id: number,
     readonly original_file_url: string | null,
@@ -14,10 +14,11 @@ export class Contract {
   ) {}
 }
 
+/** Propiedades persistidas en products_schema.contracts. */
 export interface CreateContractProps {
   external_id?: string;
-  user_id: number;
-  application_id: number | null;
+  user_id: number | null;
+  contract_template_id: number | null;
   zapsign_token: string | null;
   status_id: number;
   original_file_url: string | null;
@@ -25,20 +26,29 @@ export interface CreateContractProps {
   form_answers_json: Record<string, unknown> | null;
 }
 
+/** Datos para crear contrato + enlace opcional a credit_applications (no columna en contracts). */
+export interface CreateContractRepositoryInput extends CreateContractProps {
+  credit_application_internal_id: number | null;
+}
+
 export type UpdateContractProps = Partial<
   Pick<
     CreateContractProps,
-    | 'application_id'
+    | 'contract_template_id'
     | 'zapsign_token'
     | 'status_id'
     | 'original_file_url'
     | 'signed_file_url'
     | 'form_answers_json'
   >
->;
+> & {
+  /** Si se envía, reescribe credit_applications.contract_id para esta instancia. */
+  credit_application_internal_id?: number | null;
+};
 
 export type ListContractsFilters = Readonly<{
   user_id?: number;
-  application_id?: number;
+  /** Filtra contratos vinculados a esta solicitud (credit_applications.id). */
+  credit_application_internal_id?: number;
   status_id?: number;
 }>;

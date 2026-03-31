@@ -1,6 +1,6 @@
 import type {
   Contract,
-  CreateContractProps,
+  CreateContractRepositoryInput,
   ListContractsFilters,
   UpdateContractProps,
 } from '../models/contract.models';
@@ -16,7 +16,7 @@ export interface ContractRepository {
     limit: number,
   ): Promise<{ items: readonly Contract[]; total: number }>;
 
-  create(props: CreateContractProps): Promise<Contract>;
+  create(props: CreateContractRepositoryInput): Promise<Contract>;
 
   update_by_external_id(
     external_id: string,

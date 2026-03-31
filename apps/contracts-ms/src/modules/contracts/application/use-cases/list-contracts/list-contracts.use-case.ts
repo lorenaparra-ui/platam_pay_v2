@@ -11,7 +11,8 @@ export type ListContractsQuery = Readonly<{
   offset: number;
   limit: number;
   user_id?: number;
-  application_id?: number;
+  /** credit_applications.id (interno). */
+  credit_application_id?: number;
   status_external_id?: string;
 }>;
 
@@ -45,7 +46,7 @@ export class ListContractsUseCase {
 
     const filters = {
       user_id: query.user_id,
-      application_id: query.application_id,
+      credit_application_internal_id: query.credit_application_id,
       status_id,
     };
 

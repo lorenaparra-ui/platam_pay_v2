@@ -1,11 +1,12 @@
-import { Column, Entity } from 'typeorm';
+import { Column, Entity, JoinColumn, OneToOne } from 'typeorm';
 import { BaseExternalIdEntity } from './base-external-id.entity';
+import { ContractEntity } from './contract.entity';
 
 /**
  * Entidad TypeORM para credit_applications (antes credit_applications_bnpl).
  * FKs: person_id -> persons.id, partner_id -> partners.id,
  * partner_category_id -> products_schema.categories.id, business_id -> businesses.id,
- * status_id -> statuses.id.
+ * contract_id -> products_schema.contracts, status_id -> statuses.id.
  */
 @Entity({ name: 'credit_applications', schema: 'products_schema' })
 export class CreditApplicationEntity extends BaseExternalIdEntity {
@@ -70,6 +71,10 @@ export class CreditApplicationEntity extends BaseExternalIdEntity {
 
   @Column({ name: 'status_id', type: 'bigint' })
   statusId: number;
+
+  @OneToOne(() => ContractEntity, { nullable: true })
+  @JoinColumn({ name: 'contract_id', referencedColumnName: 'id' })
+  contract: ContractEntity | null;
 
   @Column({ name: 'submission_date', type: 'timestamptz', nullable: true })
   submissionDate: Date | null;

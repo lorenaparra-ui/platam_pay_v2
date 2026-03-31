@@ -14,14 +14,28 @@ export class CreateContractHttpDto {
   @ApiPropertyOptional({ format: 'uuid' })
   external_id?: string;
 
+  @IsOptional()
   @IsUUID('4')
-  @ApiProperty({ format: 'uuid', description: 'Usuario (transversal_schema.users)' })
-  user_external_id!: string;
+  @ApiPropertyOptional({
+    format: 'uuid',
+    description:
+      'Usuario (transversal_schema.users). Opcional si el flujo crea el contrato antes del titular.',
+  })
+  user_external_id?: string;
 
   @IsOptional()
   @IsUUID('4')
   @ApiPropertyOptional({ format: 'uuid' })
   application_external_id?: string;
+
+  @IsOptional()
+  @IsUUID('4')
+  @ApiPropertyOptional({
+    format: 'uuid',
+    description:
+      'Plantilla (products_schema.contract_templates). Si no se envía, se usa la semilla legacy_default v1.',
+  })
+  contract_template_external_id?: string;
 
   @IsUUID('4')
   @ApiProperty({ format: 'uuid' })

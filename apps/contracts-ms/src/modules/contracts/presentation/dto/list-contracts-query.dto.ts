@@ -15,8 +15,10 @@ export class ListContractsQueryDto extends PaginationRequestDto {
   @Type(() => Number)
   @IsInt()
   @Min(1)
-  @ApiPropertyOptional()
-  application_id?: number;
+  @ApiPropertyOptional({
+    description: 'Filtra por solicitud vinculada (credit_applications.id interno).',
+  })
+  credit_application_id?: number;
 
   @IsOptional()
   @IsUUID('4')

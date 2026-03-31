@@ -15,6 +15,9 @@ describe('CreateContractUseCase', () => {
     get_application_internal_id_by_external_id: jest.fn(),
     get_contract_status_internal_id_by_external_id: jest.fn(),
     get_status_external_id_by_internal_id: jest.fn(),
+    get_contract_template_internal_id_by_external_id: jest.fn(),
+    get_default_contract_template_internal_id: jest.fn(),
+    get_contract_template_external_id_by_internal_id: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -46,15 +49,19 @@ describe('CreateContractUseCase', () => {
   it('crea y devuelve respuesta pública', async () => {
     mock_lookup.get_user_internal_id_by_external_id.mockResolvedValue(10);
     mock_lookup.get_contract_status_internal_id_by_external_id.mockResolvedValue(20);
+    mock_lookup.get_default_contract_template_internal_id.mockResolvedValue(99);
     mock_lookup.get_status_external_id_by_internal_id.mockResolvedValue(
       'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+    );
+    mock_lookup.get_contract_template_external_id_by_internal_id.mockResolvedValue(
+      'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
     );
 
     const created = new Contract(
       1,
       'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
       10,
-      null,
+      99,
       null,
       20,
       null,
@@ -74,5 +81,44 @@ describe('CreateContractUseCase', () => {
     expect(result.external_id).toBe('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb');
     expect(result.user_id).toBe(10);
     expect(result.status_external_id).toBe('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa');
+    expect(result.contract_template_external_id).toBe(
+      'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
+    );
+  });
+
+  it('crea sin titular en users cuando no se envía user_external_id', async () => {
+    mock_lookup.get_contract_status_internal_id_by_external_id.mockResolvedValue(20);
+    mock_lookup.get_default_contract_template_internal_id.mockResolvedValue(99);
+    mock_lookup.get_status_external_id_by_internal_id.mockResolvedValue(
+      'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+    );
+    mock_lookup.get_contract_template_external_id_by_internal_id.mockResolvedValue(
+      'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
+    );
+
+    const created = new Contract(
+      1,
+      'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+      null,
+      99,
+      null,
+      20,
+      null,
+      null,
+      null,
+      new Date('2026-01-01T00:00:00.000Z'),
+      new Date('2026-01-01T00:00:00.000Z'),
+    );
+    mock_repository.create.mockResolvedValue(created);
+
+    const result = await use_case.execute({
+      status_external_id: '22222222-2222-4222-8222-222222222222',
+    });
+
+    expect(mock_lookup.get_user_internal_id_by_external_id).not.toHaveBeenCalled();
+    expect(mock_repository.create).toHaveBeenCalledWith(
+      expect.objectContaining({ user_id: null, credit_application_internal_id: null }),
+    );
+    expect(result.user_id).toBeNull();
   });
 });

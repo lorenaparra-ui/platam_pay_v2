@@ -21,7 +21,7 @@ export class UpdateContractByExternalIdUseCase {
 
     if (command.application_external_id !== undefined) {
       if (command.application_external_id === null) {
-        patch.application_id = null;
+        patch.credit_application_internal_id = null;
       } else {
         const app_id = await this.lookup.get_application_internal_id_by_external_id(
           command.application_external_id,
@@ -29,7 +29,21 @@ export class UpdateContractByExternalIdUseCase {
         if (app_id === null) {
           throw new NotFoundException('application not found');
         }
-        patch.application_id = app_id;
+        patch.credit_application_internal_id = app_id;
+      }
+    }
+
+    if (command.contract_template_external_id !== undefined) {
+      if (command.contract_template_external_id === null) {
+        patch.contract_template_id = null;
+      } else {
+        const tpl_id = await this.lookup.get_contract_template_internal_id_by_external_id(
+          command.contract_template_external_id,
+        );
+        if (tpl_id === null) {
+          throw new NotFoundException('contract template not found');
+        }
+        patch.contract_template_id = tpl_id;
       }
     }
 

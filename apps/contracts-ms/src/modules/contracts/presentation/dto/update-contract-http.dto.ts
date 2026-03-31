@@ -15,6 +15,16 @@ export class UpdateContractHttpDto {
   application_external_id?: string | null;
 
   @IsOptional()
+  @ValidateIf((_, v) => v !== null && v !== undefined)
+  @IsUUID('4')
+  @ApiPropertyOptional({
+    format: 'uuid',
+    nullable: true,
+    description: 'Plantilla; null desvincula contract_template_id.',
+  })
+  contract_template_external_id?: string | null;
+
+  @IsOptional()
   @IsUUID('4')
   @ApiPropertyOptional({ format: 'uuid' })
   status_external_id?: string;

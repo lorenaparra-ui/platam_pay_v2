@@ -6,8 +6,8 @@ export class ContractMapper {
     return new Contract(
       row.id,
       row.externalId,
-      row.userId,
-      row.applicationId ?? null,
+      row.userId ?? null,
+      row.contractTemplateId ?? null,
       row.zapsignToken ?? null,
       row.statusId,
       row.originalFileUrl ?? null,
@@ -23,10 +23,12 @@ export class ContractMapper {
     return new Contract(
       Number(row['id']),
       String(row['external_id']),
-      Number(row['user_id']),
-      row['application_id'] === null || row['application_id'] === undefined
+      row['user_id'] === null || row['user_id'] === undefined
         ? null
-        : Number(row['application_id']),
+        : Number(row['user_id']),
+      row['contract_template_id'] === null || row['contract_template_id'] === undefined
+        ? null
+        : Number(row['contract_template_id']),
       row['zapsign_token'] === null || row['zapsign_token'] === undefined
         ? null
         : String(row['zapsign_token']),

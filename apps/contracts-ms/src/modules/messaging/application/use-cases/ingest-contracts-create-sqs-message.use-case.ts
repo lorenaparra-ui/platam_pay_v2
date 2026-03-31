@@ -44,6 +44,7 @@ export class IngestContractsCreateSqsMessageUseCase
         external_id: dto.external_id,
         user_external_id: dto.user_external_id,
         application_external_id: dto.application_external_id,
+        contract_template_external_id: dto.contract_template_external_id,
         status_external_id: dto.status_external_id,
         zapsign_token: dto.zapsign_token,
         original_file_url: dto.original_file_url,

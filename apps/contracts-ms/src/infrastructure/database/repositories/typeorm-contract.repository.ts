@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindOptionsWhere, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { ContractEntity } from '@app/products-data';
 import { ContractRepository } from '@modules/contracts/domain/ports/contract.repository.port';
 import {
   Contract,
-  CreateContractProps,
+  CreateContractRepositoryInput,
   ListContractsFilters,
   UpdateContractProps,
 } from '@modules/contracts/domain/models/contract.models';
@@ -15,7 +15,7 @@ const CONTRACT_SELECT = {
   id: true,
   externalId: true,
   userId: true,
-  applicationId: true,
+  contractTemplateId: true,
   zapsignToken: true,
   statusId: true,
   originalFileUrl: true,
@@ -31,6 +31,26 @@ export class TypeormContractRepository implements ContractRepository {
     @InjectRepository(ContractEntity)
     private readonly repo: Repository<ContractEntity>,
   ) {}
+
+  private async sync_credit_application_contract_link(
+    contract_internal_id: number,
+    credit_application_internal_id: number | null,
+  ): Promise<void> {
+    await this.repo.query(
+      `UPDATE products_schema.credit_applications
+       SET contract_id = NULL
+       WHERE contract_id = $1`,
+      [contract_internal_id],
+    );
+    if (credit_application_internal_id !== null) {
+      await this.repo.query(
+        `UPDATE products_schema.credit_applications
+         SET contract_id = $1
+         WHERE id = $2`,
+        [contract_internal_id, credit_application_internal_id],
+      );
+    }
+  }
 
   async find_by_id(internal_id: number): Promise<Contract | null> {
     const row = await this.repo.findOne({
@@ -53,41 +73,44 @@ export class TypeormContractRepository implements ContractRepository {
     offset: number,
     limit: number,
   ): Promise<{ items: readonly Contract[]; total: number }> {
-    const where: FindOptionsWhere<ContractEntity> = {};
+    const qb = this.repo.createQueryBuilder('contract');
+
     if (filters.user_id !== undefined) {
-      where.userId = filters.user_id;
+      qb.andWhere('contract.userId = :uid', { uid: filters.user_id });
     }
-    if (filters.application_id !== undefined) {
-      where.applicationId = filters.application_id;
+    if (filters.credit_application_internal_id !== undefined) {
+      qb.andWhere(
+        `contract.id IN (
+          SELECT ca.contract_id FROM products_schema.credit_applications ca
+          WHERE ca.id = :app_id AND ca.contract_id IS NOT NULL
+        )`,
+        { app_id: filters.credit_application_internal_id },
+      );
     }
     if (filters.status_id !== undefined) {
-      where.statusId = filters.status_id;
+      qb.andWhere('contract.statusId = :sid', { sid: filters.status_id });
     }
 
-    const [rows, total] = await this.repo.findAndCount({
-      where,
-      select: CONTRACT_SELECT,
-      order: { id: 'ASC' },
-      skip: offset,
-      take: limit,
-    });
+    qb.orderBy('contract.id', 'ASC').skip(offset).take(limit);
+
+    const [rows, total] = await qb.getManyAndCount();
     return { items: rows.map((r) => ContractMapper.to_domain(r)), total };
   }
 
-  async create(props: CreateContractProps): Promise<Contract> {
+  async create(props: CreateContractRepositoryInput): Promise<Contract> {
     const rows = await this.repo.query(
       `INSERT INTO products_schema.contracts (
-        external_id, user_id, application_id, zapsign_token, status_id,
+        external_id, user_id, contract_template_id, zapsign_token, status_id,
         original_file_url, signed_file_url, form_answers_json
       ) VALUES (
         COALESCE($1::uuid, gen_random_uuid()), $2, $3, $4, $5, $6, $7, $8::jsonb
       )
-      RETURNING id, external_id, created_at, updated_at, user_id, application_id,
-        zapsign_token, status_id, original_file_url, signed_file_url, form_answers_json`,
+      RETURNING id, external_id, created_at, updated_at, user_id,
+        contract_template_id, zapsign_token, status_id, original_file_url, signed_file_url, form_answers_json`,
       [
         props.external_id ?? null,
         props.user_id,
-        props.application_id,
+        props.contract_template_id,
         props.zapsign_token,
         props.status_id,
         props.original_file_url,
@@ -97,7 +120,12 @@ export class TypeormContractRepository implements ContractRepository {
           : JSON.stringify(props.form_answers_json),
       ],
     );
-    return ContractMapper.from_raw_row(rows[0] as Record<string, unknown>);
+    const created = ContractMapper.from_raw_row(rows[0] as Record<string, unknown>);
+    await this.sync_credit_application_contract_link(
+      created.internal_id,
+      props.credit_application_internal_id,
+    );
+    return created;
   }
 
   async update_by_external_id(
@@ -122,8 +150,8 @@ export class TypeormContractRepository implements ContractRepository {
       i += 1;
     };
 
-    if (patch.application_id !== undefined) {
-      add('application_id', patch.application_id);
+    if (patch.contract_template_id !== undefined) {
+      add('contract_template_id', patch.contract_template_id);
     }
     if (patch.zapsign_token !== undefined) {
       add('zapsign_token', patch.zapsign_token);
@@ -147,16 +175,21 @@ export class TypeormContractRepository implements ContractRepository {
       i += 1;
     }
 
-    if (columns.length === 0) {
-      return this.find_by_external_id(external_id);
+    if (columns.length > 0) {
+      columns.push(`"updated_at" = now()`);
+      values.push(existing.id);
+      await this.repo.query(
+        `UPDATE products_schema.contracts SET ${columns.join(', ')} WHERE id = $${i}`,
+        values,
+      );
     }
 
-    columns.push(`"updated_at" = now()`);
-    values.push(existing.id);
-    await this.repo.query(
-      `UPDATE products_schema.contracts SET ${columns.join(', ')} WHERE id = $${i}`,
-      values,
-    );
+    if (patch.credit_application_internal_id !== undefined) {
+      await this.sync_credit_application_contract_link(
+        existing.id,
+        patch.credit_application_internal_id,
+      );
+    }
 
     return this.find_by_external_id(external_id);
   }
