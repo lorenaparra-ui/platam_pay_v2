@@ -1,751 +1,685 @@
-CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+-- =============================================================================
+-- PLATAM PAY v2 — DDL Estado Real (Sincronizado con TypeORM entities)
+-- Versión: 2.0 | Fecha: 2026-04-01
+-- Motor: PostgreSQL 15+ | Extensión: pgcrypto
+--
+-- SCHEMAS REALES:
+--   transversal_schema  → Identidad, RBAC, catálogos, personas y geografía
+--   suppliers_schema    → Negocios, proveedores, partners y operación comercial
+--   products_schema     → Solicitudes, contratos y líneas de crédito
+--
+-- NOTAS DE ARQUITECTURA:
+--   1. users.state, partners.state, credit_facilities.state, categories.state
+--      usan ENUM (no FK a statuses) — coexiste con status_id FK en otras tablas.
+--   2. businesses.person_id → persons (NO user_id → users).
+--   3. contracts NO tiene application_id; el vínculo es inverso:
+--      credit_applications.contract_id → contracts.id.
+--   4. purchase_orders.user_id es VARCHAR (referencia externa, no FK).
+--   5. sales_representatives tiene columnas name/role/status_id en BD
+--      que aún no están mapeadas en la entidad TypeORM.
+-- =============================================================================
 
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 SET timezone = 'America/Bogota';
 
-CREATE TABLE "statuses" (
-  "id" BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  "external_id" UUID NOT NULL DEFAULT gen_random_uuid(),
-  "entity_type" varchar(100) NOT NULL,
-  "code" varchar(50) NOT NULL,
-  "display_name" varchar(100) NOT NULL,
-  "description" text,
-  "is_active" boolean NOT NULL DEFAULT true,
-  "created_at" timestamptz NOT NULL DEFAULT (now()),
-  "updated_at" timestamptz NOT NULL DEFAULT (now()),
-  UNIQUE ("entity_type", "code")
+-- =============================================================================
+-- SCHEMAS
+-- =============================================================================
+CREATE SCHEMA IF NOT EXISTS transversal_schema;
+CREATE SCHEMA IF NOT EXISTS suppliers_schema;
+CREATE SCHEMA IF NOT EXISTS products_schema;
+
+
+-- =============================================================================
+-- SCHEMA: transversal_schema
+-- =============================================================================
+
+-- ---------------------------------------------------------------------------
+-- Catálogo de estados (fuente de verdad para tablas que usan status_id FK)
+-- ---------------------------------------------------------------------------
+CREATE TABLE transversal_schema.statuses (
+  id           BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  external_id  UUID         NOT NULL UNIQUE DEFAULT gen_random_uuid(),
+  entity_type  VARCHAR(100) NOT NULL,
+  code         VARCHAR(50)  NOT NULL,
+  display_name VARCHAR(100) NOT NULL,
+  description  TEXT,
+  is_active    BOOLEAN      NOT NULL DEFAULT TRUE,
+  created_at   TIMESTAMPTZ  NOT NULL DEFAULT now(),
+  updated_at   TIMESTAMPTZ  NOT NULL DEFAULT now(),
+  CONSTRAINT uq_statuses_entity_code UNIQUE (entity_type, code)
 );
 
-CREATE TABLE "options" (
-  "id" BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  "external_id" UUID NOT NULL DEFAULT gen_random_uuid(),
-  "option_group" varchar(100) NOT NULL,
-  "code" varchar(80) NOT NULL,
-  "display_name" varchar(150) NOT NULL,
-  "description" text,
-  "sort_order" int NOT NULL DEFAULT 0,
-  "is_active" boolean NOT NULL DEFAULT true,
-  "created_at" timestamptz NOT NULL DEFAULT (now()),
-  "updated_at" timestamptz NOT NULL DEFAULT (now()),
-  UNIQUE ("option_group", "code")
+CREATE INDEX idx_statuses_entity_type ON transversal_schema.statuses (entity_type);
+COMMENT ON TABLE  transversal_schema.statuses IS 'Catálogo maestro de estados. Validado por trigger validate_status_entity().';
+COMMENT ON COLUMN transversal_schema.statuses.entity_type IS 'Entidad dueña: contracts, credit_applications, sales_representatives, contract_templates, etc.';
+
+
+-- ---------------------------------------------------------------------------
+-- RBAC
+-- ---------------------------------------------------------------------------
+CREATE TABLE transversal_schema.roles (
+  id          BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  external_id UUID        NOT NULL UNIQUE DEFAULT gen_random_uuid(),
+  name        VARCHAR(80) NOT NULL UNIQUE,
+  description TEXT,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-INSERT INTO "statuses" ("entity_type", "code", "display_name") VALUES
-  ('users', 'active', 'Activo'),
-  ('users', 'blocked', 'Bloqueado'),
-  ('users', 'suspended', 'Suspendido'),
-  ('users', 'pending', 'Pendiente'),
-  ('partners', 'active', 'Activo'),
-  ('partners', 'inactive', 'Inactivo'),
-  ('partners', 'blocked', 'Bloqueado'),
-  ('partner_categories', 'active', 'Activo'),
-  ('partner_categories', 'inactive', 'Inactivo'),
-  ('partner_categories', 'archived', 'Archivado'),
-  ('credit_applications_bnpl', 'authorized', 'Autorizado'),
-  ('credit_applications_bnpl', 'cancelled', 'Cancelado'),
-  ('credit_applications_bnpl', 'in_study', 'En estudio'),
-  ('credit_applications_bnpl', 'delinquent', 'En mora'),
-  ('credit_applications_bnpl', 'closed', 'Cerrado'),
-  ('credit_applications_bnpl', 'business_relation', 'Único dueño'),
-  ('credit_applications_bnpl', 'business_relation_partner', 'Socio'),
-  ('credit_applications_bnpl', 'business_relation_employee', 'Empleado'),
-  ('credit_applications_bnpl', 'business_relation_owner_family', 'Familiar del dueño'),
-  ('sales_representatives', 'active', 'Activo'),
-  ('sales_representatives', 'inactive', 'Inactivo'),
-  ('sales_representatives', 'blocked', 'Bloqueado'),
-  ('contracts', 'pending', 'Pendiente'),
-  ('contracts', 'signed', 'Firmado'),
-  ('contracts', 'cancelled', 'Cancelado'),
-  ('contract_signers', 'pending', 'Pendiente'),
-  ('contract_signers', 'signed', 'Firmado'),
-  ('contract_signers', 'declined', 'Rechazado'),
-  ('product_bnpl', 'active', 'Activo'),
-  ('product_bnpl', 'inactive', 'Inactivo'),
-  ('product_bnpl', 'blocked', 'Bloqueado'),
-  ('documents', 'pending', 'Pendiente'),
-  ('documents', 'verified', 'Verificado'),
-  ('documents', 'rejected', 'Rechazado');
+CREATE TABLE transversal_schema.permissions (
+  id          BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  external_id UUID         NOT NULL UNIQUE DEFAULT gen_random_uuid(),
+  code        VARCHAR(120) NOT NULL UNIQUE,
+  description TEXT,
+  created_at  TIMESTAMPTZ  NOT NULL DEFAULT now(),
+  updated_at  TIMESTAMPTZ  NOT NULL DEFAULT now()
+);
 
-INSERT INTO "options" ("option_group", "code", "display_name", "description", "sort_order", "is_active") VALUES
-  ('business_seniority', 'lt_1y', 'Menos de 1 año', NULL, 10, true),
-  ('business_seniority', 'y1_2', '1 a 2 años', NULL, 20, true),
-  ('business_seniority', 'y2_5', '2 a 5 años', NULL, 30, true),
-  ('business_seniority', 'y5_10', '5 a 10 años', NULL, 40, true),
-  ('business_seniority', 'gt_10y', 'Más de 10 años', NULL, 50, true),
-  ('roles', 'admin', 'Administrador', NULL, 10, true),
-  ('roles', 'back_officer', 'Back Officer', NULL, 20, true),
-  ('roles', 'partner_operations', 'Partner operations', NULL, 30, true),
-  ('roles', 'client', 'Cliente', NULL, 40, true),
-  ('roles', 'sales_representative', 'Representante de ventas', NULL, 50, true);
+CREATE TABLE transversal_schema.role_permissions (
+  id            BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  external_id   UUID    NOT NULL UNIQUE DEFAULT gen_random_uuid(),
+  role_id       BIGINT  NOT NULL REFERENCES transversal_schema.roles(id) ON DELETE CASCADE,
+  permission_id BIGINT  NOT NULL REFERENCES transversal_schema.permissions(id) ON DELETE CASCADE,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT uq_role_permission UNIQUE (role_id, permission_id)
+);
 
-CREATE OR REPLACE FUNCTION get_status_id(p_entity_type text, p_code text)
+CREATE INDEX idx_role_permissions_role_id       ON transversal_schema.role_permissions (role_id);
+CREATE INDEX idx_role_permissions_permission_id ON transversal_schema.role_permissions (permission_id);
+
+
+-- ---------------------------------------------------------------------------
+-- Geografía y monedas
+-- ---------------------------------------------------------------------------
+CREATE TABLE transversal_schema.currencies (
+  id                 BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  external_id        UUID        NOT NULL UNIQUE DEFAULT gen_random_uuid(),
+  code               VARCHAR(3)  NOT NULL UNIQUE,
+  name               VARCHAR(120) NOT NULL,
+  symbol             VARCHAR(10),
+  decimal_places     INT         NOT NULL DEFAULT 2 CHECK (decimal_places BETWEEN 0 AND 6),
+  thousand_separator VARCHAR(1),
+  decimal_separator  VARCHAR(1),
+  is_active          BOOLEAN     NOT NULL DEFAULT TRUE,
+  created_at         TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at         TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE transversal_schema.cities (
+  id           BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  external_id  UUID         NOT NULL UNIQUE DEFAULT gen_random_uuid(),
+  country_name VARCHAR(120) NOT NULL,
+  country_code VARCHAR(2)   NOT NULL CHECK (country_code ~ '^[A-Z]{2}$'),
+  state_name   VARCHAR(120) NOT NULL,
+  state_code   VARCHAR(3)   CHECK (state_code IS NULL OR state_code ~ '^[A-Z0-9]{2,3}$'),
+  city_name    VARCHAR(120) NOT NULL,
+  currency_id  BIGINT       NOT NULL REFERENCES transversal_schema.currencies(id),
+  created_at   TIMESTAMPTZ  NOT NULL DEFAULT now(),
+  updated_at   TIMESTAMPTZ  NOT NULL DEFAULT now(),
+  CONSTRAINT uq_cities_location UNIQUE (country_code, state_name, city_name)
+);
+
+CREATE INDEX idx_cities_country_state_name ON transversal_schema.cities (country_code, state_name, city_name);
+CREATE INDEX idx_cities_currency_id        ON transversal_schema.cities (currency_id);
+
+-- Catálogo de departamentos/estados (migración incremental 20260330)
+CREATE TABLE IF NOT EXISTS transversal_schema.states (
+  id           BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  external_id  UUID        NOT NULL UNIQUE DEFAULT gen_random_uuid(),
+  country_code VARCHAR(2)  NOT NULL CHECK (country_code ~ '^[A-Z]{2}$'),
+  state_name   VARCHAR(120) NOT NULL,
+  state_code   VARCHAR(3)  CHECK (state_code IS NULL OR state_code ~ '^[A-Z0-9]{2,3}$'),
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT uq_states_country_state UNIQUE (country_code, state_name)
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_states_external_id ON transversal_schema.states (external_id);
+
+
+-- ---------------------------------------------------------------------------
+-- ENUMs de usuarios
+-- ---------------------------------------------------------------------------
+CREATE TYPE transversal_schema.user_state AS ENUM ('active', 'inactive');
+
+CREATE TABLE transversal_schema.users (
+  id            BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  external_id   UUID    NOT NULL UNIQUE DEFAULT gen_random_uuid(),
+  cognito_sub   UUID    NOT NULL UNIQUE,
+  email         VARCHAR NOT NULL UNIQUE,
+  role_id       BIGINT  REFERENCES transversal_schema.roles(id),
+  -- NOTA: state usa ENUM, no FK a statuses. Coexiste con status_id en otras tablas.
+  state         transversal_schema.user_state NOT NULL DEFAULT 'active',
+  -- NOTA: person_id referencia implícita (FK no declarada en DDL actual)
+  person_id     BIGINT,
+  last_login_at TIMESTAMPTZ,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_users_role_id     ON transversal_schema.users (role_id);
+CREATE INDEX idx_users_cognito_sub ON transversal_schema.users (cognito_sub);
+
+COMMENT ON COLUMN transversal_schema.users.state     IS 'ENUM: active|inactive. No usa FK a statuses.';
+COMMENT ON COLUMN transversal_schema.users.person_id IS 'Referencia a transversal_schema.persons.id. FK no declarada formalmente en DDL actual.';
+
+
+-- ---------------------------------------------------------------------------
+-- Personas (PII — requiere cifrado en reposo)
+-- ---------------------------------------------------------------------------
+CREATE TABLE transversal_schema.persons (
+  id                  BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  external_id         UUID         NOT NULL UNIQUE DEFAULT gen_random_uuid(),
+  country_code        VARCHAR(2),
+  first_name          VARCHAR(255) NOT NULL,  -- PII: AES-256
+  last_name           VARCHAR(255) NOT NULL,  -- PII: AES-256
+  doc_type            VARCHAR(100) NOT NULL,
+  doc_number          VARCHAR      NOT NULL UNIQUE,  -- PII: AES-256
+  doc_issue_date      DATE,
+  birth_date          DATE,                          -- PII
+  gender              VARCHAR(20),
+  phone               VARCHAR,                       -- PII
+  residential_address TEXT,                          -- PII
+  business_address    TEXT,
+  city_id             BIGINT REFERENCES transversal_schema.cities(id),
+  created_at          TIMESTAMPTZ  NOT NULL DEFAULT now(),
+  updated_at          TIMESTAMPTZ  NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_persons_city_id ON transversal_schema.persons (city_id);
+COMMENT ON TABLE transversal_schema.persons IS 'PII sensible. Cifrar: first_name, last_name, doc_number, birth_date, phone, residential_address.';
+
+
+-- ---------------------------------------------------------------------------
+-- Idempotencia SQS
+-- ---------------------------------------------------------------------------
+CREATE TABLE transversal_schema.upload_files_idempotency (
+  id              BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  idempotency_key VARCHAR(512) NOT NULL UNIQUE,
+  correlation_id  UUID         NOT NULL,
+  result          JSONB,
+  created_at      TIMESTAMPTZ  NOT NULL DEFAULT now()
+);
+
+CREATE TABLE transversal_schema.partner_create_user_sqs_idempotency (
+  id              BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  idempotency_key VARCHAR(512) NOT NULL UNIQUE,
+  correlation_id  UUID         NOT NULL,
+  result          JSONB,
+  created_at      TIMESTAMPTZ  NOT NULL DEFAULT now()
+);
+
+
+-- ---------------------------------------------------------------------------
+-- Función helper para status_id
+-- ---------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION transversal_schema.get_status_id(p_entity_type TEXT, p_code TEXT)
 RETURNS BIGINT
-LANGUAGE sql
-STABLE
-AS $$
-  SELECT s.id
-  FROM statuses s
-  WHERE s.entity_type = p_entity_type
-    AND s.code = p_code
-    AND s.is_active = true
+LANGUAGE sql STABLE AS $$
+  SELECT id FROM transversal_schema.statuses
+  WHERE entity_type = p_entity_type AND code = p_code AND is_active = TRUE
   LIMIT 1;
 $$;
 
-CREATE OR REPLACE FUNCTION get_option_id(p_option_group text, p_code text)
-RETURNS BIGINT
-LANGUAGE sql
-STABLE
-AS $$
-  SELECT o.id
-  FROM options o
-  WHERE o.option_group = p_option_group
-    AND o.code = p_code
-    AND o.is_active = true
-  LIMIT 1;
-$$;
-
-CREATE OR REPLACE FUNCTION validate_status_entity()
-RETURNS trigger
-LANGUAGE plpgsql
-AS $$
+-- ---------------------------------------------------------------------------
+-- Trigger: validate_status_entity
+-- ---------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION transversal_schema.validate_status_entity()
+RETURNS TRIGGER
+LANGUAGE plpgsql AS $$
 DECLARE
-  expected_entity text := TG_ARGV[0];
-  status_column text := TG_ARGV[1];
-  incoming_status_id BIGINT;
-  actual_entity text;
+  expected_entity TEXT := TG_ARGV[0];
+  status_column   TEXT := TG_ARGV[1];
+  incoming_id     BIGINT;
+  actual_entity   TEXT;
 BEGIN
   IF status_column = 'status_id' THEN
-    incoming_status_id := NEW.status_id;
+    incoming_id := NEW.status_id;
   ELSIF status_column = 'verification_status_id' THEN
-    incoming_status_id := NEW.verification_status_id;
+    incoming_id := NEW.verification_status_id;
   ELSE
     RAISE EXCEPTION 'Unsupported status column: %', status_column;
   END IF;
 
-  IF incoming_status_id IS NULL THEN
-    RAISE EXCEPTION 'Status id cannot be NULL for %', expected_entity;
+  IF incoming_id IS NULL THEN
+    RAISE EXCEPTION 'status_id cannot be NULL for %', expected_entity;
   END IF;
 
-  SELECT s.entity_type
-    INTO actual_entity
-  FROM statuses s
-  WHERE s.id = incoming_status_id
-    AND s.is_active = true;
+  SELECT entity_type INTO actual_entity
+  FROM transversal_schema.statuses
+  WHERE id = incoming_id AND is_active = TRUE;
 
   IF actual_entity IS NULL THEN
-    RAISE EXCEPTION 'Status id % does not exist or is inactive', incoming_status_id;
+    RAISE EXCEPTION 'Status id % does not exist or is inactive', incoming_id;
   END IF;
 
   IF actual_entity <> expected_entity THEN
-    RAISE EXCEPTION
-      'Status id % belongs to entity_type %, expected %',
-      incoming_status_id, actual_entity, expected_entity;
+    RAISE EXCEPTION 'Status id % belongs to entity_type %, expected %',
+      incoming_id, actual_entity, expected_entity;
   END IF;
 
   RETURN NEW;
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION validate_option_group()
-RETURNS trigger
-LANGUAGE plpgsql
-AS $$
-DECLARE
-  expected_group text := TG_ARGV[0];
-  option_column text := TG_ARGV[1];
-  incoming_option_id BIGINT;
-  actual_group text;
-BEGIN
-  incoming_option_id := NULLIF(to_jsonb(NEW) ->> option_column, '')::BIGINT;
 
-  IF incoming_option_id IS NULL THEN
-    RETURN NEW;
-  END IF;
+-- =============================================================================
+-- SCHEMA: suppliers_schema
+-- =============================================================================
 
-  SELECT o.option_group
-    INTO actual_group
-  FROM options o
-  WHERE o.id = incoming_option_id
-    AND o.is_active = true;
-
-  IF actual_group IS NULL THEN
-    RAISE EXCEPTION 'Option id % does not exist or is inactive', incoming_option_id;
-  END IF;
-
-  IF actual_group <> expected_group THEN
-    RAISE EXCEPTION
-      'Option id % belongs to group %, expected %',
-      incoming_option_id, actual_group, expected_group;
-  END IF;
-
-  RETURN NEW;
-END;
-$$;
-
-CREATE TABLE "users" (
-  "id" BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  "external_id" UUID NOT NULL DEFAULT gen_random_uuid(),
-  "cognito_sub" uuid UNIQUE NOT NULL,
-  "email" varchar UNIQUE NOT NULL,
-  "phone" varchar UNIQUE,
-  "role_id" BIGINT,
-  "status_id" BIGINT NOT NULL DEFAULT get_status_id('users', 'pending'),
-  "last_login_at" timestamptz,
-  "created_at" timestamptz NOT NULL DEFAULT (now()),
-  "updated_at" timestamptz NOT NULL DEFAULT (now())
+-- ---------------------------------------------------------------------------
+-- Catálogo antigüedad del negocio (reemplaza option_group=business_seniority)
+-- ---------------------------------------------------------------------------
+CREATE TABLE suppliers_schema.business_seniority (
+  id          BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  external_id UUID         NOT NULL UNIQUE DEFAULT gen_random_uuid(),
+  description VARCHAR(100) NOT NULL,
+  range_start INT          NOT NULL,
+  range_end   INT          NOT NULL,
+  created_at  TIMESTAMPTZ  NOT NULL DEFAULT now(),
+  updated_at  TIMESTAMPTZ  NOT NULL DEFAULT now()
 );
 
-CREATE TABLE "roles" (
-  "id" BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  "external_id" UUID NOT NULL DEFAULT gen_random_uuid(),
-  "name" varchar(80) NOT NULL UNIQUE,
-  "description" text,
-  "created_at" timestamptz NOT NULL DEFAULT (now()),
-  "updated_at" timestamptz NOT NULL DEFAULT (now()) 
+COMMENT ON TABLE suppliers_schema.business_seniority IS 'Reemplaza option_group=business_seniority del DDL antiguo.';
+
+
+-- ---------------------------------------------------------------------------
+-- Negocios — person_id FK a persons (diferencia crítica vs DDL antiguo)
+-- ---------------------------------------------------------------------------
+CREATE TABLE suppliers_schema.businesses (
+  id                       BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  external_id              UUID         NOT NULL UNIQUE DEFAULT gen_random_uuid(),
+  -- NOTA: person_id, NO user_id. Diferencia crítica vs database-schema.sql v1.
+  person_id                BIGINT       NOT NULL REFERENCES transversal_schema.persons(id),
+  business_seniority_id    BIGINT       REFERENCES suppliers_schema.business_seniority(id) ON DELETE SET NULL,
+  city_id                  BIGINT       REFERENCES transversal_schema.cities(id),
+  entity_type              VARCHAR(10)  NOT NULL CHECK (entity_type IN ('PN', 'PJ')),
+  business_name            VARCHAR(255),
+  business_address         TEXT,
+  business_type            VARCHAR(10),
+  relationship_to_business VARCHAR(100),
+  legal_name               VARCHAR(255),
+  trade_name               VARCHAR(255),
+  tax_id                   VARCHAR(50)  UNIQUE,  -- PII: NIT/RUT
+  year_of_establishment    INT,
+  created_at               TIMESTAMPTZ  NOT NULL DEFAULT now(),
+  updated_at               TIMESTAMPTZ  NOT NULL DEFAULT now()
 );
 
-CREATE TABLE "permissions" (
-  "id" BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  "external_id" UUID NOT NULL DEFAULT gen_random_uuid(),
-  "code" varchar(120) NOT NULL UNIQUE,
-  "description" text,
-  "created_at" timestamptz NOT NULL DEFAULT (now()),
-  "updated_at" timestamptz NOT NULL DEFAULT (now())
+CREATE INDEX idx_businesses_person_id          ON suppliers_schema.businesses (person_id);
+CREATE INDEX idx_businesses_city_id            ON suppliers_schema.businesses (city_id);
+CREATE INDEX idx_businesses_entity_type        ON suppliers_schema.businesses (entity_type);
+CREATE INDEX idx_businesses_business_seniority ON suppliers_schema.businesses (business_seniority_id);
+
+COMMENT ON COLUMN suppliers_schema.businesses.person_id IS '⚠ FK a persons, NO a users. Diferencia crítica vs DDL v1.';
+COMMENT ON COLUMN suppliers_schema.businesses.tax_id    IS 'PII — NIT/RUT. Requerido para PJ.';
+
+
+-- ---------------------------------------------------------------------------
+-- Representantes legales — referenciados desde suppliers (sin business_id directo)
+-- ---------------------------------------------------------------------------
+CREATE TABLE suppliers_schema.legal_representatives (
+  id          BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  external_id UUID    NOT NULL UNIQUE DEFAULT gen_random_uuid(),
+  person_id   BIGINT  NOT NULL REFERENCES transversal_schema.persons(id),
+  is_primary  BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE TABLE "role_permissions" (
-  "id" BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  "external_id" UUID NOT NULL DEFAULT gen_random_uuid(),
-  "role_id" BIGINT NOT NULL,
-  "permission_id" BIGINT NOT NULL,
-  "created_at" timestamptz NOT NULL DEFAULT (now()),
-  "updated_at" timestamptz NOT NULL DEFAULT (now()),
-  UNIQUE ("role_id", "permission_id")
+CREATE INDEX idx_legal_reps_person_id ON suppliers_schema.legal_representatives (person_id);
+COMMENT ON TABLE suppliers_schema.legal_representatives IS 'Sin business_id directo. Referenciada desde suppliers.legal_representative_id.';
+
+
+-- ---------------------------------------------------------------------------
+-- Cuentas bancarias (PII — cifrado AES-256 vía transformer TypeORM)
+-- ---------------------------------------------------------------------------
+CREATE TABLE suppliers_schema.bank_accounts (
+  id                 BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  external_id        UUID         NOT NULL UNIQUE DEFAULT gen_random_uuid(),
+  bank_entity        VARCHAR(255) NOT NULL,
+  account_number     VARCHAR(500) NOT NULL,  -- PII: cifrado AES-256 en capa ORM
+  bank_certification TEXT,
+  created_at         TIMESTAMPTZ  NOT NULL DEFAULT now(),
+  updated_at         TIMESTAMPTZ  NOT NULL DEFAULT now()
 );
 
-CREATE TABLE "persons" (
-  "id" BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  "external_id" UUID NOT NULL DEFAULT gen_random_uuid(),
-  "user_id" BIGINT NOT NULL,
-  "country_code" varchar(2),
-  "first_name" varchar(255) NOT NULL,
-  "last_name" varchar(255) NOT NULL,
-  "doc_type" varchar(100) NOT NULL,
-  "doc_number" varchar UNIQUE NOT NULL,
-  "doc_issue_date" date,
-  "birth_date" date,
-  "gender" varchar(20),
-  "phone" varchar,
-  "residential_address" text,
-  "business_address" text,
-  "city_id" BIGINT,
-  "created_at" timestamptz NOT NULL DEFAULT (now()),
-  "updated_at" timestamptz NOT NULL DEFAULT (now())
+COMMENT ON COLUMN suppliers_schema.bank_accounts.account_number IS 'PII — cifrado con BankAccountEncryptionTransformer en TypeORM. No cifrar a nivel SQL.';
+
+
+-- ---------------------------------------------------------------------------
+-- Suppliers — tabla delgada de identificación (config en partners)
+-- ---------------------------------------------------------------------------
+CREATE TABLE suppliers_schema.suppliers (
+  id                      BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  external_id             UUID   NOT NULL UNIQUE DEFAULT gen_random_uuid(),
+  business_id             BIGINT NOT NULL UNIQUE REFERENCES suppliers_schema.businesses(id),
+  legal_representative_id BIGINT REFERENCES suppliers_schema.legal_representatives(id),
+  bank_account_id         BIGINT UNIQUE REFERENCES suppliers_schema.bank_accounts(id),
+  created_at              TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at              TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE TABLE "businesses" (
-  "id" BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  "external_id" UUID NOT NULL DEFAULT gen_random_uuid(),
-  "user_id" BIGINT NOT NULL,
-  "city_id" BIGINT,
-  "entity_type" varchar(10) NOT NULL CHECK ("entity_type" IN ('PN', 'PJ')),
-  "business_name" varchar(255),
-  "business_address" text,
-  "business_type" varchar(10),
-  "relationship_to_business" varchar(100),
-  "legal_name" varchar (255),
-  "trade_name" varchar (255),
-  "tax_id" varchar (50) UNIQUE,
-  "year_of_establishment" int,
-  "created_at" timestamptz NOT NULL DEFAULT (now()),
-  "updated_at" timestamptz NOT NULL DEFAULT (now())
+CREATE INDEX idx_suppliers_legal_rep_id ON suppliers_schema.suppliers (legal_representative_id);
+COMMENT ON TABLE suppliers_schema.suppliers IS 'Tabla delgada de identificación del proveedor. Config visual/operativa en partners (OneToOne).';
+
+
+-- ---------------------------------------------------------------------------
+-- ENUMs de partners
+-- ---------------------------------------------------------------------------
+CREATE TYPE suppliers_schema.partner_state AS ENUM ('active', 'inactive', 'blocked');
+
+-- ---------------------------------------------------------------------------
+-- Partners — configuración visual y operativa (1:1 con suppliers)
+-- ---------------------------------------------------------------------------
+CREATE TABLE suppliers_schema.partners (
+  id                              BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  external_id                     UUID    NOT NULL UNIQUE DEFAULT gen_random_uuid(),
+  supplier_id                     BIGINT  NOT NULL UNIQUE REFERENCES suppliers_schema.suppliers(id),
+  acronym                         VARCHAR(10),
+  logo_url                        TEXT,
+  co_branding_logo_url            TEXT,
+  primary_color                   VARCHAR(20),
+  secondary_color                 VARCHAR(20),
+  light_color                     VARCHAR(20),
+  notification_email              VARCHAR,
+  webhook_url                     TEXT,
+  send_sales_rep_voucher          BOOLEAN NOT NULL DEFAULT FALSE,
+  disbursement_notification_email VARCHAR,
+  -- NOTA: state usa ENUM, no FK a statuses
+  state                           suppliers_schema.partner_state NOT NULL DEFAULT 'active',
+  created_at                      TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at                      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE TABLE "legal_representatives" (
-  "id" BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  "external_id" UUID NOT NULL DEFAULT gen_random_uuid(),
-  "business_id" BIGINT NOT NULL,
-  "person_id" BIGINT NOT NULL,
-  "is_primary" boolean DEFAULT true,
-  "created_at" timestamptz NOT NULL DEFAULT (now()),
-  "updated_at" timestamptz NOT NULL DEFAULT (now())
+CREATE INDEX idx_partners_state ON suppliers_schema.partners (state);
+COMMENT ON COLUMN suppliers_schema.partners.state IS 'ENUM: active|inactive|blocked. No usa FK a statuses.';
+
+
+-- ---------------------------------------------------------------------------
+-- Representantes de ventas
+-- NOTA: name, role, status_id existen en BD pero no están mapeados en TypeORM
+-- ---------------------------------------------------------------------------
+CREATE TABLE suppliers_schema.sales_representatives (
+  id          BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  external_id UUID   NOT NULL UNIQUE DEFAULT gen_random_uuid(),
+  partner_id  BIGINT NOT NULL REFERENCES suppliers_schema.partners(id),
+  user_id     BIGINT REFERENCES transversal_schema.users(id),
+  -- Columnas en BD no mapeadas en entidad TypeORM (pendiente de mapear):
+  name        VARCHAR(255),
+  role        VARCHAR(100),
+  status_id   BIGINT REFERENCES transversal_schema.statuses(id),
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE TABLE "shareholders" (
-  "id" BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  "external_id" UUID NOT NULL DEFAULT gen_random_uuid(),
-  "business_id" BIGINT NOT NULL,
-  "person_id" BIGINT NOT NULL,
-  "ownership_percentage" decimal(5,4),
-  "evaluation_order" int,
-  "credit_check_required" boolean DEFAULT false,
-  "credit_check_completed" boolean DEFAULT false,
-  "is_legal_representative" boolean DEFAULT false,
-  "created_at" timestamptz NOT NULL DEFAULT (now()),
-  "updated_at" timestamptz NOT NULL DEFAULT (now())
+CREATE INDEX idx_sales_reps_partner_id ON suppliers_schema.sales_representatives (partner_id);
+CREATE INDEX idx_sales_reps_user_id    ON suppliers_schema.sales_representatives (user_id);
+COMMENT ON TABLE suppliers_schema.sales_representatives IS '⚠ name, role, status_id existen en BD pero no están mapeados en la entidad TypeORM actual.';
+
+
+-- ---------------------------------------------------------------------------
+-- Purchase Orders — user_id como VARCHAR externo (no FK)
+-- ---------------------------------------------------------------------------
+CREATE TABLE suppliers_schema.purchase_orders (
+  id           BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  external_id  UUID          NOT NULL UNIQUE DEFAULT gen_random_uuid(),
+  -- NOTA: user_id es VARCHAR externo, NO bigint FK a users
+  user_id      VARCHAR(255)  NOT NULL,
+  supplier_id  BIGINT        NOT NULL REFERENCES suppliers_schema.suppliers(id),
+  amount       NUMERIC(18,2) NOT NULL CHECK (amount > 0),
+  document_url TEXT,
+  created_at   TIMESTAMPTZ   NOT NULL DEFAULT now(),
+  updated_at   TIMESTAMPTZ   NOT NULL DEFAULT now()
 );
 
-CREATE TABLE "guarantors" (
-  "id" BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  "external_id" UUID NOT NULL DEFAULT gen_random_uuid(),
-  "credit_application_id" BIGINT NOT NULL,
-  "person_id" BIGINT NOT NULL,
-  "contract_signer_id" BIGINT,
-  "guarantor_type" varchar(20) NOT NULL CHECK ("guarantor_type" IN ('personal', 'corporate', 'spousal', 'third_party')),
-  "relationship_to_applicant" varchar(100),
-  "is_primary_guarantor" boolean DEFAULT false,
-  "selected_after_credit_check" boolean DEFAULT false,
-  "signature_url" text,
-  "signature_date" timestamptz,
-  "created_at" timestamptz NOT NULL DEFAULT (now()),
-  "updated_at" timestamptz NOT NULL DEFAULT (now())
+CREATE INDEX idx_purchase_orders_supplier_id ON suppliers_schema.purchase_orders (supplier_id);
+COMMENT ON COLUMN suppliers_schema.purchase_orders.user_id IS '⚠ VARCHAR externo, NO FK bigint a users.id.';
+
+
+-- ---------------------------------------------------------------------------
+-- Sagas de onboarding de partner (CQRS — vincula por UUID)
+-- ---------------------------------------------------------------------------
+CREATE TABLE suppliers_schema.partner_onboarding_sagas (
+  id                          BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  external_id                 UUID        NOT NULL UNIQUE DEFAULT gen_random_uuid(),
+  correlation_id              UUID        NOT NULL,
+  status                      VARCHAR(32) NOT NULL,
+  current_step                SMALLINT    NOT NULL DEFAULT 0,
+  credit_facility_external_id UUID,
+  user_external_id            UUID,
+  person_external_id          UUID,
+  business_external_id        UUID,
+  bank_account_external_id    UUID,
+  partner_external_id         UUID,
+  error_message               TEXT,
+  created_at                  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at                  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE TABLE "partners" (
-  "id" BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  "external_id" UUID NOT NULL DEFAULT gen_random_uuid(),
-  "business_id" BIGINT NOT NULL,
-  "acronym" varchar(10),
-  "logo_url" text,
-  "co_branding_logo_url" text,
-  "primary_color" varchar(20),
-  "secondary_color" varchar(20),
-  "light_color" varchar(20),
-  "sales_rep_role_name" varchar(50) DEFAULT 'Sales Rep',
-  "sales_rep_role_name_plural" varchar(50) DEFAULT 'Sales Reps',
-  "api_key_hash" boolean DEFAULT false,
-  "notification_email" varchar,
-  "webhook_url" text,
-  "send_sales_rep_voucher" boolean DEFAULT false,
-  "disbursement_notification_email" varchar,
-  "default_rep_id" BIGINT,
-  "default_category_id" BIGINT,
-  "status_id" BIGINT NOT NULL DEFAULT get_status_id('partners', 'active'),
-  "created_at" timestamptz NOT NULL DEFAULT (now()),
-  "updated_at" timestamptz NOT NULL DEFAULT (now())
+CREATE INDEX idx_onboarding_sagas_correlation_id ON suppliers_schema.partner_onboarding_sagas (correlation_id);
+CREATE INDEX idx_onboarding_sagas_status         ON suppliers_schema.partner_onboarding_sagas (status);
+
+
+-- =============================================================================
+-- SCHEMA: products_schema
+-- =============================================================================
+
+-- ---------------------------------------------------------------------------
+-- ENUMs de credit facility
+-- ---------------------------------------------------------------------------
+CREATE TYPE products_schema.credit_facility_state AS ENUM ('active', 'inactive', 'cancelled', 'expired');
+
+-- ---------------------------------------------------------------------------
+-- Plantillas de contrato versionadas
+-- ---------------------------------------------------------------------------
+CREATE TABLE products_schema.contract_templates (
+  id                   BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  external_id          UUID         NOT NULL UNIQUE DEFAULT gen_random_uuid(),
+  template_family_key  VARCHAR(120) NOT NULL,
+  version              INT          NOT NULL,
+  effective_from       TIMESTAMPTZ,
+  effective_to         TIMESTAMPTZ,
+  zapsign_template_ref VARCHAR(255),
+  status_id            BIGINT       NOT NULL REFERENCES transversal_schema.statuses(id),
+  created_at           TIMESTAMPTZ  NOT NULL DEFAULT now(),
+  updated_at           TIMESTAMPTZ  NOT NULL DEFAULT now()
 );
 
-CREATE TABLE "partner_categories" (
-  "id" BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  "external_id" UUID NOT NULL DEFAULT gen_random_uuid(),
-  "partner_id" BIGINT NOT NULL,
-  "name" varchar(100) NOT NULL,
-  "discount_percentage" decimal(5,4) NOT NULL,
-  "interest_rate" decimal(5,4) NOT NULL,
-  "disbursement_fee_percent" decimal(5,4),
-  "minimum_disbursement_fee" bigint,
-  "delay_days" int NOT NULL CHECK ("delay_days" > 0),
-  "term_days" int NOT NULL CHECK ("term_days" > 0),
-  "status_id" BIGINT NOT NULL DEFAULT get_status_id('partner_categories', 'active'),
-  "created_at" timestamptz NOT NULL DEFAULT (now()),
-  "updated_at" timestamptz NOT NULL DEFAULT (now())
+CREATE INDEX idx_contract_templates_family_key ON products_schema.contract_templates (template_family_key);
+CREATE INDEX idx_contract_templates_status_id  ON products_schema.contract_templates (status_id);
+
+CREATE TRIGGER trg_contract_templates_validate_status
+BEFORE INSERT OR UPDATE OF status_id ON products_schema.contract_templates
+FOR EACH ROW EXECUTE FUNCTION transversal_schema.validate_status_entity('contract_templates', 'status_id');
+
+
+-- ---------------------------------------------------------------------------
+-- Contratos — sin application_id (relación inversa desde credit_applications)
+-- ---------------------------------------------------------------------------
+CREATE TABLE products_schema.contracts (
+  id                   BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  external_id          UUID    NOT NULL UNIQUE DEFAULT gen_random_uuid(),
+  user_id              BIGINT  REFERENCES transversal_schema.users(id),
+  contract_template_id BIGINT  REFERENCES products_schema.contract_templates(id),
+  zapsign_token        VARCHAR UNIQUE,
+  status_id            BIGINT  NOT NULL REFERENCES transversal_schema.statuses(id),
+  original_file_url    TEXT,
+  signed_file_url      TEXT,
+  form_answers_json    JSONB,
+  created_at           TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at           TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE TABLE "credit_applications_bnpl" (
-  "id" BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  "external_id" UUID NOT NULL DEFAULT gen_random_uuid(),
-  "user_id" BIGINT NOT NULL,
-  "user_product_id" BIGINT,
-  "partner_id" BIGINT,
-  "partner_category_id" BIGINT,
-  "sales_rep_id" BIGINT,
-  "business_id" BIGINT,
-  "number_of_locations" int CHECK ("number_of_locations" >= 0),
-  "number_of_employees" int CHECK ("number_of_employees" >= 0),
-  "business_seniority_id" BIGINT,
-  "sector_experience" varchar,
-  "business_flagship_m2" int,
-  "business_has_rent" boolean,
-  "business_rent_amount" BIGINT,
-  "monthly_income" bigint,
-  "monthly_expenses" bigint,
-  "monthly_purchases" bigint,
-  "current_purchases" bigint,
-  "total_assets" bigint,
-  "requested_credit_line" bigint,
-  "is_current_client" boolean DEFAULT false,
-  "status_id" BIGINT NOT NULL DEFAULT get_status_id('credit_applications_bnpl', 'in_study'),
-  "submission_date" timestamptz,
-  "approval_date" timestamptz,
-  "rejection_reason" varchar(500),
-  "credit_study_date" timestamptz,
-  "credit_score" decimal(8,2),
-  "credit_decision" varchar,
-  "approved_credit_line" bigint,
-  "analyst_report" text,
-  "risk_profile" varchar,
-  "privacy_policy_accepted" boolean DEFAULT false,
-  "privacy_policy_date" timestamptz,
-  "created_at" timestamptz NOT NULL DEFAULT (now()),
-  "updated_at" timestamptz NOT NULL DEFAULT (now())
-);
-
-
-CREATE TABLE "ai_agent_analysis" (
-  "id" BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  "external_id" UUID NOT NULL DEFAULT gen_random_uuid(),
-  "application_id" BIGINT NOT NULL,
-  "html_url_agent_analysis" text,
-  "json_agent_analysis" jsonb,
-  "agent_analysis_timestamptz" timestamptz,
-  "agent_recommended_loc" bigint,
-  "agent_recomendation" bigint,
-  "created_at" timestamptz NOT NULL DEFAULT (now()),  
-  "updated_at" timestamptz NOT NULL DEFAULT (now())
-);
-
-CREATE TABLE "sales_representatives" (
-  "id" BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  "external_id" UUID NOT NULL DEFAULT gen_random_uuid(),
-  "partner_id" BIGINT NOT NULL,
-  "user_id" BIGINT,
-  "name" varchar NOT NULL,
-  "role" varchar NOT NULL,
-  "status_id" BIGINT NOT NULL DEFAULT get_status_id('sales_representatives', 'active'),
-  "created_at" timestamptz NOT NULL DEFAULT (now()),
-  "updated_at" timestamptz NOT NULL DEFAULT (now())
-);
-
-CREATE TABLE "contracts" (
-  "id" BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  "external_id" UUID NOT NULL DEFAULT gen_random_uuid(),
-  "user_id" BIGINT NOT NULL,
-  "application_id" BIGINT,
-  "zapsign_token" varchar UNIQUE,
-  "status_id" BIGINT NOT NULL DEFAULT get_status_id('contracts', 'pending'),
-  "original_file_url" text,
-  "signed_file_url" text,
-  "form_answers_json" jsonb,
-  "created_at" timestamptz NOT NULL DEFAULT (now()),
-  "updated_at" timestamptz NOT NULL DEFAULT (now())
-);
-
-CREATE TABLE "contract_signers" (
-  "id" BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  "external_id" UUID NOT NULL DEFAULT gen_random_uuid(),
-  "contract_id" BIGINT,
-  "person_id" BIGINT,
-  "zapsign_signer_token" varchar,
-  "status_id" BIGINT NOT NULL DEFAULT get_status_id('contract_signers', 'pending'),
-  "sign_url" text,
-  "ip_address" varchar(45),
-  "geo_latitude" varchar(20),
-  "geo_longitude" varchar(20),
-  "signed_at" timestamptz,
-  "document_photo_url" text,
-  "document_verse_photo_url" text,
-  "selfie_photo_url" text,
-  "signature_image_url" text,
-  "created_at" timestamptz NOT NULL DEFAULT (now()),
-  "updated_at" timestamptz NOT NULL DEFAULT (now())
-);
-
-CREATE TABLE "user_products" (
-  "id" BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  "external_id" UUID NOT NULL DEFAULT gen_random_uuid(),
-  "user_id" BIGINT NOT NULL,
-  "product_type" varchar NOT NULL,
-  "activated_at" timestamptz NOT NULL,
-  "created_at" timestamptz NOT NULL DEFAULT (now()),
-  "updated_at" timestamptz NOT NULL DEFAULT (now())
-);
-
-CREATE TABLE "product_bnpl" (
-  "id" BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  "external_id" UUID NOT NULL DEFAULT gen_random_uuid(),
-  "user_product_id" BIGINT UNIQUE NOT NULL,
-  "credit_limit" bigint NOT NULL,
-  "available_credit_limit" bigint NOT NULL,
-  "status_id" BIGINT NOT NULL DEFAULT get_status_id('product_bnpl', 'active'),
-  "has_active_payment_plan" boolean DEFAULT false,
-  "notification_channels" text[],
-  "created_at" timestamptz NOT NULL DEFAULT (now()),
-  "updated_at" timestamptz NOT NULL DEFAULT (now())
-);
-
-CREATE TABLE "bnpl_categories" (
-  "id" BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  "external_id" UUID NOT NULL DEFAULT gen_random_uuid(),
-  "product_bnpl_id" BIGINT,
-  "category_id" BIGINT,
-  "created_at" timestamptz NOT NULL DEFAULT (now()),
-  "updated_at" timestamptz NOT NULL DEFAULT (now())
-);
-
-CREATE TABLE "risk_profile" (
-  "id" BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  "external_id" UUID NOT NULL DEFAULT gen_random_uuid(),
-  "user_id" BIGINT NOT NULL,
-  "user_product_id" BIGINT NOT NULL,
-  "risk_profile" varchar,
-  "collection_priority_score" decimal(8,4),
-  "payment_probability_score" decimal(8,4),
-  "internal_score" decimal(8,2),
-  "hybrid_score" decimal(8,2),
-  "risk_ai_reasoning" text,
-  "json_proyections" jsonb,
-  "json_weights" jsonb,
-  "created_at" timestamptz NOT NULL DEFAULT (now()),
-  "updated_at" timestamptz NOT NULL DEFAULT (now())
-);
-
-CREATE TABLE "documents" (
-  "id" BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  "external_id" UUID NOT NULL DEFAULT gen_random_uuid(),
-  "person_id" BIGINT,
-  "business_id" BIGINT,
-  "application_id" BIGINT,
-  "document_type" varchar NOT NULL,
-  "document_url" text NOT NULL,
-  "verification_status_id" BIGINT NOT NULL DEFAULT get_status_id('documents', 'pending'),
-  "upload_date" timestamptz NOT NULL DEFAULT (now()),
-  "created_at" timestamptz NOT NULL DEFAULT (now()),
-  "updated_at" timestamptz NOT NULL DEFAULT (now())
-);
-
-CREATE TABLE "credit_reports" (
-  "id" BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  "external_id" UUID NOT NULL DEFAULT gen_random_uuid(),
-  "user_id" BIGINT NOT NULL,
-  "person_id" BIGINT,
-  "business_id" BIGINT,
-  "application_id" BIGINT,
-  "report_date" date NOT NULL,
-  "bureau_name" varchar,
-  "full_report_json" jsonb,
-  "created_at" timestamptz NOT NULL DEFAULT (now()),
-  "updated_at" timestamptz NOT NULL DEFAULT (now())
-);
-
-CREATE TABLE "currencies" (
-  "id" BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  "external_id" UUID NOT NULL DEFAULT gen_random_uuid(),
-  "code" varchar(3) NOT NULL,
-  "name" varchar(120) NOT NULL,
-  "symbol" varchar(10),
-  "decimal_places" int NOT NULL DEFAULT 2 CHECK ("decimal_places" BETWEEN 0 AND 6),
-  "thousand_separator" varchar(1),
-  "decimal_separator" varchar(1),
-  "is_active" boolean NOT NULL DEFAULT true,
-  "created_at" timestamptz NOT NULL DEFAULT (now()),
-  "updated_at" timestamptz NOT NULL DEFAULT (now()),
-  UNIQUE ("code")
-);
-
-CREATE TABLE "cities" (
-  "id" BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  "external_id" UUID NOT NULL DEFAULT gen_random_uuid(),
-  "country_name" varchar(120) NOT NULL,
-  "country_code" varchar(2) NOT NULL,
-  "state_name" varchar(120) NOT NULL,
-  "state_code" varchar(3),
-  "city_name" varchar(120) NOT NULL,
-  "currency_id" BIGINT NOT NULL,
-  "created_at" timestamptz NOT NULL DEFAULT (now()),
-  "updated_at" timestamptz NOT NULL DEFAULT (now()),
-  CHECK ("country_code" ~ '^[A-Z]{2}$'),
-  CHECK ("state_code" IS NULL OR "state_code" ~ '^[A-Z0-9]{2,3}$'),
-  UNIQUE ("country_code", "state_name", "city_name")
-);
-
-
-
-ALTER TABLE "users" ADD FOREIGN KEY ("role_id") REFERENCES "roles" ("id");
-ALTER TABLE "users" ADD FOREIGN KEY ("status_id") REFERENCES "statuses" ("id");
-ALTER TABLE "role_permissions" ADD FOREIGN KEY ("role_id") REFERENCES "roles" ("id");
-ALTER TABLE "role_permissions" ADD FOREIGN KEY ("permission_id") REFERENCES "permissions" ("id");
-ALTER TABLE "persons" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
-ALTER TABLE "persons" ADD FOREIGN KEY ("city_id") REFERENCES "cities" ("id");
-ALTER TABLE "businesses" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
-ALTER TABLE "businesses" ADD FOREIGN KEY ("city_id") REFERENCES "cities" ("id");
-ALTER TABLE "legal_representatives" ADD FOREIGN KEY ("business_id") REFERENCES "businesses" ("id");
-ALTER TABLE "legal_representatives" ADD FOREIGN KEY ("person_id") REFERENCES "persons" ("id");
-ALTER TABLE "shareholders" ADD FOREIGN KEY ("business_id") REFERENCES "businesses" ("id");
-ALTER TABLE "shareholders" ADD FOREIGN KEY ("person_id") REFERENCES "persons" ("id");
-ALTER TABLE "guarantors" ADD FOREIGN KEY ("credit_application_id") REFERENCES "credit_applications_bnpl" ("id");
-ALTER TABLE "guarantors" ADD FOREIGN KEY ("person_id") REFERENCES "persons" ("id");
-ALTER TABLE "guarantors" ADD FOREIGN KEY ("contract_signer_id") REFERENCES "contract_signers" ("id");
-ALTER TABLE "partners" ADD FOREIGN KEY ("business_id") REFERENCES "businesses" ("id");
-ALTER TABLE "partners" ADD FOREIGN KEY ("default_rep_id") REFERENCES "sales_representatives" ("id");
-ALTER TABLE "partners" ADD FOREIGN KEY ("default_category_id") REFERENCES "partner_categories" ("id");
-ALTER TABLE "partners" ADD FOREIGN KEY ("status_id") REFERENCES "statuses" ("id");
-ALTER TABLE "partner_categories" ADD FOREIGN KEY ("partner_id") REFERENCES "partners" ("id");
-ALTER TABLE "partner_categories" ADD FOREIGN KEY ("status_id") REFERENCES "statuses" ("id");
-ALTER TABLE "credit_applications_bnpl" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
-ALTER TABLE "credit_applications_bnpl" ADD FOREIGN KEY ("user_product_id") REFERENCES "user_products" ("id");
-ALTER TABLE "credit_applications_bnpl" ADD FOREIGN KEY ("partner_id") REFERENCES "partners" ("id");
-ALTER TABLE "credit_applications_bnpl" ADD FOREIGN KEY ("partner_category_id") REFERENCES "partner_categories" ("id");
-ALTER TABLE "credit_applications_bnpl" ADD FOREIGN KEY ("sales_rep_id") REFERENCES "sales_representatives" ("id");
-ALTER TABLE "credit_applications_bnpl" ADD FOREIGN KEY ("business_id") REFERENCES "businesses" ("id");
-ALTER TABLE "credit_applications_bnpl" ADD FOREIGN KEY ("business_seniority_id") REFERENCES "options" ("id");
-ALTER TABLE "credit_applications_bnpl" ADD FOREIGN KEY ("status_id") REFERENCES "statuses" ("id");
-ALTER TABLE "ai_agent_analysis" ADD FOREIGN KEY ("application_id") REFERENCES "credit_applications_bnpl" ("id");
-ALTER TABLE "sales_representatives" ADD FOREIGN KEY ("partner_id") REFERENCES "partners" ("id");
-ALTER TABLE "sales_representatives" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
-ALTER TABLE "sales_representatives" ADD FOREIGN KEY ("status_id") REFERENCES "statuses" ("id");
-ALTER TABLE "contracts" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
-ALTER TABLE "contracts" ADD FOREIGN KEY ("application_id") REFERENCES "credit_applications_bnpl" ("id");
-ALTER TABLE "contracts" ADD FOREIGN KEY ("status_id") REFERENCES "statuses" ("id");
-ALTER TABLE "contract_signers" ADD FOREIGN KEY ("contract_id") REFERENCES "contracts" ("id");
-ALTER TABLE "contract_signers" ADD FOREIGN KEY ("person_id") REFERENCES "persons" ("id");
-ALTER TABLE "contract_signers" ADD FOREIGN KEY ("status_id") REFERENCES "statuses" ("id");
-ALTER TABLE "user_products" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
-ALTER TABLE "product_bnpl" ADD FOREIGN KEY ("user_product_id") REFERENCES "user_products" ("id");
-ALTER TABLE "product_bnpl" ADD FOREIGN KEY ("status_id") REFERENCES "statuses" ("id");
-ALTER TABLE "bnpl_categories" ADD FOREIGN KEY ("product_bnpl_id") REFERENCES "product_bnpl" ("id");
-ALTER TABLE "bnpl_categories" ADD FOREIGN KEY ("category_id") REFERENCES "partner_categories" ("id");
-ALTER TABLE "risk_profile" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
-ALTER TABLE "risk_profile" ADD FOREIGN KEY ("user_product_id") REFERENCES "user_products" ("id");
-ALTER TABLE "documents" ADD FOREIGN KEY ("person_id") REFERENCES "persons" ("id");
-ALTER TABLE "documents" ADD FOREIGN KEY ("business_id") REFERENCES "businesses" ("id");
-ALTER TABLE "documents" ADD FOREIGN KEY ("application_id") REFERENCES "credit_applications_bnpl" ("id");
-ALTER TABLE "documents" ADD FOREIGN KEY ("verification_status_id") REFERENCES "statuses" ("id");
-ALTER TABLE "credit_reports" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
-ALTER TABLE "credit_reports" ADD FOREIGN KEY ("person_id") REFERENCES "persons" ("id");
-ALTER TABLE "credit_reports" ADD FOREIGN KEY ("business_id") REFERENCES "businesses" ("id");
-ALTER TABLE "credit_reports" ADD FOREIGN KEY ("application_id") REFERENCES "credit_applications_bnpl" ("id");
-ALTER TABLE "cities" ADD FOREIGN KEY ("currency_id") REFERENCES "currencies" ("id");
-
-CREATE TRIGGER trg_users_validate_status
-BEFORE INSERT OR UPDATE OF status_id ON "users"
-FOR EACH ROW
-EXECUTE FUNCTION validate_status_entity('users', 'status_id');
-
-CREATE TRIGGER trg_partners_validate_status
-BEFORE INSERT OR UPDATE OF status_id ON "partners"
-FOR EACH ROW
-EXECUTE FUNCTION validate_status_entity('partners', 'status_id');
-
-CREATE TRIGGER trg_partner_categories_validate_status
-BEFORE INSERT OR UPDATE OF status_id ON "partner_categories"
-FOR EACH ROW
-EXECUTE FUNCTION validate_status_entity('partner_categories', 'status_id');
-
-CREATE TRIGGER trg_credit_applications_bnpl_validate_status
-BEFORE INSERT OR UPDATE OF status_id ON "credit_applications_bnpl"
-FOR EACH ROW
-EXECUTE FUNCTION validate_status_entity('credit_applications_bnpl', 'status_id');
-
-CREATE TRIGGER trg_credit_applications_bnpl_validate_business_seniority
-BEFORE INSERT OR UPDATE OF business_seniority_id ON "credit_applications_bnpl"
-FOR EACH ROW
-EXECUTE FUNCTION validate_option_group('business_seniority', 'business_seniority_id');
-
-CREATE TRIGGER trg_sales_representatives_validate_status
-BEFORE INSERT OR UPDATE OF status_id ON "sales_representatives"
-FOR EACH ROW
-EXECUTE FUNCTION validate_status_entity('sales_representatives', 'status_id');
+CREATE INDEX idx_contracts_user_id             ON products_schema.contracts (user_id);
+CREATE INDEX idx_contracts_contract_template_id ON products_schema.contracts (contract_template_id);
+CREATE INDEX idx_contracts_status_id           ON products_schema.contracts (status_id);
 
 CREATE TRIGGER trg_contracts_validate_status
-BEFORE INSERT OR UPDATE OF status_id ON "contracts"
-FOR EACH ROW
-EXECUTE FUNCTION validate_status_entity('contracts', 'status_id');
+BEFORE INSERT OR UPDATE OF status_id ON products_schema.contracts
+FOR EACH ROW EXECUTE FUNCTION transversal_schema.validate_status_entity('contracts', 'status_id');
 
-CREATE TRIGGER trg_contract_signers_validate_status
-BEFORE INSERT OR UPDATE OF status_id ON "contract_signers"
-FOR EACH ROW
-EXECUTE FUNCTION validate_status_entity('contract_signers', 'status_id');
+COMMENT ON TABLE products_schema.contracts IS '⚠ Sin application_id. Vínculo con credit_applications es inverso: credit_applications.contract_id → contracts.id.';
 
-CREATE TRIGGER trg_product_bnpl_validate_status
-BEFORE INSERT OR UPDATE OF status_id ON "product_bnpl"
-FOR EACH ROW
-EXECUTE FUNCTION validate_status_entity('product_bnpl', 'status_id');
 
-CREATE TRIGGER trg_documents_validate_verification_status
-BEFORE INSERT OR UPDATE OF verification_status_id ON "documents"
-FOR EACH ROW
-EXECUTE FUNCTION validate_status_entity('documents', 'verification_status_id');
+-- ---------------------------------------------------------------------------
+-- Credit Facilities — tabla delgada (datos de solicitud en credit_applications)
+-- ---------------------------------------------------------------------------
+CREATE TABLE products_schema.credit_facilities (
+  id          BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  external_id UUID          NOT NULL UNIQUE DEFAULT gen_random_uuid(),
+  contract_id BIGINT        REFERENCES products_schema.contracts(id),
+  state       products_schema.credit_facility_state NOT NULL DEFAULT 'active',
+  total_limit NUMERIC(18,4) NOT NULL CHECK (total_limit >= 0),
+  created_at  TIMESTAMPTZ   NOT NULL DEFAULT now(),
+  updated_at  TIMESTAMPTZ   NOT NULL DEFAULT now()
+);
 
--- =========================================================
--- Unique indexes for secure external references (UUID)
--- =========================================================
-CREATE UNIQUE INDEX IF NOT EXISTS idx_users_external_id ON "users" ("external_id");
-CREATE UNIQUE INDEX IF NOT EXISTS idx_roles_external_id ON "roles" ("external_id");
-CREATE UNIQUE INDEX IF NOT EXISTS idx_permissions_external_id ON "permissions" ("external_id");
-CREATE UNIQUE INDEX IF NOT EXISTS idx_role_permissions_external_id ON "role_permissions" ("external_id");
-CREATE UNIQUE INDEX IF NOT EXISTS idx_persons_external_id ON "persons" ("external_id");
-CREATE UNIQUE INDEX IF NOT EXISTS idx_businesses_external_id ON "businesses" ("external_id");
-CREATE UNIQUE INDEX IF NOT EXISTS idx_legal_representatives_external_id ON "legal_representatives" ("external_id");
-CREATE UNIQUE INDEX IF NOT EXISTS idx_shareholders_external_id ON "shareholders" ("external_id");
-CREATE UNIQUE INDEX IF NOT EXISTS idx_guarantors_external_id ON "guarantors" ("external_id");
-CREATE UNIQUE INDEX IF NOT EXISTS idx_partners_external_id ON "partners" ("external_id");
-CREATE UNIQUE INDEX IF NOT EXISTS idx_partner_categories_external_id ON "partner_categories" ("external_id");
-CREATE UNIQUE INDEX IF NOT EXISTS idx_credit_applications_bnpl_external_id ON "credit_applications_bnpl" ("external_id");
-CREATE UNIQUE INDEX IF NOT EXISTS idx_ai_agent_analysis_external_id ON "ai_agent_analysis" ("external_id");
-CREATE UNIQUE INDEX IF NOT EXISTS idx_sales_representatives_external_id ON "sales_representatives" ("external_id");
-CREATE UNIQUE INDEX IF NOT EXISTS idx_contracts_external_id ON "contracts" ("external_id");
-CREATE UNIQUE INDEX IF NOT EXISTS idx_contract_signers_external_id ON "contract_signers" ("external_id");
-CREATE UNIQUE INDEX IF NOT EXISTS idx_user_products_external_id ON "user_products" ("external_id");
-CREATE UNIQUE INDEX IF NOT EXISTS idx_product_bnpl_external_id ON "product_bnpl" ("external_id");
-CREATE UNIQUE INDEX IF NOT EXISTS idx_bnpl_categories_external_id ON "bnpl_categories" ("external_id");
-CREATE UNIQUE INDEX IF NOT EXISTS idx_risk_profile_external_id ON "risk_profile" ("external_id");
-CREATE UNIQUE INDEX IF NOT EXISTS idx_documents_external_id ON "documents" ("external_id");
-CREATE UNIQUE INDEX IF NOT EXISTS idx_credit_reports_external_id ON "credit_reports" ("external_id");
-CREATE UNIQUE INDEX IF NOT EXISTS idx_statuses_external_id ON "statuses" ("external_id");
-CREATE UNIQUE INDEX IF NOT EXISTS idx_options_external_id ON "options" ("external_id");
-CREATE UNIQUE INDEX IF NOT EXISTS idx_currencies_external_id ON "currencies" ("external_id");
-CREATE UNIQUE INDEX IF NOT EXISTS idx_cities_external_id ON "cities" ("external_id");
+CREATE INDEX idx_credit_facilities_contract_id ON products_schema.credit_facilities (contract_id);
+CREATE INDEX idx_credit_facilities_state       ON products_schema.credit_facilities (state);
 
--- =========================================================
--- Baseline performance indexes (FKs + frequent join filters)
--- =========================================================
-CREATE INDEX IF NOT EXISTS idx_users_role_id ON "users" ("role_id");
-CREATE INDEX IF NOT EXISTS idx_users_status_id ON "users" ("status_id");
-CREATE INDEX IF NOT EXISTS idx_role_permissions_permission_id ON "role_permissions" ("permission_id");
-CREATE INDEX IF NOT EXISTS idx_persons_user_id ON "persons" ("user_id");
-CREATE INDEX IF NOT EXISTS idx_persons_city_id ON "persons" ("city_id");
-CREATE INDEX IF NOT EXISTS idx_businesses_user_id ON "businesses" ("user_id");
-CREATE INDEX IF NOT EXISTS idx_businesses_city_id ON "businesses" ("city_id");
-CREATE INDEX IF NOT EXISTS idx_businesses_legal_name ON "businesses" ("legal_name");
-CREATE INDEX IF NOT EXISTS idx_businesses_trade_name ON "businesses" ("trade_name");
-CREATE INDEX IF NOT EXISTS idx_businesses_business_name ON "businesses" ("business_name");
-CREATE INDEX IF NOT EXISTS idx_legal_representatives_business_id ON "legal_representatives" ("business_id");
-CREATE INDEX IF NOT EXISTS idx_legal_representatives_person_id ON "legal_representatives" ("person_id");
-CREATE INDEX IF NOT EXISTS idx_shareholders_business_id ON "shareholders" ("business_id");
-CREATE INDEX IF NOT EXISTS idx_shareholders_person_id ON "shareholders" ("person_id");
-CREATE INDEX IF NOT EXISTS idx_guarantors_credit_application_id ON "guarantors" ("credit_application_id");
-CREATE INDEX IF NOT EXISTS idx_guarantors_person_id ON "guarantors" ("person_id");
-CREATE INDEX IF NOT EXISTS idx_guarantors_contract_signer_id ON "guarantors" ("contract_signer_id");
-CREATE INDEX IF NOT EXISTS idx_partners_business_id ON "partners" ("business_id");
-CREATE INDEX IF NOT EXISTS idx_partners_default_rep_id ON "partners" ("default_rep_id");
-CREATE INDEX IF NOT EXISTS idx_partners_default_category_id ON "partners" ("default_category_id");
-CREATE INDEX IF NOT EXISTS idx_partners_status_id ON "partners" ("status_id");
-CREATE INDEX IF NOT EXISTS idx_partner_categories_partner_id ON "partner_categories" ("partner_id");
-CREATE INDEX IF NOT EXISTS idx_partner_categories_status_id ON "partner_categories" ("status_id");
-CREATE INDEX IF NOT EXISTS idx_credit_applications_user_id ON "credit_applications_bnpl" ("user_id");
-CREATE INDEX IF NOT EXISTS idx_credit_applications_user_product_id ON "credit_applications_bnpl" ("user_product_id");
-CREATE INDEX IF NOT EXISTS idx_credit_applications_partner_id ON "credit_applications_bnpl" ("partner_id");
-CREATE INDEX IF NOT EXISTS idx_credit_applications_partner_category_id ON "credit_applications_bnpl" ("partner_category_id");
-CREATE INDEX IF NOT EXISTS idx_credit_applications_sales_rep_id ON "credit_applications_bnpl" ("sales_rep_id");
-CREATE INDEX IF NOT EXISTS idx_credit_applications_business_id ON "credit_applications_bnpl" ("business_id");
-CREATE INDEX IF NOT EXISTS idx_credit_applications_business_seniority_id ON "credit_applications_bnpl" ("business_seniority_id");
-CREATE INDEX IF NOT EXISTS idx_credit_applications_status_id ON "credit_applications_bnpl" ("status_id");
-CREATE INDEX IF NOT EXISTS idx_credit_applications_submission_date_id ON "credit_applications_bnpl" ("submission_date" DESC, "id" DESC);
-CREATE INDEX IF NOT EXISTS idx_credit_applications_status_submission_date_id ON "credit_applications_bnpl" ("status_id", "submission_date" DESC, "id" DESC);
-CREATE INDEX IF NOT EXISTS idx_credit_applications_partner_submission_date_id ON "credit_applications_bnpl" ("partner_id", "submission_date" DESC, "id" DESC);
-CREATE INDEX IF NOT EXISTS idx_ai_agent_analysis_application_id ON "ai_agent_analysis" ("application_id");
-CREATE INDEX IF NOT EXISTS idx_sales_representatives_partner_id ON "sales_representatives" ("partner_id");
-CREATE INDEX IF NOT EXISTS idx_sales_representatives_user_id ON "sales_representatives" ("user_id");
-CREATE INDEX IF NOT EXISTS idx_sales_representatives_status_id ON "sales_representatives" ("status_id");
-CREATE INDEX IF NOT EXISTS idx_contracts_user_id ON "contracts" ("user_id");
-CREATE INDEX IF NOT EXISTS idx_contracts_application_id ON "contracts" ("application_id");
-CREATE INDEX IF NOT EXISTS idx_contracts_status_id ON "contracts" ("status_id");
-CREATE INDEX IF NOT EXISTS idx_contract_signers_contract_id ON "contract_signers" ("contract_id");
-CREATE INDEX IF NOT EXISTS idx_contract_signers_person_id ON "contract_signers" ("person_id");
-CREATE INDEX IF NOT EXISTS idx_contract_signers_status_id ON "contract_signers" ("status_id");
-CREATE INDEX IF NOT EXISTS idx_user_products_user_id ON "user_products" ("user_id");
-CREATE INDEX IF NOT EXISTS idx_product_bnpl_status_id ON "product_bnpl" ("status_id");
-CREATE INDEX IF NOT EXISTS idx_bnpl_categories_product_bnpl_id ON "bnpl_categories" ("product_bnpl_id");
-CREATE INDEX IF NOT EXISTS idx_bnpl_categories_category_id ON "bnpl_categories" ("category_id");
-CREATE INDEX IF NOT EXISTS idx_risk_profile_user_id ON "risk_profile" ("user_id");
-CREATE INDEX IF NOT EXISTS idx_risk_profile_user_product_id ON "risk_profile" ("user_product_id");
-CREATE INDEX IF NOT EXISTS idx_documents_person_id ON "documents" ("person_id");
-CREATE INDEX IF NOT EXISTS idx_documents_business_id ON "documents" ("business_id");
-CREATE INDEX IF NOT EXISTS idx_documents_application_id ON "documents" ("application_id");
-CREATE INDEX IF NOT EXISTS idx_documents_verification_status_id ON "documents" ("verification_status_id");
-CREATE INDEX IF NOT EXISTS idx_credit_reports_user_id ON "credit_reports" ("user_id");
-CREATE INDEX IF NOT EXISTS idx_credit_reports_person_id ON "credit_reports" ("person_id");
-CREATE INDEX IF NOT EXISTS idx_credit_reports_business_id ON "credit_reports" ("business_id");
-CREATE INDEX IF NOT EXISTS idx_credit_reports_application_id ON "credit_reports" ("application_id");
-CREATE INDEX IF NOT EXISTS idx_cities_country_state_name ON "cities" ("country_code", "state_name", "city_name");
-CREATE INDEX IF NOT EXISTS idx_options_option_group ON "options" ("option_group");
-CREATE INDEX IF NOT EXISTS idx_cities_currency_id ON "cities" ("currency_id");
+COMMENT ON TABLE  products_schema.credit_facilities IS '⚠ Tabla delgada. Datos de solicitud en credit_applications. state=ENUM, no FK a statuses.';
+COMMENT ON COLUMN products_schema.credit_facilities.total_limit IS 'NUMERIC(18,4) para precisión financiera. Nunca float/double.';
+
+
+-- ---------------------------------------------------------------------------
+-- Categorías (antes: partner_categories) — con credit_facility_id
+-- ---------------------------------------------------------------------------
+CREATE TABLE products_schema.categories (
+  id                       BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  external_id              UUID          NOT NULL UNIQUE DEFAULT gen_random_uuid(),
+  credit_facility_id       BIGINT        NOT NULL REFERENCES products_schema.credit_facilities(id) ON DELETE CASCADE,
+  partner_id               BIGINT        REFERENCES suppliers_schema.partners(id) ON DELETE SET NULL ON UPDATE CASCADE,
+  name                     VARCHAR(255)  NOT NULL,
+  discount_percentage      NUMERIC(8,4)  NOT NULL,
+  interest_rate            NUMERIC(8,4)  NOT NULL,
+  disbursement_fee_percent NUMERIC(8,4),
+  minimum_disbursement_fee NUMERIC(18,4),
+  delay_days               INT           NOT NULL,
+  term_days                INT           NOT NULL,
+  state                    products_schema.credit_facility_state NOT NULL DEFAULT 'active',
+  created_at               TIMESTAMPTZ   NOT NULL DEFAULT now(),
+  updated_at               TIMESTAMPTZ   NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_categories_credit_facility_id ON products_schema.categories (credit_facility_id);
+CREATE INDEX idx_categories_partner_id         ON products_schema.categories (partner_id);
+CREATE INDEX idx_categories_state              ON products_schema.categories (state);
+
+COMMENT ON TABLE products_schema.categories IS 'Antes: partner_categories en public. discount_percentage e interest_rate en NUMERIC (nunca float).';
+
+
+-- ---------------------------------------------------------------------------
+-- Solicitudes de crédito (antes: credit_applications_bnpl en public)
+-- ---------------------------------------------------------------------------
+CREATE TABLE products_schema.credit_applications (
+  id                    BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  external_id           UUID    NOT NULL UNIQUE DEFAULT gen_random_uuid(),
+  -- NOTA: person_id, NO user_id. Diferencia crítica vs DDL v1.
+  person_id             BIGINT  REFERENCES transversal_schema.persons(id),
+  partner_id            BIGINT  REFERENCES suppliers_schema.partners(id),
+  partner_category_id   BIGINT  REFERENCES products_schema.categories(id),
+  business_id           BIGINT  REFERENCES suppliers_schema.businesses(id),
+  -- Vínculo inverso con contracts (contracts NO tiene application_id)
+  contract_id           BIGINT  REFERENCES products_schema.contracts(id),
+  number_of_locations   INT,
+  number_of_employees   INT,
+  -- DEUDA TÉCNICA: business_seniority como VARCHAR, debería ser FK a business_seniority
+  business_seniority    VARCHAR,
+  sector_experience     VARCHAR,
+  business_flagship_m2  INT,
+  business_has_rent     BOOLEAN,
+  business_rent_amount  BIGINT,   -- centavos/mínima unidad
+  monthly_income        BIGINT,   -- centavos/mínima unidad
+  monthly_expenses      BIGINT,   -- centavos/mínima unidad
+  monthly_purchases     BIGINT,   -- centavos — si is_current_client=true
+  current_purchases     BIGINT,   -- centavos — si is_current_client=false
+  total_assets          BIGINT,   -- centavos/mínima unidad
+  requested_credit_line BIGINT,   -- centavos/mínima unidad
+  is_current_client     BOOLEAN   NOT NULL DEFAULT FALSE,
+  status_id             BIGINT    NOT NULL REFERENCES transversal_schema.statuses(id),
+  submission_date       TIMESTAMPTZ,
+  approval_date         TIMESTAMPTZ,
+  rejection_reason      VARCHAR(500),
+  credit_study_date     TIMESTAMPTZ,
+  credit_score          DECIMAL(8,2),
+  credit_decision       VARCHAR,
+  approved_credit_line  BIGINT,   -- centavos/mínima unidad
+  analyst_report        TEXT,
+  risk_profile          VARCHAR,
+  privacy_policy_accepted BOOLEAN NOT NULL DEFAULT FALSE,
+  privacy_policy_date   TIMESTAMPTZ,
+  created_at            TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at            TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_credit_apps_person_id           ON products_schema.credit_applications (person_id);
+CREATE INDEX idx_credit_apps_partner_id          ON products_schema.credit_applications (partner_id);
+CREATE INDEX idx_credit_apps_partner_category_id ON products_schema.credit_applications (partner_category_id);
+CREATE INDEX idx_credit_apps_business_id         ON products_schema.credit_applications (business_id);
+CREATE INDEX idx_credit_apps_status_id           ON products_schema.credit_applications (status_id);
+CREATE INDEX idx_credit_apps_submission_date     ON products_schema.credit_applications (submission_date DESC);
+
+CREATE TRIGGER trg_credit_applications_validate_status
+BEFORE INSERT OR UPDATE OF status_id ON products_schema.credit_applications
+FOR EACH ROW EXECUTE FUNCTION transversal_schema.validate_status_entity('credit_applications', 'status_id');
+
+COMMENT ON COLUMN products_schema.credit_applications.person_id          IS '⚠ FK a persons, NO a users. Diferencia crítica vs DDL v1.';
+COMMENT ON COLUMN products_schema.credit_applications.business_seniority IS '⚠ Deuda técnica: VARCHAR. Debería ser FK a suppliers_schema.business_seniority.';
+COMMENT ON COLUMN products_schema.credit_applications.business_rent_amount IS 'En centavos/mínima unidad monetaria. Nunca float.';
+
+
+-- =============================================================================
+-- TRIGGER: updated_at automático (todas las tablas con updated_at)
+-- =============================================================================
+
+CREATE OR REPLACE FUNCTION fn_set_updated_at()
+RETURNS TRIGGER LANGUAGE plpgsql AS $$
+BEGIN
+  NEW.updated_at = now();
+  RETURN NEW;
+END;
+$$;
+
+DO $$
+DECLARE t TEXT;
+BEGIN
+  FOREACH t IN ARRAY ARRAY[
+    'transversal_schema.statuses',
+    'transversal_schema.roles',
+    'transversal_schema.permissions',
+    'transversal_schema.role_permissions',
+    'transversal_schema.currencies',
+    'transversal_schema.cities',
+    'transversal_schema.states',
+    'transversal_schema.users',
+    'transversal_schema.persons',
+    'suppliers_schema.business_seniority',
+    'suppliers_schema.businesses',
+    'suppliers_schema.legal_representatives',
+    'suppliers_schema.bank_accounts',
+    'suppliers_schema.suppliers',
+    'suppliers_schema.partners',
+    'suppliers_schema.sales_representatives',
+    'suppliers_schema.purchase_orders',
+    'suppliers_schema.partner_onboarding_sagas',
+    'products_schema.contract_templates',
+    'products_schema.contracts',
+    'products_schema.credit_facilities',
+    'products_schema.categories',
+    'products_schema.credit_applications'
+  ]
+  LOOP
+    EXECUTE format(
+      'CREATE TRIGGER trg_%s_updated_at BEFORE UPDATE ON %s FOR EACH ROW EXECUTE FUNCTION fn_set_updated_at();',
+      replace(t, '.', '_'), t
+    );
+  END LOOP;
+END;
+$$;
+
+-- =============================================================================
+-- FIN DEL DDL v2.0
+-- =============================================================================

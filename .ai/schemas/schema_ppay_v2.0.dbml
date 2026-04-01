@@ -1,0 +1,565 @@
+// =============================================================================
+// PLATAM PAY v2 — DBML Estado Real
+// Versión: 2.0 | Fecha: 2026-04-01
+// Fuente de verdad: entidades TypeORM en libs/
+// Motor: PostgreSQL 15+ | Extensión: pgcrypto
+//
+// SCHEMAS:
+//   transversal_schema  → Identidad, autenticación, catálogos y geografía
+//   suppliers_schema    → Negocios, proveedores, partners y operación comercial
+//   products_schema     → Solicitudes de crédito, contratos y líneas de crédito
+//
+// NOTA CRÍTICA DE ARQUITECTURA:
+//   Varias tablas usan `state` ENUM en lugar de `status_id FK → statuses`:
+//     users.state, partners.state, credit_facilities.state, categories.state
+//   Esto coexiste con status_id FK en: contracts, contract_templates, credit_applications
+// =============================================================================
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SCHEMA: transversal_schema
+// Catálogos base, RBAC, personas y geografía
+// ─────────────────────────────────────────────────────────────────────────────
+
+Table transversal_schema.statuses {
+  id              bigint      [pk, note: 'BIGINT GENERATED ALWAYS AS IDENTITY']
+  external_id     uuid        [not null, unique, default: `gen_random_uuid()`]
+  entity_type     varchar(100) [not null]
+  code            varchar(50)  [not null]
+  display_name    varchar(100) [not null]
+  description     text
+  is_active       boolean      [not null, default: true]
+  created_at      timestamptz  [not null, default: `now()`]
+  updated_at      timestamptz  [not null, default: `now()`]
+
+  Indexes {
+    (entity_type, code) [unique, name: 'uq_statuses_entity_code']
+    entity_type         [name: 'idx_statuses_entity_type']
+    external_id         [unique, name: 'idx_statuses_external_id']
+  }
+
+  Note: 'Catálogo centralizado de estados. Validado por trigger validate_status_entity(). Usado por: contracts, contract_templates, credit_applications, sales_representatives.'
+}
+
+Table transversal_schema.roles {
+  id          bigint       [pk]
+  external_id uuid         [not null, unique, default: `gen_random_uuid()`]
+  name        varchar(80)  [not null, unique]
+  description text
+  created_at  timestamptz  [not null, default: `now()`]
+  updated_at  timestamptz  [not null, default: `now()`]
+}
+
+Table transversal_schema.permissions {
+  id          bigint       [pk]
+  external_id uuid         [not null, unique, default: `gen_random_uuid()`]
+  code        varchar(120) [not null, unique]
+  description text
+  created_at  timestamptz  [not null, default: `now()`]
+  updated_at  timestamptz  [not null, default: `now()`]
+}
+
+Table transversal_schema.role_permissions {
+  id            bigint      [pk]
+  external_id   uuid        [not null, unique, default: `gen_random_uuid()`]
+  role_id       bigint      [not null, ref: > transversal_schema.roles.id]
+  permission_id bigint      [not null, ref: > transversal_schema.permissions.id]
+  created_at    timestamptz [not null, default: `now()`]
+  updated_at    timestamptz [not null, default: `now()`]
+
+  Indexes {
+    (role_id, permission_id) [unique, name: 'uq_role_permission']
+    role_id                  [name: 'idx_role_permissions_role_id']
+    permission_id            [name: 'idx_role_permissions_permission_id']
+  }
+}
+
+Table transversal_schema.currencies {
+  id                  bigint      [pk]
+  external_id         uuid        [not null, unique, default: `gen_random_uuid()`]
+  code                varchar(3)  [not null, unique, note: 'ISO 4217 — ej: COP, USD']
+  name                varchar(120) [not null]
+  symbol              varchar(10)
+  decimal_places      int         [not null, default: 2, note: 'CHECK BETWEEN 0 AND 6']
+  thousand_separator  varchar(1)
+  decimal_separator   varchar(1)
+  is_active           boolean     [not null, default: true]
+  created_at          timestamptz [not null, default: `now()`]
+  updated_at          timestamptz [not null, default: `now()`]
+
+  Indexes {
+    code        [unique, name: 'idx_currencies_code']
+    external_id [unique, name: 'idx_currencies_external_id']
+  }
+}
+
+Table transversal_schema.cities {
+  id           bigint       [pk]
+  external_id  uuid         [not null, unique, default: `gen_random_uuid()`]
+  country_name varchar(120) [not null]
+  country_code varchar(2)   [not null, note: 'CHECK: ~^[A-Z]{2}$']
+  state_name   varchar(120) [not null]
+  state_code   varchar(3)   [note: 'CHECK: NULL OR ~^[A-Z0-9]{2,3}$']
+  city_name    varchar(120) [not null]
+  currency_id  bigint       [not null, ref: > transversal_schema.currencies.id]
+  created_at   timestamptz  [not null, default: `now()`]
+  updated_at   timestamptz  [not null, default: `now()`]
+
+  Indexes {
+    (country_code, state_name, city_name) [unique, name: 'uq_cities_location']
+    (country_code, state_name, city_name) [name: 'idx_cities_country_state_name']
+    currency_id                           [name: 'idx_cities_currency_id']
+    external_id                           [unique, name: 'idx_cities_external_id']
+  }
+}
+
+Table transversal_schema.states {
+  id           bigint      [pk]
+  external_id  uuid        [not null, unique, default: `gen_random_uuid()`]
+  country_code varchar(2)  [not null, note: 'CHECK: ~^[A-Z]{2}$']
+  state_name   varchar(120) [not null]
+  state_code   varchar(3)  [note: 'CHECK: NULL OR ~^[A-Z0-9]{2,3}$']
+  created_at   timestamptz [not null, default: `now()`]
+  updated_at   timestamptz [not null, default: `now()`]
+
+  Indexes {
+    (country_code, state_name) [unique, name: 'uq_states_country_state']
+    external_id                [unique, name: 'idx_states_external_id']
+  }
+
+  Note: 'Catálogo de departamentos/estados. Migración incremental: 20260330_transversal_schema_states.sql'
+}
+
+Table transversal_schema.users {
+  id            bigint      [pk]
+  external_id   uuid        [not null, unique, default: `gen_random_uuid()`]
+  cognito_sub   uuid        [not null, unique]
+  email         varchar     [not null, unique]
+  role_id       bigint      [ref: > transversal_schema.roles.id]
+  state         varchar     [not null, default: 'active', note: 'ENUM (user_state): active | inactive. NO usa status_id FK a statuses.']
+  person_id     bigint      [note: 'Referencia a transversal_schema.persons.id. Sin FK declarada en DDL actual.']
+  last_login_at timestamptz
+  created_at    timestamptz [not null, default: `now()`]
+  updated_at    timestamptz [not null, default: `now()`]
+
+  Indexes {
+    cognito_sub [unique, name: 'idx_users_cognito_sub']
+    email       [unique, name: 'idx_users_email']
+    role_id     [name: 'idx_users_role_id']
+    external_id [unique, name: 'idx_users_external_id']
+  }
+
+  Note: 'phone NO está mapeado en la entidad TypeORM actual. state es ENUM, no FK a statuses. person_id referencia implícita.'
+}
+
+Table transversal_schema.persons {
+  id                   bigint       [pk]
+  external_id          uuid         [not null, unique, default: `gen_random_uuid()`]
+  country_code         varchar(2)
+  first_name           varchar(255) [not null, note: 'PII — cifrar AES-256 en reposo']
+  last_name            varchar(255) [not null, note: 'PII — cifrar AES-256 en reposo']
+  doc_type             varchar(100) [not null]
+  doc_number           varchar      [not null, unique, note: 'PII — cifrar AES-256 en reposo']
+  doc_issue_date       date
+  birth_date           date         [note: 'PII']
+  gender               varchar(20)
+  phone                varchar      [note: 'PII']
+  residential_address  text         [note: 'PII']
+  business_address     text
+  city_id              bigint       [ref: > transversal_schema.cities.id]
+  created_at           timestamptz  [not null, default: `now()`]
+  updated_at           timestamptz  [not null, default: `now()`]
+
+  Indexes {
+    doc_number  [unique, name: 'idx_persons_doc_number']
+    city_id     [name: 'idx_persons_city_id']
+    external_id [unique, name: 'idx_persons_external_id']
+  }
+
+  Note: 'PII sensible. Campos: first_name, last_name, doc_number, birth_date, phone, residential_address requieren AES-256.'
+}
+
+// Tablas de idempotencia SQS — patrón: idempotency_key UNIQUE previene reprocesamiento
+
+Table transversal_schema.upload_files_idempotency {
+  id              bigint       [pk, note: 'BIGSERIAL']
+  idempotency_key varchar(512) [not null, unique]
+  correlation_id  uuid         [not null]
+  result          jsonb        [note: 'NULL = en proceso. Valor = Array<{url: string, folder: string}>']
+  created_at      timestamptz  [not null, default: `now()`]
+
+  Note: 'Idempotencia SQS para operaciones de upload de archivos.'
+}
+
+Table transversal_schema.partner_create_user_sqs_idempotency {
+  id              bigint       [pk]
+  idempotency_key varchar(512) [not null, unique]
+  correlation_id  uuid         [not null]
+  result          jsonb        [note: 'NULL = en proceso. Valor = {user_external_id: uuid, person_external_id: uuid}']
+  created_at      timestamptz  [not null, default: `now()`]
+
+  Note: 'Idempotencia SQS para creación de usuario en flujo de onboarding de partner.'
+}
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SCHEMA: suppliers_schema
+// Negocios, proveedores, partners y operación comercial
+// ─────────────────────────────────────────────────────────────────────────────
+
+Table suppliers_schema.business_seniority {
+  id          bigint       [pk]
+  external_id uuid         [not null, unique, default: `gen_random_uuid()`]
+  description varchar(100) [not null]
+  range_start int          [not null]
+  range_end   int          [not null]
+  created_at  timestamptz  [not null, default: `now()`]
+  updated_at  timestamptz  [not null, default: `now()`]
+
+  Note: 'Catálogo de antigüedad del negocio. Reemplaza option_group=business_seniority del DDL antiguo (tabla options).'
+}
+
+Table suppliers_schema.businesses {
+  id                       bigint       [pk]
+  external_id              uuid         [not null, unique, default: `gen_random_uuid()`]
+  person_id                bigint       [not null, ref: > transversal_schema.persons.id, note: 'FK a persons (NO a users). Diferencia crítica vs database-schema.sql que usa user_id.']
+  business_seniority_id    bigint       [ref: > suppliers_schema.business_seniority.id, note: 'onDelete SET NULL']
+  city_id                  bigint       [ref: > transversal_schema.cities.id]
+  entity_type              varchar(10)  [not null, note: 'CHECK: PN (Persona Natural) | PJ (Persona Jurídica)']
+  business_name            varchar(255)
+  business_address         text
+  business_type            varchar(10)  [note: 'Código CIIU']
+  relationship_to_business varchar(100)
+  legal_name               varchar(255)
+  trade_name               varchar(255)
+  tax_id                   varchar(50)  [unique, note: 'PII — NIT/RUT. Requerido para PJ.']
+  year_of_establishment    int
+  created_at               timestamptz  [not null, default: `now()`]
+  updated_at               timestamptz  [not null, default: `now()`]
+
+  Indexes {
+    person_id   [name: 'idx_businesses_person_id']
+    city_id     [name: 'idx_businesses_city_id']
+    entity_type [name: 'idx_businesses_entity_type']
+    tax_id      [name: 'idx_businesses_tax_id']
+    external_id [unique, name: 'idx_businesses_external_id']
+  }
+
+  Note: 'person_id es el propietario/representante principal del negocio. business_seniority_id reemplaza campo varchar en DDL antiguo.'
+}
+
+Table suppliers_schema.legal_representatives {
+  id          bigint      [pk]
+  external_id uuid        [not null, unique, default: `gen_random_uuid()`]
+  person_id   bigint      [not null, ref: > transversal_schema.persons.id]
+  is_primary  boolean     [not null, default: true]
+  created_at  timestamptz [not null, default: `now()`]
+  updated_at  timestamptz [not null, default: `now()`]
+
+  Indexes {
+    person_id   [name: 'idx_legal_reps_person_id']
+    external_id [unique, name: 'idx_legal_reps_external_id']
+  }
+
+  Note: 'Referenciada desde suppliers.legal_representative_id (no tiene business_id directo). El vínculo negocio-representante es: businesses → suppliers → legal_representatives.'
+}
+
+Table suppliers_schema.bank_accounts {
+  id                 bigint       [pk]
+  external_id        uuid         [not null, unique, default: `gen_random_uuid()`]
+  bank_entity        varchar(255) [not null]
+  account_number     varchar(500) [not null, note: 'PII — cifrado AES-256 vía transformer TypeORM en columna']
+  bank_certification text
+  created_at         timestamptz  [not null, default: `now()`]
+  updated_at         timestamptz  [not null, default: `now()`]
+
+  Note: 'PII financiero sensible. account_number se cifra/descifra automáticamente por BankAccountEncryptionTransformer en el ORM.'
+}
+
+Table suppliers_schema.suppliers {
+  id                      bigint      [pk]
+  external_id             uuid        [not null, unique, default: `gen_random_uuid()`]
+  business_id             bigint      [not null, unique, ref: > suppliers_schema.businesses.id, note: 'OneToOne — un negocio máximo un supplier']
+  legal_representative_id bigint      [ref: > suppliers_schema.legal_representatives.id]
+  bank_account_id         bigint      [unique, ref: > suppliers_schema.bank_accounts.id, note: 'OneToOne — datos bancarios separados y cifrados']
+  created_at              timestamptz [not null, default: `now()`]
+  updated_at              timestamptz [not null, default: `now()`]
+
+  Indexes {
+    business_id             [unique, name: 'idx_suppliers_business_id']
+    bank_account_id         [unique, name: 'idx_suppliers_bank_account_id']
+    legal_representative_id [name: 'idx_suppliers_legal_rep_id']
+    external_id             [unique, name: 'idx_suppliers_external_id']
+  }
+
+  Note: 'Tabla delgada: solo referencias FK. La configuración visual/operativa está en partners (OneToOne inverso).'
+}
+
+Table suppliers_schema.partners {
+  id                              bigint      [pk]
+  external_id                     uuid        [not null, unique, default: `gen_random_uuid()`]
+  supplier_id                     bigint      [not null, unique, ref: > suppliers_schema.suppliers.id, note: 'OneToOne con suppliers. El lado propietario de la relación.']
+  acronym                         varchar(10)
+  logo_url                        text
+  co_branding_logo_url            text
+  primary_color                   varchar(20)
+  secondary_color                 varchar(20)
+  light_color                     varchar(20)
+  notification_email              varchar
+  webhook_url                     text
+  send_sales_rep_voucher          boolean     [not null, default: false]
+  disbursement_notification_email varchar
+  state                           varchar     [not null, default: 'active', note: 'ENUM (partner_state): active | inactive | blocked. NO usa status_id FK.']
+  created_at                      timestamptz [not null, default: `now()`]
+  updated_at                      timestamptz [not null, default: `now()`]
+
+  Indexes {
+    supplier_id [unique, name: 'idx_partners_supplier_id']
+    state       [name: 'idx_partners_state']
+    external_id [unique, name: 'idx_partners_external_id']
+  }
+
+  Note: 'Configuración visual y operativa del partner BNPL. 1:1 con suppliers. state es ENUM, no FK a statuses.'
+}
+
+Table suppliers_schema.sales_representatives {
+  id          bigint      [pk]
+  external_id uuid        [not null, unique, default: `gen_random_uuid()`]
+  partner_id  bigint      [not null, ref: > suppliers_schema.partners.id]
+  user_id     bigint      [ref: > transversal_schema.users.id]
+  created_at  timestamptz [not null, default: `now()`]
+  updated_at  timestamptz [not null, default: `now()`]
+
+  Indexes {
+    partner_id  [name: 'idx_sales_reps_partner_id']
+    user_id     [name: 'idx_sales_reps_user_id']
+    external_id [unique, name: 'idx_sales_reps_external_id']
+  }
+
+  Note: 'Entidad mínima en TypeORM actual. Columnas name, role, status_id existen en BD pero no están mapeadas en la entidad. Pendiente de completar.'
+}
+
+Table suppliers_schema.purchase_orders {
+  id           bigint        [pk]
+  external_id  uuid          [not null, unique, default: `gen_random_uuid()`]
+  user_id      varchar(255)  [not null, note: 'Identificador externo de usuario como string. NO es FK bigint a users.id.']
+  supplier_id  bigint        [not null, ref: > suppliers_schema.suppliers.id]
+  amount       decimal(18,2) [not null, note: 'Monto en unidad monetaria. CHECK amount > 0.']
+  document_url text
+  created_at   timestamptz   [not null, default: `now()`]
+  updated_at   timestamptz   [not null, default: `now()`]
+
+  Indexes {
+    supplier_id [name: 'idx_purchase_orders_supplier_id']
+    external_id [unique, name: 'idx_purchase_orders_external_id']
+  }
+
+  Note: 'user_id es VARCHAR (referencia externa), no FK bigint. Diferencia crítica vs DDL planeado que usa loan_id.'
+}
+
+Table suppliers_schema.partner_onboarding_sagas {
+  id                        bigint      [pk, note: 'BIGSERIAL']
+  external_id               uuid        [not null, unique]
+  correlation_id            uuid        [not null]
+  status                    varchar(32) [not null]
+  current_step              smallint    [not null, default: 0]
+  credit_facility_external_id uuid
+  user_external_id          uuid
+  person_external_id        uuid
+  business_external_id      uuid
+  bank_account_external_id  uuid
+  partner_external_id       uuid
+  error_message             text
+  created_at                timestamptz [not null, default: `now()`]
+  updated_at                timestamptz [not null, default: `now()`]
+
+  Indexes {
+    correlation_id [name: 'idx_onboarding_sagas_correlation_id']
+    status         [name: 'idx_onboarding_sagas_status']
+    external_id    [unique, name: 'idx_onboarding_sagas_external_id']
+  }
+
+  Note: 'Saga de orquestación CQRS para creación de partner. Vincula entidades por UUID, no por FK directa. Permite rastrear progreso paso a paso.'
+}
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SCHEMA: products_schema
+// Solicitudes de crédito, contratos y líneas de crédito
+// ─────────────────────────────────────────────────────────────────────────────
+
+Table products_schema.contract_templates {
+  id                  bigint       [pk]
+  external_id         uuid         [not null, unique, default: `gen_random_uuid()`]
+  template_family_key varchar(120) [not null]
+  version             int          [not null]
+  effective_from      timestamptz
+  effective_to        timestamptz
+  zapsign_template_ref varchar(255)
+  status_id           bigint       [not null, ref: > transversal_schema.statuses.id]
+  created_at          timestamptz  [not null, default: `now()`]
+  updated_at          timestamptz  [not null, default: `now()`]
+
+  Indexes {
+    template_family_key [name: 'idx_contract_templates_family_key']
+    status_id           [name: 'idx_contract_templates_status_id']
+    external_id         [unique, name: 'idx_contract_templates_external_id']
+  }
+
+  Note: 'Plantillas versionadas de contratos Zapsign. Agrupadas por template_family_key sin tabla de familias.'
+}
+
+Table products_schema.contracts {
+  id                  bigint      [pk]
+  external_id         uuid        [not null, unique, default: `gen_random_uuid()`]
+  user_id             bigint      [ref: > transversal_schema.users.id]
+  contract_template_id bigint     [ref: > products_schema.contract_templates.id]
+  zapsign_token       varchar     [unique]
+  status_id           bigint      [not null, ref: > transversal_schema.statuses.id, note: 'entity_type = contracts']
+  original_file_url   text
+  signed_file_url     text
+  form_answers_json   jsonb
+  created_at          timestamptz [not null, default: `now()`]
+  updated_at          timestamptz [not null, default: `now()`]
+
+  Indexes {
+    user_id              [name: 'idx_contracts_user_id']
+    zapsign_token        [unique, name: 'idx_contracts_zapsign_token']
+    status_id            [name: 'idx_contracts_status_id']
+    contract_template_id [name: 'idx_contracts_template_id']
+    external_id          [unique, name: 'idx_contracts_external_id']
+  }
+
+  Note: 'NO tiene application_id. El vínculo con credit_applications es inverso: credit_applications.contract_id → contracts.id. Diferencia vs database-schema.sql.'
+}
+
+Table products_schema.credit_facilities {
+  id          bigint        [pk]
+  external_id uuid          [not null, unique, default: `gen_random_uuid()`]
+  contract_id bigint        [ref: > products_schema.contracts.id, note: 'OneToOne FK. El contrato firmado que activa la facility.']
+  state       varchar       [not null, default: 'active', note: 'ENUM (credit_facility_state): active | inactive | etc. NO usa status_id FK.']
+  total_limit decimal(18,4) [not null, note: 'Límite total de la línea de crédito. DECIMAL(18,4) para precisión financiera.']
+  created_at  timestamptz   [not null, default: `now()`]
+  updated_at  timestamptz   [not null, default: `now()`]
+
+  Indexes {
+    contract_id [name: 'idx_credit_facilities_contract_id']
+    state       [name: 'idx_credit_facilities_state']
+    external_id [unique, name: 'idx_credit_facilities_external_id']
+  }
+
+  Note: 'Tabla delgada en TypeORM. user_id, business_id y datos de la solicitud están en credit_applications. Diferencia crítica vs DDL planeado v1.7 que tiene ~30 columnas.'
+}
+
+Table products_schema.categories {
+  id                       bigint        [pk]
+  external_id              uuid          [not null, unique, default: `gen_random_uuid()`]
+  credit_facility_id       bigint        [not null, ref: > products_schema.credit_facilities.id, note: 'onDelete CASCADE']
+  partner_id               bigint        [ref: > suppliers_schema.partners.id, note: 'onDelete SET NULL | onUpdate CASCADE']
+  name                     varchar(255)  [not null]
+  discount_percentage      decimal(8,4)  [not null]
+  interest_rate            decimal(8,4)  [not null]
+  disbursement_fee_percent decimal(8,4)
+  minimum_disbursement_fee decimal(18,4)
+  delay_days               int           [not null]
+  term_days                int           [not null]
+  state                    varchar       [not null, default: 'active', note: 'ENUM (credit_facility_state): reutiliza el mismo enum de credit_facilities. NO usa status_id FK.']
+  created_at               timestamptz   [not null, default: `now()`]
+  updated_at               timestamptz   [not null, default: `now()`]
+
+  Indexes {
+    credit_facility_id [name: 'idx_categories_facility_id']
+    partner_id         [name: 'idx_categories_partner_id']
+    state              [name: 'idx_categories_state']
+    external_id        [unique, name: 'idx_categories_external_id']
+  }
+
+  Note: 'Antes: partner_categories en public. Ahora: categories en products_schema. discount_percentage y interest_rate: DECIMAL para precisión financiera (nunca float).'
+}
+
+Table products_schema.credit_applications {
+  id                      bigint        [pk]
+  external_id             uuid          [not null, unique, default: `gen_random_uuid()`]
+  person_id               bigint        [ref: > transversal_schema.persons.id, note: 'FK a persons (NO a users). Diferencia vs database-schema.sql que usa user_id.']
+  partner_id              bigint        [ref: > suppliers_schema.partners.id]
+  partner_category_id     bigint        [ref: > products_schema.categories.id]
+  business_id             bigint        [ref: > suppliers_schema.businesses.id]
+  contract_id             bigint        [ref: > products_schema.contracts.id, note: 'OneToOne FK inverso a contracts']
+  number_of_locations     int
+  number_of_employees     int
+  business_seniority      varchar       [note: 'VARCHAR en TypeORM — deuda técnica: debería ser FK a business_seniority o ID de options']
+  sector_experience       varchar
+  business_flagship_m2    int
+  business_has_rent       boolean
+  business_rent_amount    bigint        [note: 'En centavos/mínima unidad monetaria']
+  monthly_income          bigint        [note: 'En centavos/mínima unidad monetaria']
+  monthly_expenses        bigint        [note: 'En centavos/mínima unidad monetaria']
+  monthly_purchases       bigint        [note: 'En centavos/mínima unidad monetaria — si is_current_client=true']
+  current_purchases       bigint        [note: 'En centavos/mínima unidad monetaria — si is_current_client=false']
+  total_assets            bigint        [note: 'En centavos/mínima unidad monetaria']
+  requested_credit_line   bigint        [note: 'En centavos/mínima unidad monetaria']
+  is_current_client       boolean       [not null, default: false]
+  status_id               bigint        [not null, ref: > transversal_schema.statuses.id, note: 'entity_type = credit_applications']
+  submission_date         timestamptz
+  approval_date           timestamptz
+  rejection_reason        varchar(500)
+  credit_study_date       timestamptz
+  credit_score            decimal(8,2)
+  credit_decision         varchar
+  approved_credit_line    bigint        [note: 'En centavos/mínima unidad monetaria']
+  analyst_report          text
+  risk_profile            varchar
+  privacy_policy_accepted boolean       [not null, default: false]
+  privacy_policy_date     timestamptz
+  created_at              timestamptz   [not null, default: `now()`]
+  updated_at              timestamptz   [not null, default: `now()`]
+
+  Indexes {
+    person_id           [name: 'idx_credit_apps_person_id']
+    partner_id          [name: 'idx_credit_apps_partner_id']
+    partner_category_id [name: 'idx_credit_apps_category_id']
+    business_id         [name: 'idx_credit_apps_business_id']
+    status_id           [name: 'idx_credit_apps_status_id']
+    submission_date     [name: 'idx_credit_apps_submission_date']
+    external_id         [unique, name: 'idx_credit_apps_external_id']
+  }
+
+  Note: 'Antes: credit_applications_bnpl en public. Ahora: credit_applications en products_schema. person_id (no user_id) es la diferencia clave. business_seniority como VARCHAR es deuda técnica pendiente.'
+}
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// REFERENCIAS (Ref blocks — resumen de todas las FKs cross-schema)
+// ─────────────────────────────────────────────────────────────────────────────
+
+Ref: transversal_schema.users.role_id > transversal_schema.roles.id
+Ref: transversal_schema.role_permissions.role_id > transversal_schema.roles.id
+Ref: transversal_schema.role_permissions.permission_id > transversal_schema.permissions.id
+Ref: transversal_schema.persons.city_id > transversal_schema.cities.id
+Ref: transversal_schema.cities.currency_id > transversal_schema.currencies.id
+
+Ref: suppliers_schema.businesses.person_id > transversal_schema.persons.id
+Ref: suppliers_schema.businesses.business_seniority_id > suppliers_schema.business_seniority.id
+Ref: suppliers_schema.businesses.city_id > transversal_schema.cities.id
+Ref: suppliers_schema.legal_representatives.person_id > transversal_schema.persons.id
+Ref: suppliers_schema.suppliers.business_id > suppliers_schema.businesses.id
+Ref: suppliers_schema.suppliers.legal_representative_id > suppliers_schema.legal_representatives.id
+Ref: suppliers_schema.suppliers.bank_account_id > suppliers_schema.bank_accounts.id
+Ref: suppliers_schema.partners.supplier_id > suppliers_schema.suppliers.id
+Ref: suppliers_schema.sales_representatives.partner_id > suppliers_schema.partners.id
+Ref: suppliers_schema.sales_representatives.user_id > transversal_schema.users.id
+Ref: suppliers_schema.purchase_orders.supplier_id > suppliers_schema.suppliers.id
+
+Ref: products_schema.contract_templates.status_id > transversal_schema.statuses.id
+Ref: products_schema.contracts.user_id > transversal_schema.users.id
+Ref: products_schema.contracts.contract_template_id > products_schema.contract_templates.id
+Ref: products_schema.contracts.status_id > transversal_schema.statuses.id
+Ref: products_schema.credit_facilities.contract_id > products_schema.contracts.id
+Ref: products_schema.categories.credit_facility_id > products_schema.credit_facilities.id
+Ref: products_schema.categories.partner_id > suppliers_schema.partners.id
+Ref: products_schema.credit_applications.person_id > transversal_schema.persons.id
+Ref: products_schema.credit_applications.partner_id > suppliers_schema.partners.id
+Ref: products_schema.credit_applications.partner_category_id > products_schema.categories.id
+Ref: products_schema.credit_applications.business_id > suppliers_schema.businesses.id
+Ref: products_schema.credit_applications.contract_id > products_schema.contracts.id
+Ref: products_schema.credit_applications.status_id > transversal_schema.statuses.id
