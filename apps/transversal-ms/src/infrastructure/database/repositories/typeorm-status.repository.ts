@@ -180,7 +180,6 @@ export class TypeormStatusRepository implements StatusRepository {
        AND NOT EXISTS (SELECT 1 FROM transversal_schema.users u WHERE u.status_id = s.id)
        AND NOT EXISTS (SELECT 1 FROM transversal_schema.contract_signers cs WHERE cs.status_id = s.id)
        AND NOT EXISTS (SELECT 1 FROM suppliers_schema.partners p WHERE p.status_id = s.id)
-       AND NOT EXISTS (SELECT 1 FROM suppliers_schema.sales_representatives sr WHERE sr.status_id = s.id)
        AND NOT EXISTS (
          SELECT 1 FROM suppliers_schema.credit_applications_bnpl ca
          WHERE ca.status_id = s.id OR ca.business_relation_id = s.id

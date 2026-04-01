@@ -29,14 +29,6 @@ export class CreateCategoryUseCase {
 
     const partner_id = req.partner_id;
 
-    const status_id =
-      await this.reference_lookup.get_status_internal_id_by_external_id(
-        req.status_external_id,
-      );
-    if (status_id === null) {
-      throw new NotFoundException('status not found');
-    }
-
     const created = await this.category_repository.create({
       credit_facility_id,
       partner_id,
@@ -47,7 +39,7 @@ export class CreateCategoryUseCase {
       minimum_disbursement_fee: req.minimum_disbursement_fee,
       delay_days: req.delay_days,
       term_days: req.term_days,
-      status_id,
+      state: req.state,
     });
 
     const fields = await build_category_public_fields(created, this.reference_lookup);

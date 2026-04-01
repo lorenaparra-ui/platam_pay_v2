@@ -13,6 +13,8 @@ export type SqsQueuesUrlsConfig = Readonly<{
   upload_files_queue_url?: string;
   /** Cola alta usuario+persona partner (transversal-ms). */
   create_partner_user_queue_url?: string;
+  /** Cola alta usuario+persona (mismo contrato create-partner-user) p. ej. representante legal. */
+  create_person_queue_url?: string;
   /**
    * Cola donde suppliers-ms (u otros) reciben callbacks como files-uploaded.
    * Opcional; si no se define, se usa inbound_queue_url y luego outbound.

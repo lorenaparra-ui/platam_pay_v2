@@ -10,6 +10,7 @@ import { ConfigTransversalFilesUploadedPublishQueueUrlAdapter } from './adapters
 import { TransversalInboundSqsConsumer } from './consumers/transversal-inbound-sqs.consumer';
 import { UploadFilesSqsConsumer } from './consumers/upload-files.consumer';
 import { CreatePartnerUserSqsConsumer } from './consumers/create-partner-user.consumer';
+import { CreatePersonSqsConsumer } from './consumers/create-person-sqs.consumer';
 import { MessagingApplicationModule } from '@messaging/messaging-application.module';
 import { TransversalModule } from '@modules/transversal/transversal.module';
 import { OUTBOUND_MESSAGE_PUBLISHER_PORT } from '@messaging/domain/ports/outbound-message-publisher.port';
@@ -27,6 +28,7 @@ import { TRANSVERSAL_FILES_UPLOADED_PUBLISH_QUEUE_URL_PORT } from '@messaging/do
         inbound_queue_url: config_service.get<string>('sqs.inbound_queue_url'),
         upload_files_queue_url: config_service.get<string>('sqs.upload_files_queue_url'),
         create_partner_user_queue_url: config_service.get<string>('sqs.create_partner_user_queue_url'),
+        create_person_queue_url: config_service.get<string>('sqs.create_person_queue_url'),
       }),
       inject: [ConfigService],
     },
@@ -46,6 +48,7 @@ import { TRANSVERSAL_FILES_UPLOADED_PUBLISH_QUEUE_URL_PORT } from '@messaging/do
     TransversalInboundSqsConsumer,
     UploadFilesSqsConsumer,
     CreatePartnerUserSqsConsumer,
+    CreatePersonSqsConsumer,
     {
       provide: OUTBOUND_MESSAGE_PUBLISHER_PORT,
       useExisting: SqsMessagePublisherAdapter,

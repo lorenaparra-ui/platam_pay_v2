@@ -1,13 +1,16 @@
-import { Column, Entity } from 'typeorm';
+import { Column, Entity, JoinColumn, OneToOne } from 'typeorm';
+import { CreditFacilitiesStatuses } from '@platam/shared';
 import { BaseExternalIdEntity } from './base-external-id.entity';
+import { SupplierEntity } from './supplier.entity';
 
 /**
- * Partner operativo. Nombre comercial / razón social: tabla `businesses` vinculada por business_id.
+ * Partner operativo; cada fila referencia exactamente un supplier (`supplier_id` UNIQUE NOT NULL).
  */
 @Entity({ name: 'partners', schema: 'suppliers_schema' })
 export class PartnersEntity extends BaseExternalIdEntity {
-  @Column({ name: 'business_id', type: 'bigint' })
-  businessId: number;
+  @OneToOne(() => SupplierEntity, (s) => s.partner, { nullable: false })
+  @JoinColumn({ name: 'supplier_id', referencedColumnName: 'id' })
+  supplier: SupplierEntity;
 
   @Column({ name: 'acronym', type: 'varchar', length: 10, nullable: true })
   acronym: string | null;
@@ -37,31 +40,6 @@ export class PartnersEntity extends BaseExternalIdEntity {
   @Column({ name: 'light_color', type: 'varchar', length: 20, nullable: true })
   lightColor: string | null;
 
-  @Column({
-    name: 'sales_rep_role_name',
-    type: 'varchar',
-    length: 50,
-    default: 'Sales Rep',
-    nullable: true,
-  })
-  salesRepRoleName: string | null;
-
-  @Column({
-    name: 'sales_rep_role_name_plural',
-    type: 'varchar',
-    length: 50,
-    default: 'Sales Reps',
-    nullable: true,
-  })
-  salesRepRoleNamePlural: string | null;
-
-  @Column({
-    name: 'api_key_hash',
-    type: 'boolean',
-    default: false,
-  })
-  apiKeyHash: boolean;
-
   @Column({ name: 'notification_email', type: 'varchar', nullable: true })
   notificationEmail: string | null;
 
@@ -82,14 +60,12 @@ export class PartnersEntity extends BaseExternalIdEntity {
   })
   disbursementNotificationEmail: string | null;
 
-  @Column({ name: 'default_rep_id', type: 'bigint', nullable: true })
-  defaultRepId: number | null;
-
   @Column({
-    name: 'status_id',
-    type: 'bigint',
-    nullable: false,
-    default: () => "get_status_id('partners', 'active')",
+    name: 'state',
+    type: 'enum',
+    enum: CreditFacilitiesStatuses,
+    enumName: 'partner_state',
+    default: CreditFacilitiesStatuses.ACTIVE,
   })
-  statusId: number;
+  state: CreditFacilitiesStatuses;
 }

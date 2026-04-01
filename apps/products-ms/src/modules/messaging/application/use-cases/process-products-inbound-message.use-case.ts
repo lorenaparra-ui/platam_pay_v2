@@ -1,5 +1,6 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import type { UseCase } from '@platam/shared';
+import { CreditFacilitiesStatuses } from '@platam/shared';
 import { TransversalInboundMessageDto } from '../dto/transversal-inbound-message.dto';
 import { TransversalEventType } from '../dto/transversal-outbound-event.dto';
 import { CreateCreditFacilityUseCase } from '@modules/credit-facilities/application/use-cases/create-credit-facility/create-credit-facility.use-case';
@@ -13,7 +14,8 @@ type CreditFacilityPayload = Readonly<{
   credit_facility_external_id?: string;
   contract_id?: string | null;
   total_limit?: string;
-  status_external_id?: string;
+  /** `active` | `inactive` (alineado con ENUM PostgreSQL). */
+  state?: string;
 }>;
 
 type CategoryItemPayload = Readonly<{
@@ -30,9 +32,23 @@ type CategoryBatchPayload = Readonly<{
   credit_facility_external_id?: string;
   /** FK interna `suppliers_schema.partners.id`. */
   partner_id?: number | null;
-  status_external_id?: string;
+  state?: string;
   categories?: CategoryItemPayload[];
 }>;
+
+function parse_facility_state(raw: string | undefined): CreditFacilitiesStatuses | null {
+  if (raw === undefined) {
+    return null;
+  }
+  const v = raw.trim().toLowerCase();
+  if (v === CreditFacilitiesStatuses.ACTIVE) {
+    return CreditFacilitiesStatuses.ACTIVE;
+  }
+  if (v === CreditFacilitiesStatuses.INACTIVE) {
+    return CreditFacilitiesStatuses.INACTIVE;
+  }
+  return null;
+}
 
 @Injectable()
 export class ProcessProductsInboundMessageUseCase
@@ -68,12 +84,12 @@ export class ProcessProductsInboundMessageUseCase
     const payload = dto.payload as CreditFacilityPayload;
     const external_id = payload.credit_facility_external_id;
     const total_limit = payload.total_limit;
-    const status_external_id = payload.status_external_id;
+    const state = parse_facility_state(payload.state);
     if (
       external_id === undefined ||
       external_id.length === 0 ||
       total_limit === undefined ||
-      status_external_id === undefined
+      state === null
     ) {
       this.logger.warn(
         `Payload inválido para credit_facility correlation_id=${dto.correlation_id}`,
@@ -94,7 +110,7 @@ export class ProcessProductsInboundMessageUseCase
       new CreateCreditFacilityRequest(
         payload.contract_id ?? null,
         total_limit,
-        status_external_id,
+        state,
         external_id,
       ),
     );
@@ -108,12 +124,12 @@ export class ProcessProductsInboundMessageUseCase
   ): Promise<void> {
     const payload = dto.payload as CategoryBatchPayload;
     const cf = payload.credit_facility_external_id;
-    const status_external_id = payload.status_external_id;
+    const state = parse_facility_state(payload.state);
     const categories = payload.categories;
     if (
       cf === undefined ||
       cf.length === 0 ||
-      status_external_id === undefined ||
+      state === null ||
       !Array.isArray(categories) ||
       categories.length === 0
     ) {
@@ -151,7 +167,7 @@ export class ProcessProductsInboundMessageUseCase
           item.minimum_disbursement_fee ?? null,
           item.delay_days,
           item.term_days,
-          status_external_id,
+          state,
         ),
       );
     }

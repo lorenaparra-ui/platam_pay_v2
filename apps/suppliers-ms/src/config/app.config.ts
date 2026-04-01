@@ -2,6 +2,17 @@ import { registerAs } from '@nestjs/config';
 
 export default registerAs('config', () => {
   return {
+    partner_onboarding: {
+      default_status_external_id:
+        (process.env.PARTNER_ONBOARDING_DEFAULT_STATUS_EXTERNAL_ID ?? '').trim(),
+      default_country_code: (process.env.PARTNER_ONBOARDING_DEFAULT_COUNTRY_CODE ?? 'CO').trim(),
+      sqs_user_poll_timeout_ms: Number(
+        process.env.PARTNER_ONBOARDING_SQS_POLL_TIMEOUT_MS ?? 60000,
+      ),
+      sqs_user_poll_interval_ms: Number(
+        process.env.PARTNER_ONBOARDING_SQS_POLL_INTERVAL_MS ?? 300,
+      ),
+    },
     environment: process.env.APP_ENV || 'development',
     port: process.env.SUPPLIERS_MS_PORT || 8081,
     rues_api_base_url: process.env.RUES_API_BASE_URL || 'https://ollama-rues.5n921h.easypanel.host',

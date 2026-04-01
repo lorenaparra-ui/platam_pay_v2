@@ -3,7 +3,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { SuppliersReferenceLookupPort } from '@common/ports/suppliers-reference-lookup.port';
 import { CityEntity, PersonEntity, UserEntity } from '@app/transversal-data';
-import { BankAccountEntity, BusinessEntity, PartnersEntity } from '@app/suppliers-data';
+import {
+  BankAccountEntity,
+  BusinessEntity,
+  PartnersEntity,
+  SupplierEntity,
+} from '@app/suppliers-data';
 
 @Injectable()
 export class TypeormSuppliersReferenceLookupAdapter
@@ -22,6 +27,8 @@ export class TypeormSuppliersReferenceLookupAdapter
     private readonly bank_accounts: Repository<BankAccountEntity>,
     @InjectRepository(PartnersEntity)
     private readonly partners: Repository<PartnersEntity>,
+    @InjectRepository(SupplierEntity)
+    private readonly suppliers: Repository<SupplierEntity>,
   ) {}
 
   async get_user_internal_id_by_external_id(
@@ -132,5 +139,15 @@ export class TypeormSuppliersReferenceLookupAdapter
       select: { id: true },
     });
     return row?.id ?? null;
+  }
+
+  async get_supplier_external_id_by_internal_id(
+    internal_id: number,
+  ): Promise<string | null> {
+    const row = await this.suppliers.findOne({
+      where: { id: internal_id },
+      select: { externalId: true },
+    });
+    return row?.externalId ?? null;
   }
 }

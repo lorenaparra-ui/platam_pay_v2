@@ -1,3 +1,5 @@
+import type { CreditFacilitiesStatuses } from '@platam/shared';
+
 export class CreateCategoryRequest {
   constructor(
     readonly credit_facility_external_id: string,
@@ -10,6 +12,6 @@ export class CreateCategoryRequest {
     readonly minimum_disbursement_fee: string | null,
     readonly delay_days: number,
     readonly term_days: number,
-    readonly status_external_id: string,
+    readonly state: CreditFacilitiesStatuses,
   ) {}
 }

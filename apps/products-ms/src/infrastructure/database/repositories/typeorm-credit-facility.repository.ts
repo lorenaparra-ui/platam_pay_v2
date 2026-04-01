@@ -14,7 +14,7 @@ const CREDIT_FACILITY_SELECT = {
   id: true,
   externalId: true,
   contractId: true,
-  statusId: true,
+  state: true,
   totalLimit: true,
   createdAt: true,
   updatedAt: true,
@@ -46,15 +46,15 @@ export class TypeormCreditFacilityRepository implements CreditFacilityRepository
   async create(props: CreateCreditFacilityProps): Promise<CreditFacility> {
     const rows = await this.repo.query(
       `INSERT INTO products_schema.credit_facilities (
-        external_id, contract_id, status_id, total_limit
+        external_id, contract_id, state, total_limit
       ) VALUES (
-        COALESCE($1::uuid, gen_random_uuid()), $2, $3, $4
+        COALESCE($1::uuid, gen_random_uuid()), $2, $3::products_schema.credit_facility_state, $4
       )
-      RETURNING id, external_id, created_at, updated_at, contract_id, status_id, total_limit`,
+      RETURNING id, external_id, created_at, updated_at, contract_id, state, total_limit`,
       [
         props.external_id ?? null,
         props.contract_id,
-        props.status_id,
+        props.state,
         props.total_limit,
       ],
     );
@@ -86,8 +86,8 @@ export class TypeormCreditFacilityRepository implements CreditFacilityRepository
     if (patch.contract_id !== undefined) {
       add('contract_id', patch.contract_id);
     }
-    if (patch.status_id !== undefined) {
-      add('status_id', patch.status_id);
+    if (patch.state !== undefined) {
+      add('state', patch.state);
     }
     if (patch.total_limit !== undefined) {
       add('total_limit', patch.total_limit);

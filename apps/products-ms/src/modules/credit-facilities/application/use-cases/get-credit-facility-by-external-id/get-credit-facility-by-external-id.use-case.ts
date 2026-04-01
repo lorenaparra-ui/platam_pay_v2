@@ -1,9 +1,5 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { CREDIT_FACILITY_REPOSITORY } from '@modules/credit-facilities/credit-facilities.tokens';
-import {
-  CREDIT_FACILITY_STATUS_LOOKUP,
-  CreditFacilityStatusLookupPort,
-} from '@modules/credit-facilities/domain/ports/credit-facility-status-lookup.port';
 import { CreditFacilityRepository } from '@modules/credit-facilities/domain/ports/credit-facility.ports';
 import { build_credit_facility_public_fields } from '@modules/credit-facilities/application/mapping/credit-facility-public-fields.builder';
 import { GetCreditFacilityByExternalIdRequest } from './get-credit-facility-by-external-id.request';
@@ -14,8 +10,6 @@ export class GetCreditFacilityByExternalIdUseCase {
   constructor(
     @Inject(CREDIT_FACILITY_REPOSITORY)
     private readonly credit_facility_repository: CreditFacilityRepository,
-    @Inject(CREDIT_FACILITY_STATUS_LOOKUP)
-    private readonly status_lookup: CreditFacilityStatusLookupPort,
   ) {}
 
   async execute(
@@ -27,10 +21,7 @@ export class GetCreditFacilityByExternalIdUseCase {
     if (row === null) {
       throw new NotFoundException('credit facility not found');
     }
-    const fields = await build_credit_facility_public_fields(
-      row,
-      this.status_lookup,
-    );
+    const fields = build_credit_facility_public_fields(row);
     return new GetCreditFacilityByExternalIdResponse(fields);
   }
 }

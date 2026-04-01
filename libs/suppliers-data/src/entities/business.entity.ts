@@ -1,6 +1,7 @@
 import { Column, Entity, JoinColumn, ManyToOne, RelationId } from 'typeorm';
 import { PersonEntity } from '../../../transversal-data/src/entities/person.entity';
 import { BaseExternalIdEntity } from './base-external-id.entity';
+import { BusinessSeniorityEntity } from './business-seniority.entity';
 
 @Entity({ name: 'businesses', schema: 'suppliers_schema' })
 export class BusinessEntity extends BaseExternalIdEntity {
@@ -10,6 +11,13 @@ export class BusinessEntity extends BaseExternalIdEntity {
 
   @RelationId((b: BusinessEntity) => b.person)
   personId: number;
+
+  @ManyToOne(() => BusinessSeniorityEntity, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'business_seniority_id', referencedColumnName: 'id' })
+  businessSeniority: BusinessSeniorityEntity | null;
+
+  @RelationId((b: BusinessEntity) => b.businessSeniority)
+  businessSeniorityId: number | null;
 
   @Column({ name: 'city_id', type: 'bigint', nullable: true })
   cityId: number | null;

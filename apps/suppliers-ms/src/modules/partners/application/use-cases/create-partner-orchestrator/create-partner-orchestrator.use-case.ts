@@ -2,25 +2,18 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { CreateBusinessUseCase } from '@modules/businesses/application/use-cases/create-business/create-business.use-case';
 import { CreateBusinessRequest } from '@modules/businesses/application/use-cases/create-business/create-business.request';
-import { CreateBankAccountUseCase } from '@modules/bank-accounts/application/use-cases/create-bank-account/create-bank-account.use-case';
-import { CreateBankAccountRequest } from '@modules/bank-accounts/application/use-cases/create-bank-account/create-bank-account.request';
-import { CreatePartnerUseCase } from '@modules/partners/application/use-cases/create-partner/create-partner.use-case';
-import { CreatePartnerRequest } from '@modules/partners/application/use-cases/create-partner/create-partner.request';
 import { PublishTransversalEventUseCase } from '@messaging/application/use-cases/publish-transversal-event.use-case';
-import { PublishProductsEventUseCase } from '@messaging/application/use-cases/publish-products-event.use-case';
+import { PublishCreatePartnerUserCommandUseCase } from '@messaging/application/use-cases/publish-create-partner-user-command.use-case';
+import { PublishCreatePersonCommandUseCase } from '@messaging/application/use-cases/publish-create-person-command.use-case';
 import { TransversalEventType } from '@messaging/application/dto/transversal-outbound-event.dto';
 import {
   PARTNER_ONBOARDING_SAGA_REPOSITORY,
   type PartnerOnboardingSagaRepository,
 } from '@modules/partners/application/ports/partner-onboarding-saga.repository.port';
 import {
-  PRODUCTS_CREDIT_FACILITY_SYNC_PORT,
-  type ProductsCreditFacilitySyncPort,
-} from '@modules/partners/application/ports/products-credit-facility-sync.port';
-import {
-  TRANSVERSAL_USER_PERSON_WRITER_PORT,
-  type TransversalUserPersonWriterPort,
-} from '@modules/partners/application/ports/transversal-user-person-writer.port';
+  PARTNER_USER_SQS_RESULT_READER_PORT,
+  type PartnerUserSqsResultReaderPort,
+} from '@modules/partners/application/ports/partner-user-sqs-result-reader.port';
 import {
   PARTNER_ONBOARDING_FILES_PORT,
   type PartnerOnboardingFilesPort,
@@ -32,10 +25,15 @@ import {
   SUPPLIERS_REFERENCE_LOOKUP,
   type SuppliersReferenceLookupPort,
 } from '@common/ports/suppliers-reference-lookup.port';
+import { CreateLegalRepresentativeUseCase } from '@modules/legal-representatives/application/use-cases/create-legal-representative/create-legal-representative.use-case';
+import { CreateLegalRepresentativeRequest } from '@modules/legal-representatives/application/use-cases/create-legal-representative/create-legal-representative.request';
+import { CreateSupplierUseCase } from '@modules/suppliers/application/use-cases/create-supplier/create-supplier.use-case';
+import { CreateSupplierRequest } from '@modules/suppliers/application/use-cases/create-supplier/create-supplier.request';
+import { CreatePartnerUseCase } from '@modules/partners/application/use-cases/create-partner/create-partner.use-case';
+import { CreatePartnerRequest } from '@modules/partners/application/use-cases/create-partner/create-partner.request';
 
 const TOTAL_STEPS = 8;
 
-/** Carpetas lógicas por tipo de archivo (contrato upload-files / mapeo files-uploaded). */
 const PARTNER_ONBOARDING_FILE_FOLDERS = {
   bank_certification: 'bank-certifications',
   logo: 'logos/logo',
@@ -49,19 +47,19 @@ export class CreatePartnerOrchestratorUseCase {
   constructor(
     @Inject(PARTNER_ONBOARDING_SAGA_REPOSITORY)
     private readonly saga_repository: PartnerOnboardingSagaRepository,
-    @Inject(PRODUCTS_CREDIT_FACILITY_SYNC_PORT)
-    private readonly credit_facility_sync: ProductsCreditFacilitySyncPort,
-    @Inject(TRANSVERSAL_USER_PERSON_WRITER_PORT)
-    private readonly user_person_writer: TransversalUserPersonWriterPort,
+    @Inject(PARTNER_USER_SQS_RESULT_READER_PORT)
+    private readonly partner_user_sqs_result: PartnerUserSqsResultReaderPort,
     @Inject(PARTNER_ONBOARDING_FILES_PORT)
     private readonly files_port: PartnerOnboardingFilesPort,
     @Inject(SUPPLIERS_REFERENCE_LOOKUP)
     private readonly suppliers_lookup: SuppliersReferenceLookupPort,
     private readonly create_business: CreateBusinessUseCase,
-    private readonly create_bank_account: CreateBankAccountUseCase,
+    private readonly create_supplier: CreateSupplierUseCase,
     private readonly create_partner: CreatePartnerUseCase,
+    private readonly create_legal_representative: CreateLegalRepresentativeUseCase,
+    private readonly publish_create_partner_user: PublishCreatePartnerUserCommandUseCase,
+    private readonly publish_create_person: PublishCreatePersonCommandUseCase,
     private readonly publish_transversal: PublishTransversalEventUseCase,
-    private readonly publish_products: PublishProductsEventUseCase,
   ) {}
 
   async execute(
@@ -115,13 +113,12 @@ export class CreatePartnerOrchestratorUseCase {
       this.log_step(
         2,
         correlation_id,
-        'usuario/persona: cola TRANSVERSAL_SQS_CREATE_USER_QUEUE_URL → transversal-ms (rol partner_operations)',
+        'usuario operativo (SQS create-user) → persona; negocio; representante legal (SQS create-person)',
       );
-      const city_external_id =
-        command.city_id !== null && command.city_id.trim().length > 0
-          ? command.city_id.trim()
-          : null;
-      await this.user_person_writer.publish_create_partner_user_command({
+
+     
+
+      await this.publish_create_partner_user.execute({
         correlation_id,
         idempotency_key: saga_external_id,
         email: command.email,
@@ -131,31 +128,110 @@ export class CreatePartnerOrchestratorUseCase {
         doc_type: command.doc_type,
         doc_number: command.doc_number,
         phone: command.phone,
-        city_external_id,
+        city_external_id: command.city_id,
       });
+
+      const operating_user_result =
+        await this.partner_user_sqs_result.wait_for_completed_result(saga_external_id);
+
       await this.saga_repository.update_by_external_id(saga_external_id, {
         current_step: 2,
+        person_external_id: operating_user_result.person_external_id,
       });
 
-      
+      const business = await this.create_business.execute(
+        new CreateBusinessRequest(
+          operating_user_result.person_external_id,
+          command.city_id,
+          command.entity_type,
+          command.business_name,
+          command.business_address,
+          command.business_type,
+          command.relationship_to_business,
+          command.legal_name,
+          command.trade_name,
+          command.tax_id,
+          command.year_of_establishment,
+        ),
+      );
 
-      /** Pasos posteriores aún no orquestados; IDs de negocio pendientes de la saga. */
-      const example_business_external_id = 'c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f';
-      const example_bank_account_external_id = 'd4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f8a';
-      const example_partner_external_id = 'e5f6a7b8-c9d0-4e1f-2a3b-4c5d6e7f8a9b';
+      let legal_representative_external_id: string | null = null;
+      const lr = command.legal_representative;
+      if (lr !== null) {
+        const lr_idempotency_key = `${saga_external_id}__legal_representative`;
+        await this.publish_create_person.execute({
+          correlation_id,
+          idempotency_key: lr_idempotency_key,
+          email: lr.email,
+          country_code: command.country_code,
+          first_name: lr.first_name,
+          last_name: lr.last_name,
+          doc_type: lr.doc_type,
+          doc_number: lr.doc_number,
+          phone: lr.phone,
+          city_external_id: command.city_id,
+        });
+        const lr_person = await this.partner_user_sqs_result.wait_for_completed_result(
+          lr_idempotency_key,
+        );
+        const lr_row = await this.create_legal_representative.execute(
+          new CreateLegalRepresentativeRequest(lr_person.person_external_id, true),
+        );
+        legal_representative_external_id = lr_row.external_id;
+      }
+
+      const bank_certification_stored =
+        file_urls.bank_certification_url.trim().length > 0
+          ? file_urls.bank_certification_url.trim()
+          : null;
+
+      const supplier_res = await this.create_supplier.execute(
+        new CreateSupplierRequest(business.external_id, {
+          bank_entity: command.bank_entity,
+          account_number: command.account_number,
+          bank_certification: bank_certification_stored,
+        }),
+      );
+
+      const logo_stored =
+        file_urls.logo_url.trim().length > 0
+          ? file_urls.logo_url.trim()
+          : null;
+      const co_branding_stored =
+        file_urls.co_branding_url.trim().length > 0
+          ? file_urls.co_branding_url.trim()
+          : null;
+
+      const partner_res = await this.create_partner.execute(
+        new CreatePartnerRequest(
+          supplier_res.external_id,
+          command.acronym,
+          logo_stored,
+          co_branding_stored,
+          command.primary_color,
+          command.secondary_color,
+          command.light_color,
+          command.notification_email,
+          command.webhook_url,
+          command.send_sales_rep_voucher,
+          command.disbursement_notification_email,
+        ),
+      );
 
       return new CreatePartnerOrchestratorResponse(
         saga_external_id,
         correlation_id,
         credit_facility_external_id,
-        null,
-        null,
-        example_business_external_id,
+        operating_user_result.user_external_id,
+        operating_user_result.person_external_id,
+        legal_representative_external_id,
+        business.external_id,
         file_urls.bank_certification_url,
         file_urls.logo_url,
         file_urls.co_branding_url,
-        example_bank_account_external_id,
-        example_partner_external_id,
+        supplier_res.bank_account_external_id,
+        supplier_res.external_id,
+        partner_res.external_id,
       );
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);

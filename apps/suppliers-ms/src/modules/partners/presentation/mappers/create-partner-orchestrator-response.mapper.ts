@@ -10,11 +10,13 @@ export function map_orchestrator_result_to_http(
   dto.creditFacilityExternalId = res.credit_facility_external_id;
   dto.userExternalId = res.user_external_id;
   dto.personExternalId = res.person_external_id;
+  dto.legalRepresentativeExternalId = res.legal_representative_external_id;
   dto.businessExternalId = res.business_external_id;
   dto.bankCertificationUrl = res.bank_certification_url;
   dto.logoUrl = res.logo_url;
   dto.coBrandingUrl = res.co_branding_url;
   dto.bankAccountExternalId = res.bank_account_external_id;
+  dto.supplierExternalId = res.supplier_external_id;
   dto.partnerExternalId = res.partner_external_id;
   return dto;
 }

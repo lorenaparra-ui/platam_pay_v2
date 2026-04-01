@@ -40,6 +40,11 @@ class SqsEnv {
   @IsOptional()
   @Transform(({ value }) => (value === '' || value === undefined ? undefined : value))
   @IsUrl({ require_tld: false })
+  transversal_sqs_create_person_queue_url?: string;
+
+  @IsOptional()
+  @Transform(({ value }) => (value === '' || value === undefined ? undefined : value))
+  @IsUrl({ require_tld: false })
   transversal_sqs_suppliers_callback_queue_url?: string;
 
   @IsOptional()
@@ -94,6 +99,7 @@ export function get_sqs_config_from_env(): {
   inbound_queue_url?: string;
   upload_files_queue_url?: string;
   create_partner_user_queue_url?: string;
+  create_person_queue_url?: string;
   suppliers_callback_queue_url?: string;
   inbound_consumer_enabled: boolean;
   wait_time_seconds: number;
@@ -107,6 +113,7 @@ export function get_sqs_config_from_env(): {
     transversal_sqs_inbound_queue_url: process.env.TRANSVERSAL_SQS_INBOUND_QUEUE_URL,
     transversal_sqs_upload_files_queue_url: process.env.TRANSVERSAL_SQS_UPLOAD_FILES_QUEUE_URL,
     transversal_sqs_create_user_queue_url: process.env.TRANSVERSAL_SQS_CREATE_USER_QUEUE_URL,
+    transversal_sqs_create_person_queue_url: process.env.TRANSVERSAL_SQS_CREATE_PERSON_QUEUE_URL,
     transversal_sqs_suppliers_callback_queue_url:
       process.env.TRANSVERSAL_SQS_SUPPLIERS_CALLBACK_QUEUE_URL,
     transversal_sqs_inbound_consumer_enabled:
@@ -134,6 +141,7 @@ export function get_sqs_config_from_env(): {
     inbound_queue_url: trim_url(env.transversal_sqs_inbound_queue_url),
     upload_files_queue_url: trim_url(env.transversal_sqs_upload_files_queue_url),
     create_partner_user_queue_url: trim_url(env.transversal_sqs_create_user_queue_url),
+    create_person_queue_url: trim_url(env.transversal_sqs_create_person_queue_url),
     suppliers_callback_queue_url: trim_url(env.transversal_sqs_suppliers_callback_queue_url),
     inbound_consumer_enabled: env.transversal_sqs_inbound_consumer_enabled,
     wait_time_seconds: env.transversal_sqs_wait_time_seconds,

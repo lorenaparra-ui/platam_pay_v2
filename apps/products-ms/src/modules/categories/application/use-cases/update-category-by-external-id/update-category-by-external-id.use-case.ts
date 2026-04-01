@@ -60,15 +60,8 @@ export class UpdateCategoryByExternalIdUseCase {
     if (req.term_days !== undefined) {
       patch.term_days = req.term_days;
     }
-    if (req.status_external_id !== undefined) {
-      const s_id =
-        await this.reference_lookup.get_status_internal_id_by_external_id(
-          req.status_external_id,
-        );
-      if (s_id === null) {
-        throw new NotFoundException('status not found');
-      }
-      patch.status_id = s_id;
+    if (req.state !== undefined) {
+      patch.state = req.state;
     }
 
     const updated = await this.category_repository.update_by_external_id(

@@ -9,7 +9,8 @@
       "@migrations/*": ["migrations/*"],
       "@libs/transversal-data": ["../../libs/transversal-data/src/transversal-data.module"],
       "@libs/products-data": ["../../libs/products-data/src/products-data.module"],
-      "@libs/suppliers-data": ["../../libs/suppliers-data/src/suppliers-data.module"]
+      "@libs/suppliers-data": ["../../libs/suppliers-data/src/suppliers-data.module"],
+      "@platam/shared": ["../../libs/shared/src"]
     }
   },
   "ts-node": {

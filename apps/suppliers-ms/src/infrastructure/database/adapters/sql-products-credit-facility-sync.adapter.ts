@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
+import type { CreditFacilitiesStatuses } from '@platam/shared';
 import type { ProductsCreditFacilitySyncPort } from '@modules/partners/application/ports/products-credit-facility-sync.port';
-
 @Injectable()
 export class SqlProductsCreditFacilitySyncAdapter
   implements ProductsCreditFacilitySyncPort
@@ -15,7 +15,7 @@ export class SqlProductsCreditFacilitySyncAdapter
     credit_facility_external_id: string;
     contract_id: string | null;
     total_limit: string;
-    status_external_id: string;
+    state: CreditFacilitiesStatuses;
   }>): Promise<void> {
     const existing = (await this.data_source.query(
       `SELECT 1 FROM products_schema.credit_facilities WHERE external_id = $1::uuid LIMIT 1`,
@@ -30,17 +30,17 @@ export class SqlProductsCreditFacilitySyncAdapter
 
     await this.data_source.query(
       `INSERT INTO products_schema.credit_facilities (
-        external_id, contract_id, status_id, total_limit
+        external_id, contract_id, state, total_limit
       ) VALUES (
         $1::uuid,
         $2,
-        (SELECT id FROM transversal_schema.statuses WHERE external_id = $3::uuid LIMIT 1),
+        $3::products_schema.credit_facility_state,
         $4::numeric
       )`,
       [
         input.credit_facility_external_id,
         input.contract_id,
-        input.status_external_id,
+        input.state,
         input.total_limit,
       ],
     );

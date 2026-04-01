@@ -22,7 +22,7 @@ const CATEGORY_SELECT = {
   minimumDisbursementFee: true,
   delayDays: true,
   termDays: true,
-  statusId: true,
+  state: true,
   createdAt: true,
   updatedAt: true,
 } as const;
@@ -60,13 +60,13 @@ export class TypeormCategoryRepository implements CategoryRepository {
       `INSERT INTO products_schema.categories (
         external_id, credit_facility_id, partner_id, name,
         discount_percentage, interest_rate, disbursement_fee_percent,
-        minimum_disbursement_fee, delay_days, term_days, status_id
+        minimum_disbursement_fee, delay_days, term_days, state
       ) VALUES (
-        gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10
+        gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10::products_schema.credit_facility_state
       )
       RETURNING id, external_id, created_at, updated_at, credit_facility_id, partner_id, name,
         discount_percentage, interest_rate, disbursement_fee_percent, minimum_disbursement_fee,
-        delay_days, term_days, status_id`,
+        delay_days, term_days, state`,
       [
         props.credit_facility_id,
         props.partner_id,
@@ -77,7 +77,7 @@ export class TypeormCategoryRepository implements CategoryRepository {
         props.minimum_disbursement_fee,
         props.delay_days,
         props.term_days,
-        props.status_id,
+        props.state,
       ],
     );
     return CategoryMapper.from_raw_row(rows[0] as Record<string, unknown>);
@@ -132,8 +132,8 @@ export class TypeormCategoryRepository implements CategoryRepository {
     if (patch.term_days !== undefined) {
       add('term_days', patch.term_days);
     }
-    if (patch.status_id !== undefined) {
-      add('status_id', patch.status_id);
+    if (patch.state !== undefined) {
+      add('state', patch.state);
     }
 
     if (columns.length === 0) {

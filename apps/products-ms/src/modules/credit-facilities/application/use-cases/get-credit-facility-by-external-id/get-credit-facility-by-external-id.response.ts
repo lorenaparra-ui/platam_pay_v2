@@ -5,7 +5,7 @@ export class GetCreditFacilityByExternalIdResponse
 {
   external_id: string;
   contract_id: string | null;
-  status_external_id: string;
+  state: string;
   total_limit: string;
   created_at: Date;
   updated_at: Date;

@@ -11,10 +11,13 @@ import { TypeormBankAccountRepository } from './database/repositories/typeorm-ba
 import { TypeormSuppliersReferenceLookupAdapter } from './database/common/typeorm-suppliers-reference-lookup.adapter';
 import { TypeormPartnerOnboardingSagaRepository } from './database/repositories/typeorm-partner-onboarding-saga.repository';
 import { SqlProductsCreditFacilitySyncAdapter } from './database/adapters/sql-products-credit-facility-sync.adapter';
+import { TypeormPartnerUserSqsResultPollAdapter } from './database/adapters/typeorm-partner-user-sqs-result-poll.adapter';
+import { TypeormLegalRepresentativeRepository } from './database/repositories/typeorm-legal-representative.repository';
 import { SqsTransversalUserPersonWriterAdapter } from './messaging/sqs/adapters/sqs-transversal-user-person-writer.adapter';
 import { PARTNER_ONBOARDING_SAGA_REPOSITORY } from '@modules/partners/application/ports/partner-onboarding-saga.repository.port';
 import { PRODUCTS_CREDIT_FACILITY_SYNC_PORT } from '@modules/partners/application/ports/products-credit-facility-sync.port';
 import { TRANSVERSAL_USER_PERSON_WRITER_PORT } from '@modules/partners/application/ports/transversal-user-person-writer.port';
+import { PARTNER_USER_SQS_RESULT_READER_PORT } from '@modules/partners/application/ports/partner-user-sqs-result-reader.port';
 import { PARTNER_ONBOARDING_FILES_PORT } from '@modules/partners/application/ports/partner-onboarding-files.port';
 import { SqsPartnerOnboardingFilesAdapter } from './messaging/sqs/adapters/sqs-partner-onboarding-files.adapter';
 import {
@@ -23,11 +26,17 @@ import {
 import {
   BankAccountEntity,
   BusinessEntity,
+  LegalRepresentativeEntity,
   PartnerOnboardingSagaEntity,
   PartnersEntity,
   SupplierEntity,
 } from '@app/suppliers-data';
-import { CityEntity, PersonEntity, UserEntity } from '@app/transversal-data';
+import {
+  CityEntity,
+  PartnerCreateUserSqsIdempotencyEntity,
+  PersonEntity,
+  UserEntity,
+} from '@app/transversal-data';
 
 @Global()
 @Module({
@@ -42,6 +51,8 @@ import { CityEntity, PersonEntity, UserEntity } from '@app/transversal-data';
       PartnerOnboardingSagaEntity,
       PartnersEntity,
       SupplierEntity,
+      LegalRepresentativeEntity,
+      PartnerCreateUserSqsIdempotencyEntity,
       PersonEntity,
       UserEntity,
       CityEntity,
@@ -55,6 +66,8 @@ import { CityEntity, PersonEntity, UserEntity } from '@app/transversal-data';
     TypeormSupplierRepository,
     TypeormBankAccountRepository,
     TypeormPartnerOnboardingSagaRepository,
+    TypeormLegalRepresentativeRepository,
+    TypeormPartnerUserSqsResultPollAdapter,
     SqlProductsCreditFacilitySyncAdapter,
     SqsTransversalUserPersonWriterAdapter,
     TypeormSuppliersReferenceLookupAdapter,
@@ -74,6 +87,10 @@ import { CityEntity, PersonEntity, UserEntity } from '@app/transversal-data';
       provide: TRANSVERSAL_USER_PERSON_WRITER_PORT,
       useExisting: SqsTransversalUserPersonWriterAdapter,
     },
+    {
+      provide: PARTNER_USER_SQS_RESULT_READER_PORT,
+      useExisting: TypeormPartnerUserSqsResultPollAdapter,
+    },
     SqsPartnerOnboardingFilesAdapter,
     {
       provide: PARTNER_ONBOARDING_FILES_PORT,
@@ -86,10 +103,13 @@ import { CityEntity, PersonEntity, UserEntity } from '@app/transversal-data';
     TypeormSupplierRepository,
     TypeormBankAccountRepository,
     TypeormPartnerOnboardingSagaRepository,
+    TypeormLegalRepresentativeRepository,
+    TypeormPartnerUserSqsResultPollAdapter,
     SUPPLIERS_REFERENCE_LOOKUP,
     PARTNER_ONBOARDING_SAGA_REPOSITORY,
     PRODUCTS_CREDIT_FACILITY_SYNC_PORT,
     TRANSVERSAL_USER_PERSON_WRITER_PORT,
+    PARTNER_USER_SQS_RESULT_READER_PORT,
     PARTNER_ONBOARDING_FILES_PORT,
   ],
 })

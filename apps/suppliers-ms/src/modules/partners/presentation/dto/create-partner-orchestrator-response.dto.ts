@@ -23,6 +23,12 @@ export class CreatePartnerOrchestratorResponseDto {
   })
   personExternalId!: string | null;
 
+  @ApiProperty({
+    nullable: true,
+    description: 'Representante legal registrado en suppliers_schema (si vino en el payload).',
+  })
+  legalRepresentativeExternalId!: string | null;
+
   @ApiProperty()
   businessExternalId!: string;
 
@@ -35,8 +41,11 @@ export class CreatePartnerOrchestratorResponseDto {
   @ApiProperty()
   coBrandingUrl!: string;
 
+  @ApiProperty({ nullable: true })
+  bankAccountExternalId!: string | null;
+
   @ApiProperty()
-  bankAccountExternalId!: string;
+  supplierExternalId!: string;
 
   @ApiProperty()
   partnerExternalId!: string;

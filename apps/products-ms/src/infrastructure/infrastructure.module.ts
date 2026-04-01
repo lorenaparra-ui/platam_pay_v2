@@ -9,7 +9,6 @@ import { TypeormCreditFacilityRepository } from '@infrastructure/database/reposi
 import { CATEGORY_REPOSITORY } from '@modules/categories/categories.tokens';
 import { CREDIT_FACILITY_REPOSITORY } from '@modules/credit-facilities/credit-facilities.tokens';
 import { PRODUCTS_REFERENCE_LOOKUP } from '@common/ports/products-reference-lookup.port';
-import { CREDIT_FACILITY_STATUS_LOOKUP } from '@modules/credit-facilities/domain/ports/credit-facility-status-lookup.port';
 import { TypeormProductsReferenceLookupAdapter } from '@infrastructure/database/common/typeorm-products-reference-lookup.adapter';
 
 @Global()
@@ -29,10 +28,6 @@ import { TypeormProductsReferenceLookupAdapter } from '@infrastructure/database/
       useExisting: TypeormProductsReferenceLookupAdapter,
     },
     {
-      provide: CREDIT_FACILITY_STATUS_LOOKUP,
-      useExisting: TypeormProductsReferenceLookupAdapter,
-    },
-    {
       provide: CATEGORY_REPOSITORY,
       useClass: TypeormCategoryRepository,
     },
@@ -45,7 +40,6 @@ import { TypeormProductsReferenceLookupAdapter } from '@infrastructure/database/
     CATEGORY_REPOSITORY,
     CREDIT_FACILITY_REPOSITORY,
     PRODUCTS_REFERENCE_LOOKUP,
-    CREDIT_FACILITY_STATUS_LOOKUP,
   ],
 })
 export class InfrastructureModule {}

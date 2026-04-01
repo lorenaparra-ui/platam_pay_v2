@@ -8,13 +8,23 @@ export interface CreatePartnerOrchestratorCategoryItem {
   readonly term_days: number;
 }
 
+/** Datos de representante legal; la saga asíncrona aún solo publica `operatingUser` vía SQS. */
+export interface CreatePartnerOrchestratorLegalRepresentative {
+  readonly first_name: string;
+  readonly last_name: string;
+  readonly doc_type: string;
+  readonly doc_number: string;
+  readonly phone: string | null;
+  readonly email: string;
+}
+
 /**
  * Entrada ya mapeada desde HTTP (sin Multer): el caso de uso recibe metadatos de archivos por separado.
  */
 export interface CreatePartnerOrchestratorCommand {
   /**
-   * UUID de ciudad en transversal (external_id). En el mensaje SQS `create-partner-user` v1.0
-   * se envía como `payload.city_external_id`; suppliers-ms no valida el catálogo.
+   * UUID v4 de ciudad en catálogo transversal (`business.cityId` en JSON HTTP).
+   * En SQS create-partner-user v1.0 va en `payload.city_external_id` (snake en mensaje).
    */
   readonly city_id: string | null;
   readonly entity_type: string;
@@ -29,6 +39,8 @@ export interface CreatePartnerOrchestratorCommand {
   readonly bank_entity: string;
   readonly account_number: string;
   readonly acronym: string | null;
+
+  readonly primary_color: string | null;
   readonly secondary_color: string | null;
   readonly light_color: string | null;
   readonly notification_email: string | null;
@@ -36,8 +48,7 @@ export interface CreatePartnerOrchestratorCommand {
   readonly send_sales_rep_voucher: boolean;
   readonly disbursement_notification_email: string | null;
   readonly contract_id: string | null;
-  /** UUID de `transversal_schema.statuses` (p. ej. partners active). */
-  readonly status_id: string;
+
   readonly total_limit: string;
   readonly country_code: string | null;
   readonly first_name: string;
@@ -46,5 +57,7 @@ export interface CreatePartnerOrchestratorCommand {
   readonly doc_number: string;
   readonly phone: string | null;
   readonly email: string;
+ 
+  readonly legal_representative: CreatePartnerOrchestratorLegalRepresentative | null;
   readonly categories: readonly CreatePartnerOrchestratorCategoryItem[];
 }

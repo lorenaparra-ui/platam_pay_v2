@@ -1,7 +1,7 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import {
   SUPPLIERS_REFERENCE_LOOKUP,
-  SuppliersReferenceLookupPort,
+  type SuppliersReferenceLookupPort,
 } from '@common/ports/suppliers-reference-lookup.port';
 import { PARTNER_REPOSITORY } from '@modules/partners/partners.tokens';
 import { PartnerRepository } from '@modules/partners/domain/repositories/partner.repository';

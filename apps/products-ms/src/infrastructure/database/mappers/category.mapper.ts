@@ -1,5 +1,6 @@
 import { CategoryEntity } from '@app/products-data';
 import { Category } from '@modules/categories/domain/models/category.models';
+import { CreditFacilitiesStatuses } from '@platam/shared';
 
 export class CategoryMapper {
   static to_domain(row: CategoryEntity): Category {
@@ -15,13 +16,19 @@ export class CategoryMapper {
       row.minimumDisbursementFee ?? null,
       row.delayDays,
       row.termDays,
-      row.statusId,
+      row.state,
       row.createdAt,
       row.updatedAt,
     );
   }
 
   static from_raw_row(row: Record<string, unknown>): Category {
+    const state_raw = String(row['state'] ?? CreditFacilitiesStatuses.ACTIVE);
+    const state =
+      state_raw === CreditFacilitiesStatuses.INACTIVE
+        ? CreditFacilitiesStatuses.INACTIVE
+        : CreditFacilitiesStatuses.ACTIVE;
+
     return new Category(
       Number(row['id']),
       String(row['external_id']),
@@ -42,7 +49,7 @@ export class CategoryMapper {
         : String(row['minimum_disbursement_fee']),
       Number(row['delay_days']),
       Number(row['term_days']),
-      Number(row['status_id']),
+      state,
       new Date(String(row['created_at'])),
       new Date(String(row['updated_at'])),
     );

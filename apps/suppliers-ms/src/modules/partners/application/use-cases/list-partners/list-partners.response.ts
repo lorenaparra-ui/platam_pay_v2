@@ -2,19 +2,18 @@ import { PartnerPublicFields } from '@modules/partners/application/mapping/partn
 
 export class ListPartnersItemResponse implements PartnerPublicFields {
   external_id: string;
-  business_external_id: string;
+  supplier_external_id: string;
   acronym: string | null;
   logo_url: string | null;
   co_branding_logo_url: string | null;
   primary_color: string | null;
   secondary_color: string | null;
   light_color: string | null;
-  sales_rep_role_name: string | null;
-  sales_rep_role_name_plural: string | null;
   notification_email: string | null;
   webhook_url: string | null;
   send_sales_rep_voucher: boolean;
   disbursement_notification_email: string | null;
+  state: string;
   created_at: Date;
   updated_at: Date;
 

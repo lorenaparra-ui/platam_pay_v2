@@ -8,13 +8,4 @@ export class SalesRepresentativeEntity extends BaseExternalIdEntity {
 
   @Column({ name: 'user_id', type: 'bigint', nullable: true })
   userId: number | null;
-
-  @Column({ name: 'name', type: 'varchar', length: 255 })
-  name: string;
-
-  @Column({ name: 'role', type: 'varchar', length: 100 })
-  role: string;
-
-  @Column({ name: 'status_id', type: 'bigint' })
-  statusId: number;
 }

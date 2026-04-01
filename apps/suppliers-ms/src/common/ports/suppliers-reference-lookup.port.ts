@@ -44,4 +44,8 @@ export interface SuppliersReferenceLookupPort {
   get_bank_account_internal_id_by_external_id(
     external_id: string,
   ): Promise<number | null>;
+
+  get_supplier_external_id_by_internal_id(
+    internal_id: number,
+  ): Promise<string | null>;
 }

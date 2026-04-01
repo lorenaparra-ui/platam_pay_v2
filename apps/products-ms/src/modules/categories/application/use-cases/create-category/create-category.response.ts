@@ -11,7 +11,7 @@ export class CreateCategoryResponse implements CategoryPublicFields {
   minimum_disbursement_fee: string | null;
   delay_days: number;
   term_days: number;
-  status_external_id: string;
+  state: string;
   created_at: Date;
   updated_at: Date;
 

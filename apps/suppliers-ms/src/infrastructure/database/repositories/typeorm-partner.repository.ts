@@ -13,24 +13,20 @@ import { PartnerMapper } from '@infrastructure/database/mappers/partner.mapper';
 const PARTNER_SELECT = {
   id: true,
   externalId: true,
-  businessId: true,
   acronym: true,
   logoUrl: true,
   coBrandingLogoUrl: true,
   primaryColor: true,
   secondaryColor: true,
   lightColor: true,
-  salesRepRoleName: true,
-  salesRepRoleNamePlural: true,
-  apiKeyHash: true,
   notificationEmail: true,
   webhookUrl: true,
   sendSalesRepVoucher: true,
   disbursementNotificationEmail: true,
-  defaultRepId: true,
-  statusId: true,
+  state: true,
   createdAt: true,
   updatedAt: true,
+  supplier: { id: true },
 } as const;
 
 @Injectable()
@@ -50,6 +46,7 @@ export class TypeormPartnerRepository implements PartnerRepository {
 
   async find_all(): Promise<Partner[]> {
     const rows = await this.repo.find({
+      relations: ['supplier'],
       select: PARTNER_SELECT,
       order: { id: 'ASC' },
     });
@@ -59,29 +56,25 @@ export class TypeormPartnerRepository implements PartnerRepository {
   async create(props: CreatePartnerProps): Promise<Partner> {
     const rows = await this.repo.query(
       `INSERT INTO suppliers_schema.partners (
-        external_id, business_id, acronym, logo_url, co_branding_logo_url,
+        supplier_id, external_id, acronym, logo_url, co_branding_logo_url,
         primary_color, secondary_color, light_color,
-        sales_rep_role_name, sales_rep_role_name_plural,
-        api_key_hash, notification_email, webhook_url, send_sales_rep_voucher,
+        notification_email, webhook_url, send_sales_rep_voucher,
         disbursement_notification_email
       ) VALUES (
-        gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, false, $10, $11, $12, $13
+        $1, gen_random_uuid(), $2, $3, $4, $5, $6, $7, $8, $9, $10, $11
       )
-      RETURNING id, external_id, business_id, acronym, logo_url, co_branding_logo_url,
+      RETURNING id, supplier_id, external_id, acronym, logo_url, co_branding_logo_url,
         primary_color, secondary_color, light_color,
-        sales_rep_role_name, sales_rep_role_name_plural,
-        api_key_hash, notification_email, webhook_url, send_sales_rep_voucher,
-        disbursement_notification_email, default_rep_id, status_id, created_at, updated_at`,
+        notification_email, webhook_url, send_sales_rep_voucher,
+        disbursement_notification_email, state, created_at, updated_at`,
       [
-        props.business_id,
+        props.supplier_id,
         props.acronym,
         props.logo_url,
         props.co_branding_logo_url,
         props.primary_color,
         props.secondary_color,
         props.light_color,
-        props.sales_rep_role_name ?? 'Sales Rep',
-        props.sales_rep_role_name_plural ?? 'Sales Reps',
         props.notification_email,
         props.webhook_url,
         props.send_sales_rep_voucher,
@@ -113,9 +106,6 @@ export class TypeormPartnerRepository implements PartnerRepository {
       i += 1;
     };
 
-    if (patch.business_id !== undefined) {
-      add('business_id', patch.business_id);
-    }
     if (patch.acronym !== undefined) {
       add('acronym', patch.acronym);
     }
@@ -134,12 +124,6 @@ export class TypeormPartnerRepository implements PartnerRepository {
     if (patch.light_color !== undefined) {
       add('light_color', patch.light_color);
     }
-    if (patch.sales_rep_role_name !== undefined) {
-      add('sales_rep_role_name', patch.sales_rep_role_name);
-    }
-    if (patch.sales_rep_role_name_plural !== undefined) {
-      add('sales_rep_role_name_plural', patch.sales_rep_role_name_plural);
-    }
     if (patch.notification_email !== undefined) {
       add('notification_email', patch.notification_email);
     }
@@ -154,6 +138,9 @@ export class TypeormPartnerRepository implements PartnerRepository {
         'disbursement_notification_email',
         patch.disbursement_notification_email,
       );
+    }
+    if (patch.state !== undefined) {
+      add('state', patch.state);
     }
 
     if (columns.length === 0) {

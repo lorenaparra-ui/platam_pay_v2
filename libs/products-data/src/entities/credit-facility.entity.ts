@@ -1,4 +1,5 @@
 import { Column, Entity, JoinColumn, OneToMany, OneToOne } from 'typeorm';
+import { CreditFacilitiesStatuses } from '@platam/shared';
 import { BaseExternalIdEntity } from './base-external-id.entity';
 import { CategoryEntity } from './category.entity';
 import { ContractEntity } from './contract.entity';
@@ -9,8 +10,14 @@ export class CreditFacilityEntity extends BaseExternalIdEntity {
   @JoinColumn({ name: 'contract_id', referencedColumnName: 'id' })
   contractId: ContractEntity | null;
 
-  @Column({ name: 'status_id', type: 'bigint' })
-  statusId: number;
+  @Column({
+    name: 'state',
+    type: 'enum',
+    enum: CreditFacilitiesStatuses,
+    enumName: 'credit_facility_state',
+    default: CreditFacilitiesStatuses.ACTIVE,
+  })
+  state: CreditFacilitiesStatuses;
 
   @Column({
     name: 'total_limit',

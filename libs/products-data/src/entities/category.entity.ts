@@ -1,4 +1,5 @@
 import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
+import { CreditFacilitiesStatuses } from '@platam/shared';
 import { BaseExternalIdEntity } from './base-external-id.entity';
 import { CreditFacilityEntity } from './credit-facility.entity';
 import { PartnersEntity } from '../../../suppliers-data/src/entities/partners.entity';
@@ -58,8 +59,14 @@ export class CategoryEntity extends BaseExternalIdEntity {
   @Column({ name: 'term_days', type: 'int' })
   termDays: number;
 
-  @Column({ name: 'status_id', type: 'bigint' })
-  statusId: number;
+  @Column({
+    name: 'state',
+    type: 'enum',
+    enum: CreditFacilitiesStatuses,
+    enumName: 'credit_facility_state',
+    default: CreditFacilitiesStatuses.ACTIVE,
+  })
+  state: CreditFacilitiesStatuses;
 
   @ManyToOne(() => CreditFacilityEntity, (cf) => cf.categories, {
     onDelete: 'CASCADE',

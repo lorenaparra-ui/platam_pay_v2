@@ -1,7 +1,12 @@
 import "./dotenv.config";
 import { DataSourceOptions } from "typeorm";
 import { SUPPLIERS_DATA_ENTITIES } from "@app/suppliers-data";
-import { CityEntity, PersonEntity, UserEntity } from "@app/transversal-data";
+import {
+  CityEntity,
+  PartnerCreateUserSqsIdempotencyEntity,
+  PersonEntity,
+  UserEntity,
+} from "@app/transversal-data";
 
 const TypeormConfig = {
   type: "postgres" as const,
@@ -15,6 +20,7 @@ const TypeormConfig = {
     PersonEntity,
     UserEntity,
     CityEntity,
+    PartnerCreateUserSqsIdempotencyEntity,
   ] as DataSourceOptions["entities"],
   // Sin schema global: cada @Entity define schema; migraciones viven en @platam/database.
   synchronize: false,
