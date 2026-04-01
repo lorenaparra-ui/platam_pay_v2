@@ -1,3 +1,4 @@
+import type { UserState } from '@modules/users/domain/models/user.models';
 import { UserPublicFields } from '@modules/users/application/mapping/user-public-fields.builder';
 
 export class ListUsersItemResponse implements UserPublicFields {
@@ -5,7 +6,7 @@ export class ListUsersItemResponse implements UserPublicFields {
   cognito_sub: string;
   email: string;
   role_external_id: string | null;
-  status_external_id: string;
+  state: UserState;
   last_login_at: Date | null;
   created_at: Date;
   updated_at: Date;

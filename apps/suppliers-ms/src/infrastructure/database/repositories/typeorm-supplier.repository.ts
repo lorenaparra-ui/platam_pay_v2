@@ -8,6 +8,7 @@ import {
   CreateSupplierProps,
   UpdateSupplierProps,
 } from '@modules/suppliers/domain/entities/supplier.entity';
+
 import { SupplierMapper } from '@infrastructure/database/mappers/supplier.mapper';
 
 const SUPPLIER_ORM_SELECT = {
@@ -60,25 +61,12 @@ export class TypeormSupplierRepository implements SupplierRepository {
   }
 
   async create(props: CreateSupplierProps): Promise<Supplier> {
-    let bank_account_id: number | null = null;
-    if (props.new_bank_account !== null) {
-      const b = props.new_bank_account;
-      const ba_rows = await this.repo.query(
-        `INSERT INTO suppliers_schema.bank_accounts (
-          external_id, bank_entity, account_number, bank_certification
-        ) VALUES (gen_random_uuid(), $1, $2, $3)
-        RETURNING id`,
-        [b.bank_entity, b.account_number, b.bank_certification],
-      );
-      bank_account_id = Number((ba_rows[0] as { id: number }).id);
-    }
-
     const rows = await this.repo.query(
       `INSERT INTO suppliers_schema.suppliers (
         external_id, business_id, bank_account_id
       ) VALUES (gen_random_uuid(), $1, $2)
       RETURNING id, external_id, business_id, bank_account_id, created_at, updated_at`,
-      [props.business_id, bank_account_id],
+      [props.business_id, props.bank_account_id],
     );
     return SupplierMapper.from_raw_row(rows[0] as Record<string, unknown>);
   }

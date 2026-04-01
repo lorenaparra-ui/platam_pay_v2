@@ -1,6 +1,6 @@
-import { ContractEntity, CreditFacilityEntity } from '@app/products-data';
+﻿import { ContractEntity, CreditFacilityEntity } from '@app/products-data';
 import { CreditFacility } from '@modules/credit-facilities/domain/models/credit-facility.models';
-import { CreditFacilitiesStatuses } from '@platam/shared';
+import { Statuses } from '@platam/shared';
 
 function contract_join_to_external_id(
   ref: ContractEntity | null | undefined,
@@ -25,11 +25,11 @@ export class CreditFacilityMapper {
   }
 
   static from_raw_row(row: Record<string, unknown>): CreditFacility {
-    const state_raw = String(row['state'] ?? CreditFacilitiesStatuses.ACTIVE);
+    const state_raw = String(row['state'] ?? Statuses.ACTIVE);
     const state =
-      state_raw === CreditFacilitiesStatuses.INACTIVE
-        ? CreditFacilitiesStatuses.INACTIVE
-        : CreditFacilitiesStatuses.ACTIVE;
+      state_raw === Statuses.INACTIVE
+        ? Statuses.INACTIVE
+        : Statuses.ACTIVE;
 
     return new CreditFacility(
       Number(row['id']),

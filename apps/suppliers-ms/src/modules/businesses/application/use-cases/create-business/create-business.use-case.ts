@@ -19,13 +19,6 @@ export class CreateBusinessUseCase {
   ) {}
 
   async execute(req: CreateBusinessRequest): Promise<CreateBusinessResponse> {
-    const person_id = await this.lookup.get_person_internal_id_by_external_id(
-      req.person_external_id,
-    );
-    if (person_id === null) {
-      throw new NotFoundException('person not found');
-    }
-
     let city_id: number | null = null;
     if (req.city_external_id !== null) {
       const c_id = await this.lookup.get_city_internal_id_by_external_id(
@@ -38,7 +31,7 @@ export class CreateBusinessUseCase {
     }
 
     const created = await this.business_repository.create({
-      person_id,
+      person_id: req.person_internal_id,
       city_id,
       entity_type: req.entity_type,
       business_name: req.business_name,

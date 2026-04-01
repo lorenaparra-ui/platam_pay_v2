@@ -1,6 +1,7 @@
 import { BankAccount } from '@modules/bank-accounts/domain/entities/bank-account.entity';
 
 export interface BankAccountPublicFields {
+  internal_id: number;
   external_id: string;
   bank_entity: string;
   account_number: string;
@@ -13,6 +14,7 @@ export function build_bank_account_public_fields(
   account: BankAccount,
 ): BankAccountPublicFields {
   return {
+    internal_id: account.internal_id,
     external_id: account.external_id,
     bank_entity: account.bank_entity,
     account_number: account.account_number,

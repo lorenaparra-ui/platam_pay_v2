@@ -3,6 +3,8 @@ import { PublishTransversalEventUseCase } from './application/use-cases/publish-
 import { PublishUploadFilesEventUseCase } from './application/use-cases/publish-upload-files-event.use-case';
 import { PublishCreatePartnerUserCommandUseCase } from './application/use-cases/publish-create-partner-user-command.use-case';
 import { PublishCreatePersonCommandUseCase } from './application/use-cases/publish-create-person-command.use-case';
+import { PublishCreateCreditFacilityCommandUseCase } from './application/use-cases/publish-create-credit-facility-command.use-case';
+import { PublishCreateCategoriesCommandUseCase } from './application/use-cases/publish-create-categories-command.use-case';
 import { ProcessTransversalInboundMessageUseCase } from './application/use-cases/process-transversal-inbound-message.use-case';
 import { ProcessFilesUploadedInboundUseCase } from './application/use-cases/process-files-uploaded-inbound.use-case';
 import { IngestTransversalInboundSqsMessageUseCase } from './application/use-cases/ingest-transversal-inbound-sqs-message.use-case';
@@ -15,6 +17,8 @@ import { FilesUploadedCorrelationAwaiter } from './application/services/files-up
     PublishUploadFilesEventUseCase,
     PublishCreatePartnerUserCommandUseCase,
     PublishCreatePersonCommandUseCase,
+    PublishCreateCreditFacilityCommandUseCase,
+    PublishCreateCategoriesCommandUseCase,
     ProcessTransversalInboundMessageUseCase,
     ProcessFilesUploadedInboundUseCase,
     IngestTransversalInboundSqsMessageUseCase,
@@ -25,6 +29,8 @@ import { FilesUploadedCorrelationAwaiter } from './application/services/files-up
     PublishUploadFilesEventUseCase,
     PublishCreatePartnerUserCommandUseCase,
     PublishCreatePersonCommandUseCase,
+    PublishCreateCreditFacilityCommandUseCase,
+    PublishCreateCategoriesCommandUseCase,
     ProcessTransversalInboundMessageUseCase,
     ProcessFilesUploadedInboundUseCase,
     IngestTransversalInboundSqsMessageUseCase,

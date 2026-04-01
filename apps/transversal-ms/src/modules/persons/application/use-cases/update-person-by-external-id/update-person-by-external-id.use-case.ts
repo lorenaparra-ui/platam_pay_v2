@@ -1,9 +1,7 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { PERSON_REPOSITORY } from '@modules/persons/persons.tokens';
-import { USER_REPOSITORY } from '@modules/users/users.tokens';
 import { CITY_REPOSITORY } from '@modules/transversal/transversal.tokens';
 import type { CityRepository } from '@modules/transversal/domain/ports/catalog/city.repository.port';
-import { UserRepository } from '@modules/users/domain/ports/user.ports';
 import { PersonRepository } from '@modules/persons/domain/ports/person.ports';
 import { UpdatePersonProps } from '@modules/persons/domain/models/person.models';
 import { build_person_public_fields } from '@modules/persons/application/mapping/person-public-fields.builder';
@@ -15,8 +13,6 @@ export class UpdatePersonByExternalIdUseCase {
   constructor(
     @Inject(PERSON_REPOSITORY)
     private readonly person_repository: PersonRepository,
-    @Inject(USER_REPOSITORY)
-    private readonly user_repository: UserRepository,
     @Inject(CITY_REPOSITORY)
     private readonly city_repository: CityRepository,
   ) {}
@@ -26,16 +22,6 @@ export class UpdatePersonByExternalIdUseCase {
   ): Promise<UpdatePersonByExternalIdResponse> {
     const patch: UpdatePersonProps = {};
 
-    if (req.user_external_id !== undefined) {
-      const user_id =
-        await this.user_repository.find_internal_id_by_external_id(
-          req.user_external_id,
-        );
-      if (user_id === null) {
-        throw new NotFoundException('user not found');
-      }
-      patch.user_id = user_id;
-    }
     if (req.country_code !== undefined) {
       patch.country_code = req.country_code;
     }
@@ -91,11 +77,7 @@ export class UpdatePersonByExternalIdUseCase {
       throw new NotFoundException('person not found');
     }
 
-    const fields = await build_person_public_fields(
-      updated,
-      this.user_repository,
-      this.city_repository,
-    );
+    const fields = await build_person_public_fields(updated, this.city_repository);
     return new UpdatePersonByExternalIdResponse(fields);
   }
 }

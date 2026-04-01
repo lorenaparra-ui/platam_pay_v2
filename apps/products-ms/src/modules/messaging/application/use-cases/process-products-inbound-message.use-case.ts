@@ -1,6 +1,6 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+﻿import { Inject, Injectable, Logger } from '@nestjs/common';
 import type { UseCase } from '@platam/shared';
-import { CreditFacilitiesStatuses } from '@platam/shared';
+import { Statuses } from '@platam/shared';
 import { TransversalInboundMessageDto } from '../dto/transversal-inbound-message.dto';
 import { TransversalEventType } from '../dto/transversal-outbound-event.dto';
 import { CreateCreditFacilityUseCase } from '@modules/credit-facilities/application/use-cases/create-credit-facility/create-credit-facility.use-case';
@@ -36,16 +36,16 @@ type CategoryBatchPayload = Readonly<{
   categories?: CategoryItemPayload[];
 }>;
 
-function parse_facility_state(raw: string | undefined): CreditFacilitiesStatuses | null {
+function parse_facility_state(raw: string | undefined): Statuses | null {
   if (raw === undefined) {
     return null;
   }
   const v = raw.trim().toLowerCase();
-  if (v === CreditFacilitiesStatuses.ACTIVE) {
-    return CreditFacilitiesStatuses.ACTIVE;
+  if (v === Statuses.ACTIVE) {
+    return Statuses.ACTIVE;
   }
-  if (v === CreditFacilitiesStatuses.INACTIVE) {
-    return CreditFacilitiesStatuses.INACTIVE;
+  if (v === Statuses.INACTIVE) {
+    return Statuses.INACTIVE;
   }
   return null;
 }

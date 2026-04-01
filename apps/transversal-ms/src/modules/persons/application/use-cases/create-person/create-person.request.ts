@@ -1,6 +1,5 @@
 export class CreatePersonRequest {
   constructor(
-    readonly user_external_id: string,
     readonly country_code: string | null,
     readonly first_name: string,
     readonly last_name: string,

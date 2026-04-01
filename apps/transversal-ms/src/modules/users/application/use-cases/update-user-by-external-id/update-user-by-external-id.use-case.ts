@@ -1,11 +1,7 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { USER_REPOSITORY } from '@modules/users/users.tokens';
-import {
-  ROLE_REPOSITORY,
-  STATUS_REPOSITORY,
-} from '@modules/transversal/transversal.tokens';
+import { ROLE_REPOSITORY } from '@modules/transversal/transversal.tokens';
 import type { RoleRepository } from '@modules/transversal/domain/ports/catalog/role.repository.port';
-import type { StatusRepository } from '@modules/transversal/domain/ports/catalog/status.repository.port';
 import { UserRepository } from '@modules/users/domain/ports/user.ports';
 import { UpdateUserProps } from '@modules/users/domain/models/user.models';
 import { build_user_public_fields } from '@modules/users/application/mapping/user-public-fields.builder';
@@ -17,8 +13,6 @@ export class UpdateUserByExternalIdUseCase {
   constructor(
     @Inject(USER_REPOSITORY)
     private readonly user_repository: UserRepository,
-    @Inject(STATUS_REPOSITORY)
-    private readonly status_repository: StatusRepository,
     @Inject(ROLE_REPOSITORY)
     private readonly role_repository: RoleRepository,
   ) {}
@@ -37,14 +31,8 @@ export class UpdateUserByExternalIdUseCase {
     if (req.last_login_at !== undefined) {
       patch.last_login_at = req.last_login_at;
     }
-    if (req.status_external_id !== undefined) {
-      const status_ref = await this.status_repository.find_by_external_id(
-        req.status_external_id,
-      );
-      if (status_ref === null) {
-        throw new NotFoundException('status not found');
-      }
-      patch.status_id = status_ref.id;
+    if (req.state !== undefined) {
+      patch.state = req.state;
     }
     if (req.role_external_id !== undefined) {
       if (req.role_external_id === null) {
@@ -68,11 +56,7 @@ export class UpdateUserByExternalIdUseCase {
       throw new NotFoundException('user not found');
     }
 
-    const fields = await build_user_public_fields(
-      updated,
-      this.role_repository,
-      this.status_repository,
-    );
+    const fields = await build_user_public_fields(updated, this.role_repository);
     return new UpdateUserByExternalIdResponse(fields);
   }
 }

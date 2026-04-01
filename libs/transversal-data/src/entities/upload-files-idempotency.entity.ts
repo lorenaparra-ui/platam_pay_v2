@@ -1,24 +1,16 @@
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Column, Entity } from 'typeorm';
+import { BaseSqsIdempotencyEntity } from './base-sqs-idempotency.entity';
 
+export type UploadFilesIdempotencyResult = ReadonlyArray<
+  Readonly<{ url: string; folder: string }>
+>;
+
+/**
+ * Nota: la columna en BD se llama "result" desde la migración
+ * `1890000000000-UploadFilesIdempotencyRenameResult` (antes "result_files").
+ */
 @Entity({ schema: 'transversal_schema', name: 'upload_files_idempotency' })
-export class UploadFilesIdempotencyEntity {
-  @PrimaryGeneratedColumn({ type: 'bigint' })
-  id!: string;
-
-  @Column({ name: 'idempotency_key', type: 'varchar', length: 512, unique: true })
-  idempotency_key!: string;
-
-  @Column({ name: 'correlation_id', type: 'uuid' })
-  correlation_id!: string;
-
-  @Column({ name: 'result_files', type: 'jsonb', nullable: true })
-  result_files!: { url: string; folder: string }[] | null;
-
-  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  created_at!: Date;
+export class UploadFilesIdempotencyEntity extends BaseSqsIdempotencyEntity {
+  @Column({ name: 'result', type: 'jsonb', nullable: true })
+  override result!: UploadFilesIdempotencyResult | null;
 }

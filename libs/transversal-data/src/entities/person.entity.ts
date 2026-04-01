@@ -3,9 +3,6 @@ import { BaseExternalIdEntity } from '../../../products-data/src/entities/base-e
 
 @Entity({ name: 'persons', schema: 'transversal_schema' })
 export class PersonEntity extends BaseExternalIdEntity {
-  @Column({ name: 'user_id', type: 'bigint' })
-  userId: number;
-
   @Column({ name: 'country_code', type: 'varchar', length: 2, nullable: true })
   countryCode: string | null;
 

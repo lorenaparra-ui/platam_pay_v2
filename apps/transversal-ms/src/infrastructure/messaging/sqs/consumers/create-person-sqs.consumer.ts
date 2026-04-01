@@ -1,7 +1,7 @@
 import { Inject, Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { SQSClient } from '@aws-sdk/client-sqs';
-import { IngestPartnerCreateUserSqsMessageUseCase } from '@modules/users/application/use-cases/partner-create-user/ingest-partner-create-user-sqs-message.use-case';
+import { IngestCreatePersonSqsMessageUseCase } from '@modules/persons/application/use-cases/ingest-create-person-sqs/ingest-create-person-sqs-message.use-case';
 import {
   BaseConsumer,
   QUEUES_CONFIG,
@@ -11,7 +11,8 @@ import {
 } from '@platam/shared';
 
 /**
- * Misma lógica y contrato JSON que create-partner-user; cola dedicada (p. ej. representante legal).
+ * Consume mensajes de TRANSVERSAL_SQS_CREATE_PERSON_QUEUE_URL.
+ * Solo crea la Persona (sin crear Usuario asociado).
  */
 @Injectable()
 export class CreatePersonSqsConsumer
@@ -24,7 +25,7 @@ export class CreatePersonSqsConsumer
     @Inject(SQS_CLIENT) sqs_client: SQSClient,
     @Inject(QUEUES_CONFIG) private readonly queues_config: SqsQueuesUrlsConfig,
     private readonly config_service: ConfigService,
-    private readonly ingest: IngestPartnerCreateUserSqsMessageUseCase,
+    private readonly ingest: IngestCreatePersonSqsMessageUseCase,
   ) {
     super(sqs_client, {
       log: (m) => this.nest_logger.log(m),

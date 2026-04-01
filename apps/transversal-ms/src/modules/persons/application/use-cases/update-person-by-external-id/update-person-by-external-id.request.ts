@@ -1,7 +1,6 @@
 export class UpdatePersonByExternalIdRequest {
   constructor(
     readonly external_id: string,
-    readonly user_external_id: string | undefined,
     readonly country_code: string | null | undefined,
     readonly first_name: string | undefined,
     readonly last_name: string | undefined,

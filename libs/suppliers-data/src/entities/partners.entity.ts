@@ -1,5 +1,5 @@
-import { Column, Entity, JoinColumn, OneToOne } from 'typeorm';
-import { CreditFacilitiesStatuses } from '@platam/shared';
+﻿import { Column, Entity, JoinColumn, OneToOne } from 'typeorm';
+import { Statuses } from '@platam/shared';
 import { BaseExternalIdEntity } from './base-external-id.entity';
 import { SupplierEntity } from './supplier.entity';
 
@@ -63,9 +63,9 @@ export class PartnersEntity extends BaseExternalIdEntity {
   @Column({
     name: 'state',
     type: 'enum',
-    enum: CreditFacilitiesStatuses,
+    enum: Statuses,
     enumName: 'partner_state',
-    default: CreditFacilitiesStatuses.ACTIVE,
+    default: Statuses.ACTIVE,
   })
-  state: CreditFacilitiesStatuses;
+  state: Statuses;
 }

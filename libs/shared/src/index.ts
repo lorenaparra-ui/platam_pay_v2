@@ -8,6 +8,7 @@ export * from './messaging/sqs-message.interface';
 export * from './messaging/sqs-publish-failed.error';
 export * from './messaging/base.consumer';
 export * from './messaging/base.publisher';
+export * from './messaging/sqs-idempotency.port';
 
 export * from './domain/credit-facilities-statuses.enum';
 export * from './domain/domain-event.interface';

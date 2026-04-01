@@ -7,5 +7,4 @@ export enum Statuses {
   INACTIVE = 'inactive',
 }
 
-/** @deprecated Preferir `Statuses`; alias por compatibilidad con imports existentes. */
-export { Statuses as CreditFacilitiesStatuses };
+

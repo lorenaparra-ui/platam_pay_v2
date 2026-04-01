@@ -3,6 +3,7 @@ import { SuppliersReferenceLookupPort } from '@common/ports/suppliers-reference-
 import { Partner } from '@modules/partners/domain/entities/partner.entity';
 
 export interface PartnerPublicFields {
+  internal_id: number;
   external_id: string;
   supplier_external_id: string;
   acronym: string | null;
@@ -31,6 +32,7 @@ export async function build_partner_public_fields(
   }
 
   return {
+    internal_id: partner.internal_id,
     external_id: partner.external_id,
     supplier_external_id,
     acronym: partner.acronym,

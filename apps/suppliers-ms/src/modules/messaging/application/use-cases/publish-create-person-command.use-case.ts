@@ -12,7 +12,6 @@ import { ValidationFailedError } from '../exceptions/validation-failed.error';
 export type PublishCreatePersonCommandInput = Readonly<{
   correlation_id: string;
   idempotency_key: string;
-  email: string;
   country_code: string | null;
   first_name: string;
   last_name: string;
@@ -23,7 +22,8 @@ export type PublishCreatePersonCommandInput = Readonly<{
 }>;
 
 /**
- * Mismo contrato create-partner-user (v1.0) hacia TRANSVERSAL_SQS_CREATE_PERSON_QUEUE_URL.
+ * Publica evento 'create-person' (v1.0) hacia TRANSVERSAL_SQS_CREATE_PERSON_QUEUE_URL.
+ * Solo crea la Persona (sin Usuario asociado).
  */
 @Injectable()
 export class PublishCreatePersonCommandUseCase {
@@ -43,12 +43,11 @@ export class PublishCreatePersonCommandUseCase {
     }
 
     const body = JSON.stringify({
-      event: 'create-partner-user',
+      event: 'create-person',
       version: '1.0',
       correlationId: command.correlation_id,
       idempotencyKey: command.idempotency_key,
       payload: {
-        email: command.email,
         country_code: command.country_code,
         first_name: command.first_name,
         last_name: command.last_name,

@@ -4,7 +4,7 @@ import { GetPersonByExternalIdUseCase } from './application/use-cases/get-person
 import { ListPersonsUseCase } from './application/use-cases/list-persons/list-persons.use-case';
 import { UpdatePersonByExternalIdUseCase } from './application/use-cases/update-person-by-external-id/update-person-by-external-id.use-case';
 import { DeletePersonByExternalIdUseCase } from './application/use-cases/delete-person-by-external-id/delete-person-by-external-id.use-case';
-
+import { IngestCreatePersonSqsMessageUseCase } from './application/use-cases/ingest-create-person-sqs/ingest-create-person-sqs-message.use-case';
 
 @Module({
   providers: [
@@ -13,6 +13,7 @@ import { DeletePersonByExternalIdUseCase } from './application/use-cases/delete-
     ListPersonsUseCase,
     UpdatePersonByExternalIdUseCase,
     DeletePersonByExternalIdUseCase,
+    IngestCreatePersonSqsMessageUseCase,
   ],
   exports: [
     CreatePersonUseCase,
@@ -20,6 +21,7 @@ import { DeletePersonByExternalIdUseCase } from './application/use-cases/delete-
     ListPersonsUseCase,
     UpdatePersonByExternalIdUseCase,
     DeletePersonByExternalIdUseCase,
+    IngestCreatePersonSqsMessageUseCase,
   ],
 })
 export class PersonsModule {}

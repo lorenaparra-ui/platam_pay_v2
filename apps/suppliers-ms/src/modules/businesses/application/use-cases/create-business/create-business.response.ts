@@ -1,6 +1,7 @@
 import { BusinessPublicFields } from '@modules/businesses/application/mapping/business-public-fields.builder';
 
 export class CreateBusinessResponse implements BusinessPublicFields {
+  internal_id: number;
   external_id: string;
   person_external_id: string;
   city_external_id: string | null;

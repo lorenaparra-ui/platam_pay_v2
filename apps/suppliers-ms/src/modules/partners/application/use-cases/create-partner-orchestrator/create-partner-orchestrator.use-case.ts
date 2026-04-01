@@ -1,11 +1,13 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { randomUUID } from 'crypto';
+import { Statuses } from '@platam/shared';
 import { CreateBusinessUseCase } from '@modules/businesses/application/use-cases/create-business/create-business.use-case';
 import { CreateBusinessRequest } from '@modules/businesses/application/use-cases/create-business/create-business.request';
-import { PublishTransversalEventUseCase } from '@messaging/application/use-cases/publish-transversal-event.use-case';
-import { PublishCreatePartnerUserCommandUseCase } from '@messaging/application/use-cases/publish-create-partner-user-command.use-case';
+import { CreateBankAccountUseCase } from '@modules/bank-accounts/application/use-cases/create-bank-account/create-bank-account.use-case';
+import { CreateBankAccountRequest } from '@modules/bank-accounts/application/use-cases/create-bank-account/create-bank-account.request';
 import { PublishCreatePersonCommandUseCase } from '@messaging/application/use-cases/publish-create-person-command.use-case';
-import { TransversalEventType } from '@messaging/application/dto/transversal-outbound-event.dto';
+import { PublishCreateCreditFacilityCommandUseCase } from '@messaging/application/use-cases/publish-create-credit-facility-command.use-case';
+import { PublishCreateCategoriesCommandUseCase } from '@messaging/application/use-cases/publish-create-categories-command.use-case';
 import {
   PARTNER_ONBOARDING_SAGA_REPOSITORY,
   type PartnerOnboardingSagaRepository,
@@ -19,6 +21,10 @@ import {
   type PartnerOnboardingFilesPort,
   type PartnerOnboardingUploadedFile,
 } from '@modules/partners/application/ports/partner-onboarding-files.port';
+import {
+  PRODUCTS_CREDIT_FACILITY_SYNC_PORT,
+  type ProductsCreditFacilitySyncPort,
+} from '@modules/partners/application/ports/products-credit-facility-sync.port';
 import type { CreatePartnerOrchestratorCommand } from './create-partner-orchestrator.command';
 import { CreatePartnerOrchestratorResponse } from './create-partner-orchestrator.response';
 import {
@@ -32,7 +38,7 @@ import { CreateSupplierRequest } from '@modules/suppliers/application/use-cases/
 import { CreatePartnerUseCase } from '@modules/partners/application/use-cases/create-partner/create-partner.use-case';
 import { CreatePartnerRequest } from '@modules/partners/application/use-cases/create-partner/create-partner.request';
 
-const TOTAL_STEPS = 8;
+const TOTAL_STEPS = 9;
 
 const PARTNER_ONBOARDING_FILE_FOLDERS = {
   bank_certification: 'bank-certifications',
@@ -53,13 +59,16 @@ export class CreatePartnerOrchestratorUseCase {
     private readonly files_port: PartnerOnboardingFilesPort,
     @Inject(SUPPLIERS_REFERENCE_LOOKUP)
     private readonly suppliers_lookup: SuppliersReferenceLookupPort,
+    @Inject(PRODUCTS_CREDIT_FACILITY_SYNC_PORT)
+    private readonly credit_facility_sync: ProductsCreditFacilitySyncPort,
+    private readonly create_bank_account: CreateBankAccountUseCase,
     private readonly create_business: CreateBusinessUseCase,
     private readonly create_supplier: CreateSupplierUseCase,
     private readonly create_partner: CreatePartnerUseCase,
     private readonly create_legal_representative: CreateLegalRepresentativeUseCase,
-    private readonly publish_create_partner_user: PublishCreatePartnerUserCommandUseCase,
     private readonly publish_create_person: PublishCreatePersonCommandUseCase,
-    private readonly publish_transversal: PublishTransversalEventUseCase,
+    private readonly publish_create_credit_facility: PublishCreateCreditFacilityCommandUseCase,
+    private readonly publish_create_categories: PublishCreateCategoriesCommandUseCase,
   ) {}
 
   async execute(
@@ -83,7 +92,7 @@ export class CreatePartnerOrchestratorUseCase {
 
     try {
       this.log_step(
-        1,
+        0,
         correlation_id,
         'archivos: cola TRANSVERSAL_SQS_UPLOAD_FILES_QUEUE_URL → S3 (transversal-ms)',
       );
@@ -96,52 +105,83 @@ export class CreatePartnerOrchestratorUseCase {
         file_folders: PARTNER_ONBOARDING_FILE_FOLDERS,
       });
 
-      await this.publish_transversal.execute({
+      // Paso 1 — Crear credit_facility (INACTIVE) vía SQL directo + notificación SQS
+      this.log_step(1, correlation_id, 'crear credit_facility INACTIVE → products_schema');
+      const cf = await this.credit_facility_sync.create_credit_facility({
+        credit_facility_external_id,
+        contract_id: command.contract_id,
+        total_limit: command.total_limit,
+        state: Statuses.INACTIVE,
+      });
+      await this.publish_create_credit_facility.execute({
         correlation_id,
-        event_type:
-          TransversalEventType.partner_onboarding_files_upload_requested,
-        payload: {
-          bank_certification_url: file_urls.bank_certification_url,
-          logo_url: file_urls.logo_url,
-          co_branding_url: file_urls.co_branding_url,
-        },
+        external_id: credit_facility_external_id,
+        contract_id: command.contract_id,
+        total_limit: command.total_limit,
+        state: Statuses.INACTIVE,
       });
       await this.saga_repository.update_by_external_id(saga_external_id, {
         current_step: 1,
       });
 
-      this.log_step(
-        2,
-        correlation_id,
-        'usuario operativo (SQS create-user) → persona; negocio; representante legal (SQS create-person)',
+      // Paso 2 — Crear cuenta bancaria (directo, sin SQS)
+      this.log_step(2, correlation_id, 'crear bank_account (módulo bank-accounts)');
+      const bank_cert_url =
+        file_urls.bank_certification_url.trim().length > 0
+          ? file_urls.bank_certification_url.trim()
+          : null;
+      const bank_account = await this.create_bank_account.execute(
+        new CreateBankAccountRequest(
+          command.bank_entity,
+          command.account_number,
+          bank_cert_url,
+        ),
       );
-
-     
-
-      await this.publish_create_partner_user.execute({
-        correlation_id,
-        idempotency_key: saga_external_id,
-        email: command.email,
-        country_code: command.country_code,
-        first_name: command.first_name,
-        last_name: command.last_name,
-        doc_type: command.doc_type,
-        doc_number: command.doc_number,
-        phone: command.phone,
-        city_external_id: command.city_id,
-      });
-
-      const operating_user_result =
-        await this.partner_user_sqs_result.wait_for_completed_result(saga_external_id);
-
       await this.saga_repository.update_by_external_id(saga_external_id, {
         current_step: 2,
-        person_external_id: operating_user_result.person_external_id,
       });
 
+      // Paso 3 — Crear persona del representante legal (SQS create-person) y obtener id interno
+      this.log_step(3, correlation_id, 'publicar create-person (RL) → TRANSVERSAL_SQS_CREATE_PERSON_QUEUE_URL');
+      const lr = command.legal_representative;
+      const lr_idempotency_key = `${saga_external_id}__legal_representative`;
+      let lr_person_external_id: string | null = null;
+      let person_internal_id: number | null = null;
+
+      if (lr !== null) {
+        await this.publish_create_person.execute({
+          correlation_id,
+          idempotency_key: lr_idempotency_key,
+          country_code: command.country_code,
+          first_name: lr.first_name,
+          last_name: lr.last_name,
+          doc_type: lr.doc_type,
+          doc_number: lr.doc_number,
+          phone: lr.phone,
+          city_external_id: command.city_id,
+        });
+        const lr_sqs_result =
+          await this.partner_user_sqs_result.wait_for_completed_result(lr_idempotency_key);
+        lr_person_external_id = lr_sqs_result.person_external_id;
+        person_internal_id = await this.suppliers_lookup.get_person_internal_id_by_external_id(
+          lr_person_external_id,
+        );
+        await this.saga_repository.update_by_external_id(saga_external_id, {
+          current_step: 3,
+          person_external_id: lr_person_external_id,
+        });
+      } else {
+        await this.saga_repository.update_by_external_id(saga_external_id, { current_step: 3 });
+      }
+
+      // Paso 4 — Crear business usando id interno de persona
+      this.log_step(4, correlation_id, 'crear business (person_internal_id)');
+      if (person_internal_id === null) {
+        throw new Error('person_internal_id requerido para crear business (legal_representative es null)');
+      }
       const business = await this.create_business.execute(
         new CreateBusinessRequest(
-          operating_user_result.person_external_id,
+          person_internal_id,
           command.city_id,
           command.entity_type,
           command.business_name,
@@ -154,57 +194,36 @@ export class CreatePartnerOrchestratorUseCase {
           command.year_of_establishment,
         ),
       );
+      await this.saga_repository.update_by_external_id(saga_external_id, { current_step: 4 });
 
+      // Paso 5 — Crear supplier usando ids internos de business y bank_account
+      this.log_step(5, correlation_id, 'crear supplier (business_internal_id + bank_account_internal_id)');
+      const supplier = await this.create_supplier.execute(
+        new CreateSupplierRequest(business.internal_id, bank_account.internal_id),
+      );
+      await this.saga_repository.update_by_external_id(saga_external_id, { current_step: 5 });
+
+      // Paso 6 — Crear legal_representative usando ids internos de persona y supplier
+      this.log_step(6, correlation_id, 'crear legal_representative (person_internal_id + supplier_internal_id)');
       let legal_representative_external_id: string | null = null;
-      const lr = command.legal_representative;
       if (lr !== null) {
-        const lr_idempotency_key = `${saga_external_id}__legal_representative`;
-        await this.publish_create_person.execute({
-          correlation_id,
-          idempotency_key: lr_idempotency_key,
-          email: lr.email,
-          country_code: command.country_code,
-          first_name: lr.first_name,
-          last_name: lr.last_name,
-          doc_type: lr.doc_type,
-          doc_number: lr.doc_number,
-          phone: lr.phone,
-          city_external_id: command.city_id,
-        });
-        const lr_person = await this.partner_user_sqs_result.wait_for_completed_result(
-          lr_idempotency_key,
-        );
         const lr_row = await this.create_legal_representative.execute(
-          new CreateLegalRepresentativeRequest(lr_person.person_external_id, true),
+          new CreateLegalRepresentativeRequest(person_internal_id, true, supplier.internal_id),
         );
         legal_representative_external_id = lr_row.external_id;
       }
+      await this.saga_repository.update_by_external_id(saga_external_id, { current_step: 6 });
 
-      const bank_certification_stored =
-        file_urls.bank_certification_url.trim().length > 0
-          ? file_urls.bank_certification_url.trim()
-          : null;
-
-      const supplier_res = await this.create_supplier.execute(
-        new CreateSupplierRequest(business.external_id, {
-          bank_entity: command.bank_entity,
-          account_number: command.account_number,
-          bank_certification: bank_certification_stored,
-        }),
-      );
-
+      // Paso 7 — Crear partner usando id interno de supplier
+      this.log_step(7, correlation_id, 'crear partner (supplier_internal_id)');
       const logo_stored =
-        file_urls.logo_url.trim().length > 0
-          ? file_urls.logo_url.trim()
-          : null;
+        file_urls.logo_url.trim().length > 0 ? file_urls.logo_url.trim() : null;
       const co_branding_stored =
-        file_urls.co_branding_url.trim().length > 0
-          ? file_urls.co_branding_url.trim()
-          : null;
+        file_urls.co_branding_url.trim().length > 0 ? file_urls.co_branding_url.trim() : null;
 
-      const partner_res = await this.create_partner.execute(
+      const partner = await this.create_partner.execute(
         new CreatePartnerRequest(
-          supplier_res.external_id,
+          supplier.internal_id,
           command.acronym,
           logo_stored,
           co_branding_stored,
@@ -217,21 +236,43 @@ export class CreatePartnerOrchestratorUseCase {
           command.disbursement_notification_email,
         ),
       );
+      await this.saga_repository.update_by_external_id(saga_external_id, { current_step: 7 });
+
+      // Paso 8 — Publicar categorías a PRODUCTS_SQS_CREATE_CATEGORIES_QUEUE_URL
+      this.log_step(8, correlation_id, 'publicar categorías → PRODUCTS_SQS_CREATE_CATEGORIES_QUEUE_URL');
+      await this.publish_create_categories.execute({
+        correlation_id,
+        credit_facility_id: cf.internal_id,
+        partner_id: partner.internal_id,
+        categories: command.categories,
+      });
+      await this.saga_repository.update_by_external_id(saga_external_id, { current_step: 8 });
+
+      // Paso 9 — Activar credit_facility (ACTIVE)
+      this.log_step(9, correlation_id, 'activar credit_facility → ACTIVE');
+      await this.credit_facility_sync.update_credit_facility_state(
+        credit_facility_external_id,
+        Statuses.ACTIVE,
+      );
+      await this.saga_repository.update_by_external_id(saga_external_id, {
+        current_step: 9,
+        status: 'COMPLETED',
+      });
 
       return new CreatePartnerOrchestratorResponse(
         saga_external_id,
         correlation_id,
         credit_facility_external_id,
-        operating_user_result.user_external_id,
-        operating_user_result.person_external_id,
+        null,
+        lr_person_external_id,
         legal_representative_external_id,
         business.external_id,
         file_urls.bank_certification_url,
         file_urls.logo_url,
         file_urls.co_branding_url,
-        supplier_res.bank_account_external_id,
-        supplier_res.external_id,
-        partner_res.external_id,
+        bank_account.external_id,
+        supplier.external_id,
+        partner.external_id,
       );
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);

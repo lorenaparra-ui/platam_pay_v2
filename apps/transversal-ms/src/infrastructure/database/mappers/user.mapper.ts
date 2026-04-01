@@ -1,5 +1,5 @@
 import { UserEntity } from '@app/transversal-data';
-import { User } from '@modules/users/domain/models/user.models';
+import { User, UserState } from '@modules/users/domain/models/user.models';
 
 export class UserMapper {
   static to_domain(row: UserEntity): User {
@@ -9,7 +9,7 @@ export class UserMapper {
       row.cognitoSub,
       row.email,
       row.roleId ?? null,
-      row.statusId,
+      row.state,
       row.lastLoginAt ?? null,
       row.createdAt,
       row.updatedAt,
@@ -25,7 +25,7 @@ export class UserMapper {
       row['role_id'] === null || row['role_id'] === undefined
         ? null
         : Number(row['role_id']),
-      Number(row['status_id']),
+      (row['state'] as UserState | undefined) ?? 'active',
       row['last_login_at'] === null || row['last_login_at'] === undefined
         ? null
         : new Date(String(row['last_login_at'])),

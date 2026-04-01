@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import {
   SUPPLIERS_REFERENCE_LOOKUP,
   SuppliersReferenceLookupPort,
@@ -19,17 +19,9 @@ export class CreateSupplierUseCase {
   ) {}
 
   async execute(req: CreateSupplierRequest): Promise<CreateSupplierResponse> {
-    const business_id =
-      await this.lookup.get_business_internal_id_by_external_id(
-        req.business_external_id,
-      );
-    if (business_id === null) {
-      throw new NotFoundException('business not found');
-    }
-
     const created = await this.supplier_repository.create({
-      business_id,
-      new_bank_account: req.new_bank_account,
+      business_id: req.business_internal_id,
+      bank_account_id: req.bank_account_internal_id,
     });
 
     const fields = await build_supplier_public_fields(created, this.lookup);

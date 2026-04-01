@@ -1,6 +1,8 @@
 import { Column, Entity } from 'typeorm';
 import { BaseExternalIdEntity } from '../../../products-data/src/entities/base-external-id.entity';
 
+export type UserState = 'active' | 'inactive';
+
 @Entity({ name: 'users', schema: 'transversal_schema' })
 export class UserEntity extends BaseExternalIdEntity {
   @Column({ name: 'cognito_sub', type: 'uuid', unique: true })
@@ -13,11 +15,16 @@ export class UserEntity extends BaseExternalIdEntity {
   roleId: number | null;
 
   @Column({
-    name: 'status_id',
-    type: 'bigint',
-    default: () => "get_status_id('users', 'active')",
+    name: 'state',
+    type: 'enum',
+    enum: ['active', 'inactive'],
+    enumName: 'user_state',
+    default: 'active',
   })
-  statusId: number;
+  state: UserState;
+
+  @Column({ name: 'person_id', type: 'bigint', nullable: true })
+  personId: number | null;
 
   @Column({ name: 'last_login_at', type: 'timestamptz', nullable: true })
   lastLoginAt: Date | null;

@@ -9,15 +9,9 @@ export class Supplier {
   ) {}
 }
 
-export interface NewSupplierBankAccountProps {
-  bank_entity: string;
-  account_number: string;
-  bank_certification: string | null;
-}
-
 export interface CreateSupplierProps {
   business_id: number;
-  new_bank_account: NewSupplierBankAccountProps | null;
+  bank_account_id: number | null;
 }
 
 export type UpdateSupplierProps = {

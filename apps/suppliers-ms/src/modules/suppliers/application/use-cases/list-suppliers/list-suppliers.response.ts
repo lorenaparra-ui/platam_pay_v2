@@ -1,6 +1,7 @@
 import { SupplierPublicFields } from '@modules/suppliers/application/mapping/supplier-public-fields.builder';
 
 export class ListSuppliersItemResponse implements SupplierPublicFields {
+  internal_id: number;
   external_id: string;
   business_external_id: string;
   bank_account_external_id: string | null;

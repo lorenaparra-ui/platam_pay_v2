@@ -1,4 +1,4 @@
-import type { CreditFacilitiesStatuses } from '@platam/shared';
+﻿import type { Statuses } from '@platam/shared';
 
 export class UpdateCategoryByExternalIdRequest {
   constructor(
@@ -13,6 +13,6 @@ export class UpdateCategoryByExternalIdRequest {
     readonly minimum_disbursement_fee: string | null | undefined,
     readonly delay_days: number | undefined,
     readonly term_days: number | undefined,
-    readonly state: CreditFacilitiesStatuses | undefined,
+    readonly state: Statuses | undefined,
   ) {}
 }

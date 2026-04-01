@@ -17,6 +17,10 @@ import { ConfigTransversalCreatePartnerUserQueueUrlAdapter } from './adapters/co
 import { TRANSVERSAL_CREATE_PERSON_QUEUE_URL_PORT } from '@messaging/domain/ports/transversal-create-person-queue-url.port';
 import { ConfigTransversalCreatePersonQueueUrlAdapter } from './adapters/config-transversal-create-person-queue-url.adapter';
 import { PublishProductsEventUseCase } from '@messaging/application/use-cases/publish-products-event.use-case';
+import { PRODUCTS_CREATE_CREDIT_FACILITY_QUEUE_URL_PORT } from '@messaging/domain/ports/products-create-credit-facility-queue-url.port';
+import { ConfigProductsCreateCreditFacilityQueueUrlAdapter } from './adapters/config-products-create-credit-facility-queue-url.adapter';
+import { PRODUCTS_CREATE_CATEGORIES_QUEUE_URL_PORT } from '@messaging/domain/ports/products-create-categories-queue-url.port';
+import { ConfigProductsCreateCategoriesQueueUrlAdapter } from './adapters/config-products-create-categories-queue-url.adapter';
 
 @Global()
 @Module({
@@ -75,6 +79,16 @@ import { PublishProductsEventUseCase } from '@messaging/application/use-cases/pu
       provide: PRODUCTS_OUTBOUND_QUEUE_URL_PORT,
       useExisting: ConfigOutboundProductsQueueUrlAdapter,
     },
+    ConfigProductsCreateCreditFacilityQueueUrlAdapter,
+    {
+      provide: PRODUCTS_CREATE_CREDIT_FACILITY_QUEUE_URL_PORT,
+      useExisting: ConfigProductsCreateCreditFacilityQueueUrlAdapter,
+    },
+    ConfigProductsCreateCategoriesQueueUrlAdapter,
+    {
+      provide: PRODUCTS_CREATE_CATEGORIES_QUEUE_URL_PORT,
+      useExisting: ConfigProductsCreateCategoriesQueueUrlAdapter,
+    },
   ],
   exports: [
     SQS_CLIENT,
@@ -85,6 +99,8 @@ import { PublishProductsEventUseCase } from '@messaging/application/use-cases/pu
     TRANSVERSAL_CREATE_PARTNER_USER_QUEUE_URL_PORT,
     TRANSVERSAL_CREATE_PERSON_QUEUE_URL_PORT,
     PRODUCTS_OUTBOUND_QUEUE_URL_PORT,
+    PRODUCTS_CREATE_CREDIT_FACILITY_QUEUE_URL_PORT,
+    PRODUCTS_CREATE_CATEGORIES_QUEUE_URL_PORT,
     PublishProductsEventUseCase,
   ],
 })

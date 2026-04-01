@@ -1,6 +1,7 @@
 import { PartnerPublicFields } from '@modules/partners/application/mapping/partner-public-fields.builder';
 
 export class UpdatePartnerByExternalIdResponse implements PartnerPublicFields {
+  internal_id: number;
   external_id: string;
   supplier_external_id: string;
   acronym: string | null;

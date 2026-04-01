@@ -4,8 +4,6 @@ import { plainToInstance } from 'class-transformer';
 import { validateSync } from 'class-validator';
 import { QueryFailedError } from 'typeorm';
 import type { UseCase } from '@platam/shared';
-import { CreatePersonUseCase } from '@modules/persons/application/use-cases/create-person/create-person.use-case';
-import { CreatePersonRequest } from '@modules/persons/application/use-cases/create-person/create-person.request';
 import { CreateUserUseCase } from '@modules/users/application/use-cases/create-user/create-user.use-case';
 import { CreateUserRequest } from '@modules/users/application/use-cases/create-user/create-user.request';
 import { USER_REPOSITORY } from '@modules/users/users.tokens';
@@ -13,19 +11,13 @@ import type { UserRepository } from '@modules/users/domain/ports/user.ports';
 import {
   PARTNER_CREATE_USER_SQS_IDEMPOTENCY_PORT,
   ROLE_REPOSITORY,
-  STATUS_REPOSITORY,
 } from '@modules/transversal/transversal.tokens';
 import type { RoleRepository } from '@modules/transversal/domain/ports/catalog/role.repository.port';
-import type { StatusRepository } from '@modules/transversal/domain/ports/catalog/status.repository.port';
 
 import { CreatePartnerUserInboundEventDto } from '../../../../transversal/application/dto/create-partner-user-inbound.dto';
 import { CreatePartnerUserSqsValidationError } from '../../../../transversal/application/exceptions/create-partner-user-sqs.validation.error';
 import { PartnerCreateUserSqsIdempotencyPort } from '@modules/users/domain/ports/partner-create-user-sqs-idempotency.port';
 import { RoleName } from '../../enums/role.enum';
-
-
-const USERS_STATUS_ENTITY = 'users';
-const USER_ACTIVE_CODE = 'active';
 
 export type IngestPartnerCreateUserSqsCommand = Readonly<{
   body: string;
@@ -45,12 +37,9 @@ export class IngestPartnerCreateUserSqsMessageUseCase
     private readonly idempotency: PartnerCreateUserSqsIdempotencyPort,
     @Inject(ROLE_REPOSITORY)
     private readonly role_repository: RoleRepository,
-    @Inject(STATUS_REPOSITORY)
-    private readonly status_repository: StatusRepository,
     @Inject(USER_REPOSITORY)
     private readonly user_repository: UserRepository,
     private readonly create_user: CreateUserUseCase,
-    private readonly create_person: CreatePersonUseCase,
   ) {}
 
   async execute(command: IngestPartnerCreateUserSqsCommand): Promise<boolean> {
@@ -97,14 +86,6 @@ export class IngestPartnerCreateUserSqsMessageUseCase
     const email_trimmed = payload.email.trim();
 
     try {
-      const status_ref = await this.status_repository.find_by_entity_type_and_code(
-        USERS_STATUS_ENTITY,
-        USER_ACTIVE_CODE,
-      );
-      if (status_ref === null) {
-        throw new CreatePartnerUserSqsValidationError('users/active status not found in catalog');
-      }
-
       const role_ref = await this.role_repository.find_by_name(RoleName.PARTNER_OPERATIONS);
       if (role_ref === null) {
         throw new CreatePartnerUserSqsValidationError(
@@ -119,7 +100,7 @@ export class IngestPartnerCreateUserSqsMessageUseCase
           new CreateUserRequest(
             cognito_sub,
             email_trimmed,
-            status_ref.external_id,
+            'active',
             role_ref.external_id,
             null,
           ),
@@ -140,27 +121,9 @@ export class IngestPartnerCreateUserSqsMessageUseCase
         }
       }
 
-      const created_person = await this.create_person.execute(
-        new CreatePersonRequest(
-          user_external_id,
-          payload.country_code,
-          payload.first_name.trim(),
-          payload.last_name.trim(),
-          payload.doc_type.trim(),
-          payload.doc_number.trim(),
-          null,
-          null,
-          null,
-          payload.phone,
-          null,
-          null,
-          payload.city_external_id,
-        ),
-      );
-
       await this.idempotency.complete(dto.idempotency_key, {
         user_external_id,
-        person_external_id: created_person.external_id,
+        person_external_id: 'n/a',
       });
 
       this.logger.log(

@@ -1,6 +1,7 @@
 import { BankAccountPublicFields } from '@modules/bank-accounts/application/mapping/bank-account-public-fields.builder';
 
 export class GetBankAccountByExternalIdResponse implements BankAccountPublicFields {
+  internal_id: number;
   external_id: string;
   bank_entity: string;
   account_number: string;

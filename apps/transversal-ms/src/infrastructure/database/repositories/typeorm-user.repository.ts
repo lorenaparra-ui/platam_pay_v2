@@ -16,7 +16,8 @@ const USER_SELECT = {
   cognitoSub: true,
   email: true,
   roleId: true,
-  statusId: true,
+  state: true,
+  personId: true,
   lastLoginAt: true,
   createdAt: true,
   updatedAt: true,
@@ -76,16 +77,16 @@ export class TypeormUserRepository implements UserRepository {
   async create(props: CreateUserProps): Promise<User> {
     const rows = await this.repo.query(
       `INSERT INTO transversal_schema.users (
-        external_id, cognito_sub, email, role_id, status_id, last_login_at
+        external_id, cognito_sub, email, role_id, state, last_login_at
       ) VALUES (
-        gen_random_uuid(), $1, $2, $3, $4, $5
+        gen_random_uuid(), $1, $2, $3, $4::"transversal_schema"."user_state", $5
       )
-      RETURNING id, external_id, created_at, updated_at, cognito_sub, email, role_id, status_id, last_login_at`,
+      RETURNING id, external_id, created_at, updated_at, cognito_sub, email, role_id, state, last_login_at`,
       [
         props.cognito_sub,
         props.email,
         props.role_id,
-        props.status_id,
+        props.state,
         props.last_login_at,
       ],
     );
@@ -123,8 +124,8 @@ export class TypeormUserRepository implements UserRepository {
     if (patch.role_id !== undefined) {
       add('role_id', patch.role_id);
     }
-    if (patch.status_id !== undefined) {
-      add('status_id', patch.status_id);
+    if (patch.state !== undefined) {
+      add('state', patch.state);
     }
     if (patch.last_login_at !== undefined) {
       add('last_login_at', patch.last_login_at);

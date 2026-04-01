@@ -1,17 +1,18 @@
-export type CachedUploadFilesResult = Readonly<{
-  files: ReadonlyArray<Readonly<{ url: string; folder: string }>>;
-}>;
-
-export type UploadIdempotencyBeginResult =
-  | Readonly<{ status: 'proceed' }>
-  | Readonly<{ status: 'duplicate'; result: CachedUploadFilesResult }>
-  | Readonly<{ status: 'conflict' }>;
+import type { SqsIdempotencyPort } from '@platam/shared';
+import type { UploadFilesIdempotencyResult } from '@app/transversal-data';
 
 /**
- * Evita ejecuciones duplicadas para la misma idempotencyKey (reintentos SQS).
+ * El resultado cacheado mantiene la forma { files: [...] } para preservar
+ * compatibilidad con los use-cases existentes que acceden a `result.files`.
  */
-export interface UploadFilesIdempotencyPort {
-  begin(key: string, correlation_id: string): Promise<UploadIdempotencyBeginResult>;
-  complete(key: string, result: CachedUploadFilesResult): Promise<void>;
-  release(key: string): Promise<void>;
-}
+export type CachedUploadFilesResult = Readonly<{
+  files: UploadFilesIdempotencyResult;
+}>;
+
+/** Alias tipado del resultado genérico de begin. */
+export type UploadIdempotencyBeginResult = Awaited<
+  ReturnType<SqsIdempotencyPort<CachedUploadFilesResult>['begin']>
+>;
+
+export interface UploadFilesIdempotencyPort
+  extends SqsIdempotencyPort<CachedUploadFilesResult> {}

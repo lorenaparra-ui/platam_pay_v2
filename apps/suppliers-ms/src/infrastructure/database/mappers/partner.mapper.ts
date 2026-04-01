@@ -1,6 +1,6 @@
-import { PartnersEntity } from '@app/suppliers-data';
+﻿import { PartnersEntity } from '@app/suppliers-data';
 import { Partner } from '@modules/partners/domain/entities/partner.entity';
-import { CreditFacilitiesStatuses } from '@platam/shared';
+import { Statuses } from '@platam/shared';
 
 export class PartnerMapper {
   static to_domain(row: PartnersEntity): Partner {
@@ -25,11 +25,11 @@ export class PartnerMapper {
   }
 
   static from_raw_row(row: Record<string, unknown>): Partner {
-    const state_raw = String(row['state'] ?? CreditFacilitiesStatuses.ACTIVE);
+    const state_raw = String(row['state'] ?? Statuses.ACTIVE);
     const state =
-      state_raw === CreditFacilitiesStatuses.INACTIVE
-        ? CreditFacilitiesStatuses.INACTIVE
-        : CreditFacilitiesStatuses.ACTIVE;
+      state_raw === Statuses.INACTIVE
+        ? Statuses.INACTIVE
+        : Statuses.ACTIVE;
 
     return new Partner(
       Number(row['id']),

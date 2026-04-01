@@ -53,6 +53,7 @@ import { DeleteStatusByExternalIdUseCase } from './application/use-cases/statuse
   exports: [
     IngestUploadFilesSqsMessageUseCase,
     IngestPartnerCreateUserSqsMessageUseCase,
+    PersonsModule,
     UploadFilesUseCase,
   ],
 })

@@ -13,7 +13,6 @@ import { PersonMapper } from '@infrastructure/database/mappers/person.mapper';
 const PERSON_SELECT = {
   id: true,
   externalId: true,
-  userId: true,
   countryCode: true,
   firstName: true,
   lastName: true,
@@ -45,6 +44,14 @@ export class TypeormPersonRepository implements PersonRepository {
     return row ? PersonMapper.to_domain(row) : null;
   }
 
+  async find_by_doc_number(doc_number: string): Promise<Person | null> {
+    const row = await this.repo.findOne({
+      where: { docNumber: doc_number },
+      select: PERSON_SELECT,
+    });
+    return row ? PersonMapper.to_domain(row) : null;
+  }
+
   async find_all(): Promise<Person[]> {
     const rows = await this.repo.find({
       select: PERSON_SELECT,
@@ -56,16 +63,15 @@ export class TypeormPersonRepository implements PersonRepository {
   async create(props: CreatePersonProps): Promise<Person> {
     const rows = await this.repo.query(
       `INSERT INTO transversal_schema.persons (
-        external_id, user_id, country_code, first_name, last_name, doc_type, doc_number,
+        external_id, country_code, first_name, last_name, doc_type, doc_number,
         doc_issue_date, birth_date, gender, phone, residential_address, business_address, city_id
       ) VALUES (
-        gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13
+        gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12
       )
-      RETURNING id, external_id, created_at, updated_at, user_id, country_code, first_name, last_name,
+      RETURNING id, external_id, created_at, updated_at, country_code, first_name, last_name,
         doc_type, doc_number, doc_issue_date, birth_date, gender, phone, residential_address,
         business_address, city_id`,
       [
-        props.user_id,
         props.country_code,
         props.first_name,
         props.last_name,
@@ -105,9 +111,6 @@ export class TypeormPersonRepository implements PersonRepository {
       i += 1;
     };
 
-    if (patch.user_id !== undefined) {
-      add('user_id', patch.user_id);
-    }
     if (patch.country_code !== undefined) {
       add('country_code', patch.country_code);
     }

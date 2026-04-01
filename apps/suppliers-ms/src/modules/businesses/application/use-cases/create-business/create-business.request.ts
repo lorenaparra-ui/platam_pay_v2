@@ -1,6 +1,6 @@
 export class CreateBusinessRequest {
   constructor(
-    readonly person_external_id: string,
+    readonly person_internal_id: number,
     readonly city_external_id: string | null,
     readonly entity_type: string,
     readonly business_name: string | null,

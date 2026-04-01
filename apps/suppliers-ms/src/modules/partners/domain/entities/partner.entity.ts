@@ -1,4 +1,4 @@
-import type { CreditFacilitiesStatuses } from '@platam/shared';
+﻿import type { Statuses } from '@platam/shared';
 
 export class Partner {
   constructor(
@@ -15,7 +15,7 @@ export class Partner {
     readonly webhook_url: string | null,
     readonly send_sales_rep_voucher: boolean,
     readonly disbursement_notification_email: string | null,
-    readonly state: CreditFacilitiesStatuses,
+    readonly state: Statuses,
     readonly created_at: Date,
     readonly updated_at: Date,
   ) {}
@@ -46,5 +46,5 @@ export type UpdatePartnerProps = Partial<{
   webhook_url: string | null;
   send_sales_rep_voucher: boolean;
   disbursement_notification_email: string | null;
-  state: CreditFacilitiesStatuses;
+  state: Statuses;
 }>;

@@ -1,3 +1,5 @@
+export type UserState = 'active' | 'inactive';
+
 export class User {
   constructor(
     readonly internal_id: number,
@@ -5,7 +7,7 @@ export class User {
     readonly cognito_sub: string,
     readonly email: string,
     readonly role_id: number | null,
-    readonly status_id: number,
+    readonly state: UserState,
     readonly last_login_at: Date | null,
     readonly created_at: Date,
     readonly updated_at: Date,
@@ -16,7 +18,7 @@ export interface CreateUserProps {
   cognito_sub: string;
   email: string;
   role_id: number | null;
-  status_id: number;
+  state: UserState;
   last_login_at: Date | null;
 }
 

@@ -1,4 +1,4 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
+﻿import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
 import {
   IsArray,
@@ -16,7 +16,7 @@ import {
   ValidateIf,
   ValidateNested,
 } from 'class-validator';
-import { CreditFacilitiesStatuses } from '@platam/shared';
+import { Statuses } from '@platam/shared';
 import { PartnerCategoryPayloadDto } from './create-partner-payload.dto';
 
 /**
@@ -218,12 +218,12 @@ export class UpdatePartnerSectionPayloadDto {
   disbursementNotificationEmail?: string | null;
 
   @ApiPropertyOptional({
-    enum: CreditFacilitiesStatuses,
+    enum: Statuses,
     description: 'Estado operativo del partner (`active` | `inactive`).',
   })
   @IsOptional()
-  @IsIn([CreditFacilitiesStatuses.ACTIVE, CreditFacilitiesStatuses.INACTIVE])
-  state?: CreditFacilitiesStatuses;
+  @IsIn([Statuses.ACTIVE, Statuses.INACTIVE])
+  state?: Statuses;
 }
 
 export class UpdateBankAccountPayloadDto {

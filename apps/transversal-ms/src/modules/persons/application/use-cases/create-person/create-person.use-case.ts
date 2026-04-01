@@ -1,9 +1,7 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { PERSON_REPOSITORY } from '@modules/persons/persons.tokens';
-import { USER_REPOSITORY } from '@modules/users/users.tokens';
 import { CITY_REPOSITORY } from '@modules/transversal/transversal.tokens';
 import type { CityRepository } from '@modules/transversal/domain/ports/catalog/city.repository.port';
-import { UserRepository } from '@modules/users/domain/ports/user.ports';
 import { PersonRepository } from '@modules/persons/domain/ports/person.ports';
 import { build_person_public_fields } from '@modules/persons/application/mapping/person-public-fields.builder';
 import { CreatePersonRequest } from './create-person.request';
@@ -14,20 +12,11 @@ export class CreatePersonUseCase {
   constructor(
     @Inject(PERSON_REPOSITORY)
     private readonly person_repository: PersonRepository,
-    @Inject(USER_REPOSITORY)
-    private readonly user_repository: UserRepository,
     @Inject(CITY_REPOSITORY)
     private readonly city_repository: CityRepository,
   ) {}
 
   async execute(req: CreatePersonRequest): Promise<CreatePersonResponse> {
-    const user_id = await this.user_repository.find_internal_id_by_external_id(
-      req.user_external_id,
-    );
-    if (user_id === null) {
-      throw new NotFoundException('user not found');
-    }
-
     let city_id: number | null = null;
     if (req.city_external_id !== null) {
       const city = await this.city_repository.find_by_external_id(
@@ -40,7 +29,6 @@ export class CreatePersonUseCase {
     }
 
     const created = await this.person_repository.create({
-      user_id,
       country_code: req.country_code,
       first_name: req.first_name,
       last_name: req.last_name,
@@ -55,11 +43,7 @@ export class CreatePersonUseCase {
       city_id,
     });
 
-    const fields = await build_person_public_fields(
-      created,
-      this.user_repository,
-      this.city_repository,
-    );
+    const fields = await build_person_public_fields(created, this.city_repository);
     return new CreatePersonResponse(fields);
   }
 }

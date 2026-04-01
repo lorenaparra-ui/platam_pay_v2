@@ -1,6 +1,6 @@
 export class CreatePartnerRequest {
   constructor(
-    readonly supplier_external_id: string,
+    readonly supplier_internal_id: number,
     readonly acronym: string | null,
     readonly logo_url: string | null,
     readonly co_branding_logo_url: string | null,

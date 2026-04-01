@@ -1,20 +1,12 @@
-export type PartnerCreateUserCachedResult = Readonly<{
-  user_external_id: string;
-  person_external_id: string;
-}>;
+import type { SqsIdempotencyPort } from '@platam/shared';
+import type { PartnerCreateUserIdempotencyResult } from '@app/transversal-data';
 
-export type PartnerCreateUserIdempotencyBeginResult =
-  | { status: 'proceed' }
-  | { status: 'duplicate'; result: PartnerCreateUserCachedResult }
-  | { status: 'conflict' };
+export type PartnerCreateUserCachedResult = PartnerCreateUserIdempotencyResult;
 
-export interface PartnerCreateUserSqsIdempotencyPort {
-  begin(
-    key: string,
-    correlation_id: string,
-  ): Promise<PartnerCreateUserIdempotencyBeginResult>;
+/** Alias tipado del resultado genérico para mantener compatibilidad con el código existente. */
+export type PartnerCreateUserIdempotencyBeginResult = Awaited<
+  ReturnType<SqsIdempotencyPort<PartnerCreateUserCachedResult>['begin']>
+>;
 
-  complete(key: string, result: PartnerCreateUserCachedResult): Promise<void>;
-
-  release(key: string): Promise<void>;
-}
+export interface PartnerCreateUserSqsIdempotencyPort
+  extends SqsIdempotencyPort<PartnerCreateUserCachedResult> {}

@@ -3,6 +3,7 @@ import { SuppliersReferenceLookupPort } from '@common/ports/suppliers-reference-
 import { Supplier } from '@modules/suppliers/domain/entities/supplier.entity';
 
 export interface SupplierPublicFields {
+  internal_id: number;
   external_id: string;
   business_external_id: string;
   bank_account_external_id: string | null;
@@ -32,6 +33,7 @@ export async function build_supplier_public_fields(
   }
 
   return {
+    internal_id: supplier.internal_id,
     external_id: supplier.external_id,
     business_external_id,
     bank_account_external_id,

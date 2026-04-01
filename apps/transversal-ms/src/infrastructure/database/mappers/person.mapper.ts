@@ -17,7 +17,6 @@ export class PersonMapper {
     return new Person(
       row.id,
       row.externalId,
-      row.userId,
       row.countryCode ?? null,
       row.firstName,
       row.lastName,
@@ -39,7 +38,6 @@ export class PersonMapper {
     return new Person(
       Number(row['id']),
       String(row['external_id']),
-      Number(row['user_id']),
       row['country_code'] === null || row['country_code'] === undefined
         ? null
         : String(row['country_code']),
