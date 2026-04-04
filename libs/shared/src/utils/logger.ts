@@ -1,3 +1,5 @@
+import type { LoggerService } from '@nestjs/common';
+
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
 export type StructuredLogger = Readonly<{
@@ -8,27 +10,62 @@ export type StructuredLogger = Readonly<{
 }>;
 
 /**
- * Logger mínimo con prefijo y correlación opcional (`traceId`); sustituible por Pino/Winston en bootstrap.
+ * Adapta el LoggerService de NestJS (Logger, PinoLogger, WinstonLogger) al
+ * contrato MinimalLogger usado por BaseSqsConsumer.
+ * Inyectar en vez de instanciar create_prefixed_logger directamente.
  */
-export function create_prefixed_logger(scope: string, trace_id?: string): StructuredLogger {
-  const prefix = trace_id ? `[${scope}][${trace_id}]` : `[${scope}]`;
+export class NestLoggerAdapter {
+  constructor(private readonly nest_logger: LoggerService) {}
 
-  const line = (level: LogLevel, message: string, meta?: Record<string, unknown>): void => {
-    const payload = meta && Object.keys(meta).length > 0 ? ` ${JSON.stringify(meta)}` : '';
-    const text = `${prefix} ${message}${payload}`;
-    if (level === 'error') {
-      console.error(text);
-    } else if (level === 'warn') {
-      console.warn(text);
-    } else {
-      console.log(text);
-    }
-  };
+  log(message: string): void {
+    this.nest_logger.log(message);
+  }
 
-  return {
-    debug: (m, meta) => line('debug', m, meta),
-    info: (m, meta) => line('info', m, meta),
-    warn: (m, meta) => line('warn', m, meta),
-    error: (m, meta) => line('error', m, meta),
-  };
+  warn(message: string): void {
+    this.nest_logger.warn(message);
+  }
+
+  error(message: string): void {
+    this.nest_logger.error(message);
+  }
+}
+
+/**
+ * Adapta el LoggerService de NestJS al contrato StructuredLogger.
+ * Serializa el meta como JSON al final del mensaje.
+ */
+export class NestStructuredLoggerAdapter implements StructuredLogger {
+  constructor(
+    private readonly nest_logger: LoggerService,
+    private readonly scope: string,
+    private readonly trace_id?: string,
+  ) {}
+
+  private prefix(): string {
+    return this.trace_id
+      ? `[${this.scope}][${this.trace_id}]`
+      : `[${this.scope}]`;
+  }
+
+  private format(message: string, meta?: Record<string, unknown>): string {
+    const payload =
+      meta && Object.keys(meta).length > 0 ? ` ${JSON.stringify(meta)}` : '';
+    return `${this.prefix()} ${message}${payload}`;
+  }
+
+  debug(message: string, meta?: Record<string, unknown>): void {
+    this.nest_logger.debug?.(this.format(message, meta));
+  }
+
+  info(message: string, meta?: Record<string, unknown>): void {
+    this.nest_logger.log(this.format(message, meta));
+  }
+
+  warn(message: string, meta?: Record<string, unknown>): void {
+    this.nest_logger.warn(this.format(message, meta));
+  }
+
+  error(message: string, meta?: Record<string, unknown>): void {
+    this.nest_logger.error(this.format(message, meta));
+  }
 }

@@ -13,6 +13,7 @@ export * from './messaging/sqs-idempotency.port';
 export * from './domain/credit-facilities-statuses.enum';
 export * from './domain/domain-event.interface';
 export * from './domain/entity.base';
+export * from './domain/event-bus';
 export * from './domain/use-case.interface';
 export * from './domain/repository.interface';
 

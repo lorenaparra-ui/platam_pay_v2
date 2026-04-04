@@ -119,6 +119,8 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.HealthResponseDto = void 0;
 const swagger_1 = __webpack_require__(/*! @nestjs/swagger */ "@nestjs/swagger");
 class HealthResponseDto {
+    status;
+    service;
 }
 exports.HealthResponseDto = HealthResponseDto;
 __decorate([
@@ -288,13 +290,19 @@ const config_1 = __webpack_require__(/*! @nestjs/config */ "@nestjs/config");
 const class_transformer_1 = __webpack_require__(/*! class-transformer */ "class-transformer");
 const class_validator_1 = __webpack_require__(/*! class-validator */ "class-validator");
 class SqsEnv {
-    constructor() {
-        this.aws_region = 'us-east-2';
-        this.transversal_sqs_wait_time_seconds = 20;
-        this.transversal_sqs_max_number_of_messages = 10;
-        this.transversal_sqs_visibility_timeout_seconds = 30;
-        this.transversal_sqs_delete_on_validation_error = false;
-    }
+    aws_region = 'us-east-2';
+    transversal_sqs_outbound_queue_url;
+    transversal_sqs_inbound_queue_url;
+    transversal_sqs_upload_files_queue_url;
+    transversal_sqs_create_user_queue_url;
+    transversal_sqs_create_person_queue_url;
+    transversal_sqs_suppliers_callback_queue_url;
+    products_sqs_create_credit_facility_queue_url;
+    products_sqs_create_categories_queue_url;
+    transversal_sqs_wait_time_seconds = 20;
+    transversal_sqs_max_number_of_messages = 10;
+    transversal_sqs_visibility_timeout_seconds = 30;
+    transversal_sqs_delete_on_validation_error = false;
 }
 __decorate([
     (0, class_validator_1.IsString)(),
@@ -463,6 +471,107 @@ exports["default"] = TypeormConfig;
 
 /***/ },
 
+/***/ "./apps/suppliers-ms/src/infrastructure/database/adapters/partner-saga-compensation.adapter.ts"
+/*!*****************************************************************************************************!*\
+  !*** ./apps/suppliers-ms/src/infrastructure/database/adapters/partner-saga-compensation.adapter.ts ***!
+  \*****************************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+var PartnerSagaCompensationAdapter_1;
+var _a, _b, _c, _d, _e;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.PartnerSagaCompensationAdapter = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const typeorm_1 = __webpack_require__(/*! @nestjs/typeorm */ "@nestjs/typeorm");
+const typeorm_2 = __webpack_require__(/*! typeorm */ "typeorm");
+const suppliers_data_1 = __webpack_require__(/*! @app/suppliers-data */ "./libs/suppliers-data/src/index.ts");
+let PartnerSagaCompensationAdapter = PartnerSagaCompensationAdapter_1 = class PartnerSagaCompensationAdapter {
+    data_source;
+    partner_repo;
+    supplier_repo;
+    business_repo;
+    bank_account_repo;
+    logger = new common_1.Logger(PartnerSagaCompensationAdapter_1.name);
+    constructor(data_source, partner_repo, supplier_repo, business_repo, bank_account_repo) {
+        this.data_source = data_source;
+        this.partner_repo = partner_repo;
+        this.supplier_repo = supplier_repo;
+        this.business_repo = business_repo;
+        this.bank_account_repo = bank_account_repo;
+    }
+    async delete_credit_facility(credit_facility_external_id) {
+        try {
+            await this.data_source.query(`DELETE FROM products_schema.credit_facilities WHERE external_id = $1::uuid`, [credit_facility_external_id]);
+            this.logger.warn(`[Compensación] credit_facility eliminada external_id=${credit_facility_external_id}`);
+        }
+        catch (err) {
+            this.logger.error(`[Compensación] Error al eliminar credit_facility external_id=${credit_facility_external_id}: ${String(err)}`);
+        }
+    }
+    async delete_partner(partner_external_id) {
+        try {
+            await this.partner_repo.delete({ externalId: partner_external_id });
+            this.logger.warn(`[Compensación] partner eliminado external_id=${partner_external_id}`);
+        }
+        catch (err) {
+            this.logger.error(`[Compensación] Error al eliminar partner external_id=${partner_external_id}: ${String(err)}`);
+        }
+    }
+    async delete_supplier(supplier_external_id) {
+        try {
+            await this.supplier_repo.delete({ externalId: supplier_external_id });
+            this.logger.warn(`[Compensación] supplier eliminado external_id=${supplier_external_id}`);
+        }
+        catch (err) {
+            this.logger.error(`[Compensación] Error al eliminar supplier external_id=${supplier_external_id}: ${String(err)}`);
+        }
+    }
+    async delete_business(business_external_id) {
+        try {
+            await this.business_repo.delete({ externalId: business_external_id });
+            this.logger.warn(`[Compensación] business eliminado external_id=${business_external_id}`);
+        }
+        catch (err) {
+            this.logger.error(`[Compensación] Error al eliminar business external_id=${business_external_id}: ${String(err)}`);
+        }
+    }
+    async delete_bank_account(bank_account_external_id) {
+        try {
+            await this.bank_account_repo.delete({ externalId: bank_account_external_id });
+            this.logger.warn(`[Compensación] bank_account eliminado external_id=${bank_account_external_id}`);
+        }
+        catch (err) {
+            this.logger.error(`[Compensación] Error al eliminar bank_account external_id=${bank_account_external_id}: ${String(err)}`);
+        }
+    }
+};
+exports.PartnerSagaCompensationAdapter = PartnerSagaCompensationAdapter;
+exports.PartnerSagaCompensationAdapter = PartnerSagaCompensationAdapter = PartnerSagaCompensationAdapter_1 = __decorate([
+    (0, common_1.Injectable)(),
+    __param(0, (0, typeorm_1.InjectDataSource)()),
+    __param(1, (0, typeorm_1.InjectRepository)(suppliers_data_1.PartnersEntity)),
+    __param(2, (0, typeorm_1.InjectRepository)(suppliers_data_1.SupplierEntity)),
+    __param(3, (0, typeorm_1.InjectRepository)(suppliers_data_1.BusinessEntity)),
+    __param(4, (0, typeorm_1.InjectRepository)(suppliers_data_1.BankAccountEntity)),
+    __metadata("design:paramtypes", [typeof (_a = typeof typeorm_2.DataSource !== "undefined" && typeorm_2.DataSource) === "function" ? _a : Object, typeof (_b = typeof typeorm_2.Repository !== "undefined" && typeorm_2.Repository) === "function" ? _b : Object, typeof (_c = typeof typeorm_2.Repository !== "undefined" && typeorm_2.Repository) === "function" ? _c : Object, typeof (_d = typeof typeorm_2.Repository !== "undefined" && typeorm_2.Repository) === "function" ? _d : Object, typeof (_e = typeof typeorm_2.Repository !== "undefined" && typeorm_2.Repository) === "function" ? _e : Object])
+], PartnerSagaCompensationAdapter);
+
+
+/***/ },
+
 /***/ "./apps/suppliers-ms/src/infrastructure/database/adapters/sql-products-credit-facility-sync.adapter.ts"
 /*!*************************************************************************************************************!*\
   !*** ./apps/suppliers-ms/src/infrastructure/database/adapters/sql-products-credit-facility-sync.adapter.ts ***!
@@ -490,9 +599,10 @@ const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
 const typeorm_1 = __webpack_require__(/*! @nestjs/typeorm */ "@nestjs/typeorm");
 const typeorm_2 = __webpack_require__(/*! typeorm */ "typeorm");
 let SqlProductsCreditFacilitySyncAdapter = SqlProductsCreditFacilitySyncAdapter_1 = class SqlProductsCreditFacilitySyncAdapter {
+    data_source;
+    logger = new common_1.Logger(SqlProductsCreditFacilitySyncAdapter_1.name);
     constructor(data_source) {
         this.data_source = data_source;
-        this.logger = new common_1.Logger(SqlProductsCreditFacilitySyncAdapter_1.name);
     }
     async create_credit_facility(input) {
         const existing = (await this.data_source.query(`SELECT id FROM products_schema.credit_facilities WHERE external_id = $1::uuid LIMIT 1`, [input.credit_facility_external_id]));
@@ -624,6 +734,13 @@ const typeorm_2 = __webpack_require__(/*! typeorm */ "typeorm");
 const transversal_data_1 = __webpack_require__(/*! @app/transversal-data */ "./libs/transversal-data/src/index.ts");
 const suppliers_data_1 = __webpack_require__(/*! @app/suppliers-data */ "./libs/suppliers-data/src/index.ts");
 let TypeormSuppliersReferenceLookupAdapter = class TypeormSuppliersReferenceLookupAdapter {
+    users;
+    persons;
+    cities;
+    businesses;
+    bank_accounts;
+    partners;
+    suppliers;
     constructor(users, persons, cities, businesses, bank_accounts, partners, suppliers) {
         this.users = users;
         this.persons = persons;
@@ -820,14 +937,46 @@ const partner_entity_1 = __webpack_require__(/*! @modules/partners/domain/entiti
 const shared_1 = __webpack_require__(/*! @platam/shared */ "./libs/shared/src/index.ts");
 class PartnerMapper {
     static to_domain(row) {
-        return new partner_entity_1.Partner(row.id, row.supplier.id, row.externalId, row.acronym ?? null, row.logoUrl ?? null, row.coBrandingLogoUrl ?? null, row.primaryColor ?? null, row.secondaryColor ?? null, row.lightColor ?? null, row.notificationEmail ?? null, row.webhookUrl ?? null, row.sendSalesRepVoucher, row.disbursementNotificationEmail ?? null, row.state, row.createdAt, row.updatedAt);
+        return new partner_entity_1.Partner({
+            internal_id: row.id,
+            supplier_id: row.supplier.id,
+            external_id: row.externalId,
+            acronym: row.acronym ?? null,
+            logo_url: row.logoUrl ?? null,
+            co_branding_logo_url: row.coBrandingLogoUrl ?? null,
+            primary_color: row.primaryColor ?? null,
+            secondary_color: row.secondaryColor ?? null,
+            light_color: row.lightColor ?? null,
+            notification_email: row.notificationEmail ?? null,
+            webhook_url: row.webhookUrl ?? null,
+            send_sales_rep_voucher: row.sendSalesRepVoucher,
+            disbursement_notification_email: row.disbursementNotificationEmail ?? null,
+            state: row.state,
+            created_at: row.createdAt,
+            updated_at: row.updatedAt,
+        });
     }
     static from_raw_row(row) {
         const state_raw = String(row['state'] ?? shared_1.Statuses.ACTIVE);
-        const state = state_raw === shared_1.Statuses.INACTIVE
-            ? shared_1.Statuses.INACTIVE
-            : shared_1.Statuses.ACTIVE;
-        return new partner_entity_1.Partner(Number(row['id']), Number(row['supplier_id']), String(row['external_id']), row['acronym'] ?? null, row['logo_url'] ?? null, row['co_branding_logo_url'] ?? null, row['primary_color'] ?? null, row['secondary_color'] ?? null, row['light_color'] ?? null, row['notification_email'] ?? null, row['webhook_url'] ?? null, Boolean(row['send_sales_rep_voucher']), row['disbursement_notification_email'] ?? null, state, new Date(String(row['created_at'])), new Date(String(row['updated_at'])));
+        const state = state_raw === shared_1.Statuses.INACTIVE ? shared_1.Statuses.INACTIVE : shared_1.Statuses.ACTIVE;
+        return new partner_entity_1.Partner({
+            internal_id: Number(row['id']),
+            supplier_id: Number(row['supplier_id']),
+            external_id: String(row['external_id']),
+            acronym: row['acronym'] ?? null,
+            logo_url: row['logo_url'] ?? null,
+            co_branding_logo_url: row['co_branding_logo_url'] ?? null,
+            primary_color: row['primary_color'] ?? null,
+            secondary_color: row['secondary_color'] ?? null,
+            light_color: row['light_color'] ?? null,
+            notification_email: row['notification_email'] ?? null,
+            webhook_url: row['webhook_url'] ?? null,
+            send_sales_rep_voucher: Boolean(row['send_sales_rep_voucher']),
+            disbursement_notification_email: row['disbursement_notification_email'] ?? null,
+            state,
+            created_at: new Date(String(row['created_at'])),
+            updated_at: new Date(String(row['updated_at'])),
+        });
     }
 }
 exports.PartnerMapper = PartnerMapper;
@@ -897,6 +1046,7 @@ const BANK_ACCOUNT_SELECT = {
     updatedAt: true,
 };
 let TypeormBankAccountRepository = class TypeormBankAccountRepository {
+    repo;
     constructor(repo) {
         this.repo = repo;
     }
@@ -922,36 +1072,22 @@ let TypeormBankAccountRepository = class TypeormBankAccountRepository {
         return bank_account_mapper_1.BankAccountMapper.from_raw_row(rows[0]);
     }
     async update_by_external_id(external_id, patch) {
-        const existing = await this.repo.findOne({
-            where: { externalId: external_id },
-            select: { id: true },
-        });
-        if (!existing) {
-            return null;
-        }
-        const columns = [];
-        const values = [];
-        let i = 1;
-        const add = (col, val) => {
-            columns.push(`"${col}" = $${i}`);
-            values.push(val);
-            i += 1;
-        };
-        if (patch.bank_entity !== undefined) {
-            add('bank_entity', patch.bank_entity);
-        }
-        if (patch.account_number !== undefined) {
-            add('account_number', patch.account_number);
-        }
-        if (patch.bank_certification !== undefined) {
-            add('bank_certification', patch.bank_certification);
-        }
-        if (columns.length === 0) {
+        const fields = {};
+        if (patch.bank_entity !== undefined)
+            fields.bankEntity = patch.bank_entity;
+        if (patch.account_number !== undefined)
+            fields.accountNumber = patch.account_number;
+        if (patch.bank_certification !== undefined)
+            fields.bankCertification = patch.bank_certification ?? undefined;
+        if (Object.keys(fields).length === 0) {
             return this.find_by_external_id(external_id);
         }
-        columns.push(`"updated_at" = now()`);
-        values.push(existing.id);
-        await this.repo.query(`UPDATE suppliers_schema.bank_accounts SET ${columns.join(', ')} WHERE id = $${i}`, values);
+        await this.repo
+            .createQueryBuilder()
+            .update(suppliers_data_1.BankAccountEntity)
+            .set({ ...fields, updatedAt: () => 'now()' })
+            .where('"external_id" = :external_id', { external_id })
+            .execute();
         return this.find_by_external_id(external_id);
     }
     async delete_by_external_id(external_id) {
@@ -1014,6 +1150,7 @@ const BUSINESS_SELECT = {
     updatedAt: true,
 };
 let TypeormBusinessRepository = class TypeormBusinessRepository {
+    repo;
     constructor(repo) {
         this.repo = repo;
     }
@@ -1153,6 +1290,7 @@ const typeorm_2 = __webpack_require__(/*! typeorm */ "typeorm");
 const suppliers_data_1 = __webpack_require__(/*! @app/suppliers-data */ "./libs/suppliers-data/src/index.ts");
 const legal_representative_mapper_1 = __webpack_require__(/*! @infrastructure/database/mappers/legal-representative.mapper */ "./apps/suppliers-ms/src/infrastructure/database/mappers/legal-representative.mapper.ts");
 let TypeormLegalRepresentativeRepository = class TypeormLegalRepresentativeRepository {
+    repo;
     constructor(repo) {
         this.repo = repo;
     }
@@ -1205,7 +1343,21 @@ const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
 const typeorm_1 = __webpack_require__(/*! @nestjs/typeorm */ "@nestjs/typeorm");
 const typeorm_2 = __webpack_require__(/*! typeorm */ "typeorm");
 const suppliers_data_1 = __webpack_require__(/*! @app/suppliers-data */ "./libs/suppliers-data/src/index.ts");
+const SAGA_SELECT = {
+    externalId: true,
+    correlationId: true,
+    status: true,
+    currentStep: true,
+    creditFacilityExternalId: true,
+    userExternalId: true,
+    personExternalId: true,
+    businessExternalId: true,
+    bankAccountExternalId: true,
+    partnerExternalId: true,
+    errorMessage: true,
+};
 let TypeormPartnerOnboardingSagaRepository = class TypeormPartnerOnboardingSagaRepository {
+    repo;
     constructor(repo) {
         this.repo = repo;
     }
@@ -1253,6 +1405,27 @@ let TypeormPartnerOnboardingSagaRepository = class TypeormPartnerOnboardingSagaR
             existing.errorMessage = patch.error_message;
         }
         await this.repo.save(existing);
+    }
+    async find_by_external_id(external_id) {
+        const row = await this.repo.findOne({
+            where: { externalId: external_id },
+            select: SAGA_SELECT,
+        });
+        if (!row)
+            return null;
+        return {
+            external_id: row.externalId,
+            correlation_id: row.correlationId,
+            status: row.status,
+            current_step: row.currentStep,
+            credit_facility_external_id: row.creditFacilityExternalId ?? null,
+            user_external_id: row.userExternalId ?? null,
+            person_external_id: row.personExternalId ?? null,
+            business_external_id: row.businessExternalId ?? null,
+            bank_account_external_id: row.bankAccountExternalId ?? null,
+            partner_external_id: row.partnerExternalId ?? null,
+            error_message: row.errorMessage ?? null,
+        };
     }
 };
 exports.TypeormPartnerOnboardingSagaRepository = TypeormPartnerOnboardingSagaRepository;
@@ -1311,6 +1484,7 @@ const PARTNER_SELECT = {
     supplier: { id: true },
 };
 let TypeormPartnerRepository = class TypeormPartnerRepository {
+    repo;
     constructor(repo) {
         this.repo = repo;
     }
@@ -1357,60 +1531,39 @@ let TypeormPartnerRepository = class TypeormPartnerRepository {
         return partner_mapper_1.PartnerMapper.from_raw_row(rows[0]);
     }
     async update_by_external_id(external_id, patch) {
-        const existing = await this.repo.findOne({
-            where: { externalId: external_id },
-            select: { id: true },
-        });
-        if (!existing) {
-            return null;
-        }
-        const columns = [];
-        const values = [];
-        let i = 1;
-        const add = (col, val) => {
-            columns.push(`"${col}" = $${i}`);
-            values.push(val);
-            i += 1;
-        };
-        if (patch.acronym !== undefined) {
-            add('acronym', patch.acronym);
-        }
-        if (patch.logo_url !== undefined) {
-            add('logo_url', patch.logo_url);
-        }
-        if (patch.co_branding_logo_url !== undefined) {
-            add('co_branding_logo_url', patch.co_branding_logo_url);
-        }
-        if (patch.primary_color !== undefined) {
-            add('primary_color', patch.primary_color);
-        }
-        if (patch.secondary_color !== undefined) {
-            add('secondary_color', patch.secondary_color);
-        }
-        if (patch.light_color !== undefined) {
-            add('light_color', patch.light_color);
-        }
-        if (patch.notification_email !== undefined) {
-            add('notification_email', patch.notification_email);
-        }
-        if (patch.webhook_url !== undefined) {
-            add('webhook_url', patch.webhook_url);
-        }
-        if (patch.send_sales_rep_voucher !== undefined) {
-            add('send_sales_rep_voucher', patch.send_sales_rep_voucher);
-        }
-        if (patch.disbursement_notification_email !== undefined) {
-            add('disbursement_notification_email', patch.disbursement_notification_email);
-        }
-        if (patch.state !== undefined) {
-            add('state', patch.state);
-        }
-        if (columns.length === 0) {
+        const fields = {};
+        if (patch.acronym !== undefined)
+            fields.acronym = patch.acronym ?? undefined;
+        if (patch.logo_url !== undefined)
+            fields.logoUrl = patch.logo_url ?? undefined;
+        if (patch.co_branding_logo_url !== undefined)
+            fields.coBrandingLogoUrl = patch.co_branding_logo_url ?? undefined;
+        if (patch.primary_color !== undefined)
+            fields.primaryColor = patch.primary_color ?? undefined;
+        if (patch.secondary_color !== undefined)
+            fields.secondaryColor = patch.secondary_color ?? undefined;
+        if (patch.light_color !== undefined)
+            fields.lightColor = patch.light_color ?? undefined;
+        if (patch.notification_email !== undefined)
+            fields.notificationEmail = patch.notification_email ?? undefined;
+        if (patch.webhook_url !== undefined)
+            fields.webhookUrl = patch.webhook_url ?? undefined;
+        if (patch.send_sales_rep_voucher !== undefined)
+            fields.sendSalesRepVoucher = patch.send_sales_rep_voucher;
+        if (patch.disbursement_notification_email !== undefined)
+            fields.disbursementNotificationEmail =
+                patch.disbursement_notification_email ?? undefined;
+        if (patch.state !== undefined)
+            fields.state = patch.state;
+        if (Object.keys(fields).length === 0) {
             return this.find_by_external_id(external_id);
         }
-        columns.push(`"updated_at" = now()`);
-        values.push(existing.id);
-        await this.repo.query(`UPDATE suppliers_schema.partners SET ${columns.join(', ')} WHERE id = $${i}`, values);
+        await this.repo
+            .createQueryBuilder()
+            .update(suppliers_data_1.PartnersEntity)
+            .set({ ...fields, updatedAt: () => 'now()' })
+            .where('"external_id" = :external_id', { external_id })
+            .execute();
         return this.find_by_external_id(external_id);
     }
     async delete_by_external_id(external_id) {
@@ -1463,6 +1616,7 @@ const SUPPLIER_ORM_SELECT = {
     updatedAt: true,
 };
 let TypeormSupplierRepository = class TypeormSupplierRepository {
+    repo;
     constructor(repo) {
         this.repo = repo;
     }
@@ -1597,6 +1751,7 @@ const typeorm_suppliers_reference_lookup_adapter_1 = __webpack_require__(/*! ./d
 const typeorm_partner_onboarding_saga_repository_1 = __webpack_require__(/*! ./database/repositories/typeorm-partner-onboarding-saga.repository */ "./apps/suppliers-ms/src/infrastructure/database/repositories/typeorm-partner-onboarding-saga.repository.ts");
 const sql_products_credit_facility_sync_adapter_1 = __webpack_require__(/*! ./database/adapters/sql-products-credit-facility-sync.adapter */ "./apps/suppliers-ms/src/infrastructure/database/adapters/sql-products-credit-facility-sync.adapter.ts");
 const typeorm_partner_user_sqs_result_poll_adapter_1 = __webpack_require__(/*! ./database/adapters/typeorm-partner-user-sqs-result-poll.adapter */ "./apps/suppliers-ms/src/infrastructure/database/adapters/typeorm-partner-user-sqs-result-poll.adapter.ts");
+const partner_saga_compensation_adapter_1 = __webpack_require__(/*! ./database/adapters/partner-saga-compensation.adapter */ "./apps/suppliers-ms/src/infrastructure/database/adapters/partner-saga-compensation.adapter.ts");
 const typeorm_legal_representative_repository_1 = __webpack_require__(/*! ./database/repositories/typeorm-legal-representative.repository */ "./apps/suppliers-ms/src/infrastructure/database/repositories/typeorm-legal-representative.repository.ts");
 const sqs_transversal_user_person_writer_adapter_1 = __webpack_require__(/*! ./messaging/sqs/adapters/sqs-transversal-user-person-writer.adapter */ "./apps/suppliers-ms/src/infrastructure/messaging/sqs/adapters/sqs-transversal-user-person-writer.adapter.ts");
 const partner_onboarding_saga_repository_port_1 = __webpack_require__(/*! @modules/partners/application/ports/partner-onboarding-saga.repository.port */ "./apps/suppliers-ms/src/modules/partners/application/ports/partner-onboarding-saga.repository.port.ts");
@@ -1604,6 +1759,7 @@ const products_credit_facility_sync_port_1 = __webpack_require__(/*! @modules/pa
 const transversal_user_person_writer_port_1 = __webpack_require__(/*! @modules/partners/application/ports/transversal-user-person-writer.port */ "./apps/suppliers-ms/src/modules/partners/application/ports/transversal-user-person-writer.port.ts");
 const partner_user_sqs_result_reader_port_1 = __webpack_require__(/*! @modules/partners/application/ports/partner-user-sqs-result-reader.port */ "./apps/suppliers-ms/src/modules/partners/application/ports/partner-user-sqs-result-reader.port.ts");
 const partner_onboarding_files_port_1 = __webpack_require__(/*! @modules/partners/application/ports/partner-onboarding-files.port */ "./apps/suppliers-ms/src/modules/partners/application/ports/partner-onboarding-files.port.ts");
+const partner_saga_compensation_port_1 = __webpack_require__(/*! @modules/partners/application/ports/partner-saga-compensation.port */ "./apps/suppliers-ms/src/modules/partners/application/ports/partner-saga-compensation.port.ts");
 const sqs_partner_onboarding_files_adapter_1 = __webpack_require__(/*! ./messaging/sqs/adapters/sqs-partner-onboarding-files.adapter */ "./apps/suppliers-ms/src/infrastructure/messaging/sqs/adapters/sqs-partner-onboarding-files.adapter.ts");
 const suppliers_reference_lookup_port_1 = __webpack_require__(/*! @common/ports/suppliers-reference-lookup.port */ "./apps/suppliers-ms/src/common/ports/suppliers-reference-lookup.port.ts");
 const suppliers_data_1 = __webpack_require__(/*! @app/suppliers-data */ "./libs/suppliers-data/src/index.ts");
@@ -1670,6 +1826,11 @@ exports.InfrastructureModule = InfrastructureModule = __decorate([
                 provide: partner_onboarding_files_port_1.PARTNER_ONBOARDING_FILES_PORT,
                 useExisting: sqs_partner_onboarding_files_adapter_1.SqsPartnerOnboardingFilesAdapter,
             },
+            partner_saga_compensation_adapter_1.PartnerSagaCompensationAdapter,
+            {
+                provide: partner_saga_compensation_port_1.PARTNER_SAGA_COMPENSATION_PORT,
+                useExisting: partner_saga_compensation_adapter_1.PartnerSagaCompensationAdapter,
+            },
         ],
         exports: [
             typeorm_business_repository_1.TypeormBusinessRepository,
@@ -1685,6 +1846,7 @@ exports.InfrastructureModule = InfrastructureModule = __decorate([
             transversal_user_person_writer_port_1.TRANSVERSAL_USER_PERSON_WRITER_PORT,
             partner_user_sqs_result_reader_port_1.PARTNER_USER_SQS_RESULT_READER_PORT,
             partner_onboarding_files_port_1.PARTNER_ONBOARDING_FILES_PORT,
+            partner_saga_compensation_port_1.PARTNER_SAGA_COMPENSATION_PORT,
         ],
     })
 ], InfrastructureModule);
@@ -1714,6 +1876,7 @@ exports.ConfigOutboundProductsQueueUrlAdapter = void 0;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
 const config_1 = __webpack_require__(/*! @nestjs/config */ "@nestjs/config");
 let ConfigOutboundProductsQueueUrlAdapter = class ConfigOutboundProductsQueueUrlAdapter {
+    config_service;
     constructor(config_service) {
         this.config_service = config_service;
     }
@@ -1754,6 +1917,7 @@ exports.ConfigOutboundTransversalQueueUrlAdapter = void 0;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
 const shared_1 = __webpack_require__(/*! @platam/shared */ "./libs/shared/src/index.ts");
 let ConfigOutboundTransversalQueueUrlAdapter = class ConfigOutboundTransversalQueueUrlAdapter {
+    queues_config;
     constructor(queues_config) {
         this.queues_config = queues_config;
     }
@@ -1793,6 +1957,7 @@ exports.ConfigProductsCreateCategoriesQueueUrlAdapter = void 0;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
 const config_1 = __webpack_require__(/*! @nestjs/config */ "@nestjs/config");
 let ConfigProductsCreateCategoriesQueueUrlAdapter = class ConfigProductsCreateCategoriesQueueUrlAdapter {
+    config_service;
     constructor(config_service) {
         this.config_service = config_service;
     }
@@ -1831,6 +1996,7 @@ exports.ConfigProductsCreateCreditFacilityQueueUrlAdapter = void 0;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
 const config_1 = __webpack_require__(/*! @nestjs/config */ "@nestjs/config");
 let ConfigProductsCreateCreditFacilityQueueUrlAdapter = class ConfigProductsCreateCreditFacilityQueueUrlAdapter {
+    config_service;
     constructor(config_service) {
         this.config_service = config_service;
     }
@@ -1871,6 +2037,7 @@ exports.ConfigTransversalCreatePartnerUserQueueUrlAdapter = void 0;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
 const shared_1 = __webpack_require__(/*! @platam/shared */ "./libs/shared/src/index.ts");
 let ConfigTransversalCreatePartnerUserQueueUrlAdapter = class ConfigTransversalCreatePartnerUserQueueUrlAdapter {
+    queues_config;
     constructor(queues_config) {
         this.queues_config = queues_config;
     }
@@ -1912,6 +2079,7 @@ exports.ConfigTransversalCreatePersonQueueUrlAdapter = void 0;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
 const shared_1 = __webpack_require__(/*! @platam/shared */ "./libs/shared/src/index.ts");
 let ConfigTransversalCreatePersonQueueUrlAdapter = class ConfigTransversalCreatePersonQueueUrlAdapter {
+    queues_config;
     constructor(queues_config) {
         this.queues_config = queues_config;
     }
@@ -1953,6 +2121,7 @@ exports.ConfigTransversalUploadFilesQueueUrlAdapter = void 0;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
 const shared_1 = __webpack_require__(/*! @platam/shared */ "./libs/shared/src/index.ts");
 let ConfigTransversalUploadFilesQueueUrlAdapter = class ConfigTransversalUploadFilesQueueUrlAdapter {
+    queues_config;
     constructor(queues_config) {
         this.queues_config = queues_config;
     }
@@ -2065,6 +2234,8 @@ const publish_upload_files_event_use_case_1 = __webpack_require__(/*! @messaging
 const files_uploaded_correlation_awaiter_service_1 = __webpack_require__(/*! @messaging/application/services/files-uploaded-correlation-awaiter.service */ "./apps/suppliers-ms/src/modules/messaging/application/services/files-uploaded-correlation-awaiter.service.ts");
 const DEFAULT_UPLOAD_AWAIT_MS = 120_000;
 let SqsPartnerOnboardingFilesAdapter = class SqsPartnerOnboardingFilesAdapter {
+    publish_upload_files;
+    files_uploaded_awaiter;
     constructor(publish_upload_files, files_uploaded_awaiter) {
         this.publish_upload_files = publish_upload_files;
         this.files_uploaded_awaiter = files_uploaded_awaiter;
@@ -2142,6 +2313,7 @@ exports.SqsTransversalUserPersonWriterAdapter = void 0;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
 const publish_create_partner_user_command_use_case_1 = __webpack_require__(/*! @messaging/application/use-cases/publish-create-partner-user-command.use-case */ "./apps/suppliers-ms/src/modules/messaging/application/use-cases/publish-create-partner-user-command.use-case.ts");
 let SqsTransversalUserPersonWriterAdapter = class SqsTransversalUserPersonWriterAdapter {
+    publish_create_partner_user;
     constructor(publish_create_partner_user) {
         this.publish_create_partner_user = publish_create_partner_user;
     }
@@ -2186,6 +2358,10 @@ const config_1 = __webpack_require__(/*! @nestjs/config */ "@nestjs/config");
 const ingest_transversal_inbound_sqs_message_use_case_1 = __webpack_require__(/*! @messaging/application/use-cases/ingest-transversal-inbound-sqs-message.use-case */ "./apps/suppliers-ms/src/modules/messaging/application/use-cases/ingest-transversal-inbound-sqs-message.use-case.ts");
 const shared_1 = __webpack_require__(/*! @platam/shared */ "./libs/shared/src/index.ts");
 let TransversalInboundSqsConsumer = TransversalInboundSqsConsumer_1 = class TransversalInboundSqsConsumer extends shared_1.BaseConsumer {
+    queues_config;
+    config_service;
+    ingest_transversal_inbound;
+    nest_logger = new common_1.Logger(TransversalInboundSqsConsumer_1.name);
     constructor(sqs_client, queues_config, config_service, ingest_transversal_inbound) {
         super(sqs_client, {
             log: (m) => this.nest_logger.log(m),
@@ -2195,7 +2371,6 @@ let TransversalInboundSqsConsumer = TransversalInboundSqsConsumer_1 = class Tran
         this.queues_config = queues_config;
         this.config_service = config_service;
         this.ingest_transversal_inbound = ingest_transversal_inbound;
-        this.nest_logger = new common_1.Logger(TransversalInboundSqsConsumer_1.name);
     }
     onModuleInit() {
         this.start();
@@ -2396,6 +2571,9 @@ function build_bank_account_public_fields(account) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CreateBankAccountRequest = void 0;
 class CreateBankAccountRequest {
+    bank_entity;
+    account_number;
+    bank_certification;
     constructor(bank_entity, account_number, bank_certification) {
         this.bank_entity = bank_entity;
         this.account_number = account_number;
@@ -2417,6 +2595,13 @@ exports.CreateBankAccountRequest = CreateBankAccountRequest;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CreateBankAccountResponse = void 0;
 class CreateBankAccountResponse {
+    internal_id;
+    external_id;
+    bank_entity;
+    account_number;
+    bank_certification;
+    created_at;
+    updated_at;
     constructor(fields) {
         Object.assign(this, fields);
     }
@@ -2454,6 +2639,7 @@ const bank_account_repository_1 = __webpack_require__(/*! @modules/bank-accounts
 const bank_account_public_fields_builder_1 = __webpack_require__(/*! @modules/bank-accounts/application/mapping/bank-account-public-fields.builder */ "./apps/suppliers-ms/src/modules/bank-accounts/application/mapping/bank-account-public-fields.builder.ts");
 const create_bank_account_response_1 = __webpack_require__(/*! ./create-bank-account.response */ "./apps/suppliers-ms/src/modules/bank-accounts/application/use-cases/create-bank-account/create-bank-account.response.ts");
 let CreateBankAccountUseCase = class CreateBankAccountUseCase {
+    bank_account_repository;
     constructor(bank_account_repository) {
         this.bank_account_repository = bank_account_repository;
     }
@@ -2509,6 +2695,7 @@ const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
 const bank_accounts_tokens_1 = __webpack_require__(/*! @modules/bank-accounts/bank-accounts.tokens */ "./apps/suppliers-ms/src/modules/bank-accounts/bank-accounts.tokens.ts");
 const bank_account_repository_1 = __webpack_require__(/*! @modules/bank-accounts/domain/repositories/bank-account.repository */ "./apps/suppliers-ms/src/modules/bank-accounts/domain/repositories/bank-account.repository.ts");
 let DeleteBankAccountByExternalIdUseCase = class DeleteBankAccountByExternalIdUseCase {
+    bank_account_repository;
     constructor(bank_account_repository) {
         this.bank_account_repository = bank_account_repository;
     }
@@ -2539,6 +2726,13 @@ exports.DeleteBankAccountByExternalIdUseCase = DeleteBankAccountByExternalIdUseC
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.GetBankAccountByExternalIdResponse = void 0;
 class GetBankAccountByExternalIdResponse {
+    internal_id;
+    external_id;
+    bank_entity;
+    account_number;
+    bank_certification;
+    created_at;
+    updated_at;
     constructor(fields) {
         Object.assign(this, fields);
     }
@@ -2576,6 +2770,7 @@ const bank_account_repository_1 = __webpack_require__(/*! @modules/bank-accounts
 const bank_account_public_fields_builder_1 = __webpack_require__(/*! @modules/bank-accounts/application/mapping/bank-account-public-fields.builder */ "./apps/suppliers-ms/src/modules/bank-accounts/application/mapping/bank-account-public-fields.builder.ts");
 const get_bank_account_by_external_id_response_1 = __webpack_require__(/*! ./get-bank-account-by-external-id.response */ "./apps/suppliers-ms/src/modules/bank-accounts/application/use-cases/get-bank-account-by-external-id/get-bank-account-by-external-id.response.ts");
 let GetBankAccountByExternalIdUseCase = class GetBankAccountByExternalIdUseCase {
+    bank_account_repository;
     constructor(bank_account_repository) {
         this.bank_account_repository = bank_account_repository;
     }
@@ -2608,6 +2803,13 @@ exports.GetBankAccountByExternalIdUseCase = GetBankAccountByExternalIdUseCase = 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ListBankAccountsItemResponse = void 0;
 class ListBankAccountsItemResponse {
+    internal_id;
+    external_id;
+    bank_entity;
+    account_number;
+    bank_certification;
+    created_at;
+    updated_at;
     constructor(fields) {
         Object.assign(this, fields);
     }
@@ -2645,6 +2847,7 @@ const bank_account_repository_1 = __webpack_require__(/*! @modules/bank-accounts
 const bank_account_public_fields_builder_1 = __webpack_require__(/*! @modules/bank-accounts/application/mapping/bank-account-public-fields.builder */ "./apps/suppliers-ms/src/modules/bank-accounts/application/mapping/bank-account-public-fields.builder.ts");
 const list_bank_accounts_response_1 = __webpack_require__(/*! ./list-bank-accounts.response */ "./apps/suppliers-ms/src/modules/bank-accounts/application/use-cases/list-bank-accounts/list-bank-accounts.response.ts");
 let ListBankAccountsUseCase = class ListBankAccountsUseCase {
+    bank_account_repository;
     constructor(bank_account_repository) {
         this.bank_account_repository = bank_account_repository;
     }
@@ -2673,6 +2876,13 @@ exports.ListBankAccountsUseCase = ListBankAccountsUseCase = __decorate([
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.UpdateBankAccountByExternalIdResponse = void 0;
 class UpdateBankAccountByExternalIdResponse {
+    internal_id;
+    external_id;
+    bank_entity;
+    account_number;
+    bank_certification;
+    created_at;
+    updated_at;
     constructor(fields) {
         Object.assign(this, fields);
     }
@@ -2710,6 +2920,7 @@ const bank_account_repository_1 = __webpack_require__(/*! @modules/bank-accounts
 const bank_account_public_fields_builder_1 = __webpack_require__(/*! @modules/bank-accounts/application/mapping/bank-account-public-fields.builder */ "./apps/suppliers-ms/src/modules/bank-accounts/application/mapping/bank-account-public-fields.builder.ts");
 const update_bank_account_by_external_id_response_1 = __webpack_require__(/*! ./update-bank-account-by-external-id.response */ "./apps/suppliers-ms/src/modules/bank-accounts/application/use-cases/update-bank-account-by-external-id/update-bank-account-by-external-id.response.ts");
 let UpdateBankAccountByExternalIdUseCase = class UpdateBankAccountByExternalIdUseCase {
+    bank_account_repository;
     constructor(bank_account_repository) {
         this.bank_account_repository = bank_account_repository;
     }
@@ -2827,6 +3038,13 @@ exports.BANK_ACCOUNT_REPOSITORY = Symbol('BANK_ACCOUNT_REPOSITORY');
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.BankAccount = void 0;
 class BankAccount {
+    internal_id;
+    external_id;
+    bank_entity;
+    account_number;
+    bank_certification;
+    created_at;
+    updated_at;
     constructor(internal_id, external_id, bank_entity, account_number, bank_certification, created_at, updated_at) {
         this.internal_id = internal_id;
         this.external_id = external_id;
@@ -2906,6 +3124,17 @@ async function build_business_public_fields(business, lookup) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CreateBusinessRequest = void 0;
 class CreateBusinessRequest {
+    person_internal_id;
+    city_external_id;
+    entity_type;
+    business_name;
+    business_address;
+    business_type;
+    relationship_to_business;
+    legal_name;
+    trade_name;
+    tax_id;
+    year_of_establishment;
     constructor(person_internal_id, city_external_id, entity_type, business_name, business_address, business_type, relationship_to_business, legal_name, trade_name, tax_id, year_of_establishment) {
         this.person_internal_id = person_internal_id;
         this.city_external_id = city_external_id;
@@ -2935,6 +3164,21 @@ exports.CreateBusinessRequest = CreateBusinessRequest;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CreateBusinessResponse = void 0;
 class CreateBusinessResponse {
+    internal_id;
+    external_id;
+    person_external_id;
+    city_external_id;
+    entity_type;
+    business_name;
+    business_address;
+    business_type;
+    relationship_to_business;
+    legal_name;
+    trade_name;
+    tax_id;
+    year_of_establishment;
+    created_at;
+    updated_at;
     constructor(fields) {
         Object.assign(this, fields);
     }
@@ -2973,6 +3217,8 @@ const business_repository_1 = __webpack_require__(/*! @modules/businesses/domain
 const business_public_fields_builder_1 = __webpack_require__(/*! @modules/businesses/application/mapping/business-public-fields.builder */ "./apps/suppliers-ms/src/modules/businesses/application/mapping/business-public-fields.builder.ts");
 const create_business_response_1 = __webpack_require__(/*! ./create-business.response */ "./apps/suppliers-ms/src/modules/businesses/application/use-cases/create-business/create-business.response.ts");
 let CreateBusinessUseCase = class CreateBusinessUseCase {
+    business_repository;
+    lookup;
     constructor(business_repository, lookup) {
         this.business_repository = business_repository;
         this.lookup = lookup;
@@ -3040,6 +3286,7 @@ const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
 const businesses_tokens_1 = __webpack_require__(/*! @modules/businesses/businesses.tokens */ "./apps/suppliers-ms/src/modules/businesses/businesses.tokens.ts");
 const business_repository_1 = __webpack_require__(/*! @modules/businesses/domain/repositories/business.repository */ "./apps/suppliers-ms/src/modules/businesses/domain/repositories/business.repository.ts");
 let DeleteBusinessByExternalIdUseCase = class DeleteBusinessByExternalIdUseCase {
+    business_repository;
     constructor(business_repository) {
         this.business_repository = business_repository;
     }
@@ -3070,6 +3317,21 @@ exports.DeleteBusinessByExternalIdUseCase = DeleteBusinessByExternalIdUseCase = 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.GetBusinessByExternalIdResponse = void 0;
 class GetBusinessByExternalIdResponse {
+    internal_id;
+    external_id;
+    person_external_id;
+    city_external_id;
+    entity_type;
+    business_name;
+    business_address;
+    business_type;
+    relationship_to_business;
+    legal_name;
+    trade_name;
+    tax_id;
+    year_of_establishment;
+    created_at;
+    updated_at;
     constructor(fields) {
         Object.assign(this, fields);
     }
@@ -3108,6 +3370,8 @@ const business_repository_1 = __webpack_require__(/*! @modules/businesses/domain
 const business_public_fields_builder_1 = __webpack_require__(/*! @modules/businesses/application/mapping/business-public-fields.builder */ "./apps/suppliers-ms/src/modules/businesses/application/mapping/business-public-fields.builder.ts");
 const get_business_by_external_id_response_1 = __webpack_require__(/*! ./get-business-by-external-id.response */ "./apps/suppliers-ms/src/modules/businesses/application/use-cases/get-business-by-external-id/get-business-by-external-id.response.ts");
 let GetBusinessByExternalIdUseCase = class GetBusinessByExternalIdUseCase {
+    business_repository;
+    lookup;
     constructor(business_repository, lookup) {
         this.business_repository = business_repository;
         this.lookup = lookup;
@@ -3142,6 +3406,21 @@ exports.GetBusinessByExternalIdUseCase = GetBusinessByExternalIdUseCase = __deco
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ListBusinessesItemResponse = void 0;
 class ListBusinessesItemResponse {
+    internal_id;
+    external_id;
+    person_external_id;
+    city_external_id;
+    entity_type;
+    business_name;
+    business_address;
+    business_type;
+    relationship_to_business;
+    legal_name;
+    trade_name;
+    tax_id;
+    year_of_establishment;
+    created_at;
+    updated_at;
     constructor(fields) {
         Object.assign(this, fields);
     }
@@ -3180,6 +3459,8 @@ const business_repository_1 = __webpack_require__(/*! @modules/businesses/domain
 const business_public_fields_builder_1 = __webpack_require__(/*! @modules/businesses/application/mapping/business-public-fields.builder */ "./apps/suppliers-ms/src/modules/businesses/application/mapping/business-public-fields.builder.ts");
 const list_businesses_response_1 = __webpack_require__(/*! ./list-businesses.response */ "./apps/suppliers-ms/src/modules/businesses/application/use-cases/list-businesses/list-businesses.response.ts");
 let ListBusinessesUseCase = class ListBusinessesUseCase {
+    business_repository;
+    lookup;
     constructor(business_repository, lookup) {
         this.business_repository = business_repository;
         this.lookup = lookup;
@@ -3215,6 +3496,21 @@ exports.ListBusinessesUseCase = ListBusinessesUseCase = __decorate([
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.UpdateBusinessByExternalIdResponse = void 0;
 class UpdateBusinessByExternalIdResponse {
+    internal_id;
+    external_id;
+    person_external_id;
+    city_external_id;
+    entity_type;
+    business_name;
+    business_address;
+    business_type;
+    relationship_to_business;
+    legal_name;
+    trade_name;
+    tax_id;
+    year_of_establishment;
+    created_at;
+    updated_at;
     constructor(fields) {
         Object.assign(this, fields);
     }
@@ -3253,6 +3549,8 @@ const business_repository_1 = __webpack_require__(/*! @modules/businesses/domain
 const business_public_fields_builder_1 = __webpack_require__(/*! @modules/businesses/application/mapping/business-public-fields.builder */ "./apps/suppliers-ms/src/modules/businesses/application/mapping/business-public-fields.builder.ts");
 const update_business_by_external_id_response_1 = __webpack_require__(/*! ./update-business-by-external-id.response */ "./apps/suppliers-ms/src/modules/businesses/application/use-cases/update-business-by-external-id/update-business-by-external-id.response.ts");
 let UpdateBusinessByExternalIdUseCase = class UpdateBusinessByExternalIdUseCase {
+    business_repository;
+    lookup;
     constructor(business_repository, lookup) {
         this.business_repository = business_repository;
         this.lookup = lookup;
@@ -3403,6 +3701,21 @@ exports.BUSINESS_REPOSITORY = Symbol('BUSINESS_REPOSITORY');
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Business = void 0;
 class Business {
+    internal_id;
+    external_id;
+    person_id;
+    city_id;
+    entity_type;
+    business_name;
+    business_address;
+    business_type;
+    relationship_to_business;
+    legal_name;
+    trade_name;
+    tax_id;
+    year_of_establishment;
+    created_at;
+    updated_at;
     constructor(internal_id, external_id, person_id, city_id, entity_type, business_name, business_address, business_type, relationship_to_business, legal_name, trade_name, tax_id, year_of_establishment, created_at, updated_at) {
         this.internal_id = internal_id;
         this.external_id = external_id;
@@ -3448,6 +3761,9 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CreateLegalRepresentativeRequest = void 0;
 class CreateLegalRepresentativeRequest {
+    person_internal_id;
+    is_primary;
+    supplier_internal_id;
     constructor(person_internal_id, is_primary, supplier_internal_id) {
         this.person_internal_id = person_internal_id;
         this.is_primary = is_primary;
@@ -3469,6 +3785,7 @@ exports.CreateLegalRepresentativeRequest = CreateLegalRepresentativeRequest;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CreateLegalRepresentativeResponse = void 0;
 class CreateLegalRepresentativeResponse {
+    external_id;
     constructor(external_id) {
         this.external_id = external_id;
     }
@@ -3503,6 +3820,7 @@ const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
 const legal_representatives_tokens_1 = __webpack_require__(/*! @modules/legal-representatives/legal-representatives.tokens */ "./apps/suppliers-ms/src/modules/legal-representatives/legal-representatives.tokens.ts");
 const create_legal_representative_response_1 = __webpack_require__(/*! ./create-legal-representative.response */ "./apps/suppliers-ms/src/modules/legal-representatives/application/use-cases/create-legal-representative/create-legal-representative.response.ts");
 let CreateLegalRepresentativeUseCase = class CreateLegalRepresentativeUseCase {
+    legal_representatives;
     constructor(legal_representatives) {
         this.legal_representatives = legal_representatives;
     }
@@ -3537,6 +3855,12 @@ exports.CreateLegalRepresentativeUseCase = CreateLegalRepresentativeUseCase = __
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.LegalRepresentative = void 0;
 class LegalRepresentative {
+    internal_id;
+    external_id;
+    person_id;
+    is_primary;
+    created_at;
+    updated_at;
     constructor(internal_id, external_id, person_id, is_primary, created_at, updated_at) {
         this.internal_id = internal_id;
         this.external_id = external_id;
@@ -3626,6 +3950,8 @@ exports.FilesUploadedInboundDto = exports.FilesUploadedPayloadDto = exports.File
 const class_transformer_1 = __webpack_require__(/*! class-transformer */ "class-transformer");
 const class_validator_1 = __webpack_require__(/*! class-validator */ "class-validator");
 class FilesUploadedItemDto {
+    url;
+    folder;
 }
 exports.FilesUploadedItemDto = FilesUploadedItemDto;
 __decorate([
@@ -3639,6 +3965,7 @@ __decorate([
     __metadata("design:type", String)
 ], FilesUploadedItemDto.prototype, "folder", void 0);
 class FilesUploadedPayloadDto {
+    files;
 }
 exports.FilesUploadedPayloadDto = FilesUploadedPayloadDto;
 __decorate([
@@ -3650,6 +3977,9 @@ __decorate([
     __metadata("design:type", Array)
 ], FilesUploadedPayloadDto.prototype, "files", void 0);
 class FilesUploadedInboundDto {
+    event;
+    correlation_id;
+    payload;
 }
 exports.FilesUploadedInboundDto = FilesUploadedInboundDto;
 __decorate([
@@ -3696,6 +4026,10 @@ exports.TransversalInboundMessageDto = void 0;
 const class_validator_1 = __webpack_require__(/*! class-validator */ "class-validator");
 const transversal_outbound_event_dto_1 = __webpack_require__(/*! ./transversal-outbound-event.dto */ "./apps/suppliers-ms/src/modules/messaging/application/dto/transversal-outbound-event.dto.ts");
 class TransversalInboundMessageDto {
+    correlation_id;
+    event_type;
+    payload;
+    trace_id;
 }
 exports.TransversalInboundMessageDto = TransversalInboundMessageDto;
 __decorate([
@@ -3750,6 +4084,10 @@ var TransversalEventType;
     TransversalEventType["partner_onboarding_category_batch_requested"] = "partner_onboarding_category_batch_requested";
 })(TransversalEventType || (exports.TransversalEventType = TransversalEventType = {}));
 class TransversalOutboundEventDto {
+    correlation_id;
+    event_type;
+    payload;
+    trace_id;
 }
 exports.TransversalOutboundEventDto = TransversalOutboundEventDto;
 __decorate([
@@ -3811,10 +4149,8 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.FilesUploadedCorrelationAwaiter = void 0;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
 let FilesUploadedCorrelationAwaiter = class FilesUploadedCorrelationAwaiter {
-    constructor() {
-        this.pending = new Map();
-        this.early = new Map();
-    }
+    pending = new Map();
+    early = new Map();
     wait(correlation_id, timeout_ms) {
         const early = this.early.get(correlation_id);
         if (early !== undefined) {
@@ -3882,10 +4218,12 @@ function is_files_uploaded_event(v) {
         v.event === 'files-uploaded');
 }
 let IngestTransversalInboundSqsMessageUseCase = IngestTransversalInboundSqsMessageUseCase_1 = class IngestTransversalInboundSqsMessageUseCase {
+    process_transversal_inbound_message;
+    process_files_uploaded_inbound;
+    logger = new common_1.Logger(IngestTransversalInboundSqsMessageUseCase_1.name);
     constructor(process_transversal_inbound_message, process_files_uploaded_inbound) {
         this.process_transversal_inbound_message = process_transversal_inbound_message;
         this.process_files_uploaded_inbound = process_files_uploaded_inbound;
-        this.logger = new common_1.Logger(IngestTransversalInboundSqsMessageUseCase_1.name);
     }
     async execute(command) {
         let parsed;
@@ -3975,9 +4313,10 @@ const FOLDER_BANK = 'bank-certifications';
 const FOLDER_LOGO = 'logos/logo';
 const FOLDER_CO_BRANDING = 'logos/co-branding';
 let ProcessFilesUploadedInboundUseCase = ProcessFilesUploadedInboundUseCase_1 = class ProcessFilesUploadedInboundUseCase {
+    awaiter;
+    logger = new common_1.Logger(ProcessFilesUploadedInboundUseCase_1.name);
     constructor(awaiter) {
         this.awaiter = awaiter;
-        this.logger = new common_1.Logger(ProcessFilesUploadedInboundUseCase_1.name);
     }
     async execute(dto) {
         const urls = this.map_payload_to_legacy_urls(dto.payload.files);
@@ -4030,9 +4369,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ProcessTransversalInboundMessageUseCase = void 0;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
 let ProcessTransversalInboundMessageUseCase = ProcessTransversalInboundMessageUseCase_1 = class ProcessTransversalInboundMessageUseCase {
-    constructor() {
-        this.logger = new common_1.Logger(ProcessTransversalInboundMessageUseCase_1.name);
-    }
+    logger = new common_1.Logger(ProcessTransversalInboundMessageUseCase_1.name);
     async execute(dto) {
         this.logger.log(`Mensaje transversal recibido: event_type=${dto.event_type} correlation_id=${dto.correlation_id}`);
     }
@@ -4071,6 +4408,8 @@ const outbound_message_publisher_port_1 = __webpack_require__(/*! @messaging/dom
 const products_create_categories_queue_url_port_1 = __webpack_require__(/*! @messaging/domain/ports/products-create-categories-queue-url.port */ "./apps/suppliers-ms/src/modules/messaging/domain/ports/products-create-categories-queue-url.port.ts");
 const validation_failed_error_1 = __webpack_require__(/*! ../exceptions/validation-failed.error */ "./apps/suppliers-ms/src/modules/messaging/application/exceptions/validation-failed.error.ts");
 let PublishCreateCategoriesCommandUseCase = class PublishCreateCategoriesCommandUseCase {
+    message_publisher;
+    queue_url_port;
     constructor(message_publisher, queue_url_port) {
         this.message_publisher = message_publisher;
         this.queue_url_port = queue_url_port;
@@ -4130,6 +4469,8 @@ const outbound_message_publisher_port_1 = __webpack_require__(/*! @messaging/dom
 const products_create_credit_facility_queue_url_port_1 = __webpack_require__(/*! @messaging/domain/ports/products-create-credit-facility-queue-url.port */ "./apps/suppliers-ms/src/modules/messaging/domain/ports/products-create-credit-facility-queue-url.port.ts");
 const validation_failed_error_1 = __webpack_require__(/*! ../exceptions/validation-failed.error */ "./apps/suppliers-ms/src/modules/messaging/application/exceptions/validation-failed.error.ts");
 let PublishCreateCreditFacilityCommandUseCase = class PublishCreateCreditFacilityCommandUseCase {
+    message_publisher;
+    queue_url_port;
     constructor(message_publisher, queue_url_port) {
         this.message_publisher = message_publisher;
         this.queue_url_port = queue_url_port;
@@ -4190,6 +4531,8 @@ const outbound_message_publisher_port_1 = __webpack_require__(/*! @messaging/dom
 const transversal_create_partner_user_queue_url_port_1 = __webpack_require__(/*! @messaging/domain/ports/transversal-create-partner-user-queue-url.port */ "./apps/suppliers-ms/src/modules/messaging/domain/ports/transversal-create-partner-user-queue-url.port.ts");
 const validation_failed_error_1 = __webpack_require__(/*! ../exceptions/validation-failed.error */ "./apps/suppliers-ms/src/modules/messaging/application/exceptions/validation-failed.error.ts");
 let PublishCreatePartnerUserCommandUseCase = class PublishCreatePartnerUserCommandUseCase {
+    message_publisher;
+    create_user_queue_url;
     constructor(message_publisher, create_user_queue_url) {
         this.message_publisher = message_publisher;
         this.create_user_queue_url = create_user_queue_url;
@@ -4255,6 +4598,8 @@ const outbound_message_publisher_port_1 = __webpack_require__(/*! @messaging/dom
 const transversal_create_person_queue_url_port_1 = __webpack_require__(/*! @messaging/domain/ports/transversal-create-person-queue-url.port */ "./apps/suppliers-ms/src/modules/messaging/domain/ports/transversal-create-person-queue-url.port.ts");
 const validation_failed_error_1 = __webpack_require__(/*! ../exceptions/validation-failed.error */ "./apps/suppliers-ms/src/modules/messaging/application/exceptions/validation-failed.error.ts");
 let PublishCreatePersonCommandUseCase = class PublishCreatePersonCommandUseCase {
+    message_publisher;
+    create_person_queue_url;
     constructor(message_publisher, create_person_queue_url) {
         this.message_publisher = message_publisher;
         this.create_person_queue_url = create_person_queue_url;
@@ -4322,6 +4667,8 @@ const products_outbound_queue_url_port_1 = __webpack_require__(/*! @messaging/do
 const transversal_outbound_event_dto_1 = __webpack_require__(/*! ../dto/transversal-outbound-event.dto */ "./apps/suppliers-ms/src/modules/messaging/application/dto/transversal-outbound-event.dto.ts");
 const validation_failed_error_1 = __webpack_require__(/*! ../exceptions/validation-failed.error */ "./apps/suppliers-ms/src/modules/messaging/application/exceptions/validation-failed.error.ts");
 let PublishProductsEventUseCase = class PublishProductsEventUseCase {
+    message_publisher;
+    outbound_queue_url;
     constructor(message_publisher, outbound_queue_url) {
         this.message_publisher = message_publisher;
         this.outbound_queue_url = outbound_queue_url;
@@ -4387,6 +4734,8 @@ const transversal_outbound_queue_url_port_1 = __webpack_require__(/*! @messaging
 const transversal_outbound_event_dto_1 = __webpack_require__(/*! ../dto/transversal-outbound-event.dto */ "./apps/suppliers-ms/src/modules/messaging/application/dto/transversal-outbound-event.dto.ts");
 const validation_failed_error_1 = __webpack_require__(/*! ../exceptions/validation-failed.error */ "./apps/suppliers-ms/src/modules/messaging/application/exceptions/validation-failed.error.ts");
 let PublishTransversalEventUseCase = class PublishTransversalEventUseCase {
+    message_publisher;
+    outbound_queue_url;
     constructor(message_publisher, outbound_queue_url) {
         this.message_publisher = message_publisher;
         this.outbound_queue_url = outbound_queue_url;
@@ -4451,6 +4800,9 @@ const outbound_message_publisher_port_1 = __webpack_require__(/*! @messaging/dom
 const transversal_upload_files_queue_url_port_1 = __webpack_require__(/*! @messaging/domain/ports/transversal-upload-files-queue-url.port */ "./apps/suppliers-ms/src/modules/messaging/domain/ports/transversal-upload-files-queue-url.port.ts");
 const validation_failed_error_1 = __webpack_require__(/*! ../exceptions/validation-failed.error */ "./apps/suppliers-ms/src/modules/messaging/application/exceptions/validation-failed.error.ts");
 let PublishUploadFilesEventUseCase = class PublishUploadFilesEventUseCase {
+    message_publisher;
+    upload_queue_url;
+    config_service;
     constructor(message_publisher, upload_queue_url, config_service) {
         this.message_publisher = message_publisher;
         this.upload_queue_url = upload_queue_url;
@@ -4758,6 +5110,20 @@ exports.PARTNER_ONBOARDING_SAGA_REPOSITORY = Symbol('PARTNER_ONBOARDING_SAGA_REP
 
 /***/ },
 
+/***/ "./apps/suppliers-ms/src/modules/partners/application/ports/partner-saga-compensation.port.ts"
+/*!****************************************************************************************************!*\
+  !*** ./apps/suppliers-ms/src/modules/partners/application/ports/partner-saga-compensation.port.ts ***!
+  \****************************************************************************************************/
+(__unused_webpack_module, exports) {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.PARTNER_SAGA_COMPENSATION_PORT = void 0;
+exports.PARTNER_SAGA_COMPENSATION_PORT = Symbol('PARTNER_SAGA_COMPENSATION_PORT');
+
+
+/***/ },
+
 /***/ "./apps/suppliers-ms/src/modules/partners/application/ports/partner-user-sqs-result-reader.port.ts"
 /*!*********************************************************************************************************!*\
   !*** ./apps/suppliers-ms/src/modules/partners/application/ports/partner-user-sqs-result-reader.port.ts ***!
@@ -4810,6 +5176,19 @@ exports.TRANSVERSAL_USER_PERSON_WRITER_PORT = Symbol('TRANSVERSAL_USER_PERSON_WR
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CreatePartnerOrchestratorResponse = void 0;
 class CreatePartnerOrchestratorResponse {
+    saga_external_id;
+    correlation_id;
+    credit_facility_external_id;
+    user_external_id;
+    person_external_id;
+    legal_representative_external_id;
+    business_external_id;
+    bank_certification_url;
+    logo_url;
+    co_branding_url;
+    bank_account_external_id;
+    supplier_external_id;
+    partner_external_id;
     constructor(saga_external_id, correlation_id, credit_facility_external_id, user_external_id, person_external_id, legal_representative_external_id, business_external_id, bank_certification_url, logo_url, co_branding_url, bank_account_external_id, supplier_external_id, partner_external_id) {
         this.saga_external_id = saga_external_id;
         this.correlation_id = correlation_id;
@@ -4855,7 +5234,6 @@ var _a, _b, _c, _d, _e, _f, _g, _h;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CreatePartnerOrchestratorUseCase = void 0;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
-const crypto_1 = __webpack_require__(/*! crypto */ "crypto");
 const shared_1 = __webpack_require__(/*! @platam/shared */ "./libs/shared/src/index.ts");
 const create_business_use_case_1 = __webpack_require__(/*! @modules/businesses/application/use-cases/create-business/create-business.use-case */ "./apps/suppliers-ms/src/modules/businesses/application/use-cases/create-business/create-business.use-case.ts");
 const create_business_request_1 = __webpack_require__(/*! @modules/businesses/application/use-cases/create-business/create-business.request */ "./apps/suppliers-ms/src/modules/businesses/application/use-cases/create-business/create-business.request.ts");
@@ -4868,6 +5246,7 @@ const partner_onboarding_saga_repository_port_1 = __webpack_require__(/*! @modul
 const partner_user_sqs_result_reader_port_1 = __webpack_require__(/*! @modules/partners/application/ports/partner-user-sqs-result-reader.port */ "./apps/suppliers-ms/src/modules/partners/application/ports/partner-user-sqs-result-reader.port.ts");
 const partner_onboarding_files_port_1 = __webpack_require__(/*! @modules/partners/application/ports/partner-onboarding-files.port */ "./apps/suppliers-ms/src/modules/partners/application/ports/partner-onboarding-files.port.ts");
 const products_credit_facility_sync_port_1 = __webpack_require__(/*! @modules/partners/application/ports/products-credit-facility-sync.port */ "./apps/suppliers-ms/src/modules/partners/application/ports/products-credit-facility-sync.port.ts");
+const partner_saga_compensation_port_1 = __webpack_require__(/*! @modules/partners/application/ports/partner-saga-compensation.port */ "./apps/suppliers-ms/src/modules/partners/application/ports/partner-saga-compensation.port.ts");
 const create_partner_orchestrator_response_1 = __webpack_require__(/*! ./create-partner-orchestrator.response */ "./apps/suppliers-ms/src/modules/partners/application/use-cases/create-partner-orchestrator/create-partner-orchestrator.response.ts");
 const suppliers_reference_lookup_port_1 = __webpack_require__(/*! @common/ports/suppliers-reference-lookup.port */ "./apps/suppliers-ms/src/common/ports/suppliers-reference-lookup.port.ts");
 const create_legal_representative_use_case_1 = __webpack_require__(/*! @modules/legal-representatives/application/use-cases/create-legal-representative/create-legal-representative.use-case */ "./apps/suppliers-ms/src/modules/legal-representatives/application/use-cases/create-legal-representative/create-legal-representative.use-case.ts");
@@ -4883,12 +5262,28 @@ const PARTNER_ONBOARDING_FILE_FOLDERS = {
     co_branding: 'logos/co-branding',
 };
 let CreatePartnerOrchestratorUseCase = CreatePartnerOrchestratorUseCase_1 = class CreatePartnerOrchestratorUseCase {
-    constructor(saga_repository, partner_user_sqs_result, files_port, suppliers_lookup, credit_facility_sync, create_bank_account, create_business, create_supplier, create_partner, create_legal_representative, publish_create_person, publish_create_credit_facility, publish_create_categories) {
+    saga_repository;
+    partner_user_sqs_result;
+    files_port;
+    suppliers_lookup;
+    credit_facility_sync;
+    compensation;
+    create_bank_account;
+    create_business;
+    create_supplier;
+    create_partner;
+    create_legal_representative;
+    publish_create_person;
+    publish_create_credit_facility;
+    publish_create_categories;
+    logger = new common_1.Logger(CreatePartnerOrchestratorUseCase_1.name);
+    constructor(saga_repository, partner_user_sqs_result, files_port, suppliers_lookup, credit_facility_sync, compensation, create_bank_account, create_business, create_supplier, create_partner, create_legal_representative, publish_create_person, publish_create_credit_facility, publish_create_categories) {
         this.saga_repository = saga_repository;
         this.partner_user_sqs_result = partner_user_sqs_result;
         this.files_port = files_port;
         this.suppliers_lookup = suppliers_lookup;
         this.credit_facility_sync = credit_facility_sync;
+        this.compensation = compensation;
         this.create_bank_account = create_bank_account;
         this.create_business = create_business;
         this.create_supplier = create_supplier;
@@ -4897,20 +5292,24 @@ let CreatePartnerOrchestratorUseCase = CreatePartnerOrchestratorUseCase_1 = clas
         this.publish_create_person = publish_create_person;
         this.publish_create_credit_facility = publish_create_credit_facility;
         this.publish_create_categories = publish_create_categories;
-        this.logger = new common_1.Logger(CreatePartnerOrchestratorUseCase_1.name);
     }
-    async execute(command, files) {
-        const correlation_id = (0, crypto_1.randomUUID)();
-        const saga_external_id = (0, crypto_1.randomUUID)();
-        const credit_facility_external_id = (0, crypto_1.randomUUID)();
+    async start_async(command, files) {
+        const saga_external_id = (0, shared_1.new_uuid)();
+        const correlation_id = (0, shared_1.new_uuid)();
         await this.saga_repository.create_initial({
             external_id: saga_external_id,
             correlation_id,
             status: 'RUNNING',
             current_step: 0,
         });
+        void this.run(command, files, saga_external_id, correlation_id);
+        return saga_external_id;
+    }
+    async run(command, files, saga_external_id, correlation_id) {
+        const credit_facility_external_id = (0, shared_1.new_uuid)();
+        const created = {};
         try {
-            this.log_step(0, correlation_id, 'archivos: cola TRANSVERSAL_SQS_UPLOAD_FILES_QUEUE_URL → S3 (transversal-ms)');
+            this.log_step(0, correlation_id, 'archivos → S3 (transversal-ms)');
             const file_urls = await this.files_port.resolve_urls({
                 correlation_id,
                 idempotency_key: saga_external_id,
@@ -4926,6 +5325,7 @@ let CreatePartnerOrchestratorUseCase = CreatePartnerOrchestratorUseCase_1 = clas
                 total_limit: command.total_limit,
                 state: shared_1.Statuses.INACTIVE,
             });
+            created.credit_facility_external_id = credit_facility_external_id;
             await this.publish_create_credit_facility.execute({
                 correlation_id,
                 external_id: credit_facility_external_id,
@@ -4933,18 +5333,18 @@ let CreatePartnerOrchestratorUseCase = CreatePartnerOrchestratorUseCase_1 = clas
                 total_limit: command.total_limit,
                 state: shared_1.Statuses.INACTIVE,
             });
-            await this.saga_repository.update_by_external_id(saga_external_id, {
-                current_step: 1,
-            });
-            this.log_step(2, correlation_id, 'crear bank_account (módulo bank-accounts)');
+            await this.saga_repository.update_by_external_id(saga_external_id, { current_step: 1 });
+            this.log_step(2, correlation_id, 'crear bank_account');
             const bank_cert_url = file_urls.bank_certification_url.trim().length > 0
                 ? file_urls.bank_certification_url.trim()
                 : null;
             const bank_account = await this.create_bank_account.execute(new create_bank_account_request_1.CreateBankAccountRequest(command.bank_entity, command.account_number, bank_cert_url));
+            created.bank_account_external_id = bank_account.external_id;
             await this.saga_repository.update_by_external_id(saga_external_id, {
                 current_step: 2,
+                bank_account_external_id: bank_account.external_id,
             });
-            this.log_step(3, correlation_id, 'publicar create-person (RL) → TRANSVERSAL_SQS_CREATE_PERSON_QUEUE_URL');
+            this.log_step(3, correlation_id, 'publicar create-person (RL) → SQS');
             const lr = command.legal_representative;
             const lr_idempotency_key = `${saga_external_id}__legal_representative`;
             let lr_person_external_id = null;
@@ -4963,7 +5363,8 @@ let CreatePartnerOrchestratorUseCase = CreatePartnerOrchestratorUseCase_1 = clas
                 });
                 const lr_sqs_result = await this.partner_user_sqs_result.wait_for_completed_result(lr_idempotency_key);
                 lr_person_external_id = lr_sqs_result.person_external_id;
-                person_internal_id = await this.suppliers_lookup.get_person_internal_id_by_external_id(lr_person_external_id);
+                person_internal_id =
+                    await this.suppliers_lookup.get_person_internal_id_by_external_id(lr_person_external_id);
                 await this.saga_repository.update_by_external_id(saga_external_id, {
                     current_step: 3,
                     person_external_id: lr_person_external_id,
@@ -4972,28 +5373,36 @@ let CreatePartnerOrchestratorUseCase = CreatePartnerOrchestratorUseCase_1 = clas
             else {
                 await this.saga_repository.update_by_external_id(saga_external_id, { current_step: 3 });
             }
-            this.log_step(4, correlation_id, 'crear business (person_internal_id)');
+            this.log_step(4, correlation_id, 'crear business');
             if (person_internal_id === null) {
                 throw new Error('person_internal_id requerido para crear business (legal_representative es null)');
             }
             const business = await this.create_business.execute(new create_business_request_1.CreateBusinessRequest(person_internal_id, command.city_id, command.entity_type, command.business_name, command.business_address, command.business_type, command.relationship_to_business, command.legal_name, command.trade_name, command.tax_id, command.year_of_establishment));
-            await this.saga_repository.update_by_external_id(saga_external_id, { current_step: 4 });
-            this.log_step(5, correlation_id, 'crear supplier (business_internal_id + bank_account_internal_id)');
+            created.business_external_id = business.external_id;
+            await this.saga_repository.update_by_external_id(saga_external_id, {
+                current_step: 4,
+                business_external_id: business.external_id,
+            });
+            this.log_step(5, correlation_id, 'crear supplier');
             const supplier = await this.create_supplier.execute(new create_supplier_request_1.CreateSupplierRequest(business.internal_id, bank_account.internal_id));
+            created.supplier_external_id = supplier.external_id;
             await this.saga_repository.update_by_external_id(saga_external_id, { current_step: 5 });
-            this.log_step(6, correlation_id, 'crear legal_representative (person_internal_id + supplier_internal_id)');
+            this.log_step(6, correlation_id, 'crear legal_representative');
             let legal_representative_external_id = null;
             if (lr !== null) {
                 const lr_row = await this.create_legal_representative.execute(new create_legal_representative_request_1.CreateLegalRepresentativeRequest(person_internal_id, true, supplier.internal_id));
                 legal_representative_external_id = lr_row.external_id;
             }
             await this.saga_repository.update_by_external_id(saga_external_id, { current_step: 6 });
-            this.log_step(7, correlation_id, 'crear partner (supplier_internal_id)');
+            this.log_step(7, correlation_id, 'crear partner');
             const logo_stored = file_urls.logo_url.trim().length > 0 ? file_urls.logo_url.trim() : null;
-            const co_branding_stored = file_urls.co_branding_url.trim().length > 0 ? file_urls.co_branding_url.trim() : null;
+            const co_branding_stored = file_urls.co_branding_url.trim().length > 0
+                ? file_urls.co_branding_url.trim()
+                : null;
             const partner = await this.create_partner.execute(new create_partner_request_1.CreatePartnerRequest(supplier.internal_id, command.acronym, logo_stored, co_branding_stored, command.primary_color, command.secondary_color, command.light_color, command.notification_email, command.webhook_url, command.send_sales_rep_voucher, command.disbursement_notification_email));
+            created.partner_external_id = partner.external_id;
             await this.saga_repository.update_by_external_id(saga_external_id, { current_step: 7 });
-            this.log_step(8, correlation_id, 'publicar categorías → PRODUCTS_SQS_CREATE_CATEGORIES_QUEUE_URL');
+            this.log_step(8, correlation_id, 'publicar categorías → SQS');
             await this.publish_create_categories.execute({
                 correlation_id,
                 credit_facility_id: cf.internal_id,
@@ -5006,17 +5415,45 @@ let CreatePartnerOrchestratorUseCase = CreatePartnerOrchestratorUseCase_1 = clas
             await this.saga_repository.update_by_external_id(saga_external_id, {
                 current_step: 9,
                 status: 'COMPLETED',
+                credit_facility_external_id,
+                partner_external_id: partner.external_id,
             });
-            return new create_partner_orchestrator_response_1.CreatePartnerOrchestratorResponse(saga_external_id, correlation_id, credit_facility_external_id, null, lr_person_external_id, legal_representative_external_id, business.external_id, file_urls.bank_certification_url, file_urls.logo_url, file_urls.co_branding_url, bank_account.external_id, supplier.external_id, partner.external_id);
+            this.logger.log(`[Saga][COMPLETED][correlation_id=${correlation_id}] partner=${partner.external_id}`);
+            void this.build_response(saga_external_id, correlation_id, credit_facility_external_id, lr_person_external_id, legal_representative_external_id, business.external_id, file_urls.bank_certification_url, file_urls.logo_url, file_urls.co_branding_url, bank_account.external_id, supplier.external_id, partner.external_id);
         }
         catch (err) {
             const message = err instanceof Error ? err.message : String(err);
+            this.logger.error(`[Saga][FAILED][correlation_id=${correlation_id}] ${message}`);
             await this.saga_repository.update_by_external_id(saga_external_id, {
-                status: 'FAILED',
+                status: 'COMPENSATING',
                 error_message: message,
             });
-            throw err;
+            await this.compensate(correlation_id, created);
+            await this.saga_repository.update_by_external_id(saga_external_id, {
+                status: 'FAILED',
+            });
         }
+    }
+    async compensate(correlation_id, created) {
+        this.logger.warn(`[Saga][COMPENSATING][correlation_id=${correlation_id}] iniciando rollback`);
+        if (created.partner_external_id) {
+            await this.compensation.delete_partner(created.partner_external_id);
+        }
+        if (created.supplier_external_id) {
+            await this.compensation.delete_supplier(created.supplier_external_id);
+        }
+        if (created.business_external_id) {
+            await this.compensation.delete_business(created.business_external_id);
+        }
+        if (created.bank_account_external_id) {
+            await this.compensation.delete_bank_account(created.bank_account_external_id);
+        }
+        if (created.credit_facility_external_id) {
+            await this.compensation.delete_credit_facility(created.credit_facility_external_id);
+        }
+    }
+    build_response(saga_external_id, correlation_id, credit_facility_external_id, lr_person_external_id, legal_representative_external_id, business_external_id, bank_certification_url, logo_url, co_branding_url, bank_account_external_id, supplier_external_id, partner_external_id) {
+        return new create_partner_orchestrator_response_1.CreatePartnerOrchestratorResponse(saga_external_id, correlation_id, credit_facility_external_id, null, lr_person_external_id, legal_representative_external_id, business_external_id, bank_certification_url, logo_url, co_branding_url, bank_account_external_id, supplier_external_id, partner_external_id);
     }
     log_step(step_index, correlation_id, label) {
         this.logger.debug(`[Saga][${step_index}/${TOTAL_STEPS}][correlation_id=${correlation_id}] ${label}`);
@@ -5030,7 +5467,8 @@ exports.CreatePartnerOrchestratorUseCase = CreatePartnerOrchestratorUseCase = Cr
     __param(2, (0, common_1.Inject)(partner_onboarding_files_port_1.PARTNER_ONBOARDING_FILES_PORT)),
     __param(3, (0, common_1.Inject)(suppliers_reference_lookup_port_1.SUPPLIERS_REFERENCE_LOOKUP)),
     __param(4, (0, common_1.Inject)(products_credit_facility_sync_port_1.PRODUCTS_CREDIT_FACILITY_SYNC_PORT)),
-    __metadata("design:paramtypes", [Object, Object, Object, Object, Object, typeof (_a = typeof create_bank_account_use_case_1.CreateBankAccountUseCase !== "undefined" && create_bank_account_use_case_1.CreateBankAccountUseCase) === "function" ? _a : Object, typeof (_b = typeof create_business_use_case_1.CreateBusinessUseCase !== "undefined" && create_business_use_case_1.CreateBusinessUseCase) === "function" ? _b : Object, typeof (_c = typeof create_supplier_use_case_1.CreateSupplierUseCase !== "undefined" && create_supplier_use_case_1.CreateSupplierUseCase) === "function" ? _c : Object, typeof (_d = typeof create_partner_use_case_1.CreatePartnerUseCase !== "undefined" && create_partner_use_case_1.CreatePartnerUseCase) === "function" ? _d : Object, typeof (_e = typeof create_legal_representative_use_case_1.CreateLegalRepresentativeUseCase !== "undefined" && create_legal_representative_use_case_1.CreateLegalRepresentativeUseCase) === "function" ? _e : Object, typeof (_f = typeof publish_create_person_command_use_case_1.PublishCreatePersonCommandUseCase !== "undefined" && publish_create_person_command_use_case_1.PublishCreatePersonCommandUseCase) === "function" ? _f : Object, typeof (_g = typeof publish_create_credit_facility_command_use_case_1.PublishCreateCreditFacilityCommandUseCase !== "undefined" && publish_create_credit_facility_command_use_case_1.PublishCreateCreditFacilityCommandUseCase) === "function" ? _g : Object, typeof (_h = typeof publish_create_categories_command_use_case_1.PublishCreateCategoriesCommandUseCase !== "undefined" && publish_create_categories_command_use_case_1.PublishCreateCategoriesCommandUseCase) === "function" ? _h : Object])
+    __param(5, (0, common_1.Inject)(partner_saga_compensation_port_1.PARTNER_SAGA_COMPENSATION_PORT)),
+    __metadata("design:paramtypes", [Object, Object, Object, Object, Object, Object, typeof (_a = typeof create_bank_account_use_case_1.CreateBankAccountUseCase !== "undefined" && create_bank_account_use_case_1.CreateBankAccountUseCase) === "function" ? _a : Object, typeof (_b = typeof create_business_use_case_1.CreateBusinessUseCase !== "undefined" && create_business_use_case_1.CreateBusinessUseCase) === "function" ? _b : Object, typeof (_c = typeof create_supplier_use_case_1.CreateSupplierUseCase !== "undefined" && create_supplier_use_case_1.CreateSupplierUseCase) === "function" ? _c : Object, typeof (_d = typeof create_partner_use_case_1.CreatePartnerUseCase !== "undefined" && create_partner_use_case_1.CreatePartnerUseCase) === "function" ? _d : Object, typeof (_e = typeof create_legal_representative_use_case_1.CreateLegalRepresentativeUseCase !== "undefined" && create_legal_representative_use_case_1.CreateLegalRepresentativeUseCase) === "function" ? _e : Object, typeof (_f = typeof publish_create_person_command_use_case_1.PublishCreatePersonCommandUseCase !== "undefined" && publish_create_person_command_use_case_1.PublishCreatePersonCommandUseCase) === "function" ? _f : Object, typeof (_g = typeof publish_create_credit_facility_command_use_case_1.PublishCreateCreditFacilityCommandUseCase !== "undefined" && publish_create_credit_facility_command_use_case_1.PublishCreateCreditFacilityCommandUseCase) === "function" ? _g : Object, typeof (_h = typeof publish_create_categories_command_use_case_1.PublishCreateCategoriesCommandUseCase !== "undefined" && publish_create_categories_command_use_case_1.PublishCreateCategoriesCommandUseCase) === "function" ? _h : Object])
 ], CreatePartnerOrchestratorUseCase);
 
 
@@ -5046,6 +5484,17 @@ exports.CreatePartnerOrchestratorUseCase = CreatePartnerOrchestratorUseCase = Cr
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CreatePartnerRequest = void 0;
 class CreatePartnerRequest {
+    supplier_internal_id;
+    acronym;
+    logo_url;
+    co_branding_logo_url;
+    primary_color;
+    secondary_color;
+    light_color;
+    notification_email;
+    webhook_url;
+    send_sales_rep_voucher;
+    disbursement_notification_email;
     constructor(supplier_internal_id, acronym, logo_url, co_branding_logo_url, primary_color, secondary_color, light_color, notification_email, webhook_url, send_sales_rep_voucher, disbursement_notification_email) {
         this.supplier_internal_id = supplier_internal_id;
         this.acronym = acronym;
@@ -5075,6 +5524,22 @@ exports.CreatePartnerRequest = CreatePartnerRequest;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CreatePartnerResponse = void 0;
 class CreatePartnerResponse {
+    internal_id;
+    external_id;
+    supplier_external_id;
+    acronym;
+    logo_url;
+    co_branding_logo_url;
+    primary_color;
+    secondary_color;
+    light_color;
+    notification_email;
+    webhook_url;
+    send_sales_rep_voucher;
+    disbursement_notification_email;
+    state;
+    created_at;
+    updated_at;
     constructor(fields) {
         Object.assign(this, fields);
     }
@@ -5111,11 +5576,17 @@ const suppliers_reference_lookup_port_1 = __webpack_require__(/*! @common/ports/
 const partners_tokens_1 = __webpack_require__(/*! @modules/partners/partners.tokens */ "./apps/suppliers-ms/src/modules/partners/partners.tokens.ts");
 const partner_repository_1 = __webpack_require__(/*! @modules/partners/domain/repositories/partner.repository */ "./apps/suppliers-ms/src/modules/partners/domain/repositories/partner.repository.ts");
 const partner_public_fields_builder_1 = __webpack_require__(/*! @modules/partners/application/mapping/partner-public-fields.builder */ "./apps/suppliers-ms/src/modules/partners/application/mapping/partner-public-fields.builder.ts");
+const partner_created_event_1 = __webpack_require__(/*! @modules/partners/domain/events/partner-created.event */ "./apps/suppliers-ms/src/modules/partners/domain/events/partner-created.event.ts");
+const shared_1 = __webpack_require__(/*! @platam/shared */ "./libs/shared/src/index.ts");
 const create_partner_response_1 = __webpack_require__(/*! ./create-partner.response */ "./apps/suppliers-ms/src/modules/partners/application/use-cases/create-partner/create-partner.response.ts");
 let CreatePartnerUseCase = class CreatePartnerUseCase {
-    constructor(partner_repository, lookup) {
+    partner_repository;
+    lookup;
+    event_bus;
+    constructor(partner_repository, lookup, event_bus) {
         this.partner_repository = partner_repository;
         this.lookup = lookup;
+        this.event_bus = event_bus;
     }
     async execute(req) {
         const created = await this.partner_repository.create({
@@ -5131,6 +5602,7 @@ let CreatePartnerUseCase = class CreatePartnerUseCase {
             send_sales_rep_voucher: req.send_sales_rep_voucher,
             disbursement_notification_email: req.disbursement_notification_email,
         });
+        await this.event_bus?.publish(new partner_created_event_1.PartnerCreatedEvent(created.external_id, created.supplier_id));
         const fields = await (0, partner_public_fields_builder_1.build_partner_public_fields)(created, this.lookup);
         return new create_partner_response_1.CreatePartnerResponse(fields);
     }
@@ -5140,7 +5612,9 @@ exports.CreatePartnerUseCase = CreatePartnerUseCase = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, common_1.Inject)(partners_tokens_1.PARTNER_REPOSITORY)),
     __param(1, (0, common_1.Inject)(suppliers_reference_lookup_port_1.SUPPLIERS_REFERENCE_LOOKUP)),
-    __metadata("design:paramtypes", [typeof (_a = typeof partner_repository_1.PartnerRepository !== "undefined" && partner_repository_1.PartnerRepository) === "function" ? _a : Object, Object])
+    __param(2, (0, common_1.Optional)()),
+    __param(2, (0, common_1.Inject)(shared_1.DOMAIN_EVENT_BUS)),
+    __metadata("design:paramtypes", [typeof (_a = typeof partner_repository_1.PartnerRepository !== "undefined" && partner_repository_1.PartnerRepository) === "function" ? _a : Object, Object, Object])
 ], CreatePartnerUseCase);
 
 
@@ -5172,6 +5646,7 @@ const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
 const partners_tokens_1 = __webpack_require__(/*! @modules/partners/partners.tokens */ "./apps/suppliers-ms/src/modules/partners/partners.tokens.ts");
 const partner_repository_1 = __webpack_require__(/*! @modules/partners/domain/repositories/partner.repository */ "./apps/suppliers-ms/src/modules/partners/domain/repositories/partner.repository.ts");
 let DeletePartnerByExternalIdUseCase = class DeletePartnerByExternalIdUseCase {
+    partner_repository;
     constructor(partner_repository) {
         this.partner_repository = partner_repository;
     }
@@ -5202,6 +5677,22 @@ exports.DeletePartnerByExternalIdUseCase = DeletePartnerByExternalIdUseCase = __
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.GetPartnerByExternalIdResponse = void 0;
 class GetPartnerByExternalIdResponse {
+    internal_id;
+    external_id;
+    supplier_external_id;
+    acronym;
+    logo_url;
+    co_branding_logo_url;
+    primary_color;
+    secondary_color;
+    light_color;
+    notification_email;
+    webhook_url;
+    send_sales_rep_voucher;
+    disbursement_notification_email;
+    state;
+    created_at;
+    updated_at;
     constructor(fields) {
         Object.assign(this, fields);
     }
@@ -5240,6 +5731,8 @@ const partner_repository_1 = __webpack_require__(/*! @modules/partners/domain/re
 const partner_public_fields_builder_1 = __webpack_require__(/*! @modules/partners/application/mapping/partner-public-fields.builder */ "./apps/suppliers-ms/src/modules/partners/application/mapping/partner-public-fields.builder.ts");
 const get_partner_by_external_id_response_1 = __webpack_require__(/*! ./get-partner-by-external-id.response */ "./apps/suppliers-ms/src/modules/partners/application/use-cases/get-partner-by-external-id/get-partner-by-external-id.response.ts");
 let GetPartnerByExternalIdUseCase = class GetPartnerByExternalIdUseCase {
+    partner_repository;
+    lookup;
     constructor(partner_repository, lookup) {
         this.partner_repository = partner_repository;
         this.lookup = lookup;
@@ -5274,6 +5767,22 @@ exports.GetPartnerByExternalIdUseCase = GetPartnerByExternalIdUseCase = __decora
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ListPartnersItemResponse = void 0;
 class ListPartnersItemResponse {
+    internal_id;
+    external_id;
+    supplier_external_id;
+    acronym;
+    logo_url;
+    co_branding_logo_url;
+    primary_color;
+    secondary_color;
+    light_color;
+    notification_email;
+    webhook_url;
+    send_sales_rep_voucher;
+    disbursement_notification_email;
+    state;
+    created_at;
+    updated_at;
     constructor(fields) {
         Object.assign(this, fields);
     }
@@ -5312,6 +5821,8 @@ const partner_repository_1 = __webpack_require__(/*! @modules/partners/domain/re
 const partner_public_fields_builder_1 = __webpack_require__(/*! @modules/partners/application/mapping/partner-public-fields.builder */ "./apps/suppliers-ms/src/modules/partners/application/mapping/partner-public-fields.builder.ts");
 const list_partners_response_1 = __webpack_require__(/*! ./list-partners.response */ "./apps/suppliers-ms/src/modules/partners/application/use-cases/list-partners/list-partners.response.ts");
 let ListPartnersUseCase = class ListPartnersUseCase {
+    partner_repository;
+    lookup;
     constructor(partner_repository, lookup) {
         this.partner_repository = partner_repository;
         this.lookup = lookup;
@@ -5347,6 +5858,18 @@ exports.ListPartnersUseCase = ListPartnersUseCase = __decorate([
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.UpdatePartnerByExternalIdRequest = void 0;
 class UpdatePartnerByExternalIdRequest {
+    external_id;
+    acronym;
+    logo_url;
+    co_branding_logo_url;
+    primary_color;
+    secondary_color;
+    light_color;
+    notification_email;
+    webhook_url;
+    send_sales_rep_voucher;
+    disbursement_notification_email;
+    state;
     constructor(external_id, acronym, logo_url, co_branding_logo_url, primary_color, secondary_color, light_color, notification_email, webhook_url, send_sales_rep_voucher, disbursement_notification_email, state) {
         this.external_id = external_id;
         this.acronym = acronym;
@@ -5377,6 +5900,22 @@ exports.UpdatePartnerByExternalIdRequest = UpdatePartnerByExternalIdRequest;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.UpdatePartnerByExternalIdResponse = void 0;
 class UpdatePartnerByExternalIdResponse {
+    internal_id;
+    external_id;
+    supplier_external_id;
+    acronym;
+    logo_url;
+    co_branding_logo_url;
+    primary_color;
+    secondary_color;
+    light_color;
+    notification_email;
+    webhook_url;
+    send_sales_rep_voucher;
+    disbursement_notification_email;
+    state;
+    created_at;
+    updated_at;
     constructor(fields) {
         Object.assign(this, fields);
     }
@@ -5415,6 +5954,8 @@ const partner_repository_1 = __webpack_require__(/*! @modules/partners/domain/re
 const partner_public_fields_builder_1 = __webpack_require__(/*! @modules/partners/application/mapping/partner-public-fields.builder */ "./apps/suppliers-ms/src/modules/partners/application/mapping/partner-public-fields.builder.ts");
 const update_partner_by_external_id_response_1 = __webpack_require__(/*! ./update-partner-by-external-id.response */ "./apps/suppliers-ms/src/modules/partners/application/use-cases/update-partner-by-external-id/update-partner-by-external-id.response.ts");
 let UpdatePartnerByExternalIdUseCase = class UpdatePartnerByExternalIdUseCase {
+    partner_repository;
+    lookup;
     constructor(partner_repository, lookup) {
         this.partner_repository = partner_repository;
         this.lookup = lookup;
@@ -5478,32 +6019,103 @@ exports.UpdatePartnerByExternalIdUseCase = UpdatePartnerByExternalIdUseCase = __
 /*!**********************************************************************************!*\
   !*** ./apps/suppliers-ms/src/modules/partners/domain/entities/partner.entity.ts ***!
   \**********************************************************************************/
-(__unused_webpack_module, exports) {
+(__unused_webpack_module, exports, __webpack_require__) {
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Partner = void 0;
-class Partner {
-    constructor(internal_id, supplier_id, external_id, acronym, logo_url, co_branding_logo_url, primary_color, secondary_color, light_color, notification_email, webhook_url, send_sales_rep_voucher, disbursement_notification_email, state, created_at, updated_at) {
-        this.internal_id = internal_id;
-        this.supplier_id = supplier_id;
-        this.external_id = external_id;
-        this.acronym = acronym;
-        this.logo_url = logo_url;
-        this.co_branding_logo_url = co_branding_logo_url;
-        this.primary_color = primary_color;
-        this.secondary_color = secondary_color;
-        this.light_color = light_color;
-        this.notification_email = notification_email;
-        this.webhook_url = webhook_url;
-        this.send_sales_rep_voucher = send_sales_rep_voucher;
-        this.disbursement_notification_email = disbursement_notification_email;
-        this.state = state;
-        this.created_at = created_at;
-        this.updated_at = updated_at;
+const shared_1 = __webpack_require__(/*! @platam/shared */ "./libs/shared/src/index.ts");
+class Partner extends shared_1.Entity {
+    constructor(props) {
+        super(props);
+    }
+    get id() {
+        return this.props.external_id;
+    }
+    get internal_id() {
+        return this.props.internal_id;
+    }
+    get supplier_id() {
+        return this.props.supplier_id;
+    }
+    get external_id() {
+        return this.props.external_id;
+    }
+    get acronym() {
+        return this.props.acronym;
+    }
+    get logo_url() {
+        return this.props.logo_url;
+    }
+    get co_branding_logo_url() {
+        return this.props.co_branding_logo_url;
+    }
+    get primary_color() {
+        return this.props.primary_color;
+    }
+    get secondary_color() {
+        return this.props.secondary_color;
+    }
+    get light_color() {
+        return this.props.light_color;
+    }
+    get notification_email() {
+        return this.props.notification_email;
+    }
+    get webhook_url() {
+        return this.props.webhook_url;
+    }
+    get send_sales_rep_voucher() {
+        return this.props.send_sales_rep_voucher;
+    }
+    get disbursement_notification_email() {
+        return this.props.disbursement_notification_email;
+    }
+    get state() {
+        return this.props.state;
+    }
+    get created_at() {
+        return this.props.created_at;
+    }
+    get updated_at() {
+        return this.props.updated_at;
+    }
+    toPrimitives() {
+        return { ...this.props };
     }
 }
 exports.Partner = Partner;
+
+
+/***/ },
+
+/***/ "./apps/suppliers-ms/src/modules/partners/domain/events/partner-created.event.ts"
+/*!***************************************************************************************!*\
+  !*** ./apps/suppliers-ms/src/modules/partners/domain/events/partner-created.event.ts ***!
+  \***************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.PartnerCreatedEvent = void 0;
+const shared_1 = __webpack_require__(/*! @platam/shared */ "./libs/shared/src/index.ts");
+class PartnerCreatedEvent {
+    partner_external_id;
+    supplier_id;
+    correlation_id;
+    eventId;
+    occurredAt;
+    aggregateId;
+    constructor(partner_external_id, supplier_id, correlation_id) {
+        this.partner_external_id = partner_external_id;
+        this.supplier_id = supplier_id;
+        this.correlation_id = correlation_id;
+        this.eventId = (0, shared_1.new_uuid)();
+        this.occurredAt = new Date();
+        this.aggregateId = partner_external_id;
+    }
+}
+exports.PartnerCreatedEvent = PartnerCreatedEvent;
 
 
 /***/ },
@@ -5611,93 +6223,6 @@ exports.PARTNER_REPOSITORY = Symbol('PARTNER_REPOSITORY');
 
 /***/ },
 
-/***/ "./apps/suppliers-ms/src/modules/partners/presentation/dto/create-partner-orchestrator-response.dto.ts"
-/*!*************************************************************************************************************!*\
-  !*** ./apps/suppliers-ms/src/modules/partners/presentation/dto/create-partner-orchestrator-response.dto.ts ***!
-  \*************************************************************************************************************/
-(__unused_webpack_module, exports, __webpack_require__) {
-
-
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.CreatePartnerOrchestratorResponseDto = void 0;
-const swagger_1 = __webpack_require__(/*! @nestjs/swagger */ "@nestjs/swagger");
-class CreatePartnerOrchestratorResponseDto {
-}
-exports.CreatePartnerOrchestratorResponseDto = CreatePartnerOrchestratorResponseDto;
-__decorate([
-    (0, swagger_1.ApiProperty)(),
-    __metadata("design:type", String)
-], CreatePartnerOrchestratorResponseDto.prototype, "sagaExternalId", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)(),
-    __metadata("design:type", String)
-], CreatePartnerOrchestratorResponseDto.prototype, "correlationId", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)(),
-    __metadata("design:type", String)
-], CreatePartnerOrchestratorResponseDto.prototype, "creditFacilityExternalId", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)({
-        nullable: true,
-        description: 'Pendiente hasta que transversal-ms complete create-partner-user (mensaje SQS). Correlación: correlationId.',
-    }),
-    __metadata("design:type", Object)
-], CreatePartnerOrchestratorResponseDto.prototype, "userExternalId", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)({
-        nullable: true,
-        description: 'Pendiente hasta creación asíncrona de persona en transversal-ms.',
-    }),
-    __metadata("design:type", Object)
-], CreatePartnerOrchestratorResponseDto.prototype, "personExternalId", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)({
-        nullable: true,
-        description: 'Representante legal registrado en suppliers_schema (si vino en el payload).',
-    }),
-    __metadata("design:type", Object)
-], CreatePartnerOrchestratorResponseDto.prototype, "legalRepresentativeExternalId", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)(),
-    __metadata("design:type", String)
-], CreatePartnerOrchestratorResponseDto.prototype, "businessExternalId", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)(),
-    __metadata("design:type", String)
-], CreatePartnerOrchestratorResponseDto.prototype, "bankCertificationUrl", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)(),
-    __metadata("design:type", String)
-], CreatePartnerOrchestratorResponseDto.prototype, "logoUrl", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)(),
-    __metadata("design:type", String)
-], CreatePartnerOrchestratorResponseDto.prototype, "coBrandingUrl", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)({ nullable: true }),
-    __metadata("design:type", Object)
-], CreatePartnerOrchestratorResponseDto.prototype, "bankAccountExternalId", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)(),
-    __metadata("design:type", String)
-], CreatePartnerOrchestratorResponseDto.prototype, "supplierExternalId", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)(),
-    __metadata("design:type", String)
-], CreatePartnerOrchestratorResponseDto.prototype, "partnerExternalId", void 0);
-
-
-/***/ },
-
 /***/ "./apps/suppliers-ms/src/modules/partners/presentation/dto/create-partner-payload.dto.ts"
 /*!***********************************************************************************************!*\
   !*** ./apps/suppliers-ms/src/modules/partners/presentation/dto/create-partner-payload.dto.ts ***!
@@ -5747,6 +6272,12 @@ BusinessCityReferenceV4Constraint = __decorate([
     (0, class_validator_1.ValidatorConstraint)({ name: 'business_city_reference_v4', async: false })
 ], BusinessCityReferenceV4Constraint);
 class OperatingUserPayloadDto {
+    firstName;
+    lastName;
+    docType;
+    docNumber;
+    phone;
+    email;
 }
 exports.OperatingUserPayloadDto = OperatingUserPayloadDto;
 __decorate([
@@ -5789,6 +6320,12 @@ __decorate([
     __metadata("design:type", String)
 ], OperatingUserPayloadDto.prototype, "email", void 0);
 class LegalRepresentativePayloadDto {
+    firstName;
+    lastName;
+    docType;
+    docNumber;
+    phone;
+    email;
 }
 exports.LegalRepresentativePayloadDto = LegalRepresentativePayloadDto;
 __decorate([
@@ -5831,6 +6368,17 @@ __decorate([
     __metadata("design:type", String)
 ], LegalRepresentativePayloadDto.prototype, "email", void 0);
 class CreatePartnerBusinessPayloadDto {
+    cityId;
+    cityExternalId;
+    entityType;
+    businessName;
+    businessAddress;
+    businessType;
+    legalName;
+    tradeName;
+    taxId;
+    yearOfEstablishment;
+    legalRepresentative;
 }
 exports.CreatePartnerBusinessPayloadDto = CreatePartnerBusinessPayloadDto;
 __decorate([
@@ -5911,6 +6459,16 @@ __decorate([
     __metadata("design:type", LegalRepresentativePayloadDto)
 ], CreatePartnerBusinessPayloadDto.prototype, "legalRepresentative", void 0);
 class CreatePartnerPartnerSectionPayloadDto {
+    acronym;
+    logoUrl;
+    coBrandingLogoUrl;
+    primaryColor;
+    secondaryColor;
+    lightColor;
+    notificationEmail;
+    webhookUrl;
+    sendSalesRepVoucher;
+    disbursementNotificationEmail;
 }
 exports.CreatePartnerPartnerSectionPayloadDto = CreatePartnerPartnerSectionPayloadDto;
 __decorate([
@@ -5982,6 +6540,8 @@ __decorate([
     __metadata("design:type", Object)
 ], CreatePartnerPartnerSectionPayloadDto.prototype, "disbursementNotificationEmail", void 0);
 class CreatePartnerBankAccountPayloadDto {
+    bankEntity;
+    accountNumber;
 }
 exports.CreatePartnerBankAccountPayloadDto = CreatePartnerBankAccountPayloadDto;
 __decorate([
@@ -6000,6 +6560,8 @@ __decorate([
     __metadata("design:type", String)
 ], CreatePartnerBankAccountPayloadDto.prototype, "accountNumber", void 0);
 class CreatePartnerCreditFacilityPayloadDto {
+    contractId;
+    totalLimit;
 }
 exports.CreatePartnerCreditFacilityPayloadDto = CreatePartnerCreditFacilityPayloadDto;
 __decorate([
@@ -6036,6 +6598,13 @@ __decorate([
     __metadata("design:type", String)
 ], CreatePartnerCreditFacilityPayloadDto.prototype, "totalLimit", void 0);
 class PartnerCategoryPayloadDto {
+    name;
+    discountPercentage;
+    interestRate;
+    disbursementFeePercent;
+    minimumDisbursementFee;
+    delayDays;
+    termDays;
 }
 exports.PartnerCategoryPayloadDto = PartnerCategoryPayloadDto;
 __decorate([
@@ -6089,6 +6658,13 @@ __decorate([
     __metadata("design:type", Number)
 ], PartnerCategoryPayloadDto.prototype, "termDays", void 0);
 class CreatePartnerPayloadDto {
+    operatingUser;
+    business;
+    partner;
+    bankAccount;
+    creditFacility;
+    category;
+    countryCode;
 }
 exports.CreatePartnerPayloadDto = CreatePartnerPayloadDto;
 __decorate([
@@ -6167,6 +6743,12 @@ const class_validator_1 = __webpack_require__(/*! class-validator */ "class-vali
 const shared_1 = __webpack_require__(/*! @platam/shared */ "./libs/shared/src/index.ts");
 const create_partner_payload_dto_1 = __webpack_require__(/*! ./create-partner-payload.dto */ "./apps/suppliers-ms/src/modules/partners/presentation/dto/create-partner-payload.dto.ts");
 class UpdateOperatingUserPayloadDto {
+    firstName;
+    lastName;
+    docType;
+    docNumber;
+    phone;
+    email;
 }
 exports.UpdateOperatingUserPayloadDto = UpdateOperatingUserPayloadDto;
 __decorate([
@@ -6210,6 +6792,12 @@ __decorate([
     __metadata("design:type", String)
 ], UpdateOperatingUserPayloadDto.prototype, "email", void 0);
 class UpdateLegalRepresentativePayloadDto {
+    firstName;
+    lastName;
+    docType;
+    docNumber;
+    phone;
+    email;
 }
 exports.UpdateLegalRepresentativePayloadDto = UpdateLegalRepresentativePayloadDto;
 __decorate([
@@ -6253,6 +6841,16 @@ __decorate([
     __metadata("design:type", String)
 ], UpdateLegalRepresentativePayloadDto.prototype, "email", void 0);
 class UpdateBusinessPayloadDto {
+    cityId;
+    entityType;
+    businessName;
+    businessAddress;
+    businessType;
+    legalName;
+    tradeName;
+    taxId;
+    yearOfEstablishment;
+    legalRepresentative;
 }
 exports.UpdateBusinessPayloadDto = UpdateBusinessPayloadDto;
 __decorate([
@@ -6325,6 +6923,17 @@ __decorate([
     __metadata("design:type", Object)
 ], UpdateBusinessPayloadDto.prototype, "legalRepresentative", void 0);
 class UpdatePartnerSectionPayloadDto {
+    acronym;
+    logoUrl;
+    coBrandingLogoUrl;
+    primaryColor;
+    secondaryColor;
+    lightColor;
+    notificationEmail;
+    webhookUrl;
+    sendSalesRepVoucher;
+    disbursementNotificationEmail;
+    state;
 }
 exports.UpdatePartnerSectionPayloadDto = UpdatePartnerSectionPayloadDto;
 __decorate([
@@ -6403,6 +7012,8 @@ __decorate([
     __metadata("design:type", typeof (_a = typeof shared_1.Statuses !== "undefined" && shared_1.Statuses) === "function" ? _a : Object)
 ], UpdatePartnerSectionPayloadDto.prototype, "state", void 0);
 class UpdateBankAccountPayloadDto {
+    bankEntity;
+    accountNumber;
 }
 exports.UpdateBankAccountPayloadDto = UpdateBankAccountPayloadDto;
 __decorate([
@@ -6421,6 +7032,8 @@ __decorate([
     __metadata("design:type", String)
 ], UpdateBankAccountPayloadDto.prototype, "accountNumber", void 0);
 class UpdateCreditFacilityPayloadDto {
+    contractId;
+    totalLimit;
 }
 exports.UpdateCreditFacilityPayloadDto = UpdateCreditFacilityPayloadDto;
 __decorate([
@@ -6456,6 +7069,12 @@ __decorate([
     __metadata("design:type", String)
 ], UpdateCreditFacilityPayloadDto.prototype, "totalLimit", void 0);
 class UpdatePartnerPayloadDto {
+    operatingUser;
+    business;
+    partner;
+    bankAccount;
+    creditFacility;
+    category;
 }
 exports.UpdatePartnerPayloadDto = UpdatePartnerPayloadDto;
 __decorate([
@@ -6545,37 +7164,6 @@ function assert_update_partner_payload_supported(dto) {
 }
 function update_payload_has_partner_changes(dto) {
     return object_has_defined_values(dto.partner);
-}
-
-
-/***/ },
-
-/***/ "./apps/suppliers-ms/src/modules/partners/presentation/mappers/create-partner-orchestrator-response.mapper.ts"
-/*!********************************************************************************************************************!*\
-  !*** ./apps/suppliers-ms/src/modules/partners/presentation/mappers/create-partner-orchestrator-response.mapper.ts ***!
-  \********************************************************************************************************************/
-(__unused_webpack_module, exports, __webpack_require__) {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.map_orchestrator_result_to_http = map_orchestrator_result_to_http;
-const create_partner_orchestrator_response_dto_1 = __webpack_require__(/*! ../dto/create-partner-orchestrator-response.dto */ "./apps/suppliers-ms/src/modules/partners/presentation/dto/create-partner-orchestrator-response.dto.ts");
-function map_orchestrator_result_to_http(res) {
-    const dto = new create_partner_orchestrator_response_dto_1.CreatePartnerOrchestratorResponseDto();
-    dto.sagaExternalId = res.saga_external_id;
-    dto.correlationId = res.correlation_id;
-    dto.creditFacilityExternalId = res.credit_facility_external_id;
-    dto.userExternalId = res.user_external_id;
-    dto.personExternalId = res.person_external_id;
-    dto.legalRepresentativeExternalId = res.legal_representative_external_id;
-    dto.businessExternalId = res.business_external_id;
-    dto.bankCertificationUrl = res.bank_certification_url;
-    dto.logoUrl = res.logo_url;
-    dto.coBrandingUrl = res.co_branding_url;
-    dto.bankAccountExternalId = res.bank_account_external_id;
-    dto.supplierExternalId = res.supplier_external_id;
-    dto.partnerExternalId = res.partner_external_id;
-    return dto;
 }
 
 
@@ -6723,12 +7311,12 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var _a, _b, _c, _d, _e;
+var _a, _b, _c, _d, _e, _f;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.PartnersController = void 0;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
 const config_1 = __webpack_require__(/*! @nestjs/config */ "@nestjs/config");
-const crypto_1 = __webpack_require__(/*! crypto */ "crypto");
+const shared_1 = __webpack_require__(/*! @platam/shared */ "./libs/shared/src/index.ts");
 const platform_express_1 = __webpack_require__(/*! @nestjs/platform-express */ "@nestjs/platform-express");
 const swagger_1 = __webpack_require__(/*! @nestjs/swagger */ "@nestjs/swagger");
 const class_transformer_1 = __webpack_require__(/*! class-transformer */ "class-transformer");
@@ -6736,18 +7324,24 @@ const class_validator_1 = __webpack_require__(/*! class-validator */ "class-vali
 const create_partner_orchestrator_use_case_1 = __webpack_require__(/*! @modules/partners/application/use-cases/create-partner-orchestrator/create-partner-orchestrator.use-case */ "./apps/suppliers-ms/src/modules/partners/application/use-cases/create-partner-orchestrator/create-partner-orchestrator.use-case.ts");
 const update_partner_by_external_id_use_case_1 = __webpack_require__(/*! @modules/partners/application/use-cases/update-partner-by-external-id/update-partner-by-external-id.use-case */ "./apps/suppliers-ms/src/modules/partners/application/use-cases/update-partner-by-external-id/update-partner-by-external-id.use-case.ts");
 const partner_onboarding_files_port_1 = __webpack_require__(/*! @modules/partners/application/ports/partner-onboarding-files.port */ "./apps/suppliers-ms/src/modules/partners/application/ports/partner-onboarding-files.port.ts");
+const partner_onboarding_saga_repository_port_1 = __webpack_require__(/*! @modules/partners/application/ports/partner-onboarding-saga.repository.port */ "./apps/suppliers-ms/src/modules/partners/application/ports/partner-onboarding-saga.repository.port.ts");
 const create_partner_payload_dto_1 = __webpack_require__(/*! ./dto/create-partner-payload.dto */ "./apps/suppliers-ms/src/modules/partners/presentation/dto/create-partner-payload.dto.ts");
 const update_partner_payload_dto_1 = __webpack_require__(/*! ./dto/update-partner-payload.dto */ "./apps/suppliers-ms/src/modules/partners/presentation/dto/update-partner-payload.dto.ts");
 const create_partner_payload_mapper_1 = __webpack_require__(/*! ./mappers/create-partner-payload.mapper */ "./apps/suppliers-ms/src/modules/partners/presentation/mappers/create-partner-payload.mapper.ts");
-const create_partner_orchestrator_response_mapper_1 = __webpack_require__(/*! ./mappers/create-partner-orchestrator-response.mapper */ "./apps/suppliers-ms/src/modules/partners/presentation/mappers/create-partner-orchestrator-response.mapper.ts");
 const update_partner_payload_mapper_1 = __webpack_require__(/*! ./mappers/update-partner-payload.mapper */ "./apps/suppliers-ms/src/modules/partners/presentation/mappers/update-partner-payload.mapper.ts");
 const update_partner_payload_supported_guard_1 = __webpack_require__(/*! ./guards/update-partner-payload-supported.guard */ "./apps/suppliers-ms/src/modules/partners/presentation/guards/update-partner-payload-supported.guard.ts");
 let PartnersController = class PartnersController {
-    constructor(create_partner_orchestrator, update_partner, config_service, partner_files) {
+    create_partner_orchestrator;
+    update_partner;
+    config_service;
+    partner_files;
+    saga_repository;
+    constructor(create_partner_orchestrator, update_partner, config_service, partner_files, saga_repository) {
         this.create_partner_orchestrator = create_partner_orchestrator;
         this.update_partner = update_partner;
         this.config_service = config_service;
         this.partner_files = partner_files;
+        this.saga_repository = saga_repository;
     }
     async create(payload_raw, files) {
         let parsed;
@@ -6769,19 +7363,29 @@ let PartnersController = class PartnersController {
         }
         const app_config = this.config_service.get('config');
         const command = (0, create_partner_payload_mapper_1.map_create_partner_payload_to_command)(dto, {
-            country_code: (app_config?.partner_onboarding?.default_country_code ?? 'CO').trim() ||
-                null,
+            country_code: (app_config?.partner_onboarding?.default_country_code ?? 'CO').trim() || null,
         });
         const uploaded = this.to_uploaded_meta(files);
-        const result = await this.create_partner_orchestrator.execute(command, {
+        const saga_id = await this.create_partner_orchestrator.start_async(command, {
             bank_certification: uploaded.bank_certification,
             logo: uploaded.logo,
             co_branding: uploaded.co_branding,
         });
-        return (0, create_partner_orchestrator_response_mapper_1.map_orchestrator_result_to_http)(result);
+        return {
+            saga_id,
+            status: 'RUNNING',
+            message: `Saga iniciada. Consulta el estado en GET /partners/sagas/${saga_id}`,
+        };
+    }
+    async get_saga_status(saga_id) {
+        const saga = await this.saga_repository.find_by_external_id(saga_id);
+        if (!saga) {
+            throw new common_1.NotFoundException('saga not found');
+        }
+        return saga;
     }
     async update(id, payload_raw, files) {
-        const file_correlation_id = (0, crypto_1.randomUUID)();
+        const file_correlation_id = (0, shared_1.new_uuid)();
         let patch = {};
         const raw = payload_raw?.trim() ?? '';
         if (raw.length > 0) {
@@ -6827,8 +7431,7 @@ let PartnersController = class PartnersController {
                 logo_merge = urls.logo_url.length > 0 ? urls.logo_url : null;
             }
             if (has_cob_file) {
-                co_branding_merge =
-                    urls.co_branding_url.length > 0 ? urls.co_branding_url : null;
+                co_branding_merge = urls.co_branding_url.length > 0 ? urls.co_branding_url : null;
             }
         }
         const urls_for_request = {
@@ -6865,17 +7468,29 @@ let PartnersController = class PartnersController {
 exports.PartnersController = PartnersController;
 __decorate([
     (0, common_1.Post)(),
+    (0, common_1.HttpCode)(common_1.HttpStatus.ACCEPTED),
     (0, swagger_1.ApiOperation)({
-        summary: 'Alta orquestada de partner (saga + SQS)',
+        summary: 'Alta orquestada de partner (saga async + SQS)',
+        description: 'Inicia la saga en segundo plano. Retorna 202 con `saga_id`. ' +
+            'Consultar `GET /partners/sagas/{sagaId}` para obtener el resultado y estado.',
+    }),
+    (0, swagger_1.ApiAcceptedResponse)({
+        description: 'Saga iniciada. Consultar /partners/sagas/:sagaId para el estado.',
+        schema: {
+            type: 'object',
+            properties: {
+                saga_id: { type: 'string', format: 'uuid' },
+                status: { type: 'string', example: 'RUNNING' },
+                message: { type: 'string' },
+            },
+        },
     }),
     (0, swagger_1.ApiConsumes)('multipart/form-data'),
     (0, swagger_1.ApiBody)({
         schema: {
             type: 'object',
             properties: {
-                payload: {
-                    type: 'string'
-                },
+                payload: { type: 'string' },
                 bankCertification: { type: 'string', format: 'binary' },
                 logo: { type: 'string', format: 'binary' },
                 coBranding: { type: 'string', format: 'binary' },
@@ -6894,33 +7509,41 @@ __decorate([
     __metadata("design:returntype", typeof (_d = typeof Promise !== "undefined" && Promise) === "function" ? _d : Object)
 ], PartnersController.prototype, "create", null);
 __decorate([
+    (0, common_1.Get)('sagas/:sagaId'),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Estado de una saga de onboarding de partner',
+        description: 'Retorna el estado, paso actual y datos creados de la saga. ' +
+            'Cuando status=COMPLETED, partner_external_id y credit_facility_external_id están disponibles.',
+    }),
+    (0, swagger_1.ApiOkResponse)({
+        description: 'Estado de la saga',
+    }),
+    __param(0, (0, common_1.Param)('sagaId', new common_1.ParseUUIDPipe({ version: '4' }))),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", typeof (_e = typeof Promise !== "undefined" && Promise) === "function" ? _e : Object)
+], PartnersController.prototype, "get_saga_status", null);
+__decorate([
     (0, common_1.Patch)(':id'),
     (0, swagger_1.ApiOperation)({
         summary: 'Actualizar partner (parcial)',
-        description: 'Multipart opcional; `payload` es JSON **camelCase** **parcial**: todas las claves raíz (`operatingUser`, `business`, `partner`, `bankAccount`, `creditFacility`, `category`) son opcionales. ' +
-            '**Reglas actuales:** solo se persisten campos de `partner` y URLs finales de `logo` / `coBranding` (archivos multipart o `logoUrl` / `coBrandingLogoUrl`). ' +
-            'Cualquier otra sección con valores definidos → **501 Not Implemented**. ' +
-            'Debe haber al menos un cambio en `partner` o subida de logo/coBranding. ' +
-            '`bankCertification` en PATCH → 501. Ver `UpdatePartnerPayloadDto` en Swagger para forma de cada sección cuando se habiliten.',
+        description: 'Multipart opcional; `payload` es JSON **camelCase** **parcial**. ' +
+            'Solo se persisten campos de `partner` y URLs finales de `logo` / `coBranding`. ' +
+            '`bankCertification` en PATCH → 501.',
     }),
     (0, swagger_1.ApiConsumes)('multipart/form-data'),
     (0, swagger_1.ApiBody)({
         schema: {
             type: 'object',
             properties: {
-                payload: {
-                    type: 'string',
-                    description: 'JSON parcial opcional, camelCase; mismas secciones que POST pero todas opcionales (UpdatePartnerPayloadDto). Soporte persistido hoy: solo `partner` (+ logos).',
-                },
+                payload: { type: 'string' },
                 bankCertification: { type: 'string', format: 'binary' },
                 logo: { type: 'string', format: 'binary' },
                 coBranding: { type: 'string', format: 'binary' },
             },
         },
     }),
-    (0, swagger_1.ApiOkResponse)({
-        description: 'Entidad partner actualizada (campos públicos).',
-    }),
+    (0, swagger_1.ApiOkResponse)({ description: 'Entidad partner actualizada (campos públicos).' }),
     (0, common_1.UseInterceptors)((0, platform_express_1.FileFieldsInterceptor)([
         { name: 'bankCertification', maxCount: 1 },
         { name: 'logo', maxCount: 1 },
@@ -6931,14 +7554,15 @@ __decorate([
     __param(2, (0, common_1.UploadedFiles)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, Object, Object]),
-    __metadata("design:returntype", typeof (_e = typeof Promise !== "undefined" && Promise) === "function" ? _e : Object)
+    __metadata("design:returntype", typeof (_f = typeof Promise !== "undefined" && Promise) === "function" ? _f : Object)
 ], PartnersController.prototype, "update", null);
 exports.PartnersController = PartnersController = __decorate([
     (0, swagger_1.ApiTags)('partners'),
     (0, swagger_1.ApiExtraModels)(create_partner_payload_dto_1.CreatePartnerPayloadDto, update_partner_payload_dto_1.UpdatePartnerPayloadDto),
     (0, common_1.Controller)('partners'),
     __param(3, (0, common_1.Inject)(partner_onboarding_files_port_1.PARTNER_ONBOARDING_FILES_PORT)),
-    __metadata("design:paramtypes", [typeof (_a = typeof create_partner_orchestrator_use_case_1.CreatePartnerOrchestratorUseCase !== "undefined" && create_partner_orchestrator_use_case_1.CreatePartnerOrchestratorUseCase) === "function" ? _a : Object, typeof (_b = typeof update_partner_by_external_id_use_case_1.UpdatePartnerByExternalIdUseCase !== "undefined" && update_partner_by_external_id_use_case_1.UpdatePartnerByExternalIdUseCase) === "function" ? _b : Object, typeof (_c = typeof config_1.ConfigService !== "undefined" && config_1.ConfigService) === "function" ? _c : Object, Object])
+    __param(4, (0, common_1.Inject)(partner_onboarding_saga_repository_port_1.PARTNER_ONBOARDING_SAGA_REPOSITORY)),
+    __metadata("design:paramtypes", [typeof (_a = typeof create_partner_orchestrator_use_case_1.CreatePartnerOrchestratorUseCase !== "undefined" && create_partner_orchestrator_use_case_1.CreatePartnerOrchestratorUseCase) === "function" ? _a : Object, typeof (_b = typeof update_partner_by_external_id_use_case_1.UpdatePartnerByExternalIdUseCase !== "undefined" && update_partner_by_external_id_use_case_1.UpdatePartnerByExternalIdUseCase) === "function" ? _b : Object, typeof (_c = typeof config_1.ConfigService !== "undefined" && config_1.ConfigService) === "function" ? _c : Object, Object, Object])
 ], PartnersController);
 
 
@@ -6990,6 +7614,8 @@ async function build_supplier_public_fields(supplier, lookup) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CreateSupplierRequest = void 0;
 class CreateSupplierRequest {
+    business_internal_id;
+    bank_account_internal_id;
     constructor(business_internal_id, bank_account_internal_id) {
         this.business_internal_id = business_internal_id;
         this.bank_account_internal_id = bank_account_internal_id;
@@ -7010,6 +7636,12 @@ exports.CreateSupplierRequest = CreateSupplierRequest;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CreateSupplierResponse = void 0;
 class CreateSupplierResponse {
+    internal_id;
+    external_id;
+    business_external_id;
+    bank_account_external_id;
+    created_at;
+    updated_at;
     constructor(fields) {
         Object.assign(this, fields);
     }
@@ -7048,6 +7680,8 @@ const supplier_repository_1 = __webpack_require__(/*! @modules/suppliers/domain/
 const supplier_public_fields_builder_1 = __webpack_require__(/*! @modules/suppliers/application/mapping/supplier-public-fields.builder */ "./apps/suppliers-ms/src/modules/suppliers/application/mapping/supplier-public-fields.builder.ts");
 const create_supplier_response_1 = __webpack_require__(/*! ./create-supplier.response */ "./apps/suppliers-ms/src/modules/suppliers/application/use-cases/create-supplier/create-supplier.response.ts");
 let CreateSupplierUseCase = class CreateSupplierUseCase {
+    supplier_repository;
+    lookup;
     constructor(supplier_repository, lookup) {
         this.supplier_repository = supplier_repository;
         this.lookup = lookup;
@@ -7098,6 +7732,7 @@ const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
 const suppliers_tokens_1 = __webpack_require__(/*! @modules/suppliers/suppliers.tokens */ "./apps/suppliers-ms/src/modules/suppliers/suppliers.tokens.ts");
 const supplier_repository_1 = __webpack_require__(/*! @modules/suppliers/domain/repositories/supplier.repository */ "./apps/suppliers-ms/src/modules/suppliers/domain/repositories/supplier.repository.ts");
 let DeleteSupplierByExternalIdUseCase = class DeleteSupplierByExternalIdUseCase {
+    supplier_repository;
     constructor(supplier_repository) {
         this.supplier_repository = supplier_repository;
     }
@@ -7128,6 +7763,12 @@ exports.DeleteSupplierByExternalIdUseCase = DeleteSupplierByExternalIdUseCase = 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.GetSupplierByExternalIdResponse = void 0;
 class GetSupplierByExternalIdResponse {
+    internal_id;
+    external_id;
+    business_external_id;
+    bank_account_external_id;
+    created_at;
+    updated_at;
     constructor(fields) {
         Object.assign(this, fields);
     }
@@ -7166,6 +7807,8 @@ const supplier_repository_1 = __webpack_require__(/*! @modules/suppliers/domain/
 const supplier_public_fields_builder_1 = __webpack_require__(/*! @modules/suppliers/application/mapping/supplier-public-fields.builder */ "./apps/suppliers-ms/src/modules/suppliers/application/mapping/supplier-public-fields.builder.ts");
 const get_supplier_by_external_id_response_1 = __webpack_require__(/*! ./get-supplier-by-external-id.response */ "./apps/suppliers-ms/src/modules/suppliers/application/use-cases/get-supplier-by-external-id/get-supplier-by-external-id.response.ts");
 let GetSupplierByExternalIdUseCase = class GetSupplierByExternalIdUseCase {
+    supplier_repository;
+    lookup;
     constructor(supplier_repository, lookup) {
         this.supplier_repository = supplier_repository;
         this.lookup = lookup;
@@ -7200,6 +7843,12 @@ exports.GetSupplierByExternalIdUseCase = GetSupplierByExternalIdUseCase = __deco
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ListSuppliersItemResponse = void 0;
 class ListSuppliersItemResponse {
+    internal_id;
+    external_id;
+    business_external_id;
+    bank_account_external_id;
+    created_at;
+    updated_at;
     constructor(fields) {
         Object.assign(this, fields);
     }
@@ -7238,6 +7887,8 @@ const supplier_repository_1 = __webpack_require__(/*! @modules/suppliers/domain/
 const supplier_public_fields_builder_1 = __webpack_require__(/*! @modules/suppliers/application/mapping/supplier-public-fields.builder */ "./apps/suppliers-ms/src/modules/suppliers/application/mapping/supplier-public-fields.builder.ts");
 const list_suppliers_response_1 = __webpack_require__(/*! ./list-suppliers.response */ "./apps/suppliers-ms/src/modules/suppliers/application/use-cases/list-suppliers/list-suppliers.response.ts");
 let ListSuppliersUseCase = class ListSuppliersUseCase {
+    supplier_repository;
+    lookup;
     constructor(supplier_repository, lookup) {
         this.supplier_repository = supplier_repository;
         this.lookup = lookup;
@@ -7273,6 +7924,12 @@ exports.ListSuppliersUseCase = ListSuppliersUseCase = __decorate([
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.UpdateSupplierByExternalIdResponse = void 0;
 class UpdateSupplierByExternalIdResponse {
+    internal_id;
+    external_id;
+    business_external_id;
+    bank_account_external_id;
+    created_at;
+    updated_at;
     constructor(fields) {
         Object.assign(this, fields);
     }
@@ -7311,6 +7968,8 @@ const supplier_repository_1 = __webpack_require__(/*! @modules/suppliers/domain/
 const supplier_public_fields_builder_1 = __webpack_require__(/*! @modules/suppliers/application/mapping/supplier-public-fields.builder */ "./apps/suppliers-ms/src/modules/suppliers/application/mapping/supplier-public-fields.builder.ts");
 const update_supplier_by_external_id_response_1 = __webpack_require__(/*! ./update-supplier-by-external-id.response */ "./apps/suppliers-ms/src/modules/suppliers/application/use-cases/update-supplier-by-external-id/update-supplier-by-external-id.response.ts");
 let UpdateSupplierByExternalIdUseCase = class UpdateSupplierByExternalIdUseCase {
+    supplier_repository;
+    lookup;
     constructor(supplier_repository, lookup) {
         this.supplier_repository = supplier_repository;
         this.lookup = lookup;
@@ -7358,6 +8017,12 @@ exports.UpdateSupplierByExternalIdUseCase = UpdateSupplierByExternalIdUseCase = 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Supplier = void 0;
 class Supplier {
+    internal_id;
+    external_id;
+    business_id;
+    bank_account_id;
+    created_at;
+    updated_at;
     constructor(internal_id, external_id, business_id, bank_account_id, created_at, updated_at) {
         this.internal_id = internal_id;
         this.external_id = external_id;
@@ -7471,6 +8136,10 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.BaseExternalIdEntity = void 0;
 const typeorm_1 = __webpack_require__(/*! typeorm */ "typeorm");
 class BaseExternalIdEntity {
+    id;
+    externalId;
+    createdAt;
+    updatedAt;
 }
 exports.BaseExternalIdEntity = BaseExternalIdEntity;
 __decorate([
@@ -7549,6 +8218,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Entity = void 0;
 class Entity {
+    props;
     constructor(props) {
         this.props = props;
     }
@@ -7560,6 +8230,38 @@ class Entity {
     }
 }
 exports.Entity = Entity;
+
+
+/***/ },
+
+/***/ "./libs/shared/src/domain/event-bus.ts"
+/*!*********************************************!*\
+  !*** ./libs/shared/src/domain/event-bus.ts ***!
+  \*********************************************/
+(__unused_webpack_module, exports) {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.DOMAIN_EVENT_BUS = exports.DomainEventBus = void 0;
+class DomainEventBus {
+    handlers = new Map();
+    subscribe(event_name, handler) {
+        if (!this.handlers.has(event_name)) {
+            this.handlers.set(event_name, []);
+        }
+        this.handlers.get(event_name).push(handler);
+    }
+    async publish(event) {
+        const event_name = event.constructor.name;
+        const fns = this.handlers.get(event_name) ?? [];
+        await Promise.allSettled(fns.map((fn) => fn(event)));
+    }
+    async publish_many(events) {
+        await Promise.allSettled(events.map((e) => this.publish(e)));
+    }
+}
+exports.DomainEventBus = DomainEventBus;
+exports.DOMAIN_EVENT_BUS = Symbol('DOMAIN_EVENT_BUS');
 
 
 /***/ },
@@ -7623,6 +8325,7 @@ __exportStar(__webpack_require__(/*! ./messaging/sqs-idempotency.port */ "./libs
 __exportStar(__webpack_require__(/*! ./domain/credit-facilities-statuses.enum */ "./libs/shared/src/domain/credit-facilities-statuses.enum.ts"), exports);
 __exportStar(__webpack_require__(/*! ./domain/domain-event.interface */ "./libs/shared/src/domain/domain-event.interface.ts"), exports);
 __exportStar(__webpack_require__(/*! ./domain/entity.base */ "./libs/shared/src/domain/entity.base.ts"), exports);
+__exportStar(__webpack_require__(/*! ./domain/event-bus */ "./libs/shared/src/domain/event-bus.ts"), exports);
 __exportStar(__webpack_require__(/*! ./domain/use-case.interface */ "./libs/shared/src/domain/use-case.interface.ts"), exports);
 __exportStar(__webpack_require__(/*! ./domain/repository.interface */ "./libs/shared/src/domain/repository.interface.ts"), exports);
 __exportStar(__webpack_require__(/*! ./utils/logger */ "./libs/shared/src/utils/logger.ts"), exports);
@@ -7648,10 +8351,13 @@ const sleep_ms = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const INITIAL_BACKOFF_MS = 1000;
 const MAX_BACKOFF_MS = 30_000;
 class BaseSqsConsumer {
+    sqs_client;
+    logger;
+    stopped = false;
+    poll_promise;
     constructor(sqs_client, logger) {
         this.sqs_client = sqs_client;
         this.logger = logger;
-        this.stopped = false;
     }
     start() {
         if (this.poll_promise) {
@@ -7745,6 +8451,7 @@ exports.BasePublisher = exports.BaseSqsPublisher = void 0;
 const client_sqs_1 = __webpack_require__(/*! @aws-sdk/client-sqs */ "@aws-sdk/client-sqs");
 const sqs_publish_failed_error_1 = __webpack_require__(/*! ./sqs-publish-failed.error */ "./libs/shared/src/messaging/sqs-publish-failed.error.ts");
 class BaseSqsPublisher {
+    sqs_client;
     constructor(sqs_client) {
         this.sqs_client = sqs_client;
     }
@@ -7824,6 +8531,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SqsPublishFailedError = void 0;
 class SqsPublishFailedError extends Error {
+    cause;
     constructor(message, cause) {
         super(message);
         this.name = 'SqsPublishFailedError';
@@ -7915,29 +8623,55 @@ function new_uuid() {
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.create_prefixed_logger = create_prefixed_logger;
-function create_prefixed_logger(scope, trace_id) {
-    const prefix = trace_id ? `[${scope}][${trace_id}]` : `[${scope}]`;
-    const line = (level, message, meta) => {
-        const payload = meta && Object.keys(meta).length > 0 ? ` ${JSON.stringify(meta)}` : '';
-        const text = `${prefix} ${message}${payload}`;
-        if (level === 'error') {
-            console.error(text);
-        }
-        else if (level === 'warn') {
-            console.warn(text);
-        }
-        else {
-            console.log(text);
-        }
-    };
-    return {
-        debug: (m, meta) => line('debug', m, meta),
-        info: (m, meta) => line('info', m, meta),
-        warn: (m, meta) => line('warn', m, meta),
-        error: (m, meta) => line('error', m, meta),
-    };
+exports.NestStructuredLoggerAdapter = exports.NestLoggerAdapter = void 0;
+class NestLoggerAdapter {
+    nest_logger;
+    constructor(nest_logger) {
+        this.nest_logger = nest_logger;
+    }
+    log(message) {
+        this.nest_logger.log(message);
+    }
+    warn(message) {
+        this.nest_logger.warn(message);
+    }
+    error(message) {
+        this.nest_logger.error(message);
+    }
 }
+exports.NestLoggerAdapter = NestLoggerAdapter;
+class NestStructuredLoggerAdapter {
+    nest_logger;
+    scope;
+    trace_id;
+    constructor(nest_logger, scope, trace_id) {
+        this.nest_logger = nest_logger;
+        this.scope = scope;
+        this.trace_id = trace_id;
+    }
+    prefix() {
+        return this.trace_id
+            ? `[${this.scope}][${this.trace_id}]`
+            : `[${this.scope}]`;
+    }
+    format(message, meta) {
+        const payload = meta && Object.keys(meta).length > 0 ? ` ${JSON.stringify(meta)}` : '';
+        return `${this.prefix()} ${message}${payload}`;
+    }
+    debug(message, meta) {
+        this.nest_logger.debug?.(this.format(message, meta));
+    }
+    info(message, meta) {
+        this.nest_logger.log(this.format(message, meta));
+    }
+    warn(message, meta) {
+        this.nest_logger.warn(this.format(message, meta));
+    }
+    error(message, meta) {
+        this.nest_logger.error(this.format(message, meta));
+    }
+}
+exports.NestStructuredLoggerAdapter = NestStructuredLoggerAdapter;
 
 
 /***/ },
@@ -7963,10 +8697,8 @@ exports.PaginationRequestDto = void 0;
 const class_transformer_1 = __webpack_require__(/*! class-transformer */ "class-transformer");
 const class_validator_1 = __webpack_require__(/*! class-validator */ "class-validator");
 class PaginationRequestDto {
-    constructor() {
-        this.offset = 0;
-        this.limit = 20;
-    }
+    offset = 0;
+    limit = 20;
 }
 exports.PaginationRequestDto = PaginationRequestDto;
 __decorate([
@@ -8010,6 +8742,9 @@ const typeorm_1 = __webpack_require__(/*! typeorm */ "typeorm");
 const base_external_id_entity_1 = __webpack_require__(/*! ./base-external-id.entity */ "./libs/suppliers-data/src/entities/base-external-id.entity.ts");
 const aes_256_transformer_1 = __webpack_require__(/*! ../transformers/aes-256.transformer */ "./libs/suppliers-data/src/transformers/aes-256.transformer.ts");
 let BankAccountEntity = class BankAccountEntity extends base_external_id_entity_1.BaseExternalIdEntity {
+    bankEntity;
+    accountNumber;
+    bankCertification;
 };
 exports.BankAccountEntity = BankAccountEntity;
 __decorate([
@@ -8057,6 +8792,10 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.BaseExternalIdEntity = void 0;
 const typeorm_1 = __webpack_require__(/*! typeorm */ "typeorm");
 class BaseExternalIdEntity {
+    id;
+    externalId;
+    createdAt;
+    updatedAt;
 }
 exports.BaseExternalIdEntity = BaseExternalIdEntity;
 __decorate([
@@ -8116,6 +8855,9 @@ exports.BusinessSeniorityEntity = void 0;
 const typeorm_1 = __webpack_require__(/*! typeorm */ "typeorm");
 const base_external_id_entity_1 = __webpack_require__(/*! ./base-external-id.entity */ "./libs/suppliers-data/src/entities/base-external-id.entity.ts");
 let BusinessSeniorityEntity = class BusinessSeniorityEntity extends base_external_id_entity_1.BaseExternalIdEntity {
+    description;
+    rangeStart;
+    rangeEnd;
 };
 exports.BusinessSeniorityEntity = BusinessSeniorityEntity;
 __decorate([
@@ -8161,6 +8903,20 @@ const person_entity_1 = __webpack_require__(/*! ../../../transversal-data/src/en
 const base_external_id_entity_1 = __webpack_require__(/*! ./base-external-id.entity */ "./libs/suppliers-data/src/entities/base-external-id.entity.ts");
 const business_seniority_entity_1 = __webpack_require__(/*! ./business-seniority.entity */ "./libs/suppliers-data/src/entities/business-seniority.entity.ts");
 let BusinessEntity = class BusinessEntity extends base_external_id_entity_1.BaseExternalIdEntity {
+    person;
+    personId;
+    businessSeniority;
+    businessSeniorityId;
+    cityId;
+    entityType;
+    businessName;
+    businessAddress;
+    businessType;
+    relationshipToBusiness;
+    legalName;
+    tradeName;
+    taxId;
+    yearOfEstablishment;
 };
 exports.BusinessEntity = BusinessEntity;
 __decorate([
@@ -8251,6 +9007,9 @@ const typeorm_1 = __webpack_require__(/*! typeorm */ "typeorm");
 const person_entity_1 = __webpack_require__(/*! ../../../transversal-data/src/entities/person.entity */ "./libs/transversal-data/src/entities/person.entity.ts");
 const base_external_id_entity_1 = __webpack_require__(/*! ./base-external-id.entity */ "./libs/suppliers-data/src/entities/base-external-id.entity.ts");
 let LegalRepresentativeEntity = class LegalRepresentativeEntity extends base_external_id_entity_1.BaseExternalIdEntity {
+    person;
+    personId;
+    isPrimary;
 };
 exports.LegalRepresentativeEntity = LegalRepresentativeEntity;
 __decorate([
@@ -8294,6 +9053,10 @@ exports.PurchaseOrderEntity = void 0;
 const typeorm_1 = __webpack_require__(/*! typeorm */ "typeorm");
 const base_external_id_entity_1 = __webpack_require__(/*! ./base-external-id.entity */ "./libs/suppliers-data/src/entities/base-external-id.entity.ts");
 let PurchaseOrderEntity = class PurchaseOrderEntity extends base_external_id_entity_1.BaseExternalIdEntity {
+    userId;
+    supplierId;
+    amount;
+    documentUrl;
 };
 exports.PurchaseOrderEntity = PurchaseOrderEntity;
 __decorate([
@@ -8345,6 +9108,20 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.PartnerOnboardingSagaEntity = void 0;
 const typeorm_1 = __webpack_require__(/*! typeorm */ "typeorm");
 let PartnerOnboardingSagaEntity = class PartnerOnboardingSagaEntity {
+    id;
+    externalId;
+    correlationId;
+    status;
+    currentStep;
+    creditFacilityExternalId;
+    userExternalId;
+    personExternalId;
+    businessExternalId;
+    bankAccountExternalId;
+    partnerExternalId;
+    errorMessage;
+    createdAt;
+    updatedAt;
 };
 exports.PartnerOnboardingSagaEntity = PartnerOnboardingSagaEntity;
 __decorate([
@@ -8434,6 +9211,18 @@ const shared_1 = __webpack_require__(/*! @platam/shared */ "./libs/shared/src/in
 const base_external_id_entity_1 = __webpack_require__(/*! ./base-external-id.entity */ "./libs/suppliers-data/src/entities/base-external-id.entity.ts");
 const supplier_entity_1 = __webpack_require__(/*! ./supplier.entity */ "./libs/suppliers-data/src/entities/supplier.entity.ts");
 let PartnersEntity = class PartnersEntity extends base_external_id_entity_1.BaseExternalIdEntity {
+    supplier;
+    acronym;
+    logoUrl;
+    coBrandingLogoUrl;
+    primaryColor;
+    secondaryColor;
+    lightColor;
+    notificationEmail;
+    webhookUrl;
+    sendSalesRepVoucher;
+    disbursementNotificationEmail;
+    state;
 };
 exports.PartnersEntity = PartnersEntity;
 __decorate([
@@ -8537,6 +9326,8 @@ exports.SalesRepresentativeEntity = void 0;
 const typeorm_1 = __webpack_require__(/*! typeorm */ "typeorm");
 const base_external_id_entity_1 = __webpack_require__(/*! ./base-external-id.entity */ "./libs/suppliers-data/src/entities/base-external-id.entity.ts");
 let SalesRepresentativeEntity = class SalesRepresentativeEntity extends base_external_id_entity_1.BaseExternalIdEntity {
+    partnerId;
+    userId;
 };
 exports.SalesRepresentativeEntity = SalesRepresentativeEntity;
 __decorate([
@@ -8580,6 +9371,12 @@ const business_entity_1 = __webpack_require__(/*! ./business.entity */ "./libs/s
 const legal_representative_entity_1 = __webpack_require__(/*! ./legal-representative.entity */ "./libs/suppliers-data/src/entities/legal-representative.entity.ts");
 const partners_entity_1 = __webpack_require__(/*! ./partners.entity */ "./libs/suppliers-data/src/entities/partners.entity.ts");
 let SupplierEntity = class SupplierEntity extends base_external_id_entity_1.BaseExternalIdEntity {
+    business;
+    businessId;
+    legalRepresentative;
+    legalRepresentativeId;
+    bankAccount;
+    partner;
 };
 exports.SupplierEntity = SupplierEntity;
 __decorate([
@@ -8762,6 +9559,8 @@ function sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
 class TypeormSqsIdempotencyPollBaseAdapter {
+    repo;
+    poll_config;
     constructor(repo, poll_config) {
         this.repo = repo;
         this.poll_config = poll_config;
@@ -8800,6 +9599,7 @@ const typeorm_1 = __webpack_require__(/*! typeorm */ "typeorm");
 const PG_UNIQUE_VIOLATION = '23505';
 const STALE_PROCESSING_MS = 30 * 60 * 1000;
 class TypeormSqsIdempotencyBaseAdapter {
+    repo;
     constructor(repo) {
         this.repo = repo;
     }
@@ -8872,6 +9672,11 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.BaseSqsIdempotencyEntity = void 0;
 const typeorm_1 = __webpack_require__(/*! typeorm */ "typeorm");
 class BaseSqsIdempotencyEntity {
+    id;
+    idempotency_key;
+    correlation_id;
+    result;
+    created_at;
 }
 exports.BaseSqsIdempotencyEntity = BaseSqsIdempotencyEntity;
 __decorate([
@@ -8919,6 +9724,12 @@ exports.CityEntity = void 0;
 const typeorm_1 = __webpack_require__(/*! typeorm */ "typeorm");
 const base_external_id_entity_1 = __webpack_require__(/*! ../../../products-data/src/entities/base-external-id.entity */ "./libs/products-data/src/entities/base-external-id.entity.ts");
 let CityEntity = class CityEntity extends base_external_id_entity_1.BaseExternalIdEntity {
+    countryName;
+    countryCode;
+    stateName;
+    stateCode;
+    cityName;
+    currencyId;
 };
 exports.CityEntity = CityEntity;
 __decorate([
@@ -8974,6 +9785,13 @@ exports.CurrencyEntity = void 0;
 const typeorm_1 = __webpack_require__(/*! typeorm */ "typeorm");
 const base_external_id_entity_1 = __webpack_require__(/*! ../../../products-data/src/entities/base-external-id.entity */ "./libs/products-data/src/entities/base-external-id.entity.ts");
 let CurrencyEntity = class CurrencyEntity extends base_external_id_entity_1.BaseExternalIdEntity {
+    code;
+    name;
+    symbol;
+    decimalPlaces;
+    thousandSeparator;
+    decimalSeparator;
+    isActive;
 };
 exports.CurrencyEntity = CurrencyEntity;
 __decorate([
@@ -9043,6 +9861,7 @@ exports.DocumentTypeEntity = void 0;
 const typeorm_1 = __webpack_require__(/*! typeorm */ "typeorm");
 const base_external_id_entity_1 = __webpack_require__(/*! ../../../products-data/src/entities/base-external-id.entity */ "./libs/products-data/src/entities/base-external-id.entity.ts");
 let DocumentTypeEntity = class DocumentTypeEntity extends base_external_id_entity_1.BaseExternalIdEntity {
+    documentType;
 };
 exports.DocumentTypeEntity = DocumentTypeEntity;
 __decorate([
@@ -9078,6 +9897,7 @@ exports.PartnerCreateUserSqsIdempotencyEntity = void 0;
 const typeorm_1 = __webpack_require__(/*! typeorm */ "typeorm");
 const base_sqs_idempotency_entity_1 = __webpack_require__(/*! ./base-sqs-idempotency.entity */ "./libs/transversal-data/src/entities/base-sqs-idempotency.entity.ts");
 let PartnerCreateUserSqsIdempotencyEntity = class PartnerCreateUserSqsIdempotencyEntity extends base_sqs_idempotency_entity_1.BaseSqsIdempotencyEntity {
+    result;
 };
 exports.PartnerCreateUserSqsIdempotencyEntity = PartnerCreateUserSqsIdempotencyEntity;
 __decorate([
@@ -9112,6 +9932,8 @@ exports.PermissionEntity = void 0;
 const typeorm_1 = __webpack_require__(/*! typeorm */ "typeorm");
 const base_external_id_entity_1 = __webpack_require__(/*! ../../../products-data/src/entities/base-external-id.entity */ "./libs/products-data/src/entities/base-external-id.entity.ts");
 let PermissionEntity = class PermissionEntity extends base_external_id_entity_1.BaseExternalIdEntity {
+    code;
+    description;
 };
 exports.PermissionEntity = PermissionEntity;
 __decorate([
@@ -9151,6 +9973,18 @@ exports.PersonEntity = void 0;
 const typeorm_1 = __webpack_require__(/*! typeorm */ "typeorm");
 const base_external_id_entity_1 = __webpack_require__(/*! ../../../products-data/src/entities/base-external-id.entity */ "./libs/products-data/src/entities/base-external-id.entity.ts");
 let PersonEntity = class PersonEntity extends base_external_id_entity_1.BaseExternalIdEntity {
+    countryCode;
+    firstName;
+    lastName;
+    docType;
+    docNumber;
+    docIssueDate;
+    birthDate;
+    gender;
+    phone;
+    residentialAddress;
+    businessAddress;
+    cityId;
 };
 exports.PersonEntity = PersonEntity;
 __decorate([
@@ -9229,6 +10063,8 @@ exports.RolePermissionEntity = void 0;
 const typeorm_1 = __webpack_require__(/*! typeorm */ "typeorm");
 const base_external_id_entity_1 = __webpack_require__(/*! ../../../products-data/src/entities/base-external-id.entity */ "./libs/products-data/src/entities/base-external-id.entity.ts");
 let RolePermissionEntity = class RolePermissionEntity extends base_external_id_entity_1.BaseExternalIdEntity {
+    roleId;
+    permissionId;
 };
 exports.RolePermissionEntity = RolePermissionEntity;
 __decorate([
@@ -9268,6 +10104,8 @@ exports.RoleEntity = void 0;
 const typeorm_1 = __webpack_require__(/*! typeorm */ "typeorm");
 const base_external_id_entity_1 = __webpack_require__(/*! ../../../products-data/src/entities/base-external-id.entity */ "./libs/products-data/src/entities/base-external-id.entity.ts");
 let RoleEntity = class RoleEntity extends base_external_id_entity_1.BaseExternalIdEntity {
+    name;
+    description;
 };
 exports.RoleEntity = RoleEntity;
 __decorate([
@@ -9306,6 +10144,11 @@ exports.StatusEntity = void 0;
 const typeorm_1 = __webpack_require__(/*! typeorm */ "typeorm");
 const base_external_id_entity_1 = __webpack_require__(/*! ../../../products-data/src/entities/base-external-id.entity */ "./libs/products-data/src/entities/base-external-id.entity.ts");
 let StatusEntity = class StatusEntity extends base_external_id_entity_1.BaseExternalIdEntity {
+    entityType;
+    code;
+    displayName;
+    description;
+    isActive;
 };
 exports.StatusEntity = StatusEntity;
 __decorate([
@@ -9358,6 +10201,7 @@ exports.UploadFilesIdempotencyEntity = void 0;
 const typeorm_1 = __webpack_require__(/*! typeorm */ "typeorm");
 const base_sqs_idempotency_entity_1 = __webpack_require__(/*! ./base-sqs-idempotency.entity */ "./libs/transversal-data/src/entities/base-sqs-idempotency.entity.ts");
 let UploadFilesIdempotencyEntity = class UploadFilesIdempotencyEntity extends base_sqs_idempotency_entity_1.BaseSqsIdempotencyEntity {
+    result;
 };
 exports.UploadFilesIdempotencyEntity = UploadFilesIdempotencyEntity;
 __decorate([
@@ -9393,6 +10237,12 @@ exports.UserEntity = void 0;
 const typeorm_1 = __webpack_require__(/*! typeorm */ "typeorm");
 const base_external_id_entity_1 = __webpack_require__(/*! ../../../products-data/src/entities/base-external-id.entity */ "./libs/products-data/src/entities/base-external-id.entity.ts");
 let UserEntity = class UserEntity extends base_external_id_entity_1.BaseExternalIdEntity {
+    cognitoSub;
+    email;
+    roleId;
+    state;
+    personId;
+    lastLoginAt;
 };
 exports.UserEntity = UserEntity;
 __decorate([

@@ -8,6 +8,20 @@ import type {
   PartnerOnboardingSagaRecord,
 } from '@modules/partners/application/ports/partner-onboarding-saga.repository.port';
 
+const SAGA_SELECT = {
+  externalId: true,
+  correlationId: true,
+  status: true,
+  currentStep: true,
+  creditFacilityExternalId: true,
+  userExternalId: true,
+  personExternalId: true,
+  businessExternalId: true,
+  bankAccountExternalId: true,
+  partnerExternalId: true,
+  errorMessage: true,
+} as const;
+
 @Injectable()
 export class TypeormPartnerOnboardingSagaRepository
   implements PartnerOnboardingSagaRepository
@@ -76,5 +90,27 @@ export class TypeormPartnerOnboardingSagaRepository
       existing.errorMessage = patch.error_message;
     }
     await this.repo.save(existing);
+  }
+
+  async find_by_external_id(external_id: string): Promise<PartnerOnboardingSagaRecord | null> {
+    const row = await this.repo.findOne({
+      where: { externalId: external_id },
+      select: SAGA_SELECT,
+    });
+    if (!row) return null;
+
+    return {
+      external_id: row.externalId,
+      correlation_id: row.correlationId,
+      status: row.status,
+      current_step: row.currentStep,
+      credit_facility_external_id: row.creditFacilityExternalId ?? null,
+      user_external_id: row.userExternalId ?? null,
+      person_external_id: row.personExternalId ?? null,
+      business_external_id: row.businessExternalId ?? null,
+      bank_account_external_id: row.bankAccountExternalId ?? null,
+      partner_external_id: row.partnerExternalId ?? null,
+      error_message: row.errorMessage ?? null,
+    };
   }
 }

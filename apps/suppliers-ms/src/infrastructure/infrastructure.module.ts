@@ -12,6 +12,7 @@ import { TypeormSuppliersReferenceLookupAdapter } from './database/common/typeor
 import { TypeormPartnerOnboardingSagaRepository } from './database/repositories/typeorm-partner-onboarding-saga.repository';
 import { SqlProductsCreditFacilitySyncAdapter } from './database/adapters/sql-products-credit-facility-sync.adapter';
 import { TypeormPartnerUserSqsResultPollAdapter } from './database/adapters/typeorm-partner-user-sqs-result-poll.adapter';
+import { PartnerSagaCompensationAdapter } from './database/adapters/partner-saga-compensation.adapter';
 import { TypeormLegalRepresentativeRepository } from './database/repositories/typeorm-legal-representative.repository';
 import { SqsTransversalUserPersonWriterAdapter } from './messaging/sqs/adapters/sqs-transversal-user-person-writer.adapter';
 import { PARTNER_ONBOARDING_SAGA_REPOSITORY } from '@modules/partners/application/ports/partner-onboarding-saga.repository.port';
@@ -19,6 +20,8 @@ import { PRODUCTS_CREDIT_FACILITY_SYNC_PORT } from '@modules/partners/applicatio
 import { TRANSVERSAL_USER_PERSON_WRITER_PORT } from '@modules/partners/application/ports/transversal-user-person-writer.port';
 import { PARTNER_USER_SQS_RESULT_READER_PORT } from '@modules/partners/application/ports/partner-user-sqs-result-reader.port';
 import { PARTNER_ONBOARDING_FILES_PORT } from '@modules/partners/application/ports/partner-onboarding-files.port';
+import { PARTNER_SAGA_COMPENSATION_PORT } from '@modules/partners/application/ports/partner-saga-compensation.port';
+
 import { SqsPartnerOnboardingFilesAdapter } from './messaging/sqs/adapters/sqs-partner-onboarding-files.adapter';
 import {
   SUPPLIERS_REFERENCE_LOOKUP,
@@ -96,6 +99,11 @@ import {
       provide: PARTNER_ONBOARDING_FILES_PORT,
       useExisting: SqsPartnerOnboardingFilesAdapter,
     },
+    PartnerSagaCompensationAdapter,
+    {
+      provide: PARTNER_SAGA_COMPENSATION_PORT,
+      useExisting: PartnerSagaCompensationAdapter,
+    },
   ],
   exports: [
     TypeormBusinessRepository,
@@ -111,6 +119,7 @@ import {
     TRANSVERSAL_USER_PERSON_WRITER_PORT,
     PARTNER_USER_SQS_RESULT_READER_PORT,
     PARTNER_ONBOARDING_FILES_PORT,
+    PARTNER_SAGA_COMPENSATION_PORT,
   ],
 })
 export class InfrastructureModule {}

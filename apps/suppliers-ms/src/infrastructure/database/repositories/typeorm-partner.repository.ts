@@ -88,71 +88,36 @@ export class TypeormPartnerRepository implements PartnerRepository {
     external_id: string,
     patch: UpdatePartnerProps,
   ): Promise<Partner | null> {
-    const existing = await this.repo.findOne({
-      where: { externalId: external_id },
-      select: { id: true },
-    });
-    if (!existing) {
-      return null;
-    }
+    const fields: Partial<PartnersEntity> = {};
 
-    const columns: string[] = [];
-    const values: unknown[] = [];
-    let i = 1;
+    if (patch.acronym !== undefined) fields.acronym = patch.acronym ?? undefined;
+    if (patch.logo_url !== undefined) fields.logoUrl = patch.logo_url ?? undefined;
+    if (patch.co_branding_logo_url !== undefined)
+      fields.coBrandingLogoUrl = patch.co_branding_logo_url ?? undefined;
+    if (patch.primary_color !== undefined) fields.primaryColor = patch.primary_color ?? undefined;
+    if (patch.secondary_color !== undefined)
+      fields.secondaryColor = patch.secondary_color ?? undefined;
+    if (patch.light_color !== undefined) fields.lightColor = patch.light_color ?? undefined;
+    if (patch.notification_email !== undefined)
+      fields.notificationEmail = patch.notification_email ?? undefined;
+    if (patch.webhook_url !== undefined) fields.webhookUrl = patch.webhook_url ?? undefined;
+    if (patch.send_sales_rep_voucher !== undefined)
+      fields.sendSalesRepVoucher = patch.send_sales_rep_voucher;
+    if (patch.disbursement_notification_email !== undefined)
+      fields.disbursementNotificationEmail =
+        patch.disbursement_notification_email ?? undefined;
+    if (patch.state !== undefined) fields.state = patch.state;
 
-    const add = (col: string, val: unknown) => {
-      columns.push(`"${col}" = $${i}`);
-      values.push(val);
-      i += 1;
-    };
-
-    if (patch.acronym !== undefined) {
-      add('acronym', patch.acronym);
-    }
-    if (patch.logo_url !== undefined) {
-      add('logo_url', patch.logo_url);
-    }
-    if (patch.co_branding_logo_url !== undefined) {
-      add('co_branding_logo_url', patch.co_branding_logo_url);
-    }
-    if (patch.primary_color !== undefined) {
-      add('primary_color', patch.primary_color);
-    }
-    if (patch.secondary_color !== undefined) {
-      add('secondary_color', patch.secondary_color);
-    }
-    if (patch.light_color !== undefined) {
-      add('light_color', patch.light_color);
-    }
-    if (patch.notification_email !== undefined) {
-      add('notification_email', patch.notification_email);
-    }
-    if (patch.webhook_url !== undefined) {
-      add('webhook_url', patch.webhook_url);
-    }
-    if (patch.send_sales_rep_voucher !== undefined) {
-      add('send_sales_rep_voucher', patch.send_sales_rep_voucher);
-    }
-    if (patch.disbursement_notification_email !== undefined) {
-      add(
-        'disbursement_notification_email',
-        patch.disbursement_notification_email,
-      );
-    }
-    if (patch.state !== undefined) {
-      add('state', patch.state);
-    }
-
-    if (columns.length === 0) {
+    if (Object.keys(fields).length === 0) {
       return this.find_by_external_id(external_id);
     }
 
-    columns.push(`"updated_at" = now()`);
-    values.push(existing.id);
-    await this.repo.query(
-      `UPDATE suppliers_schema.partners SET ${columns.join(', ')} WHERE id = $${i}`,
-      values,
-    );
+    await this.repo
+      .createQueryBuilder()
+      .update(PartnersEntity)
+      .set({ ...fields, updatedAt: () => 'now()' })
+      .where('"external_id" = :external_id', { external_id })
+      .execute();
 
     return this.find_by_external_id(external_id);
   }

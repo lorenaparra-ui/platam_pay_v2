@@ -55,4 +55,6 @@ export interface PartnerOnboardingSagaRepository {
     external_id: string,
     patch: PartnerOnboardingSagaPatch,
   ): Promise<void>;
+
+  find_by_external_id(external_id: string): Promise<PartnerOnboardingSagaRecord | null>;
 }

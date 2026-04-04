@@ -2,9 +2,12 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Get,
+  HttpCode,
   HttpException,
   HttpStatus,
   Inject,
+  NotFoundException,
   Param,
   ParseUUIDPipe,
   Patch,
@@ -13,9 +16,10 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { randomUUID } from 'crypto';
+import { new_uuid } from '@platam/shared';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import {
+  ApiAcceptedResponse,
   ApiBody,
   ApiConsumes,
   ApiExtraModels,
@@ -32,11 +36,14 @@ import {
   PARTNER_ONBOARDING_FILES_PORT,
   type PartnerOnboardingFilesPort,
 } from '@modules/partners/application/ports/partner-onboarding-files.port';
+import {
+  PARTNER_ONBOARDING_SAGA_REPOSITORY,
+  type PartnerOnboardingSagaRepository,
+} from '@modules/partners/application/ports/partner-onboarding-saga.repository.port';
 import { CreatePartnerPayloadDto } from './dto/create-partner-payload.dto';
 import { CreatePartnerOrchestratorResponseDto } from './dto/create-partner-orchestrator-response.dto';
 import { UpdatePartnerPayloadDto } from './dto/update-partner-payload.dto';
 import { map_create_partner_payload_to_command } from './mappers/create-partner-payload.mapper';
-import { map_orchestrator_result_to_http } from './mappers/create-partner-orchestrator-response.mapper';
 import {
   map_update_partner_payload_to_request,
   type UpdatePartnerUrlMerge,
@@ -73,21 +80,39 @@ export class PartnersController {
     private readonly config_service: ConfigService,
     @Inject(PARTNER_ONBOARDING_FILES_PORT)
     private readonly partner_files: PartnerOnboardingFilesPort,
+    @Inject(PARTNER_ONBOARDING_SAGA_REPOSITORY)
+    private readonly saga_repository: PartnerOnboardingSagaRepository,
   ) {}
 
+  /**
+   * Inicia la saga de alta de partner de forma asíncrona.
+   * Retorna 202 Accepted con el sagaId para consultar el estado via GET /partners/sagas/:sagaId
+   */
   @Post()
+  @HttpCode(HttpStatus.ACCEPTED)
   @ApiOperation({
-    summary: 'Alta orquestada de partner (saga + SQS)',
-   
+    summary: 'Alta orquestada de partner (saga async + SQS)',
+    description:
+      'Inicia la saga en segundo plano. Retorna 202 con `saga_id`. ' +
+      'Consultar `GET /partners/sagas/{sagaId}` para obtener el resultado y estado.',
+  })
+  @ApiAcceptedResponse({
+    description: 'Saga iniciada. Consultar /partners/sagas/:sagaId para el estado.',
+    schema: {
+      type: 'object',
+      properties: {
+        saga_id: { type: 'string', format: 'uuid' },
+        status: { type: 'string', example: 'RUNNING' },
+        message: { type: 'string' },
+      },
+    },
   })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {
       type: 'object',
       properties: {
-        payload: {
-          type: 'string'
-        },
+        payload: { type: 'string' },
         bankCertification: { type: 'string', format: 'binary' },
         logo: { type: 'string', format: 'binary' },
         coBranding: { type: 'string', format: 'binary' },
@@ -104,7 +129,7 @@ export class PartnersController {
   async create(
     @Body('payload') payload_raw: string,
     @UploadedFiles() files: PartnerMultipartFiles,
-  ): Promise<CreatePartnerOrchestratorResponseDto> {
+  ): Promise<{ saga_id: string; status: string; message: string }> {
     let parsed: unknown;
     try {
       parsed = JSON.parse(payload_raw) as unknown;
@@ -126,50 +151,68 @@ export class PartnersController {
     const app_config = this.config_service.get<SuppliersMsConfig>('config');
     const command = map_create_partner_payload_to_command(dto, {
       country_code:
-        (app_config?.partner_onboarding?.default_country_code ?? 'CO').trim() ||
-        null,
+        (app_config?.partner_onboarding?.default_country_code ?? 'CO').trim() || null,
     });
 
     const uploaded = this.to_uploaded_meta(files);
 
-    const result = await this.create_partner_orchestrator.execute(command, {
+    const saga_id = await this.create_partner_orchestrator.start_async(command, {
       bank_certification: uploaded.bank_certification,
       logo: uploaded.logo,
       co_branding: uploaded.co_branding,
     });
 
-    return map_orchestrator_result_to_http(result);
+    return {
+      saga_id,
+      status: 'RUNNING',
+      message: `Saga iniciada. Consulta el estado en GET /partners/sagas/${saga_id}`,
+    };
+  }
+
+  /**
+   * Consulta el estado actual de una saga de onboarding de partner.
+   */
+  @Get('sagas/:sagaId')
+  @ApiOperation({
+    summary: 'Estado de una saga de onboarding de partner',
+    description:
+      'Retorna el estado, paso actual y datos creados de la saga. ' +
+      'Cuando status=COMPLETED, partner_external_id y credit_facility_external_id están disponibles.',
+  })
+  @ApiOkResponse({
+    description: 'Estado de la saga',
+  })
+  async get_saga_status(
+    @Param('sagaId', new ParseUUIDPipe({ version: '4' })) saga_id: string,
+  ): Promise<unknown> {
+    const saga = await this.saga_repository.find_by_external_id(saga_id);
+    if (!saga) {
+      throw new NotFoundException('saga not found');
+    }
+    return saga;
   }
 
   @Patch(':id')
   @ApiOperation({
     summary: 'Actualizar partner (parcial)',
     description:
-      'Multipart opcional; `payload` es JSON **camelCase** **parcial**: todas las claves raíz (`operatingUser`, `business`, `partner`, `bankAccount`, `creditFacility`, `category`) son opcionales. ' +
-      '**Reglas actuales:** solo se persisten campos de `partner` y URLs finales de `logo` / `coBranding` (archivos multipart o `logoUrl` / `coBrandingLogoUrl`). ' +
-      'Cualquier otra sección con valores definidos → **501 Not Implemented**. ' +
-      'Debe haber al menos un cambio en `partner` o subida de logo/coBranding. ' +
-      '`bankCertification` en PATCH → 501. Ver `UpdatePartnerPayloadDto` en Swagger para forma de cada sección cuando se habiliten.',
+      'Multipart opcional; `payload` es JSON **camelCase** **parcial**. ' +
+      'Solo se persisten campos de `partner` y URLs finales de `logo` / `coBranding`. ' +
+      '`bankCertification` en PATCH → 501.',
   })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {
       type: 'object',
       properties: {
-        payload: {
-          type: 'string',
-          description:
-            'JSON parcial opcional, camelCase; mismas secciones que POST pero todas opcionales (UpdatePartnerPayloadDto). Soporte persistido hoy: solo `partner` (+ logos).',
-        },
+        payload: { type: 'string' },
         bankCertification: { type: 'string', format: 'binary' },
         logo: { type: 'string', format: 'binary' },
         coBranding: { type: 'string', format: 'binary' },
       },
     },
   })
-  @ApiOkResponse({
-    description: 'Entidad partner actualizada (campos públicos).',
-  })
+  @ApiOkResponse({ description: 'Entidad partner actualizada (campos públicos).' })
   @UseInterceptors(
     FileFieldsInterceptor([
       { name: 'bankCertification', maxCount: 1 },
@@ -182,7 +225,7 @@ export class PartnersController {
     @Body('payload') payload_raw: string | undefined,
     @UploadedFiles() files: PartnerMultipartFiles,
   ): Promise<unknown> {
-    const file_correlation_id = randomUUID();
+    const file_correlation_id = new_uuid();
     let patch: Record<string, unknown> = {};
     const raw = payload_raw?.trim() ?? '';
     if (raw.length > 0) {
@@ -226,8 +269,7 @@ export class PartnersController {
     }
 
     let logo_merge: string | null | undefined = dto.partner?.logoUrl;
-    let co_branding_merge: string | null | undefined =
-      dto.partner?.coBrandingLogoUrl;
+    let co_branding_merge: string | null | undefined = dto.partner?.coBrandingLogoUrl;
 
     if (has_logo_file || has_cob_file) {
       const urls = await this.partner_files.resolve_urls({
@@ -241,8 +283,7 @@ export class PartnersController {
         logo_merge = urls.logo_url.length > 0 ? urls.logo_url : null;
       }
       if (has_cob_file) {
-        co_branding_merge =
-          urls.co_branding_url.length > 0 ? urls.co_branding_url : null;
+        co_branding_merge = urls.co_branding_url.length > 0 ? urls.co_branding_url : null;
       }
     }
 
@@ -255,9 +296,7 @@ export class PartnersController {
     return this.update_partner.execute(req);
   }
 
-  private multipart_has_binary(
-    f: PartnerOnboardingUploadedFile | undefined,
-  ): boolean {
+  private multipart_has_binary(f: PartnerOnboardingUploadedFile | undefined): boolean {
     return (
       f !== undefined &&
       typeof f.content_base64 === 'string' &&

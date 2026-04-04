@@ -58,44 +58,23 @@ export class TypeormBankAccountRepository implements BankAccountRepository {
     external_id: string,
     patch: UpdateBankAccountProps,
   ): Promise<BankAccount | null> {
-    const existing = await this.repo.findOne({
-      where: { externalId: external_id },
-      select: { id: true },
-    });
-    if (!existing) {
-      return null;
-    }
+    const fields: Partial<BankAccountEntity> = {};
 
-    const columns: string[] = [];
-    const values: unknown[] = [];
-    let i = 1;
+    if (patch.bank_entity !== undefined) fields.bankEntity = patch.bank_entity;
+    if (patch.account_number !== undefined) fields.accountNumber = patch.account_number;
+    if (patch.bank_certification !== undefined)
+      fields.bankCertification = patch.bank_certification ?? undefined;
 
-    const add = (col: string, val: unknown) => {
-      columns.push(`"${col}" = $${i}`);
-      values.push(val);
-      i += 1;
-    };
-
-    if (patch.bank_entity !== undefined) {
-      add('bank_entity', patch.bank_entity);
-    }
-    if (patch.account_number !== undefined) {
-      add('account_number', patch.account_number);
-    }
-    if (patch.bank_certification !== undefined) {
-      add('bank_certification', patch.bank_certification);
-    }
-
-    if (columns.length === 0) {
+    if (Object.keys(fields).length === 0) {
       return this.find_by_external_id(external_id);
     }
 
-    columns.push(`"updated_at" = now()`);
-    values.push(existing.id);
-    await this.repo.query(
-      `UPDATE suppliers_schema.bank_accounts SET ${columns.join(', ')} WHERE id = $${i}`,
-      values,
-    );
+    await this.repo
+      .createQueryBuilder()
+      .update(BankAccountEntity)
+      .set({ ...fields, updatedAt: () => 'now()' })
+      .where('"external_id" = :external_id', { external_id })
+      .execute();
 
     return this.find_by_external_id(external_id);
   }
