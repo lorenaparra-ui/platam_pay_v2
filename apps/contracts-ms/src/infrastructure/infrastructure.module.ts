@@ -8,6 +8,8 @@ import { TypeormContractReferenceLookupAdapter } from './database/adapters/typeo
 import { CONTRACT_REPOSITORY } from '@modules/contracts/contracts.tokens';
 import { CONTRACT_REFERENCE_LOOKUP } from '@common/ports/contract-reference-lookup.port';
 import { SqsModule } from './messaging/sqs/sqs.module';
+import { ZapSignSignatureProviderAdapter } from './signature-providers/zapsign/zapsign-signature-provider.adapter';
+import { SIGNATURE_PROVIDER } from '@modules/contracts/domain/ports/signature-provider.port';
 
 @Global()
 @Module({
@@ -29,7 +31,18 @@ import { SqsModule } from './messaging/sqs/sqs.module';
       provide: CONTRACT_REPOSITORY,
       useClass: TypeormContractRepository,
     },
+    ZapSignSignatureProviderAdapter,
+    {
+      provide: SIGNATURE_PROVIDER,
+      useExisting: ZapSignSignatureProviderAdapter,
+    },
   ],
-  exports: [CONTRACT_REPOSITORY, CONTRACT_REFERENCE_LOOKUP, SqsModule, TypeOrmModule],
+  exports: [
+    CONTRACT_REPOSITORY,
+    CONTRACT_REFERENCE_LOOKUP,
+    SIGNATURE_PROVIDER,
+    SqsModule,
+    TypeOrmModule,
+  ],
 })
 export class InfrastructureModule {}

@@ -10,6 +10,8 @@ export interface ContractRepository {
 
   find_by_external_id(external_id: string): Promise<Contract | null>;
 
+  find_by_zapsign_token(zapsign_token: string): Promise<Contract | null>;
+
   find_page(
     filters: ListContractsFilters,
     offset: number,

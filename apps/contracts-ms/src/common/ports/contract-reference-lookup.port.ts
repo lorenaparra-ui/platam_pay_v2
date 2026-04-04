@@ -16,6 +16,11 @@ export interface ContractReferenceLookupPort {
   get_contract_template_external_id_by_internal_id(
     internal_id: number,
   ): Promise<string | null>;
+
+  /** Referencia de plantilla en ZapSign (`contract_templates.zapsign_template_ref`). */
+  get_zapsign_template_ref_by_internal_id(
+    template_internal_id: number,
+  ): Promise<string | null>;
 }
 
 export const CONTRACT_REFERENCE_LOOKUP = Symbol('CONTRACT_REFERENCE_LOOKUP');

@@ -99,4 +99,21 @@ export class TypeormContractReferenceLookupAdapter implements ContractReferenceL
     const v = rows[0]?.external_id;
     return v === undefined || v === null || v.length === 0 ? null : v;
   }
+
+  async get_zapsign_template_ref_by_internal_id(
+    template_internal_id: number,
+  ): Promise<string | null> {
+    const rows: Array<{ zapsign_template_ref: string | null }> = await this.data_source.query(
+      `SELECT zapsign_template_ref
+       FROM products_schema.contract_templates
+       WHERE id = $1
+       LIMIT 1`,
+      [template_internal_id],
+    );
+    const ref = rows[0]?.zapsign_template_ref;
+    if (ref === undefined || ref === null || String(ref).trim().length === 0) {
+      return null;
+    }
+    return String(ref).trim();
+  }
 }

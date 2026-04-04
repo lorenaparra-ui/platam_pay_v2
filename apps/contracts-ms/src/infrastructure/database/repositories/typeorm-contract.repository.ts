@@ -68,6 +68,14 @@ export class TypeormContractRepository implements ContractRepository {
     return row ? ContractMapper.to_domain(row) : null;
   }
 
+  async find_by_zapsign_token(zapsign_token: string): Promise<Contract | null> {
+    const row = await this.repo.findOne({
+      where: { zapsignToken: zapsign_token },
+      select: CONTRACT_SELECT,
+    });
+    return row ? ContractMapper.to_domain(row) : null;
+  }
+
   async find_page(
     filters: ListContractsFilters,
     offset: number,

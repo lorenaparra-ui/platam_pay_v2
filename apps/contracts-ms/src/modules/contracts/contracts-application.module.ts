@@ -5,10 +5,14 @@ import { GetContractByIdUseCase } from './application/use-cases/get-contract-by-
 import { ListContractsUseCase } from './application/use-cases/list-contracts/list-contracts.use-case';
 import { UpdateContractByExternalIdUseCase } from './application/use-cases/update-contract-by-external-id/update-contract-by-external-id.use-case';
 import { DeleteContractByExternalIdUseCase } from './application/use-cases/delete-contract-by-external-id/delete-contract-by-external-id.use-case';
+import { CreateContractWithZapsignUseCase } from './application/use-cases/create-contract-with-zapsign/create-contract-with-zapsign.use-case';
+import { ProcessZapSignWebhookUseCase } from './application/use-cases/process-zapsign-webhook/process-zapsign-webhook.use-case';
 
 @Module({
   providers: [
     CreateContractUseCase,
+    CreateContractWithZapsignUseCase,
+    ProcessZapSignWebhookUseCase,
     GetContractByIdUseCase,
     GetContractByExternalIdUseCase,
     ListContractsUseCase,
@@ -17,6 +21,8 @@ import { DeleteContractByExternalIdUseCase } from './application/use-cases/delet
   ],
   exports: [
     CreateContractUseCase,
+    CreateContractWithZapsignUseCase,
+    ProcessZapSignWebhookUseCase,
     GetContractByIdUseCase,
     GetContractByExternalIdUseCase,
     ListContractsUseCase,

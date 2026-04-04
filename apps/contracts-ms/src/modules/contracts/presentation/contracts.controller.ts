@@ -20,6 +20,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { CreateContractHttpDto } from './dto/create-contract-http.dto';
+import { CreateContractWithZapsignHttpDto } from './dto/create-contract-with-zapsign-http.dto';
 import { UpdateContractHttpDto } from './dto/update-contract-http.dto';
 import { ListContractsQueryDto } from './dto/list-contracts-query.dto';
 import { ContractPublicResponseDto } from './dto/contract-public-response.dto';
@@ -29,6 +30,7 @@ import { GetContractByExternalIdUseCase } from '../application/use-cases/get-con
 import { ListContractsUseCase } from '../application/use-cases/list-contracts/list-contracts.use-case';
 import { UpdateContractByExternalIdUseCase } from '../application/use-cases/update-contract-by-external-id/update-contract-by-external-id.use-case';
 import { DeleteContractByExternalIdUseCase } from '../application/use-cases/delete-contract-by-external-id/delete-contract-by-external-id.use-case';
+import { CreateContractWithZapsignUseCase } from '../application/use-cases/create-contract-with-zapsign/create-contract-with-zapsign.use-case';
 import type { PaginatedResponseDto } from '@platam/shared';
 
 @ApiTags('contracts')
@@ -36,6 +38,7 @@ import type { PaginatedResponseDto } from '@platam/shared';
 export class ContractsController {
   constructor(
     private readonly create_contract: CreateContractUseCase,
+    private readonly create_contract_with_zapsign: CreateContractWithZapsignUseCase,
     private readonly get_by_id: GetContractByIdUseCase,
     private readonly get_by_external_id: GetContractByExternalIdUseCase,
     private readonly list_contracts: ListContractsUseCase,
@@ -56,6 +59,34 @@ export class ContractsController {
       zapsign_token: body.zapsign_token,
       original_file_url: body.original_file_url,
       signed_file_url: body.signed_file_url,
+      form_answers_json: body.form_answers_json,
+    });
+  }
+
+  @Post('with-zapsign')
+  @ApiOperation({
+    summary: 'Crear contrato vía plantilla ZapSign',
+    description:
+      'Crea el documento en ZapSign usando `zapsign_template_ref` de la plantilla en BD y persiste el contrato con `zapsign_token` y URLs devueltas.',
+  })
+  @ApiCreatedResponse({ type: ContractPublicResponseDto })
+  async create_with_zapsign(
+    @Body() body: CreateContractWithZapsignHttpDto,
+  ): Promise<ContractPublicResponseDto> {
+    return this.create_contract_with_zapsign.execute({
+      external_id: body.external_id,
+      user_external_id: body.user_external_id,
+      application_external_id: body.application_external_id,
+      contract_template_external_id: body.contract_template_external_id,
+      status_external_id: body.status_external_id,
+      signer_name: body.signer_name,
+      signer_email: body.signer_email,
+      signer_phone_country: body.signer_phone_country,
+      signer_phone_number: body.signer_phone_number,
+      sandbox: body.sandbox,
+      folder_path: body.folder_path,
+      template_data: body.template_data,
+      replacements: body.replacements,
       form_answers_json: body.form_answers_json,
     });
   }
