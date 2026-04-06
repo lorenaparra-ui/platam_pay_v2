@@ -40,6 +40,16 @@
         "webpack": true
       }
     },
+    "notifications-ms": {
+      "type": "application",
+      "root": "apps/notifications-ms",
+      "entryFile": "main",
+      "sourceRoot": "apps/notifications-ms/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/notifications-ms/tsconfig.build.json",
+        "webpack": true
+      }
+    },
     "products-data": {
       "type": "library",
       "root": "libs/products-data",

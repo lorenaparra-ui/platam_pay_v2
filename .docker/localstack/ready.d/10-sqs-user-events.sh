@@ -9,7 +9,8 @@ for name in \
   user-events-queue \
   transversal-upload-files \
   transversal-inbound \
-  transversal-outbound
+  transversal-outbound \
+  notifications-inbound
 do
   awslocal sqs create-queue --queue-name "$name" || true
   awslocal sqs get-queue-url --queue-name "$name"

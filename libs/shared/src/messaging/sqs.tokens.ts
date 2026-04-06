@@ -28,4 +28,8 @@ export type SqsQueuesUrlsConfig = Readonly<{
    * contracts-ms: cola dedicada a comandos get-contract (por external_id).
    */
   contracts_get_inbound_queue_url?: string;
+  /**
+   * notifications-ms: cola de jobs de notificación (email / SMS / WhatsApp).
+   */
+  notifications_inbound_queue_url?: string;
 }>;

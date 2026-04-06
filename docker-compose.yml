@@ -68,7 +68,7 @@ services:
       - |
         set -eu
         ENDPOINT=http://localstack:4566
-        for name in user-events-queue transversal-upload-files transversal-inbound transversal-outbound; do
+        for name in user-events-queue transversal-upload-files transversal-inbound transversal-outbound notifications-inbound; do
           aws --endpoint-url="$$ENDPOINT" sqs create-queue --queue-name "$$name" || true
           aws --endpoint-url="$$ENDPOINT" sqs get-queue-url --queue-name "$$name"
         done
