@@ -47,7 +47,7 @@ El formulario PJ es más extenso que el PN. Se divide en 5 secciones con co-bran
 
 |Label|Campo DB|Tabla|Tipo|Validaciones|
 |---|---|---|---|---|
-|Representante de Ventas|`sales_rep_id`|`credit_applications`|Dropdown dinámico|Opcional. Trae únicamente los SRs asociados al partner con estado `activo`. Si queda vacío se asigna `partners.default_rep_id`. Hint: _"Selecciona uno o deja en blanco si no sabes"_|
+|Representante de Ventas|`sales_representative_id`|`credit_applications`|Dropdown dinámico|Opcional. Las opciones se cargan con un **GET** de representantes de ventas por **`partner_id`** (solo asociados al partner con estado `activo`). El valor que envía el usuario es el **`sales_representative_id`** del ítem seleccionado; al persistir se guarda en `credit_applications.sales_representative_id`. Si queda vacío se asigna `partners.default_rep_id`. Hint: _"Selecciona uno o deja en blanco si no sabes"_|
 |Razón Social *|`legal_name`|`businesses`|Texto|—|
 |NIT *|`tax_id`|`businesses`|Numérico|Sin dígito de verificación|
 |Ciudad *|`city_id`|`businesses`|Searchable dropdown|Ciudades y municipios del país del partner|
@@ -271,7 +271,7 @@ person_id              → ID del representante legal (misma persona del paso 1)
 business_id            → ID del negocio principal
 partner_id             → resuelto desde la landing
 partner_category_id    → default_category_id del partner
-sales_rep_id           → seleccionado en formulario o default_rep_id (si existe en modelo)
+sales_representative_id→ `sales_representative_id` elegido en el dropdown (GET por `partner_id`) o `partners.
 business_seniority     → del formulario
 number_of_employees    → del formulario
 number_of_locations    → del formulario
@@ -333,8 +333,7 @@ Tras el envío exitoso, se muestra en pantalla:
 ## Criterios de Aceptación
 
 - [ ] El formulario carga con el co-branding correcto del partner según el alias en la URL
-- [ ] El dropdown de Sales Reps solo muestra representantes activos del partner correspondiente
-- [ ] Si el cliente no selecciona SR se asigna `default_rep_id`
+- [ ] El dropdown de Sales Reps obtiene la lista vía **GET** de representantes de ventas por `partner_id` y solo muestra activos; al enviar se persiste el **`sales_representative_id`** seleccionado en `credit_applications.ales_representative_id`
 - [ ] Los campos condicionales `business_rent_amount`, `monthly_purchases` y `current_purchases` se muestran u ocultan correctamente
 - [ ] La sección de estados financieros solo aparece si `requested_credit_line > $10.000.000`
 - [ ] Se pueden subir múltiples archivos de estados financieros

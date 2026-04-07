@@ -19,9 +19,7 @@ El SR hace clic en el botón de solicitud para Empresa. La landing
 y el formulario tienen co-branding del partner (logo, colores 
 definidos en la tabla `partners`).
 
-> El `partner_id` y el `sales_rep_id` se resuelven automáticamente 
-> desde la sesión autenticada del SR. No son campos visibles en el 
-> formulario.
+> El `partner_id` y el valor de **`sales_representative_id`** en `credit_applications` se resuelven automáticamente desde la sesión autenticada del SR: el **`sales_representative_id`** de la sesión es el que se persiste en `credit_applications.sales_representative_id`. No son campos visibles en el formulario.
 
 **Dependencia:** Esta historia requiere que el flujo de autenticación 
 y portal de Sales Reps esté completo antes de poder desarrollarse.
@@ -49,7 +47,7 @@ categorías de negocio.
 | Campo | Tabla | Lógica |
 |---|---|---|
 | `partner_id` | `credit_applications` | Se toma del alias en la URL de la landing |
-| `sales_rep_id` | `credit_applications` | Se toma de la sesión autenticada del SR |
+| `sales_representative_id` | `credit_applications` | Se completa con el **`sales_representative_id`** de la sesión autenticada del SR (mismo valor persistido en esta columna) |
 
 ---
 
@@ -260,7 +258,7 @@ shareholders:
 user_id                  → ID del usuario recién creado
 partner_id               → resuelto desde la sesión del SR
 partner_category_id      → default_category_id del partner
-sales_rep_id             → resuelto desde la sesión del SR
+sales_representative_id             → `sales_representative_id` de la sesión autenticada del SR
 business_seniority       → del formulario
 number_of_employees      → del formulario
 number_of_locations      → del formulario
@@ -325,8 +323,8 @@ Tras el envío exitoso, se muestra en pantalla:
 
 - [ ] El formulario carga con el co-branding correcto del partner
       según el alias en la URL
-- [ ] El `partner_id` y `sales_rep_id` se resuelven automáticamente
-      desde la sesión autenticada del SR, sin campos visibles
+- [ ] El `partner_id` y `sales_representative_id` se resuelven automáticamente
+      desde la sesión autenticada del SR (`sales_representative_id` = **`sales_representative_id`** de la sesión), sin campos visibles
 - [ ] El dropdown de categorías muestra únicamente las categorías
       activas del partner y permite selección múltiple
 - [ ] Si no se selecciona categoría se asigna `default_category_id`
