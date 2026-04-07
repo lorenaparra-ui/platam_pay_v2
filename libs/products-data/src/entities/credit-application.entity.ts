@@ -1,7 +1,14 @@
-import { Column, Entity, JoinColumn, OneToOne } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToOne,
+} from 'typeorm';
+import { SalesRepresentativeEntity } from '@app/suppliers-data';
+import { StatusesCreditApplications } from '@platam/shared';
 import { BaseExternalIdEntity } from './base-external-id.entity';
 import { ContractEntity } from './contract.entity';
-import { StatusesCreditApplications } from '@platam/shared';
 
 
 @Entity({ name: 'credit_applications', schema: 'products_schema' })
@@ -17,6 +24,13 @@ export class CreditApplicationEntity extends BaseExternalIdEntity {
 
   @Column({ name: 'business_id', type: 'bigint', nullable: true })
   businessId: number | null;
+
+  @ManyToOne(() => SalesRepresentativeEntity, { nullable: true })
+  @JoinColumn({
+    name: 'sales_representative_id',
+    referencedColumnName: 'id',
+  })
+  salesRepresentative: SalesRepresentativeEntity | null;
 
   @Column({ name: 'number_of_locations', type: 'int', nullable: true })
   numberOfLocations: number | null;

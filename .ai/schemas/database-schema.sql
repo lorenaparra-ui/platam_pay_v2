@@ -582,6 +582,8 @@ CREATE TABLE products_schema.credit_applications (
   partner_id            BIGINT  REFERENCES suppliers_schema.partners(id),
   partner_category_id   BIGINT  REFERENCES products_schema.categories(id),
   business_id           BIGINT  REFERENCES suppliers_schema.businesses(id),
+  -- Representante de ventas que registró la solicitud (opcional; suppliers-ms)
+  sales_representative_id BIGINT REFERENCES suppliers_schema.sales_representatives(id) ON DELETE SET NULL,
   -- Vínculo inverso con contracts (contracts NO tiene application_id)
   contract_id           BIGINT  REFERENCES products_schema.contracts(id),
   number_of_locations   INT,
@@ -619,6 +621,7 @@ CREATE INDEX idx_credit_apps_person_id           ON products_schema.credit_appli
 CREATE INDEX idx_credit_apps_partner_id          ON products_schema.credit_applications (partner_id);
 CREATE INDEX idx_credit_apps_partner_category_id ON products_schema.credit_applications (partner_category_id);
 CREATE INDEX idx_credit_apps_business_id         ON products_schema.credit_applications (business_id);
+CREATE INDEX idx_credit_apps_sales_representative_id ON products_schema.credit_applications (sales_representative_id) WHERE sales_representative_id IS NOT NULL;
 CREATE INDEX idx_credit_apps_status_id           ON products_schema.credit_applications (status_id);
 CREATE INDEX idx_credit_apps_submission_date     ON products_schema.credit_applications (submission_date DESC);
 

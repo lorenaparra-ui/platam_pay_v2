@@ -525,6 +525,7 @@ Table products_schema.credit_applications {
   partner_id              bigint        [ref: > suppliers_schema.partners.id]
   partner_category_id     bigint        [ref: > products_schema.categories.id]
   business_id             bigint        [ref: > suppliers_schema.businesses.id]
+  sales_representative_id bigint        [ref: > suppliers_schema.sales_representatives.id, note: 'nullable; SR que registró la solicitud (HU PJ por SR)']
   contract_id             bigint        [ref: > products_schema.contracts.id, note: 'OneToOne FK inverso a contracts']
   number_of_locations     int
   number_of_employees     int
@@ -560,6 +561,7 @@ Table products_schema.credit_applications {
     partner_id          [name: 'idx_credit_apps_partner_id']
     partner_category_id [name: 'idx_credit_apps_category_id']
     business_id         [name: 'idx_credit_apps_business_id']
+    sales_representative_id [name: 'idx_credit_apps_sales_representative_id']
     status              [name: 'IDX_credit_applications_status']
     submission_date     [name: 'idx_credit_apps_submission_date']
     external_id         [unique, name: 'idx_credit_apps_external_id']
@@ -606,4 +608,5 @@ Ref: products_schema.credit_applications.person_id > transversal_schema.persons.
 Ref: products_schema.credit_applications.partner_id > suppliers_schema.partners.id
 Ref: products_schema.credit_applications.partner_category_id > products_schema.categories.id
 Ref: products_schema.credit_applications.business_id > suppliers_schema.businesses.id
+Ref: products_schema.credit_applications.sales_representative_id > suppliers_schema.sales_representatives.id
 Ref: products_schema.credit_applications.contract_id > products_schema.contracts.id

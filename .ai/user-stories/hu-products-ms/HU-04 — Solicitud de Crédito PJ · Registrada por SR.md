@@ -3,7 +3,7 @@
 **Épica:** epic-01-onboarding-underwriting  
 **Tipo de cliente:** Persona Jurídica (PJ)  
 **Canal:** Sales Rep (el SR llena el formulario en nombre del cliente)  
-**Última actualización:** Febrero 2026  
+**Última actualización:** Abril 2026  
 **Estado:** En revisión
 
 ---
@@ -11,6 +11,7 @@
 ## Contexto — Cómo llega el SR a este formulario
 
 Desde la landing de representantes de ventas del partner:
+
 ```
 https://platampay.com/partner/{{alias_partner}}
 ```
@@ -362,6 +363,5 @@ Tras el envío exitoso, se muestra en pantalla:
 ---
 
 ## Nota de Schema — Cambios Pendientes
-
 > ⚠️ Esta historia comparte los mismos pendientes de schema que 
 > HU-03. Ver nota de schema en HU-03.
