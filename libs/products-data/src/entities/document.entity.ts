@@ -1,8 +1,8 @@
 import { Column, Entity, JoinColumn, ManyToOne, RelationId } from 'typeorm';
-import { BaseExternalIdEntity } from '../../../products-data/src/entities/base-external-id.entity';
-import { CreditApplicationEntity } from '../../../products-data/src/entities/credit-application.entity';
+import { BaseExternalIdEntity } from './base-external-id.entity';
+import { CreditApplicationEntity } from './credit-application.entity';
 
-@Entity({ name: 'documents', schema: 'transversal_schema' })
+@Entity({ name: 'documents', schema: 'products_schema' })
 export class DocumentEntity extends BaseExternalIdEntity {
   @Column({ name: 'document_type', type: 'varchar', length: 100 })
   documentType: string;

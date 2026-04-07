@@ -7,6 +7,7 @@ import { ContractEntity } from './entities/contract.entity';
 import { ContractTemplateEntity } from './entities/contract-template.entity';
 import { CreditApplicationEntity } from './entities/credit-application.entity';
 import { CreditFacilityEntity } from './entities/credit-facility.entity';
+import { DocumentEntity } from './entities/document.entity';
 import { ProductsDataService } from './products-data.service';
 
 export const PRODUCTS_DATA_ENTITIES = [
@@ -15,6 +16,7 @@ export const PRODUCTS_DATA_ENTITIES = [
   CreditApplicationEntity,
   ContractEntity,
   ContractTemplateEntity,
+  DocumentEntity,
 ] as const;
 
 /** Entidades para `TypeOrmModule.forRoot` en microservicios products-ms (incl. relación Business→Person). */

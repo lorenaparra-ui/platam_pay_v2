@@ -181,9 +181,9 @@ ON CONFLICT DO NOTHING;
 
 
 -- ---------------------------------------------------------------------------
--- 3.6  transversal_schema.documents — ejemplo ligado a la solicitud demo
+-- 3.6  products_schema.documents — ejemplo ligado a la solicitud demo
 -- ---------------------------------------------------------------------------
-INSERT INTO transversal_schema.documents (
+INSERT INTO products_schema.documents (
   external_id,
   document_type,
   document_url,
@@ -199,7 +199,7 @@ JOIN transversal_schema.persons p ON p.id = ca.person_id
 WHERE p.doc_number = '900000001'
   AND NOT EXISTS (
     SELECT 1
-    FROM transversal_schema.documents d
+    FROM products_schema.documents d
     WHERE d.credit_application_id = ca.id
       AND d.document_type = 'estados_financieros'
   )
@@ -220,7 +220,7 @@ SELECT 'categories',                   COUNT(*) FROM products_schema.categories
 UNION ALL
 SELECT 'credit_applications',          COUNT(*) FROM products_schema.credit_applications
 UNION ALL
-SELECT 'documents (transversal)',      COUNT(*) FROM transversal_schema.documents
+SELECT 'documents (products)',         COUNT(*) FROM products_schema.documents
 ORDER BY tabla;
 
 -- Vista completa del flujo BNPL

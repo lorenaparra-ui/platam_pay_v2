@@ -1,7 +1,6 @@
 export * from './entities/base-sqs-idempotency.entity';
 export * from './entities/city.entity';
 export * from './entities/currency.entity';
-export * from './entities/document.entity';
 export * from './entities/permission.entity';
 export * from './entities/person.entity';
 export * from './entities/role.entity';
