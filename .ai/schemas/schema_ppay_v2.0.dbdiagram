@@ -4,11 +4,12 @@
 // Pegar en: https://dbdiagram.io/d
 //
 // Fuente: migraciones database/ + entidades libs/ (ver schema_ppay_v2.0.dbml).
+// Alineación: persons.email (194), documents en products_schema (192), credit_applications.sales_representative_id (193).
 //
 // Organización visual por grupos/schemas:
-//   [transversal] → Identidad, autenticación, catálogos, geografía, documents
+//   [transversal] → Identidad, autenticación, catálogos, geografía
 //   [suppliers]   → Negocios, proveedores, partners, shareholders, comercial
-//   [products]    → Solicitudes, contratos y líneas de crédito
+//   [products]    → Solicitudes, contratos, líneas de crédito, documents
 //
 // NOTA: credit_applications.status = ENUM PostgreSQL credit_application_status (sin status_id FK; migración 190).
 // =============================================================================
@@ -152,13 +153,14 @@ Table persons [headercolor: #3B82F6, note: 'schema: transversal_schema'] {
   birth_date          date         [note: 'PII']
   gender              varchar(20)
   phone               varchar      [note: 'PII']
+  email               varchar(320) [note: 'PII — nullable; migración 194']
   residential_address text         [note: 'PII']
   business_address    text
   city_id             bigint       [ref: > cities.id]
   created_at          timestamptz  [not null, default: `now()`]
   updated_at          timestamptz  [not null, default: `now()`]
 
-  Note: 'transversal_schema.persons | PII sensible — cifrado obligatorio en first_name, last_name, doc_number, birth_date, phone, residential_address.'
+  Note: 'transversal_schema.persons | PII sensible — cifrado obligatorio en first_name, last_name, doc_number, birth_date, phone, email, residential_address.'
 }
 
 Table upload_files_idempotency [headercolor: #3B82F6, note: 'schema: transversal_schema'] {
@@ -405,10 +407,11 @@ Table credit_applications [headercolor: #F59E0B, note: 'schema: products_schema'
   id                    bigint        [pk]
   external_id           uuid          [not null, unique, default: `gen_random_uuid()`]
   person_id             bigint        [ref: > persons.id, note: '⚠ FK a persons, NO a users']
-  partner_id            bigint        [ref: > partners.id]
-  partner_category_id   bigint        [ref: > categories.id]
-  business_id           bigint        [ref: > businesses.id]
-  contract_id           bigint        [ref: > contracts.id, note: 'OneToOne inverso']
+  partner_id                bigint        [ref: > partners.id]
+  partner_category_id       bigint        [ref: > categories.id]
+  business_id               bigint        [ref: > businesses.id]
+  sales_representative_id   bigint        [ref: > sales_representatives.id, note: 'nullable — SR que registró (migración 193)']
+  contract_id               bigint        [ref: > contracts.id, note: 'OneToOne inverso']
   number_of_locations   int
   number_of_employees   int
   business_seniority    varchar       [note: '⚠ Deuda técnica: VARCHAR en lugar de FK a business_seniority']
@@ -438,18 +441,17 @@ Table credit_applications [headercolor: #F59E0B, note: 'schema: products_schema'
   created_at            timestamptz   [not null, default: `now()`]
   updated_at            timestamptz   [not null, default: `now()`]
 
-  Note: 'products_schema.credit_applications | person_id (no user_id). status ENUM nativo (no FK a statuses). business_seniority VARCHAR = deuda técnica.'
+  Note: 'products_schema.credit_applications | person_id (no user_id). sales_representative_id opcional. status ENUM nativo (no FK a statuses). business_seniority VARCHAR = deuda técnica.'
 }
 
-// Tabla física en transversal_schema; definida aquí para que ref: > credit_applications resuelva en dbdiagram.io
-Table documents [headercolor: #3B82F6, note: 'schema: transversal_schema'] {
+Table documents [headercolor: #F59E0B, note: 'schema: products_schema'] {
   id                    bigint       [pk]
   external_id           uuid         [not null, unique, default: `gen_random_uuid()`]
   document_type         varchar(100) [not null]
   document_url          text         [not null, note: 'PII — URL bucket cifrado']
-  credit_application_id bigint       [ref: > credit_applications.id, note: 'nullable — migración 191']
+  credit_application_id bigint       [ref: > credit_applications.id, note: 'nullable — migración 191; tabla en products_schema desde 192']
   created_at            timestamptz  [not null, default: `now()`]
   updated_at            timestamptz  [not null, default: `now()`]
 
-  Note: 'transversal_schema.documents | FK opcional a solicitud de crédito.'
+  Note: 'products_schema.documents | DocumentEntity en libs/products-data. FK opcional a credit_applications.'
 }

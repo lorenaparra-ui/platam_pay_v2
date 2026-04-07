@@ -30,6 +30,9 @@ export class PersonEntity extends BaseExternalIdEntity {
   @Column({ name: 'phone', type: 'varchar', nullable: true })
   phone: string | null;
 
+  @Column({ name: 'email', type: 'varchar', length: 320, nullable: true })
+  email: string | null;
+
   @Column({ name: 'residential_address', type: 'text', nullable: true })
   residentialAddress: string | null;
 

@@ -5,9 +5,10 @@
 --   01_transversal_schema_seed.sql (statuses, users, persons)
 --   02_suppliers_schema_seed.sql   (partners, businesses)
 -- Tablas: contract_templates, contracts, credit_facilities,
---         categories, credit_applications, documents (transversal_schema)
+--         categories, credit_applications, documents (products_schema)
 -- NOTA: credit_applications.status = ENUM credit_application_status (sin status_id).
---       documents requiere migración 1910000000000 (document_url, credit_application_id).
+--       documents: migración 1910000000000 (credit_application_id); esquema products_schema desde 1920000000000.
+--       credit_applications.sales_representative_id: migración 1930000000000 (nullable).
 -- =============================================================================
 
 BEGIN;
@@ -120,12 +121,14 @@ ON CONFLICT DO NOTHING;
 -- 3.5  credit_applications — solicitud de crédito BNPL
 -- NOTA: person_id (NO user_id), business_seniority como VARCHAR (deuda técnica)
 --       status = ENUM products_schema.credit_application_status (StatusesCreditApplications)
+--       sales_representative_id opcional (SR demo del partner DEMO si existe)
 -- ---------------------------------------------------------------------------
 INSERT INTO products_schema.credit_applications (
   person_id,
   partner_id,
   partner_category_id,
   business_id,
+  sales_representative_id,
   contract_id,
   number_of_locations,
   number_of_employees,
@@ -157,6 +160,11 @@ SELECT
    FROM suppliers_schema.businesses b
    JOIN transversal_schema.persons p ON p.id = b.person_id
    WHERE p.doc_number = '900000001' AND b.entity_type = 'PN'
+   LIMIT 1),
+  (SELECT sr.id
+   FROM suppliers_schema.sales_representatives sr
+   JOIN suppliers_schema.partners pa ON pa.id = sr.partner_id
+   WHERE pa.acronym = 'DEMO'
    LIMIT 1),
   (SELECT id FROM products_schema.contracts WHERE zapsign_token = 'zapsign-demo-token-001' LIMIT 1),
   1,                 -- number_of_locations

@@ -3,7 +3,8 @@
 -- Orden de ejecución: 1 de 3
 -- Dependencias: ninguna (debe ejecutarse primero)
 -- Tablas: statuses, roles, permissions, role_permissions,
---         currencies, cities, states, users, persons
+--         currencies, cities, states, users, persons.
+--         documents está en products_schema (migración 1920000000000), no aquí.
 -- NOTA: credit_applications en statuses = catálogo paralelo al ENUM products_schema.credit_application_status
 --       (la tabla products_schema.credit_applications no usa status_id FK; migración 1900000000000).
 -- =============================================================================
@@ -209,28 +210,29 @@ ON CONFLICT (email) DO NOTHING;
 
 -- ---------------------------------------------------------------------------
 -- 1.8  persons (datos de prueba — NO usar en producción)
+-- Requiere columna email (nullable): migración 1940000000000-PersonsAddEmail
 -- ---------------------------------------------------------------------------
 INSERT INTO transversal_schema.persons (
   country_code, first_name, last_name,
   doc_type, doc_number, doc_issue_date, birth_date,
-  gender, phone, residential_address, business_address, city_id
+  gender, phone, email, residential_address, business_address, city_id
 )
 SELECT
   'CO', 'Juan', 'Pérez',
   'CC', '900000001', DATE '2012-01-10', DATE '1990-03-20',
-  'M', '3000000001', 'Calle 1 # 10-10', 'Cra 15 # 90-30',
+  'M', '3000000001', 'juan.perez.person@platampay.test', 'Calle 1 # 10-10', 'Cra 15 # 90-30',
   (SELECT id FROM transversal_schema.cities WHERE country_code = 'CO' AND city_name = 'Bogotá' LIMIT 1)
 ON CONFLICT (doc_number) DO NOTHING;
 
 INSERT INTO transversal_schema.persons (
   country_code, first_name, last_name,
   doc_type, doc_number, doc_issue_date, birth_date,
-  gender, phone, residential_address, city_id
+  gender, phone, email, residential_address, city_id
 )
 SELECT
   'CO', 'María', 'Gómez',
   'CC', '900000002', DATE '2011-06-08', DATE '1989-07-11',
-  'F', '3000000002', 'Calle 2 # 20-20',
+  'F', '3000000002', 'maria.gomez.person@platampay.test', 'Calle 2 # 20-20',
   (SELECT id FROM transversal_schema.cities WHERE country_code = 'CO' AND city_name = 'Bogotá' LIMIT 1)
 ON CONFLICT (doc_number) DO NOTHING;
 

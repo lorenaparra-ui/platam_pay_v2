@@ -5,9 +5,9 @@
 // Motor: PostgreSQL 15+ | Extensión: pgcrypto
 //
 // SCHEMAS:
-//   transversal_schema  → Identidad, autenticación, catálogos, geografía y documentos operativos
+//   transversal_schema  → Identidad, autenticación, catálogos, geografía (sin documents; ver products_schema)
 //   suppliers_schema    → Negocios, proveedores, partners, accionistas y operación comercial
-//   products_schema     → Solicitudes de crédito, contratos y líneas de crédito
+//   products_schema     → Solicitudes de crédito, contratos, líneas de crédito, documents (migración 1920000000000)
 //
 // NOTA CRÍTICA DE ARQUITECTURA:
 //   ENUM nativos PostgreSQL (no FK a statuses): users.state, partners.state (partner_state),
@@ -167,6 +167,7 @@ Table transversal_schema.persons {
   birth_date           date         [note: 'PII']
   gender               varchar(20)
   phone                varchar      [note: 'PII']
+  email                varchar(320) [note: 'PII — nullable; contacto en persona antes de users (migración 1940000000000)']
   residential_address  text         [note: 'PII']
   business_address     text
   city_id              bigint       [ref: > transversal_schema.cities.id]
@@ -179,7 +180,7 @@ Table transversal_schema.persons {
     external_id [unique, name: 'idx_persons_external_id']
   }
 
-  Note: 'PII sensible. Campos: first_name, last_name, doc_number, birth_date, phone, residential_address requieren AES-256.'
+  Note: 'PII sensible. Campos: first_name, last_name, doc_number, birth_date, phone, email, residential_address requieren AES-256.'
 }
 
 // Tablas de idempotencia SQS — patrón: idempotency_key UNIQUE previene reprocesamiento
@@ -203,23 +204,6 @@ Table transversal_schema.partner_create_user_sqs_idempotency {
 
   Note: 'Idempotencia SQS para creación de usuario en flujo de onboarding de partner.'
 }
-
-Table transversal_schema.documents {
-  id                      bigint       [pk]
-  external_id             uuid         [not null, unique, default: `gen_random_uuid()`]
-  document_type           varchar(100) [not null]
-  document_url            text         [not null, note: 'PII — URL a bucket con cifrado; presigned de corta duración']
-  credit_application_id   bigint       [note: 'nullable FK → products_schema.credit_applications; migración 1910000000000']
-  created_at              timestamptz  [not null, default: `now()`]
-  updated_at              timestamptz  [not null, default: `now()`]
-
-  Indexes {
-    credit_application_id [name: 'IDX_documents_credit_application_id']
-  }
-
-  Note: 'Documentación operativa. Entidad TypeORM: libs/transversal-data/src/entities/document.entity.ts'
-}
-
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SCHEMA: suppliers_schema
@@ -570,6 +554,22 @@ Table products_schema.credit_applications {
   Note: 'Antes: credit_applications_bnpl en public. person_id (no user_id). status es ENUM nativo (no status_id FK). business_seniority VARCHAR es deuda técnica.'
 }
 
+Table products_schema.documents {
+  id                      bigint       [pk]
+  external_id             uuid         [not null, unique, default: `gen_random_uuid()`]
+  document_type           varchar(100) [not null]
+  document_url            text         [not null, note: 'PII — URL a bucket con cifrado; presigned de corta duración']
+  credit_application_id   bigint       [note: 'nullable FK → products_schema.credit_applications; migración 1910000000000']
+  created_at              timestamptz  [not null, default: `now()`]
+  updated_at              timestamptz  [not null, default: `now()`]
+
+  Indexes {
+    credit_application_id [name: 'IDX_documents_credit_application_id']
+  }
+
+  Note: 'Migración 1920000000000: tabla en products_schema (antes transversal_schema). Entidad: libs/products-data/src/entities/document.entity.ts'
+}
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // REFERENCIAS (Ref blocks — resumen de todas las FKs cross-schema)
@@ -595,7 +595,7 @@ Ref: suppliers_schema.purchase_orders.supplier_id > suppliers_schema.suppliers.i
 Ref: suppliers_schema.shareholders.business_id > suppliers_schema.businesses.id
 Ref: suppliers_schema.shareholders.person_id > transversal_schema.persons.id
 
-Ref: transversal_schema.documents.credit_application_id > products_schema.credit_applications.id
+Ref: products_schema.documents.credit_application_id > products_schema.credit_applications.id
 
 Ref: products_schema.contract_templates.status_id > transversal_schema.statuses.id
 Ref: products_schema.contracts.user_id > transversal_schema.users.id
