@@ -5,7 +5,9 @@
 --   01_transversal_schema_seed.sql (statuses, users, persons)
 --   02_suppliers_schema_seed.sql   (partners, businesses)
 -- Tablas: contract_templates, contracts, credit_facilities,
---         categories, credit_applications
+--         categories, credit_applications, documents (transversal_schema)
+-- NOTA: credit_applications.status = ENUM credit_application_status (sin status_id).
+--       documents requiere migración 1910000000000 (document_url, credit_application_id).
 -- =============================================================================
 
 BEGIN;
@@ -117,6 +119,7 @@ ON CONFLICT DO NOTHING;
 -- ---------------------------------------------------------------------------
 -- 3.5  credit_applications — solicitud de crédito BNPL
 -- NOTA: person_id (NO user_id), business_seniority como VARCHAR (deuda técnica)
+--       status = ENUM products_schema.credit_application_status (StatusesCreditApplications)
 -- ---------------------------------------------------------------------------
 INSERT INTO products_schema.credit_applications (
   person_id,
@@ -138,7 +141,7 @@ INSERT INTO products_schema.credit_applications (
   total_assets,
   requested_credit_line,
   is_current_client,
-  status_id,
+  status,
   submission_date,
   privacy_policy_accepted,
   privacy_policy_date
@@ -170,11 +173,37 @@ SELECT
   120000000,         -- total_assets
   20000000,          -- requested_credit_line
   TRUE,              -- is_current_client
-  (SELECT id FROM transversal_schema.statuses WHERE entity_type = 'credit_applications' AND code = 'in_study' LIMIT 1),
+  'in_progress'::products_schema.credit_application_status,
   now(),
   TRUE,
   now()
 ON CONFLICT DO NOTHING;
+
+
+-- ---------------------------------------------------------------------------
+-- 3.6  transversal_schema.documents — ejemplo ligado a la solicitud demo
+-- ---------------------------------------------------------------------------
+INSERT INTO transversal_schema.documents (
+  external_id,
+  document_type,
+  document_url,
+  credit_application_id
+)
+SELECT
+  gen_random_uuid(),
+  'estados_financieros',
+  'https://demo.test/documents/demo-eeff.pdf',
+  ca.id
+FROM products_schema.credit_applications ca
+JOIN transversal_schema.persons p ON p.id = ca.person_id
+WHERE p.doc_number = '900000001'
+  AND NOT EXISTS (
+    SELECT 1
+    FROM transversal_schema.documents d
+    WHERE d.credit_application_id = ca.id
+      AND d.document_type = 'estados_financieros'
+  )
+LIMIT 1;
 
 COMMIT;
 
@@ -190,6 +219,8 @@ UNION ALL
 SELECT 'categories',                   COUNT(*) FROM products_schema.categories
 UNION ALL
 SELECT 'credit_applications',          COUNT(*) FROM products_schema.credit_applications
+UNION ALL
+SELECT 'documents (transversal)',      COUNT(*) FROM transversal_schema.documents
 ORDER BY tabla;
 
 -- Vista completa del flujo BNPL
@@ -216,6 +247,7 @@ LEFT JOIN products_schema.contracts c           ON c.id   = ca.contract_id
 LEFT JOIN products_schema.credit_facilities cf  ON cf.id  IN (
   SELECT id FROM products_schema.credit_facilities WHERE contract_id = c.id LIMIT 1
 )
-LEFT JOIN transversal_schema.statuses st        ON st.id  = ca.status_id
+LEFT JOIN transversal_schema.statuses st
+  ON st.entity_type = 'credit_applications' AND st.code = ca.status::text
 ORDER BY ca.id DESC
 LIMIT 10;

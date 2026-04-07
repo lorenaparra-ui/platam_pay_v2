@@ -81,6 +81,16 @@ export class TypeormSuppliersReferenceLookupAdapter
     return row?.id ?? null;
   }
 
+  async get_partner_external_id_by_internal_id(
+    internal_id: number,
+  ): Promise<string | null> {
+    const row = await this.partners.findOne({
+      where: { id: internal_id },
+      select: { externalId: true },
+    });
+    return row?.externalId ?? null;
+  }
+
   async get_user_external_id_by_internal_id(
     internal_id: number,
   ): Promise<string | null> {

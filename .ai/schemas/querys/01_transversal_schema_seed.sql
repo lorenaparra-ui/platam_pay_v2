@@ -3,7 +3,9 @@
 -- Orden de ejecución: 1 de 3
 -- Dependencias: ninguna (debe ejecutarse primero)
 -- Tablas: statuses, roles, permissions, role_permissions,
---         currencies, cities, users, persons
+--         currencies, cities, states, users, persons
+-- NOTA: credit_applications en statuses = catálogo paralelo al ENUM products_schema.credit_application_status
+--       (la tabla products_schema.credit_applications no usa status_id FK; migración 1900000000000).
 -- =============================================================================
 
 BEGIN;
@@ -26,15 +28,22 @@ VALUES
   ('contract_templates',   'active',                    'Activo',               'Plantilla vigente'),
   ('contract_templates',   'inactive',                  'Inactivo',             'Plantilla fuera de vigencia'),
 
-  -- Solicitudes de crédito
-  ('credit_applications',  'in_study',                  'En estudio',           'Solicitud en proceso de análisis crediticio'),
+  -- Solicitudes de crédito (códigos = StatusesCreditApplications; entity_type BD = credit_applications)
+  ('credit_applications',  'in_progress',               'En proceso',           NULL),
+  ('credit_applications',  'duplicate',                 'Duplicado',            NULL),
+  ('credit_applications',  'under_review',              'En estudio',           NULL),
+  ('credit_applications',  'sarlaft_match',             'Coincidencia Sarlaft', NULL),
+  ('credit_applications',  'experian_query_error',      'Error consulta Experian', NULL),
+  ('credit_applications',  'ai_agent_error',            'Error agente IA',      NULL),
+  ('credit_applications',  'in_interview',              'En entrevista',        NULL),
+  ('credit_applications',  'hcpj_query_error',          'Error consulta HCPJ',  NULL),
+  ('credit_applications',  'pending_authorization',     'Pendiente autorización', NULL),
   ('credit_applications',  'authorized',                'Autorizado',           'Solicitud aprobada'),
   ('credit_applications',  'rejected',                  'Rechazado',            'Solicitud rechazada'),
   ('credit_applications',  'cancelled',                 'Cancelado',            'Solicitud cancelada por el solicitante'),
-  ('credit_applications',  'delinquent',                'En mora',              'Cartera en mora'),
   ('credit_applications',  'closed',                    'Cerrado',              'Línea cerrada'),
 
-  -- Representantes de ventas (columna status_id no mapeada en TypeORM aún)
+  -- Representantes de ventas (catálogo; tabla sales_representatives ya no tiene status_id desde migración 1870000000000)
   ('sales_representatives', 'active',                   'Activo',               'Representante activo'),
   ('sales_representatives', 'inactive',                  'Inactivo',             'Representante inactivo'),
   ('sales_representatives', 'blocked',                   'Bloqueado',            'Representante bloqueado'),

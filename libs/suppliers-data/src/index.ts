@@ -6,6 +6,7 @@ export * from './entities/partners.entity';
 export * from './entities/partner-onboarding-saga.entity';
 export * from './entities/order.entity';
 export * from './entities/sales-representative.entity';
+export * from './entities/shareholder.entity';
 export * from './entities/supplier.entity';
 export * from './suppliers-data.module';
 export * from './suppliers-data.service';

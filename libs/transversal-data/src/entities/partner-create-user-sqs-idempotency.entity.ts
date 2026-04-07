@@ -1,4 +1,4 @@
-import { Column, Entity } from 'typeorm';
+import { Entity } from 'typeorm';
 import { BaseSqsIdempotencyEntity } from './base-sqs-idempotency.entity';
 
 export type PartnerCreateUserIdempotencyResult = Readonly<{
@@ -8,6 +8,5 @@ export type PartnerCreateUserIdempotencyResult = Readonly<{
 
 @Entity({ schema: 'transversal_schema', name: 'partner_create_user_sqs_idempotency' })
 export class PartnerCreateUserSqsIdempotencyEntity extends BaseSqsIdempotencyEntity {
-  @Column({ name: 'result', type: 'jsonb', nullable: true })
-  override result!: PartnerCreateUserIdempotencyResult | null;
+  override result: PartnerCreateUserIdempotencyResult | null = null;
 }

@@ -6,6 +6,7 @@ import type {
   PartnerOnboardingSagaPatch,
   PartnerOnboardingSagaRepository,
   PartnerOnboardingSagaRecord,
+  PartnerOnboardingSagaStatus,
 } from '@modules/partners/application/ports/partner-onboarding-saga.repository.port';
 
 const SAGA_SELECT = {
@@ -102,7 +103,7 @@ export class TypeormPartnerOnboardingSagaRepository
     return {
       external_id: row.externalId,
       correlation_id: row.correlationId,
-      status: row.status,
+      status: row.status as PartnerOnboardingSagaStatus,
       current_step: row.currentStep,
       credit_facility_external_id: row.creditFacilityExternalId ?? null,
       user_external_id: row.userExternalId ?? null,

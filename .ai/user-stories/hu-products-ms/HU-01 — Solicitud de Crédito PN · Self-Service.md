@@ -111,31 +111,22 @@ El formulario es un wizard de 3 secciones con co-branding del partner.
 
 Al hacer clic en **Enviar**, el sistema debe:
 
-### 1. Crear el registro en `users`
+### 1. Crear el registro en `persons`
 
 ```
-email        → del formulario
-phone        → del formulario
-status_id    → get_status_id('users', 'pending')
-```
-
-> El usuario queda en estado `pending` mientras su solicitud está en estudio. Pasa a `active` cuando se aprueba y firma el contrato.
-
-### 2. Crear el registro en `persons`
-
-```
-user_id      → ID del usuario recién creado
 first_name   → del formulario
 last_name    → del formulario
 doc_type     → del formulario
 doc_number   → del formulario
 birth_date   → del formulario
+email        → del formulario
+phone        → del formulario
 ```
 
-### 3. Crear el registro en `businesses`
+### 2. Crear el registro en `businesses`
 
 ```
-user_id                  → ID del usuario recién creado
+person_id                  → ID del usuario recién creado
 business_name            → del formulario
 relationship_to_business → del formulario
 city_id                  → del formulario
@@ -144,10 +135,10 @@ business_type            → del formulario
 country_code             → se infiere del país del partner
 ```
 
-### 4. Crear el registro en `credit_applications`
+### 5. Crear el registro en `credit_applications`
 
 ```
-user_id                  → ID del usuario recién creado
+person_id                → ID del usuario recién creado
 partner_id               → resuelto desde la landing
 partner_category_id      → default_category_id del partner
 sales_rep_id             → seleccionado en formulario o default_rep_id del partner
@@ -167,7 +158,7 @@ requested_credit_line    → del formulario
 privacy_policy_accepted  → true
 privacy_policy_date      → timestamp del envío
 submission_date          → timestamp del envío
-status_id                → get_status_id('credit_applications', 'en_proceso')
+status                → enum('in_progress')
 ```
 
 ---
@@ -194,7 +185,6 @@ Tras el envío exitoso, se muestra en pantalla:
 - [ ] Los campos condicionales `business_rent_amount`, `monthly_purchases` y `current_purchases` se muestran u ocultan correctamente según las respuestas previas
 - [ ] El botón Enviar está deshabilitado si `privacy_policy_accepted` no está marcado
 - [ ] Al enviar se crean correctamente los registros en `users`, `persons`, `businesses` y `credit_applications`
-- [ ] El usuario queda con `status_id = pending` al momento del registro
 - [ ] El `status_id` de la solicitud queda en `en_proceso`
 - [ ] `submission_date` y `privacy_policy_date` se registran con el timestamp correcto del envío
 - [ ] Se muestra el mensaje de confirmación tras el envío exitoso

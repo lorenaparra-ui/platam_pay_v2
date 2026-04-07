@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CityEntity } from './entities/city.entity';
 import { CurrencyEntity } from './entities/currency.entity';
-import { DocumentTypeEntity } from './entities/document-type.entity';
+import { DocumentEntity } from './entities/document.entity';
 import { PermissionEntity } from './entities/permission.entity';
 import { PersonEntity } from './entities/person.entity';
 import { RoleEntity } from './entities/role.entity';
@@ -17,7 +17,7 @@ import { TransversalDataService } from './transversal-data.service';
 export const TRANSVERSAL_DATA_ENTITIES = [
   CityEntity,
   CurrencyEntity,
-  DocumentTypeEntity,
+  DocumentEntity,
   PermissionEntity,
   PersonEntity,
   RoleEntity,

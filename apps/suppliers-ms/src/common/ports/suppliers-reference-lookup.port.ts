@@ -21,6 +21,10 @@ export interface SuppliersReferenceLookupPort {
     external_id: string,
   ): Promise<number | null>;
 
+  get_partner_external_id_by_internal_id(
+    internal_id: number,
+  ): Promise<string | null>;
+
   get_user_external_id_by_internal_id(
     internal_id: number,
   ): Promise<string | null>;

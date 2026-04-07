@@ -7,6 +7,7 @@ import { LegalRepresentativeEntity } from './entities/legal-representative.entit
 import { PartnersEntity } from './entities/partners.entity';
 import { PurchaseOrderEntity } from './entities/order.entity';
 import { SalesRepresentativeEntity } from './entities/sales-representative.entity';
+import { ShareholderEntity } from './entities/shareholder.entity';
 import { SupplierEntity } from './entities/supplier.entity';
 import { PartnerOnboardingSagaEntity } from './entities/partner-onboarding-saga.entity';
 import { SuppliersDataService } from './suppliers-data.service';
@@ -20,6 +21,7 @@ export const SUPPLIERS_DATA_ENTITIES = [
   PartnerOnboardingSagaEntity,
   PurchaseOrderEntity,
   SalesRepresentativeEntity,
+  ShareholderEntity,
   SupplierEntity,
 ] as const;
 

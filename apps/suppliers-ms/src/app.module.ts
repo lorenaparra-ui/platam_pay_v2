@@ -6,6 +6,7 @@ import { BusinessesModule } from '@modules/businesses/businesses.module';
 import { PartnersModule } from '@modules/partners/partners.module';
 import { SuppliersModule } from '@modules/suppliers/suppliers.module';
 import { BankAccountsModule } from '@modules/bank-accounts/bank-accounts.module';
+import { SalesRepresentativesModule } from '@modules/sales-representatives/sales-representatives.module';
 import appConfig from './config/app.config';
 import { sqs_config } from './config/sqs.config';
 import { appController } from './app.controller';
@@ -22,6 +23,7 @@ import { appController } from './app.controller';
     PartnersModule,
     SuppliersModule,
     BankAccountsModule,
+    SalesRepresentativesModule,
   ],
   controllers: [appController],
 })

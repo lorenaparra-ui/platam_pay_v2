@@ -1,18 +1,21 @@
 // =============================================================================
 // PLATAM PAY v2 — DBML Estado Real
-// Versión: 2.0 | Fecha: 2026-04-01
-// Fuente de verdad: entidades TypeORM en libs/
+// Versión: 2.0 | Fecha: 2026-04-07
+// Fuente de verdad: migraciones database/src/migrations + entidades TypeORM en libs/
 // Motor: PostgreSQL 15+ | Extensión: pgcrypto
 //
 // SCHEMAS:
-//   transversal_schema  → Identidad, autenticación, catálogos y geografía
-//   suppliers_schema    → Negocios, proveedores, partners y operación comercial
+//   transversal_schema  → Identidad, autenticación, catálogos, geografía y documentos operativos
+//   suppliers_schema    → Negocios, proveedores, partners, accionistas y operación comercial
 //   products_schema     → Solicitudes de crédito, contratos y líneas de crédito
 //
 // NOTA CRÍTICA DE ARQUITECTURA:
-//   Varias tablas usan `state` ENUM en lugar de `status_id FK → statuses`:
-//     users.state, partners.state, credit_facilities.state, categories.state
-//   Esto coexiste con status_id FK en: contracts, contract_templates, credit_applications
+//   ENUM nativos PostgreSQL (no FK a statuses): users.state, partners.state (partner_state),
+//   credit_facilities.state, categories.state (credit_facility_state),
+//   credit_applications.status (credit_application_status) — migración 1900000000000 eliminó status_id.
+//   Coexistencia: filas transversal_schema.statuses entity_type=credit_applications siguen para catálogo/API;
+//   la columna operativa es products_schema.credit_applications.status (ENUM).
+//   status_id FK permanece en: contracts, contract_templates (y otros que no migraron a ENUM).
 // =============================================================================
 
 
@@ -38,7 +41,7 @@ Table transversal_schema.statuses {
     external_id         [unique, name: 'idx_statuses_external_id']
   }
 
-  Note: 'Catálogo centralizado de estados. Validado por trigger validate_status_entity(). Usado por: contracts, contract_templates, credit_applications, sales_representatives.'
+  Note: 'Catálogo centralizado de estados. Validado por trigger validate_status_entity() donde aplica. credit_applications: catálogo paralelo a columna ENUM status en products_schema (sin FK desde la tabla de solicitudes).'
 }
 
 Table transversal_schema.roles {
@@ -201,6 +204,22 @@ Table transversal_schema.partner_create_user_sqs_idempotency {
   Note: 'Idempotencia SQS para creación de usuario en flujo de onboarding de partner.'
 }
 
+Table transversal_schema.documents {
+  id                      bigint       [pk]
+  external_id             uuid         [not null, unique, default: `gen_random_uuid()`]
+  document_type           varchar(100) [not null]
+  document_url            text         [not null, note: 'PII — URL a bucket con cifrado; presigned de corta duración']
+  credit_application_id   bigint       [note: 'nullable FK → products_schema.credit_applications; migración 1910000000000']
+  created_at              timestamptz  [not null, default: `now()`]
+  updated_at              timestamptz  [not null, default: `now()`]
+
+  Indexes {
+    credit_application_id [name: 'IDX_documents_credit_application_id']
+  }
+
+  Note: 'Documentación operativa. Entidad TypeORM: libs/transversal-data/src/entities/document.entity.ts'
+}
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SCHEMA: suppliers_schema
@@ -261,7 +280,29 @@ Table suppliers_schema.legal_representatives {
     external_id [unique, name: 'idx_legal_reps_external_id']
   }
 
-  Note: 'Referenciada desde suppliers.legal_representative_id (no tiene business_id directo). El vínculo negocio-representante es: businesses → suppliers → legal_representatives.'
+  Note: 'Referenciada desde suppliers.legal_representative_id (no tiene business_id directo). El vínculo negocio-representante es: businesses → suppliers → legal_representatives. Migración 1850000000000 eliminó business_id de esta tabla.'
+}
+
+Table suppliers_schema.shareholders {
+  id                       bigint       [pk]
+  external_id              uuid         [not null, unique, default: `gen_random_uuid()`]
+  business_id              bigint       [not null, ref: > suppliers_schema.businesses.id]
+  person_id                bigint       [not null, ref: > transversal_schema.persons.id]
+  ownership_percentage     decimal(5,4)
+  evaluation_order         int
+  credit_check_required    boolean      [not null, default: false]
+  credit_check_completed   boolean      [not null, default: false]
+  is_legal_representative  boolean      [not null, default: false]
+  created_at               timestamptz  [not null, default: `now()`]
+  updated_at               timestamptz  [not null, default: `now()`]
+
+  Indexes {
+    business_id [name: 'IDX_shareholders_business_id']
+    person_id   [name: 'IDX_shareholders_person_id']
+    external_id [unique, name: 'idx_shareholders_external_id']
+  }
+
+  Note: 'Accionistas persona natural vinculados al negocio. Schema suppliers_schema (realignment 1860000000000). Entidad: ShareholderEntity.'
 }
 
 Table suppliers_schema.bank_accounts {
@@ -309,7 +350,7 @@ Table suppliers_schema.partners {
   webhook_url                     text
   send_sales_rep_voucher          boolean     [not null, default: false]
   disbursement_notification_email varchar
-  state                           varchar     [not null, default: 'active', note: 'ENUM (partner_state): active | inactive | blocked. NO usa status_id FK.']
+  state                           varchar     [not null, default: 'active', note: 'ENUM suppliers_schema.partner_state: active | inactive. NO usa status_id FK (1850000000000).']
   created_at                      timestamptz [not null, default: `now()`]
   updated_at                      timestamptz [not null, default: `now()`]
 
@@ -319,7 +360,7 @@ Table suppliers_schema.partners {
     external_id [unique, name: 'idx_partners_external_id']
   }
 
-  Note: 'Configuración visual y operativa del partner BNPL. 1:1 con suppliers. state es ENUM, no FK a statuses.'
+  Note: 'Configuración visual y operativa del partner BNPL. 1:1 con suppliers. default_rep_id y default_category_id fueron eliminados en 1850000000000; state es ENUM partner_state.'
 }
 
 Table suppliers_schema.sales_representatives {
@@ -336,7 +377,7 @@ Table suppliers_schema.sales_representatives {
     external_id [unique, name: 'idx_sales_reps_external_id']
   }
 
-  Note: 'Entidad mínima en TypeORM actual. Columnas name, role, status_id existen en BD pero no están mapeadas en la entidad. Pendiente de completar.'
+  Note: 'Migración 1870000000000 eliminó name, role, status_id. Entidad TypeORM mínima: partner_id + user_id.'
 }
 
 Table suppliers_schema.purchase_orders {
@@ -499,7 +540,7 @@ Table products_schema.credit_applications {
   total_assets            bigint        [note: 'En centavos/mínima unidad monetaria']
   requested_credit_line   bigint        [note: 'En centavos/mínima unidad monetaria']
   is_current_client       boolean       [not null, default: false]
-  status_id               bigint        [not null, ref: > transversal_schema.statuses.id, note: 'entity_type = credit_applications']
+  status                  varchar       [not null, default: 'in_progress', note: 'ENUM products_schema.credit_application_status — in_progress|duplicate|under_review|sarlaft_match|experian_query_error|ai_agent_error|in_interview|hcpj_query_error|pending_authorization|authorized|rejected|cancelled|closed. TypeORM: StatusesCreditApplications. Migración 1900000000000.']
   submission_date         timestamptz
   approval_date           timestamptz
   rejection_reason        varchar(500)
@@ -519,12 +560,12 @@ Table products_schema.credit_applications {
     partner_id          [name: 'idx_credit_apps_partner_id']
     partner_category_id [name: 'idx_credit_apps_category_id']
     business_id         [name: 'idx_credit_apps_business_id']
-    status_id           [name: 'idx_credit_apps_status_id']
+    status              [name: 'IDX_credit_applications_status']
     submission_date     [name: 'idx_credit_apps_submission_date']
     external_id         [unique, name: 'idx_credit_apps_external_id']
   }
 
-  Note: 'Antes: credit_applications_bnpl en public. Ahora: credit_applications en products_schema. person_id (no user_id) es la diferencia clave. business_seniority como VARCHAR es deuda técnica pendiente.'
+  Note: 'Antes: credit_applications_bnpl en public. person_id (no user_id). status es ENUM nativo (no status_id FK). business_seniority VARCHAR es deuda técnica.'
 }
 
 
@@ -549,6 +590,10 @@ Ref: suppliers_schema.partners.supplier_id > suppliers_schema.suppliers.id
 Ref: suppliers_schema.sales_representatives.partner_id > suppliers_schema.partners.id
 Ref: suppliers_schema.sales_representatives.user_id > transversal_schema.users.id
 Ref: suppliers_schema.purchase_orders.supplier_id > suppliers_schema.suppliers.id
+Ref: suppliers_schema.shareholders.business_id > suppliers_schema.businesses.id
+Ref: suppliers_schema.shareholders.person_id > transversal_schema.persons.id
+
+Ref: transversal_schema.documents.credit_application_id > products_schema.credit_applications.id
 
 Ref: products_schema.contract_templates.status_id > transversal_schema.statuses.id
 Ref: products_schema.contracts.user_id > transversal_schema.users.id
@@ -562,4 +607,3 @@ Ref: products_schema.credit_applications.partner_id > suppliers_schema.partners.
 Ref: products_schema.credit_applications.partner_category_id > products_schema.categories.id
 Ref: products_schema.credit_applications.business_id > suppliers_schema.businesses.id
 Ref: products_schema.credit_applications.contract_id > products_schema.contracts.id
-Ref: products_schema.credit_applications.status_id > transversal_schema.statuses.id

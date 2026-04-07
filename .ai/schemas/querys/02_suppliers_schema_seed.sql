@@ -3,7 +3,8 @@
 -- Orden de ejecución: 2 de 3
 -- Dependencias: 01_transversal_schema_seed.sql (persons, cities)
 -- Tablas: business_seniority, businesses, legal_representatives,
---         bank_accounts, suppliers, partners, sales_representatives
+--         bank_accounts, suppliers, partners, sales_representatives, shareholders
+-- NOTA: sales_representatives solo partner_id + user_id (migración 1870000000000).
 -- =============================================================================
 
 BEGIN;
@@ -140,22 +141,57 @@ ON CONFLICT (supplier_id) DO NOTHING;
 
 
 -- ---------------------------------------------------------------------------
--- 2.7  sales_representatives
+-- 2.7  sales_representatives (solo columnas vigentes post–1870000000000)
 -- ---------------------------------------------------------------------------
-INSERT INTO suppliers_schema.sales_representatives (partner_id, user_id, name, role, status_id)
+INSERT INTO suppliers_schema.sales_representatives (partner_id, user_id)
+SELECT t.partner_id, t.user_id
+FROM (
+  SELECT
+    (SELECT pa.id
+     FROM suppliers_schema.partners pa
+     JOIN suppliers_schema.suppliers s ON s.id = pa.supplier_id
+     JOIN suppliers_schema.businesses b ON b.id = s.business_id
+     JOIN transversal_schema.persons p ON p.id = b.person_id
+     WHERE p.doc_number = '900000001'
+     LIMIT 1) AS partner_id,
+    (SELECT id FROM transversal_schema.users WHERE email = 'vendedor.demo@platampay.test' LIMIT 1) AS user_id
+) t
+WHERE t.partner_id IS NOT NULL
+  AND t.user_id IS NOT NULL
+  AND NOT EXISTS (
+    SELECT 1
+    FROM suppliers_schema.sales_representatives sr
+    WHERE sr.partner_id = t.partner_id AND sr.user_id = t.user_id
+  );
+
+
+-- ---------------------------------------------------------------------------
+-- 2.8  shareholders — demo: dueño del negocio PN como único accionista
+-- ---------------------------------------------------------------------------
+INSERT INTO suppliers_schema.shareholders (
+  business_id,
+  person_id,
+  ownership_percentage,
+  is_legal_representative,
+  credit_check_required,
+  credit_check_completed
+)
 SELECT
-  (SELECT pa.id
-   FROM suppliers_schema.partners pa
-   JOIN suppliers_schema.suppliers s ON s.id = pa.supplier_id
-   JOIN suppliers_schema.businesses b ON b.id = s.business_id
-   JOIN transversal_schema.persons p ON p.id = b.person_id
-   WHERE p.doc_number = '900000001'
-   LIMIT 1),
-  (SELECT id FROM transversal_schema.users WHERE email = 'vendedor.demo@platampay.test' LIMIT 1),
-  'Asesor Demo',
-  'Sales Rep',
-  (SELECT id FROM transversal_schema.statuses WHERE entity_type = 'sales_representatives' AND code = 'active' LIMIT 1)
-ON CONFLICT DO NOTHING;
+  b.id,
+  b.person_id,
+  1.0000,
+  TRUE,
+  FALSE,
+  FALSE
+FROM suppliers_schema.businesses b
+JOIN transversal_schema.persons p ON p.id = b.person_id
+WHERE p.doc_number = '900000001'
+  AND b.entity_type = 'PN'
+  AND NOT EXISTS (
+    SELECT 1
+    FROM suppliers_schema.shareholders sh
+    WHERE sh.business_id = b.id AND sh.person_id = b.person_id
+  );
 
 COMMIT;
 
@@ -175,6 +211,8 @@ UNION ALL
 SELECT 'partners',                       COUNT(*) FROM suppliers_schema.partners
 UNION ALL
 SELECT 'sales_representatives',          COUNT(*) FROM suppliers_schema.sales_representatives
+UNION ALL
+SELECT 'shareholders',                   COUNT(*) FROM suppliers_schema.shareholders
 ORDER BY tabla;
 
 -- Vista rápida de la cadena suppliers

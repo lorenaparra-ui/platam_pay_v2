@@ -185,7 +185,11 @@ export class TypeormStatusRepository implements StatusRepository {
          WHERE ca.status_id = s.id OR ca.business_relation_id = s.id
        )
        AND NOT EXISTS (SELECT 1 FROM products_schema.credit_facilities cf WHERE cf.status_id = s.id)
-       AND NOT EXISTS (SELECT 1 FROM products_schema.credit_applications ca WHERE ca.status_id = s.id)
+       AND NOT EXISTS (
+         SELECT 1 FROM products_schema.credit_applications ca
+         WHERE s.entity_type = 'credit_applications'
+           AND ca.status::text = s.code
+       )
        AND NOT EXISTS (SELECT 1 FROM products_schema.categories c WHERE c.status_id = s.id)
        RETURNING s.id`,
       [external_id],

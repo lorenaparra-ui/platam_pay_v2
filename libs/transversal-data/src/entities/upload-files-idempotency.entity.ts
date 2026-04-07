@@ -1,4 +1,4 @@
-import { Column, Entity } from 'typeorm';
+import { Entity } from 'typeorm';
 import { BaseSqsIdempotencyEntity } from './base-sqs-idempotency.entity';
 
 export type UploadFilesIdempotencyResult = ReadonlyArray<
@@ -11,6 +11,5 @@ export type UploadFilesIdempotencyResult = ReadonlyArray<
  */
 @Entity({ schema: 'transversal_schema', name: 'upload_files_idempotency' })
 export class UploadFilesIdempotencyEntity extends BaseSqsIdempotencyEntity {
-  @Column({ name: 'result', type: 'jsonb', nullable: true })
-  override result!: UploadFilesIdempotencyResult | null;
+  override result: UploadFilesIdempotencyResult | null = null;
 }

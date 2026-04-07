@@ -10,7 +10,7 @@ export * from './messaging/base.consumer';
 export * from './messaging/base.publisher';
 export * from './messaging/sqs-idempotency.port';
 
-export * from './domain/credit-facilities-statuses.enum';
+export * from './domain/statuses.enum';
 export * from './domain/domain-event.interface';
 export * from './domain/entity.base';
 export * from './domain/event-bus';

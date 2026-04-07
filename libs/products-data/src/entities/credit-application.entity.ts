@@ -1,13 +1,9 @@
 import { Column, Entity, JoinColumn, OneToOne } from 'typeorm';
 import { BaseExternalIdEntity } from './base-external-id.entity';
 import { ContractEntity } from './contract.entity';
+import { StatusesCreditApplications } from '@platam/shared';
 
-/**
- * Entidad TypeORM para credit_applications (antes credit_applications_bnpl).
- * FKs: person_id -> persons.id, partner_id -> partners.id,
- * partner_category_id -> products_schema.categories.id, business_id -> businesses.id,
- * contract_id -> products_schema.contracts, status_id -> statuses.id.
- */
+
 @Entity({ name: 'credit_applications', schema: 'products_schema' })
 export class CreditApplicationEntity extends BaseExternalIdEntity {
   @Column({ name: 'person_id', type: 'bigint', nullable: true })
@@ -69,8 +65,14 @@ export class CreditApplicationEntity extends BaseExternalIdEntity {
   })
   isCurrentClient: boolean;
 
-  @Column({ name: 'status_id', type: 'bigint' })
-  statusId: number;
+  @Column({
+    name: 'status',
+    type: 'enum',
+    enum: StatusesCreditApplications,
+    enumName: 'credit_application_status',
+    default: StatusesCreditApplications.IN_PROGRESS,
+  })
+  status: StatusesCreditApplications;
 
   @OneToOne(() => ContractEntity, { nullable: true })
   @JoinColumn({ name: 'contract_id', referencedColumnName: 'id' })

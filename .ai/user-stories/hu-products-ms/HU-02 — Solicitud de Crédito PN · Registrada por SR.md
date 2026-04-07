@@ -47,8 +47,8 @@ partner. Los labels están dirigidos al SR, no al cliente.
 
 | Campo | Tabla | Lógica |
 |---|---|---|
-| `partner_id` | `credit_applications_bnpl` | Se toma del alias en la URL de la landing |
-| `sales_rep_id` | `credit_applications_bnpl` | Se toma de la sesión autenticada del SR |
+| `partner_id` | `credit_applications` | Se toma del alias en la URL de la landing |
+| `sales_rep_id` | `credit_applications` | Se toma de la sesión autenticada del SR |
 
 ---
 
@@ -71,7 +71,7 @@ partner. Los labels están dirigidos al SR, no al cliente.
 
 > Los campos marcados con [B] se almacenan en `businesses` — son 
 > datos propios del negocio, estables en el tiempo.  
-> Los campos marcados con [A] se almacenan en `credit_applications_bnpl` 
+> Los campos marcados con [A] se almacenan en `credit_applications` 
 > — son datos del momento de la solicitud, usados para el análisis 
 > de crédito y pueden cambiar entre solicitudes.
 
@@ -82,12 +82,12 @@ partner. Los labels están dirigidos al SR, no al cliente.
 | Ciudad * | `city_id` | `businesses` [B] | Searchable dropdown | Ciudades y municipios del país del partner |
 | Dirección principal del negocio * | `business_address` | `businesses` [B] | Texto | — |
 | Tipo de negocio * | `business_type` | `businesses` [B] | Searchable dropdown | Códigos CIIU |
-| Antigüedad del negocio * | `business_seniority` | `credit_applications_bnpl` [A] | Dropdown | Opciones: Menos de 1 año / 1 a 2 años / 2 a 5 años / 5 a 10 años / Más de 10 años. Hint: *"Indica cuánto tiempo lleva funcionando el negocio"* |
-| Número de empleados * | `number_of_employees` | `credit_applications_bnpl` [A] | Numérico | Min: 1 |
-| Cantidad de locales * | `number_of_locations` | `credit_applications_bnpl` [A] | Numérico | Min: 1 |
-| ¿Cuál es el tamaño del local principal? * | `business_flagship_m2` | `credit_applications_bnpl` [A] | Numérico | Min: 1. Unidad: m² |
-| ¿El cliente arrienda el(los) local(es) donde opera su negocio? * | `business_has_rent` | `credit_applications_bnpl` [A] | Radio | Opciones: Sí / No |
-| Valor mensual total de arriendos | `business_rent_amount` | `credit_applications_bnpl` [A] | Numérico (COP) | **Condicional:** solo visible si `business_has_rent = Sí`. Min: $100.000 |
+| Antigüedad del negocio * | `business_seniority` | `credit_applications` [A] | Dropdown | Opciones: Menos de 1 año / 1 a 2 años / 2 a 5 años / 5 a 10 años / Más de 10 años. Hint: *"Indica cuánto tiempo lleva funcionando el negocio"* |
+| Número de empleados * | `number_of_employees` | `credit_applications` [A] | Numérico | Min: 1 |
+| Cantidad de locales * | `number_of_locations` | `credit_applications` [A] | Numérico | Min: 1 |
+| ¿Cuál es el tamaño del local principal? * | `business_flagship_m2` | `credit_applications` [A] | Numérico | Min: 1. Unidad: m² |
+| ¿El cliente arrienda el(los) local(es) donde opera su negocio? * | `business_has_rent` | `credit_applications` [A] | Radio | Opciones: Sí / No |
+| Valor mensual total de arriendos | `business_rent_amount` | `credit_applications` [A] | Numérico (COP) | **Condicional:** solo visible si `business_has_rent = Sí`. Min: $100.000 |
 
 ---
 
@@ -95,13 +95,13 @@ partner. Los labels están dirigidos al SR, no al cliente.
 
 | Label | Campo DB | Tabla | Tipo | Validaciones / Notas |
 |---|---|---|---|---|
-| Total de activos * | `total_assets` | `credit_applications_bnpl` | Numérico (COP) | Hint: *"Indica el valor total estimado de los activos personales del cliente (vivienda, vehículos, inversiones, ahorros, etc.)"* |
-| Ventas mensuales * | `monthly_income` | `credit_applications_bnpl` | Numérico (COP) | Hint: *"Ingresa el promedio mensual de ventas generadas por el negocio"* |
-| Gastos mensuales * | `monthly_expenses` | `credit_applications_bnpl` | Numérico (COP) | Hint: *"Indica el promedio mensual de gastos en la compra y mantenimiento de inventario del negocio"* |
-| ¿Es cliente actual de {{partner_name}}? * | `is_current_client` | `credit_applications_bnpl` | Radio | Opciones: Sí / No |
-| ¿Cuánto suele comprar mensualmente con {{partner_name}}? | `monthly_purchases` | `credit_applications_bnpl` | Numérico (COP) | **Condicional:** solo visible si `is_current_client = Sí`. Usado en el modelo de crédito para dimensionar la LOC |
-| ¿Cuánto estima que será el valor de la primera compra? | `current_purchases` | `credit_applications_bnpl` | Numérico (COP) | **Condicional:** solo visible si `is_current_client = No`. Usado en el modelo de crédito para dimensionar la LOC |
-| ¿Qué cupo de línea de crédito necesita el cliente? * | `requested_credit_line` | `credit_applications_bnpl` | Numérico (COP) | Hint: *"Indica el monto según las necesidades de compra mensuales del cliente"* |
+| Total de activos * | `total_assets` | `credit_applications` | Numérico (COP) | Hint: *"Indica el valor total estimado de los activos personales del cliente (vivienda, vehículos, inversiones, ahorros, etc.)"* |
+| Ventas mensuales * | `monthly_income` | `credit_applications` | Numérico (COP) | Hint: *"Ingresa el promedio mensual de ventas generadas por el negocio"* |
+| Gastos mensuales * | `monthly_expenses` | `credit_applications` | Numérico (COP) | Hint: *"Indica el promedio mensual de gastos en la compra y mantenimiento de inventario del negocio"* |
+| ¿Es cliente actual de {{partner_name}}? * | `is_current_client` | `credit_applications` | Radio | Opciones: Sí / No |
+| ¿Cuánto suele comprar mensualmente con {{partner_name}}? | `monthly_purchases` | `credit_applications` | Numérico (COP) | **Condicional:** solo visible si `is_current_client = Sí`. Usado en el modelo de crédito para dimensionar la LOC |
+| ¿Cuánto estima que será el valor de la primera compra? | `current_purchases` | `credit_applications` | Numérico (COP) | **Condicional:** solo visible si `is_current_client = No`. Usado en el modelo de crédito para dimensionar la LOC |
+| ¿Qué cupo de línea de crédito necesita el cliente? * | `requested_credit_line` | `credit_applications` | Numérico (COP) | Hint: *"Indica el monto según las necesidades de compra mensuales del cliente"* |
 
 > ⚠️ Esta sección **no incluye** el checkbox de autorización de 
 > centrales de riesgo ni aceptación de políticas de privacidad. 
@@ -114,29 +114,20 @@ partner. Los labels están dirigidos al SR, no al cliente.
 
 Al hacer clic en **Enviar**, el sistema debe:
 
-### 1. Crear el registro en `users`
+### 1. Crear el registro en `persons`
 ```
-email        → del formulario
-phone        → del formulario
-status_id    → get_status_id('users', 'pending')
-```
-> El usuario queda en estado `pending` hasta que autorice la 
-> consulta en centrales de riesgo y acepte las políticas de 
-> privacidad. Pasa a `active` cuando se aprueba y firma el contrato.
-
-### 2. Crear el registro en `persons`
-```
-user_id      → ID del usuario recién creado
 first_name   → del formulario
 last_name    → del formulario
 doc_type     → del formulario
 doc_number   → del formulario
 birth_date   → del formulario
+email        → del formulario
+phone        → del formulario
 ```
 
-### 3. Crear el registro en `businesses`
+### 2. Crear el registro en `businesses`
 ```
-user_id                  → ID del usuario recién creado
+person_id                  → ID del usuario recién creado
 business_name            → del formulario
 relationship_to_business → del formulario
 city_id                  → del formulario
@@ -145,9 +136,9 @@ business_type            → del formulario
 country_code             → se infiere del país del partner
 ```
 
-### 4. Crear el registro en `credit_applications_bnpl`
+### 4. Crear el registro en `credit_applications`
 ```
-user_id                  → ID del usuario recién creado
+person_id                → ID del usuario recién creado
 partner_id               → resuelto desde la sesión del SR
 partner_category_id      → default_category_id del partner
 sales_rep_id             → resuelto desde la sesión del SR
@@ -166,7 +157,7 @@ current_purchases        → del formulario (si aplica)
 requested_credit_line    → del formulario
 privacy_policy_accepted  → false (pendiente autorización del cliente)
 submission_date          → timestamp del envío
-status_id                → get_status_id('credit_applications_bnpl', 'pendiente_autorizacion')
+status                   → enum('pending_authorization')
 ```
 
 ### 5. Crear registros en `application_categories`
@@ -218,9 +209,8 @@ Tras el envío exitoso, se muestra en pantalla:
       ocultan correctamente según las respuestas previas
 - [ ] El formulario no incluye checkbox de políticas de privacidad
 - [ ] Al enviar se crean correctamente los registros en `users`,
-      `persons`, `businesses`, `credit_applications_bnpl` y
+      `persons`, `businesses`, `credit_applications` y
       `application_categories`
-- [ ] El usuario queda con `status_id = pending`
 - [ ] `privacy_policy_accepted` queda en `false`
 - [ ] El `status_id` de la solicitud queda en `pendiente_autorizacion`
 - [ ] Se envían automáticamente WhatsApp y correo al cliente

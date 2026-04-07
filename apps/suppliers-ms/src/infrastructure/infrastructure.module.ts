@@ -14,6 +14,7 @@ import { SqlProductsCreditFacilitySyncAdapter } from './database/adapters/sql-pr
 import { TypeormPartnerUserSqsResultPollAdapter } from './database/adapters/typeorm-partner-user-sqs-result-poll.adapter';
 import { PartnerSagaCompensationAdapter } from './database/adapters/partner-saga-compensation.adapter';
 import { TypeormLegalRepresentativeRepository } from './database/repositories/typeorm-legal-representative.repository';
+import { TypeormSalesRepresentativeRepository } from './database/repositories/typeorm-sales-representative.repository';
 import { SqsTransversalUserPersonWriterAdapter } from './messaging/sqs/adapters/sqs-transversal-user-person-writer.adapter';
 import { PARTNER_ONBOARDING_SAGA_REPOSITORY } from '@modules/partners/application/ports/partner-onboarding-saga.repository.port';
 import { PRODUCTS_CREDIT_FACILITY_SYNC_PORT } from '@modules/partners/application/ports/products-credit-facility-sync.port';
@@ -32,6 +33,7 @@ import {
   LegalRepresentativeEntity,
   PartnerOnboardingSagaEntity,
   PartnersEntity,
+  SalesRepresentativeEntity,
   SupplierEntity,
 } from '@app/suppliers-data';
 import {
@@ -55,6 +57,7 @@ import {
       PartnersEntity,
       SupplierEntity,
       LegalRepresentativeEntity,
+      SalesRepresentativeEntity,
       PartnerCreateUserSqsIdempotencyEntity,
       PersonEntity,
       UserEntity,
@@ -70,6 +73,7 @@ import {
     TypeormBankAccountRepository,
     TypeormPartnerOnboardingSagaRepository,
     TypeormLegalRepresentativeRepository,
+    TypeormSalesRepresentativeRepository,
     TypeormPartnerUserSqsResultPollAdapter,
     SqlProductsCreditFacilitySyncAdapter,
     SqsTransversalUserPersonWriterAdapter,
@@ -112,6 +116,7 @@ import {
     TypeormBankAccountRepository,
     TypeormPartnerOnboardingSagaRepository,
     TypeormLegalRepresentativeRepository,
+    TypeormSalesRepresentativeRepository,
     TypeormPartnerUserSqsResultPollAdapter,
     SUPPLIERS_REFERENCE_LOOKUP,
     PARTNER_ONBOARDING_SAGA_REPOSITORY,
