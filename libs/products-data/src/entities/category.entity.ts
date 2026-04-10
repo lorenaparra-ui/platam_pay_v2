@@ -1,12 +1,19 @@
-﻿import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
+﻿import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToMany,
+  ManyToOne,
+  RelationId,
+} from 'typeorm';
 import { CategoryState, InstallmentFrequencyTypes, ModalityTypes } from '@platam/shared';
 import { BaseExternalIdEntity } from './base-external-id.entity';
-import { CreditFacilityEntity } from './credit-facility.entity';
 import { PartnersEntity } from '@app/suppliers-data';
+import { CreditFacilityEntity } from './credit-facility.entity';
 
 /**
  * Entidad TypeORM para categories.
- * N:1 credit_facility; partner_id opcional (categoría propia del partner).
+ * Vínculo a facilidad vía `client_category_assignments`; partner_id opcional.
  */
 @Entity({ name: 'categories', schema: 'products_schema' })
 export class CategoryEntity extends BaseExternalIdEntity {
@@ -87,17 +94,18 @@ export class CategoryEntity extends BaseExternalIdEntity {
   })
   state: CategoryState;
 
-  @ManyToOne(() => CreditFacilityEntity, (cf) => cf.categories, {
-    onDelete: 'CASCADE',
-  })
-  @JoinColumn({ name: 'credit_facility_id' })
-  creditFacility: CreditFacilityEntity;
 
-  @ManyToOne(() => PartnersEntity, (p) => p.categories, {
+  @ManyToOne(() => PartnersEntity, (p: PartnersEntity) => p.categories, {
     nullable: true,
     onDelete: 'SET NULL',
     onUpdate: 'CASCADE',
   })
   @JoinColumn({ name: 'partner_id' })
   partner: PartnersEntity | null;
+
+  @RelationId((c: CategoryEntity) => c.partner)
+  partnerId: number | null;
+
+  @ManyToMany(() => CreditFacilityEntity, (creditFacility) => creditFacility.categories)
+  creditFacility: CreditFacilityEntity[];
 }

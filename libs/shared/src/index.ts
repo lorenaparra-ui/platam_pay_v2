@@ -11,6 +11,7 @@ export * from './messaging/base.publisher';
 export * from './messaging/sqs-idempotency.port';
 
 export * from './domain/statuses.enum';
+export * from './domain/roles.enum';
 export * from './domain/types.enum';
 export * from './domain/domain-event.interface';
 export * from './domain/entity.base';

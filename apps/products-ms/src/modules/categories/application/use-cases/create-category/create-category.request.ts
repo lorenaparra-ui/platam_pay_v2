@@ -1,4 +1,4 @@
-﻿import type { CategoryState } from '@platam/shared';
+import type { CategoryState } from '@platam/shared';
 
 export class CreateCategoryRequest {
   constructor(

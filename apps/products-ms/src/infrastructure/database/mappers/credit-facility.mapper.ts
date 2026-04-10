@@ -16,7 +16,7 @@ export class CreditFacilityMapper {
     return new CreditFacility(
       row.id,
       row.externalId,
-      contract_join_to_external_id(row.contractId),
+      contract_join_to_external_id(row.contract),
       row.state,
       row.totalLimit,
       row.createdAt,

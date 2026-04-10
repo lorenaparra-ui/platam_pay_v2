@@ -1,0 +1,22 @@
+export enum PartnerRoles {
+  PARTNER_ADMIN = 'PARTNER_ADMIN',
+  PARTNER_OPERATIONS = 'PARTNER_OPERATIONS',
+  CUSTOMER = 'CUSTOMER',
+  SALES_MANAGER = 'SALES_MANAGER',
+  SALES_REPRESENTATIVE = 'SALES_REPRESENTATIVE',
+}
+export enum BackOfficeRoles {
+  BACK_OFFICE_ADMIN = 'BACK_OFFICE_ADMIN',
+  BACK_OFFICE_ANALYST = 'BACK_OFFICE_ANALYST',
+}
+
+/** Unión de códigos de rol partner y back-office (mismos valores que los enums fuente). */
+export enum Roles {
+  PARTNER_ADMIN = PartnerRoles.PARTNER_ADMIN,
+  PARTNER_OPERATIONS = PartnerRoles.PARTNER_OPERATIONS,
+  CUSTOMER = PartnerRoles.CUSTOMER,
+  SALES_MANAGER = PartnerRoles.SALES_MANAGER,
+  SALES_REPRESENTATIVE = PartnerRoles.SALES_REPRESENTATIVE,
+  BACK_OFFICE_ADMIN = BackOfficeRoles.BACK_OFFICE_ADMIN,
+  BACK_OFFICE_ANALYST = BackOfficeRoles.BACK_OFFICE_ANALYST,
+}

@@ -13,7 +13,7 @@ import { CreditFacilityMapper } from '@infrastructure/database/mappers/credit-fa
 const CREDIT_FACILITY_SELECT = {
   id: true,
   externalId: true,
-  contractId: true,
+  contract: { externalId: true },
   state: true,
   totalLimit: true,
   createdAt: true,

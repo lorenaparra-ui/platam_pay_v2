@@ -549,12 +549,11 @@ COMMENT ON COLUMN products_schema.credit_facilities.total_limit IS 'NUMERIC(18,4
 
 
 -- ---------------------------------------------------------------------------
--- Categorías (antes: partner_categories) — con credit_facility_id
+-- Categorías (antes: partner_categories); facilidad vía client_category_assignments
 -- ---------------------------------------------------------------------------
 CREATE TABLE products_schema.categories (
   id                       BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   external_id              UUID          NOT NULL UNIQUE DEFAULT gen_random_uuid(),
-  credit_facility_id       BIGINT        NOT NULL REFERENCES products_schema.credit_facilities(id) ON DELETE CASCADE,
   partner_id               BIGINT        REFERENCES suppliers_schema.partners(id) ON DELETE SET NULL ON UPDATE CASCADE,
   name                     VARCHAR(255)  NOT NULL,
   discount_percentage      NUMERIC(8,4)  NOT NULL,
@@ -568,11 +567,24 @@ CREATE TABLE products_schema.categories (
   updated_at               TIMESTAMPTZ   NOT NULL DEFAULT now()
 );
 
-CREATE INDEX idx_categories_credit_facility_id ON products_schema.categories (credit_facility_id);
 CREATE INDEX idx_categories_partner_id         ON products_schema.categories (partner_id);
 CREATE INDEX idx_categories_state              ON products_schema.categories (state);
 
 COMMENT ON TABLE products_schema.categories IS 'Antes: partner_categories en public. discount_percentage e interest_rate en NUMERIC (nunca float).';
+
+-- Puente M:N para TypeORM @ManyToMany + @JoinTable (sin fila surrogate).
+CREATE TABLE products_schema.client_category_assignments (
+  credit_facility_id BIGINT NOT NULL REFERENCES products_schema.credit_facilities(id) ON DELETE CASCADE ON UPDATE CASCADE,
+  category_id        BIGINT NOT NULL REFERENCES products_schema.categories(id) ON DELETE CASCADE ON UPDATE CASCADE,
+  PRIMARY KEY (credit_facility_id, category_id),
+  UNIQUE (category_id)
+);
+
+CREATE INDEX idx_client_category_assignments_credit_facility_id
+  ON products_schema.client_category_assignments (credit_facility_id);
+
+COMMENT ON TABLE products_schema.client_category_assignments IS
+  'Puente categoría ↔ facilidad (JoinTable). UNIQUE(category_id) conserva 1 categoría → 1 facilidad.';
 
 
 -- ---------------------------------------------------------------------------
@@ -676,6 +688,7 @@ BEGIN
     'products_schema.contracts',
     'products_schema.credit_facilities',
     'products_schema.categories',
+    'products_schema.client_category_assignments',
     'products_schema.credit_applications'
   ]
   LOOP

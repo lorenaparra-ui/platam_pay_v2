@@ -2,22 +2,23 @@
   Column,
   Entity,
   JoinColumn,
+  JoinTable,
+  ManyToMany,
   ManyToOne,
-  OneToMany,
   OneToOne,
   RelationId,
 } from 'typeorm';
 import { CreditFacilityState } from '@platam/shared';
 import { BaseExternalIdEntity } from './base-external-id.entity';
-import { CategoryEntity } from './category.entity';
 import { ContractEntity } from './contract.entity';
 import { BusinessEntity } from '@app/suppliers-data';
+import { CategoryEntity } from './category.entity';
 
 @Entity({ name: 'credit_facilities', schema: 'products_schema' })
 export class CreditFacilityEntity extends BaseExternalIdEntity {
   @OneToOne(() => ContractEntity, { nullable: true })
   @JoinColumn({ name: 'contract_id', referencedColumnName: 'id' })
-  contractId: ContractEntity | null;
+  contract: ContractEntity | null;
 
   @Column({
     name: 'state',
@@ -43,6 +44,12 @@ export class CreditFacilityEntity extends BaseExternalIdEntity {
   @RelationId((cf: CreditFacilityEntity) => cf.business)
   businessId: number;
 
-  @OneToMany(() => CategoryEntity, (category) => category.creditFacility)
+  @ManyToMany(() => CategoryEntity, (category) => category.creditFacility)
+  @JoinTable({
+    name: 'client_category_assignments',
+    joinColumn: { name: 'credit_facility_id', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'category_id', referencedColumnName: 'id' },
+    schema: 'products_schema',
+  })
   categories: CategoryEntity[];
 }

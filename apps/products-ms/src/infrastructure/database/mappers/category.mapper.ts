@@ -2,12 +2,22 @@
 import { Category } from '@modules/categories/domain/models/category.models';
 import { CategoryState } from '@platam/shared';
 
+function credit_facility_id_from_entity(row: CategoryEntity): number {
+  const cf = row.creditFacility?.[0];
+  if (cf === undefined) {
+    throw new Error(
+      'CategoryMapper: falta facilidad vía client_category_assignments para la categoría',
+    );
+  }
+  return cf.id;
+}
+
 export class CategoryMapper {
   static to_domain(row: CategoryEntity): Category {
     return new Category(
       row.id,
       row.externalId,
-      row.creditFacilityId,
+      credit_facility_id_from_entity(row),
       row.partnerId ?? null,
       row.name,
       row.discountPercentage,

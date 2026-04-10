@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Equal, Repository } from 'typeorm';
 import { CategoryEntity } from '@app/products-data';
 import { CategoryRepository } from '@modules/categories/domain/ports/category.ports';
 import {
@@ -13,7 +13,6 @@ import { CategoryMapper } from '@infrastructure/database/mappers/category.mapper
 const CATEGORY_SELECT = {
   id: true,
   externalId: true,
-  creditFacilityId: true,
   partnerId: true,
   name: true,
   discountPercentage: true,
@@ -25,6 +24,9 @@ const CATEGORY_SELECT = {
   state: true,
   createdAt: true,
   updatedAt: true,
+  creditFacility: {
+    id: true,
+  },
 } as const;
 
 @Injectable()
@@ -38,6 +40,7 @@ export class TypeormCategoryRepository implements CategoryRepository {
     const row = await this.repo.findOne({
       where: { externalId: external_id },
       select: CATEGORY_SELECT,
+      relations: { creditFacility: true },
     });
     return row ? CategoryMapper.to_domain(row) : null;
   }
@@ -46,41 +49,57 @@ export class TypeormCategoryRepository implements CategoryRepository {
     credit_facility_id?: number;
   }): Promise<Category[]> {
     const rows = await this.repo.find({
-      where: filter?.credit_facility_id
-        ? { creditFacilityId: filter.credit_facility_id }
-        : {},
+      where:
+        filter?.credit_facility_id !== undefined
+          ? {
+              creditFacility: {
+                id: Equal(filter.credit_facility_id),
+              },
+            }
+          : {},
       select: CATEGORY_SELECT,
+      relations: { creditFacility: true },
       order: { id: 'ASC' },
     });
     return rows.map((r) => CategoryMapper.to_domain(r));
   }
 
   async create(props: CreateCategoryProps): Promise<Category> {
-    const rows = await this.repo.query(
-      `INSERT INTO products_schema.categories (
-        external_id, credit_facility_id, partner_id, name,
+    return await this.repo.manager.transaction(async (manager) => {
+      const rows = await manager.query(
+        `INSERT INTO products_schema.categories (
+        external_id, partner_id, name,
         discount_percentage, interest_rate, disbursement_fee_percent,
         minimum_disbursement_fee, delay_days, term_days, state
       ) VALUES (
-        gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10::products_schema.credit_facility_state
+        gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9::products_schema.credit_facility_state
       )
-      RETURNING id, external_id, created_at, updated_at, credit_facility_id, partner_id, name,
+      RETURNING id, external_id, created_at, updated_at, partner_id, name,
         discount_percentage, interest_rate, disbursement_fee_percent, minimum_disbursement_fee,
         delay_days, term_days, state`,
-      [
-        props.credit_facility_id,
-        props.partner_id,
-        props.name,
-        props.discount_percentage,
-        props.interest_rate,
-        props.disbursement_fee_percent,
-        props.minimum_disbursement_fee,
-        props.delay_days,
-        props.term_days,
-        props.state,
-      ],
-    );
-    return CategoryMapper.from_raw_row(rows[0] as Record<string, unknown>);
+        [
+          props.partner_id,
+          props.name,
+          props.discount_percentage,
+          props.interest_rate,
+          props.disbursement_fee_percent,
+          props.minimum_disbursement_fee,
+          props.delay_days,
+          props.term_days,
+          props.state,
+        ],
+      );
+      const raw = rows[0] as Record<string, unknown>;
+      await manager.query(
+        `INSERT INTO products_schema.client_category_assignments (credit_facility_id, category_id)
+         VALUES ($1, $2)`,
+        [props.credit_facility_id, Number(raw['id'])],
+      );
+      return CategoryMapper.from_raw_row({
+        ...raw,
+        credit_facility_id: props.credit_facility_id,
+      });
+    });
   }
 
   async update_by_external_id(
@@ -95,6 +114,15 @@ export class TypeormCategoryRepository implements CategoryRepository {
       return null;
     }
 
+    if (patch.credit_facility_id !== undefined) {
+      await this.repo.query(
+        `UPDATE products_schema.client_category_assignments
+         SET credit_facility_id = $1
+         WHERE category_id = $2`,
+        [patch.credit_facility_id, existing.id],
+      );
+    }
+
     const columns: string[] = [];
     const values: unknown[] = [];
     let i = 1;
@@ -105,9 +133,6 @@ export class TypeormCategoryRepository implements CategoryRepository {
       i += 1;
     };
 
-    if (patch.credit_facility_id !== undefined) {
-      add('credit_facility_id', patch.credit_facility_id);
-    }
     if (patch.partner_id !== undefined) {
       add('partner_id', patch.partner_id);
     }
@@ -136,16 +161,14 @@ export class TypeormCategoryRepository implements CategoryRepository {
       add('state', patch.state);
     }
 
-    if (columns.length === 0) {
-      return this.find_by_external_id(external_id);
+    if (columns.length > 0) {
+      columns.push(`"updated_at" = now()`);
+      values.push(existing.id);
+      await this.repo.query(
+        `UPDATE products_schema.categories SET ${columns.join(', ')} WHERE id = $${i}`,
+        values,
+      );
     }
-
-    columns.push(`"updated_at" = now()`);
-    values.push(existing.id);
-    await this.repo.query(
-      `UPDATE products_schema.categories SET ${columns.join(', ')} WHERE id = $${i}`,
-      values,
-    );
 
     return this.find_by_external_id(external_id);
   }
