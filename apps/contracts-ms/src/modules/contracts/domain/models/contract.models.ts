@@ -1,3 +1,5 @@
+import type { ContractCatalogStatus } from '@platam/shared';
+
 export class Contract {
   constructor(
     readonly internal_id: number,
@@ -5,7 +7,7 @@ export class Contract {
     readonly user_id: number | null,
     readonly contract_template_id: number | null,
     readonly zapsign_token: string | null,
-    readonly status_id: number,
+    readonly status: ContractCatalogStatus,
     readonly original_file_url: string | null,
     readonly signed_file_url: string | null,
     readonly form_answers_json: Record<string, unknown> | null,
@@ -20,7 +22,7 @@ export interface CreateContractProps {
   user_id: number | null;
   contract_template_id: number | null;
   zapsign_token: string | null;
-  status_id: number;
+  status: ContractCatalogStatus;
   original_file_url: string | null;
   signed_file_url: string | null;
   form_answers_json: Record<string, unknown> | null;
@@ -36,7 +38,7 @@ export type UpdateContractProps = Partial<
     CreateContractProps,
     | 'contract_template_id'
     | 'zapsign_token'
-    | 'status_id'
+    | 'status'
     | 'original_file_url'
     | 'signed_file_url'
     | 'form_answers_json'
@@ -50,5 +52,5 @@ export type ListContractsFilters = Readonly<{
   user_id?: number;
   /** Filtra contratos vinculados a esta solicitud (credit_applications.id). */
   credit_application_internal_id?: number;
-  status_id?: number;
+  status?: ContractCatalogStatus;
 }>;

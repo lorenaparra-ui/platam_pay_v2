@@ -107,7 +107,7 @@ export class TypeormStatusRepository implements StatusRepository {
 
   async create(props: CreateStatusProps): Promise<CatalogStatus> {
     const rows = (await this.repo.query(
-      `INSERT INTO transversal_schema.statuses (
+      `INSERT INTO transversal_schema.catalog_status_types (
         entity_type, code, display_name, description, is_active, external_id
       ) VALUES ($1, $2, $3, $4, $5, gen_random_uuid())
       RETURNING ${STATUS_RETURNING}`,
@@ -162,7 +162,7 @@ export class TypeormStatusRepository implements StatusRepository {
     columns.push(`"updated_at" = now()`);
     values.push(external_id);
     const rows = (await this.repo.query(
-      `UPDATE transversal_schema.statuses SET ${columns.join(', ')}
+      `UPDATE transversal_schema.catalog_status_types SET ${columns.join(', ')}
        WHERE external_id = $${i}::uuid
        RETURNING ${STATUS_RETURNING}`,
       values,
@@ -175,7 +175,7 @@ export class TypeormStatusRepository implements StatusRepository {
 
   async delete_by_external_id(external_id: string): Promise<boolean> {
     const rows = (await this.repo.query(
-      `DELETE FROM transversal_schema.statuses s
+      `DELETE FROM transversal_schema.catalog_status_types s
        WHERE s.external_id = $1::uuid
        AND NOT EXISTS (SELECT 1 FROM transversal_schema.users u WHERE u.status_id = s.id)
        AND NOT EXISTS (SELECT 1 FROM transversal_schema.contract_signers cs WHERE cs.status_id = s.id)

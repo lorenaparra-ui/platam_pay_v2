@@ -5,6 +5,7 @@ import {
   CityEntity,
   PartnerCreateUserSqsIdempotencyEntity,
   PersonEntity,
+  RoleEntity,
   UserEntity,
 } from "@app/transversal-data";
 
@@ -18,6 +19,7 @@ const TypeormConfig = {
   entities: [
     ...SUPPLIERS_DATA_ENTITIES,
     PersonEntity,
+    RoleEntity,
     UserEntity,
     CityEntity,
     PartnerCreateUserSqsIdempotencyEntity,

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
+import type { ContractCatalogStatus } from '@platam/shared';
 import type { ContractReferenceLookupPort } from '@common/ports/contract-reference-lookup.port';
 
 function row_id_as_number(value: unknown): number | null {
@@ -15,6 +16,22 @@ function row_id_as_number(value: unknown): number | null {
     return Number.isFinite(n) ? n : null;
   }
   return null;
+}
+
+const CONTRACT_CATALOG_STATUSES = new Set<string>([
+  'pending',
+  'signed',
+  'cancelled',
+]);
+
+function as_contract_catalog_status(code: string | null | undefined): ContractCatalogStatus | null {
+  if (code === null || code === undefined || code.length === 0) {
+    return null;
+  }
+  if (!CONTRACT_CATALOG_STATUSES.has(code)) {
+    return null;
+  }
+  return code as ContractCatalogStatus;
 }
 
 @Injectable()
@@ -39,25 +56,31 @@ export class TypeormContractReferenceLookupAdapter implements ContractReferenceL
     return rows.length === 0 ? null : row_id_as_number(rows[0].id);
   }
 
-  async get_contract_status_internal_id_by_external_id(
+  async get_contract_catalog_status_by_external_id(
     external_id: string,
-  ): Promise<number | null> {
-    const rows: Array<{ id: unknown }> = await this.data_source.query(
-      `SELECT id FROM transversal_schema.statuses
+  ): Promise<ContractCatalogStatus | null> {
+    const rows: Array<{ code: string | null }> = await this.data_source.query(
+      `SELECT code
+       FROM transversal_schema.catalog_status_types
        WHERE external_id = $1::uuid AND entity_type = 'contracts'
        LIMIT 1`,
       [external_id],
     );
-    return rows.length === 0 ? null : row_id_as_number(rows[0].id);
+    if (rows.length === 0) {
+      return null;
+    }
+    return as_contract_catalog_status(rows[0].code);
   }
 
-  async get_status_external_id_by_internal_id(internal_id: number): Promise<string | null> {
+  async get_contract_status_external_id_by_catalog_status(
+    status: ContractCatalogStatus,
+  ): Promise<string | null> {
     const rows: Array<{ external_id: string | null }> = await this.data_source.query(
       `SELECT external_id::text AS external_id
-       FROM transversal_schema.statuses
-       WHERE id = $1
+       FROM transversal_schema.catalog_status_types
+       WHERE entity_type = 'contracts' AND code = $1
        LIMIT 1`,
-      [internal_id],
+      [status],
     );
     const v = rows[0]?.external_id;
     return v === undefined || v === null || v.length === 0 ? null : v;

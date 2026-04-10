@@ -1,4 +1,5 @@
 import { Column, Entity, Index } from 'typeorm';
+import { CatalogActivationState } from '@platam/shared';
 import { BaseExternalIdEntity } from '../../../products-data/src/entities/base-external-id.entity';
 
 @Entity({ name: 'currencies', schema: 'transversal_schema' })
@@ -34,4 +35,15 @@ export class CurrencyEntity extends BaseExternalIdEntity {
 
   @Column({ name: 'is_active', type: 'boolean', default: true })
   isActive: boolean;
+
+  /** Refleja `is_active` con tipo de dominio aislado (sin columna adicional). */
+  get state(): CatalogActivationState {
+    return this.isActive
+      ? CatalogActivationState.ACTIVE
+      : CatalogActivationState.INACTIVE;
+  }
+
+  set state(v: CatalogActivationState) {
+    this.isActive = v === CatalogActivationState.ACTIVE;
+  }
 }

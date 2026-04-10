@@ -1,4 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
+import type { ContractCatalogStatus } from '@platam/shared';
 import { CONTRACT_REFERENCE_LOOKUP } from '@common/ports/contract-reference-lookup.port';
 import type { ContractReferenceLookupPort } from '@common/ports/contract-reference-lookup.port';
 import { CONTRACT_REPOSITORY } from '@modules/contracts/contracts.tokens';
@@ -28,9 +29,9 @@ export class ListContractsUseCase {
   async execute(
     query: ListContractsQuery,
   ): Promise<PaginatedResponseDto<ContractPublicResponseDto>> {
-    let status_id: number | undefined;
+    let status: ContractCatalogStatus | undefined;
     if (query.status_external_id !== undefined) {
-      const resolved = await this.lookup.get_contract_status_internal_id_by_external_id(
+      const resolved = await this.lookup.get_contract_catalog_status_by_external_id(
         query.status_external_id,
       );
       if (resolved === null) {
@@ -41,13 +42,13 @@ export class ListContractsUseCase {
           limit: query.limit,
         };
       }
-      status_id = resolved;
+      status = resolved;
     }
 
     const filters = {
       user_id: query.user_id,
       credit_application_internal_id: query.credit_application_id,
-      status_id,
+      status,
     };
 
     const { items, total } = await this.contract_repository.find_page(

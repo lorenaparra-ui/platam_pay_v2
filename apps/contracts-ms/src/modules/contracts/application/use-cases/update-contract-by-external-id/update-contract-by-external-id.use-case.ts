@@ -48,13 +48,13 @@ export class UpdateContractByExternalIdUseCase {
     }
 
     if (command.status_external_id !== undefined) {
-      const status_id = await this.lookup.get_contract_status_internal_id_by_external_id(
+      const status = await this.lookup.get_contract_catalog_status_by_external_id(
         command.status_external_id,
       );
-      if (status_id === null) {
+      if (status === null) {
         throw new NotFoundException('status not found');
       }
-      patch.status_id = status_id;
+      patch.status = status;
     }
 
     if (command.zapsign_token !== undefined) {

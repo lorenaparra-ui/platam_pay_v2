@@ -7,10 +7,8 @@ import { BusinessEntity } from './business.entity';
 export class ShareholderEntity extends BaseExternalIdEntity {
   @ManyToOne(() => BusinessEntity, { nullable: false })
   @JoinColumn({ name: 'business_id', referencedColumnName: 'id' })
-  business: BusinessEntity;
+  businessId: BusinessEntity;
 
-  @RelationId((s: ShareholderEntity) => s.business)
-  businessId: number;
 
   @ManyToOne(() => PersonEntity, { nullable: false })
   @JoinColumn({ name: 'person_id', referencedColumnName: 'id' })
@@ -18,6 +16,13 @@ export class ShareholderEntity extends BaseExternalIdEntity {
 
   @RelationId((s: ShareholderEntity) => s.person)
   personId: number;
+
+  @ManyToOne(() => BusinessEntity, { nullable: true })
+  @JoinColumn({ name: 'shareholder_business_id', referencedColumnName: 'id' })
+  shareholder_business: BusinessEntity | null;
+
+  @RelationId((s: ShareholderEntity) => s.shareholder_business)
+  shareholder_business_id: number | null;
 
   @Column({
     name: 'ownership_percentage',
@@ -48,10 +53,18 @@ export class ShareholderEntity extends BaseExternalIdEntity {
   creditCheckCompleted: boolean;
 
   @Column({
-    name: 'is_legal_representative',
-    type: 'boolean',
-    default: false,
+    name: 'created_at',
+    type: 'timestamptz',
     nullable: false,
+    default: () => 'CURRENT_TIMESTAMP',
   })
-  isLegalRepresentative: boolean;
+  created_at: Date;
+
+  @Column({
+    name: 'updated_at',
+    type: 'timestamptz',
+    nullable: false,
+    default: () => 'CURRENT_TIMESTAMP',
+  })
+  updated_at: Date;
 }

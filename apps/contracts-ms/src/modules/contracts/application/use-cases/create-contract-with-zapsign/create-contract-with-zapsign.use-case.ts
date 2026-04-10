@@ -62,10 +62,10 @@ export class CreateContractWithZapsignUseCase {
       credit_application_internal_id = app_id;
     }
 
-    const status_id = await this.lookup.get_contract_status_internal_id_by_external_id(
+    const status = await this.lookup.get_contract_catalog_status_by_external_id(
       input.status_external_id,
     );
-    if (status_id === null) {
+    if (status === null) {
       throw new NotFoundException('status not found');
     }
 
@@ -139,7 +139,7 @@ export class CreateContractWithZapsignUseCase {
       user_id,
       contract_template_id,
       zapsign_token: signature_result.provider_document_token,
-      status_id,
+      status,
       original_file_url: signature_result.original_file_url,
       signed_file_url: null,
       form_answers_json: merged_form,

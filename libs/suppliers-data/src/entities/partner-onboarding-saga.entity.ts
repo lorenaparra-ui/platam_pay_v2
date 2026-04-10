@@ -5,6 +5,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { PartnerOnboardingSagaStatus } from '@platam/shared';
 
 @Entity({ name: 'partner_onboarding_sagas', schema: 'suppliers_schema' })
 export class PartnerOnboardingSagaEntity {
@@ -18,7 +19,7 @@ export class PartnerOnboardingSagaEntity {
   correlationId: string;
 
   @Column({ type: 'varchar', length: 32 })
-  status: string;
+  status: PartnerOnboardingSagaStatus;
 
   @Column({ name: 'current_step', type: 'smallint', default: 0 })
   currentStep: number;

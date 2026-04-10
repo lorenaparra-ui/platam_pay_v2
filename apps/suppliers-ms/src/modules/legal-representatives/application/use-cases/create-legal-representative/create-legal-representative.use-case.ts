@@ -15,16 +15,10 @@ export class CreateLegalRepresentativeUseCase {
     req: CreateLegalRepresentativeRequest,
   ): Promise<CreateLegalRepresentativeResponse> {
     const created = await this.legal_representatives.create({
+      business_id: req.business_internal_id,
       person_id: req.person_internal_id,
       is_primary: req.is_primary,
     });
-
-    if (req.supplier_internal_id !== null) {
-      await this.legal_representatives.link_to_supplier(
-        created.internal_id,
-        req.supplier_internal_id,
-      );
-    }
 
     return new CreateLegalRepresentativeResponse(created.external_id);
   }

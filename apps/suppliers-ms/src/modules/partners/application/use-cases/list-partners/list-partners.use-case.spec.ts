@@ -3,7 +3,7 @@ import { PARTNER_REPOSITORY } from '@modules/partners/domain/repositories/partne
 import { SUPPLIERS_REFERENCE_LOOKUP } from '@common/ports/suppliers-reference-lookup.port';
 import { ListPartnersUseCase } from './list-partners.use-case';
 import { Partner } from '@modules/partners/domain/entities/partner.entity';
-import { Statuses } from '@platam/shared';
+import { PartnerState } from '@platam/shared';
 
 const now = new Date('2026-01-01T00:00:00Z');
 
@@ -22,7 +22,7 @@ const make_partner = (n: number): Partner =>
     webhook_url: null,
     send_sales_rep_voucher: false,
     disbursement_notification_email: null,
-    state: Statuses.ACTIVE,
+    state: PartnerState.ACTIVE,
     created_at: now,
     updated_at: now,
   });

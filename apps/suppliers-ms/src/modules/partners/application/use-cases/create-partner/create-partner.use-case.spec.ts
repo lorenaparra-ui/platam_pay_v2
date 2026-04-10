@@ -6,7 +6,7 @@ import { DOMAIN_EVENT_BUS } from '@platam/shared';
 import { CreatePartnerUseCase } from './create-partner.use-case';
 import { CreatePartnerRequest } from './create-partner.request';
 import { Partner } from '@modules/partners/domain/entities/partner.entity';
-import { Statuses } from '@platam/shared';
+import { PartnerState } from '@platam/shared';
 
 const now = new Date('2026-01-01T00:00:00Z');
 

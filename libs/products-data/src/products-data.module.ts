@@ -1,23 +1,12 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { SuppliersDataModule, SUPPLIERS_DATA_ENTITIES } from '../../suppliers-data/src/suppliers-data.module';
+import { SuppliersDataModule } from '../../suppliers-data/src/suppliers-data.module';
+import { SUPPLIERS_DATA_ENTITIES } from '../../suppliers-data/src/suppliers-data.entities';
 import { PersonEntity } from '../../transversal-data/src/entities/person.entity';
-import { CategoryEntity } from './entities/category.entity';
-import { ContractEntity } from './entities/contract.entity';
-import { ContractTemplateEntity } from './entities/contract-template.entity';
-import { CreditApplicationEntity } from './entities/credit-application.entity';
-import { CreditFacilityEntity } from './entities/credit-facility.entity';
-import { DocumentEntity } from './entities/document.entity';
 import { ProductsDataService } from './products-data.service';
+import { PRODUCTS_DATA_ENTITIES } from './products-data.entities';
 
-export const PRODUCTS_DATA_ENTITIES = [
-  CreditFacilityEntity,
-  CategoryEntity,
-  CreditApplicationEntity,
-  ContractEntity,
-  ContractTemplateEntity,
-  DocumentEntity,
-] as const;
+export { PRODUCTS_DATA_ENTITIES } from './products-data.entities';
 
 /** Entidades para `TypeOrmModule.forRoot` en microservicios products-ms (incl. relación Business→Person). */
 export const PRODUCTS_MS_TYPEORM_ENTITIES = [

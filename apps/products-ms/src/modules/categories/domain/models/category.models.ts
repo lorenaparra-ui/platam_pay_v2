@@ -1,4 +1,4 @@
-﻿import type { Statuses } from '@platam/shared';
+﻿import type { CategoryState } from '@platam/shared';
 
 export class Category {
   constructor(
@@ -13,7 +13,7 @@ export class Category {
     readonly minimum_disbursement_fee: string | null,
     readonly delay_days: number,
     readonly term_days: number,
-    readonly state: Statuses,
+    readonly state: CategoryState,
     readonly created_at: Date,
     readonly updated_at: Date,
   ) {}
@@ -29,7 +29,7 @@ export interface CreateCategoryProps {
   minimum_disbursement_fee: string | null;
   delay_days: number;
   term_days: number;
-  state: Statuses;
+  state: CategoryState;
 }
 
 export type UpdateCategoryProps = Partial<CreateCategoryProps>;

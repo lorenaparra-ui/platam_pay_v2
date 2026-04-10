@@ -1,6 +1,6 @@
 ﻿import { CategoryEntity } from '@app/products-data';
 import { Category } from '@modules/categories/domain/models/category.models';
-import { Statuses } from '@platam/shared';
+import { CategoryState } from '@platam/shared';
 
 export class CategoryMapper {
   static to_domain(row: CategoryEntity): Category {
@@ -23,11 +23,11 @@ export class CategoryMapper {
   }
 
   static from_raw_row(row: Record<string, unknown>): Category {
-    const state_raw = String(row['state'] ?? Statuses.ACTIVE);
+    const state_raw = String(row['state'] ?? CategoryState.ACTIVE);
     const state =
-      state_raw === Statuses.INACTIVE
-        ? Statuses.INACTIVE
-        : Statuses.ACTIVE;
+      state_raw === CategoryState.INACTIVE
+        ? CategoryState.INACTIVE
+        : CategoryState.ACTIVE;
 
     return new Category(
       Number(row['id']),

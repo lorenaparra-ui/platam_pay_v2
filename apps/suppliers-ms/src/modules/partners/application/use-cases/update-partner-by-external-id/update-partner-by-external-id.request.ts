@@ -1,4 +1,4 @@
-﻿import type { Statuses } from '@platam/shared';
+﻿import type { PartnerState } from '@platam/shared';
 
 export class UpdatePartnerByExternalIdRequest {
   constructor(
@@ -13,6 +13,6 @@ export class UpdatePartnerByExternalIdRequest {
     readonly webhook_url: string | null | undefined,
     readonly send_sales_rep_voucher: boolean | undefined,
     readonly disbursement_notification_email: string | null | undefined,
-    readonly state: Statuses | undefined,
+    readonly state: PartnerState | undefined,
   ) {}
 }

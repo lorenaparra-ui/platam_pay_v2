@@ -1,3 +1,4 @@
+export * from './suppliers-data.entities';
 export * from './entities/bank-account.entity';
 export * from './entities/business.entity';
 export * from './entities/business-seniority.entity';

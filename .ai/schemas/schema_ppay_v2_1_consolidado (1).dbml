@@ -1,0 +1,816 @@
+// ============================================================================
+// PLATAM PAY v2.1 — SCHEMA CONSOLIDADO
+// Fecha: 2026-04-08
+// Consolidación: Schema A (Richard - Core Financiero) + Mejoras Schema B (Lorena)
+// Motor: PostgreSQL 16
+// ============================================================================
+//
+// CAMBIOS APLICADOS vs Schema A:
+// 1. ENUMs nativos para estados en: users, partners, credit_facilities, 
+//    categories, credit_applications, loan_requests, loans, payments
+// 2. Agregadas tablas de Schema B: legal_representatives, currencies, states,
+//    contract_templates, contracts
+// 3. Mantenida estructura flat (sin schemas PostgreSQL)
+// 4. Tabla statuses permanece como catálogo para UI/API
+//
+// ============================================================================
+
+// ── TABLAS BASE ──────────────────────────────────────────────────────────
+
+Table statuses {
+  id bigint [pk]
+  external_id uuid [not null, unique]
+  entity_type varchar(100) [not null]
+  code varchar(50) [not null]
+  display_name varchar(100) [not null]
+  description text
+  is_active boolean [not null, default: true]
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+
+  Indexes {
+    (entity_type, code) [unique]
+  }
+  
+  Note: 'Catálogo centralizado de estados para UI/API. ENUMs nativos en: users.state, partners.state, credit_facilities.state, categories.state, credit_applications.status'
+}
+
+Table roles {
+  id bigint [pk]
+  external_id uuid [not null, unique]
+  name varchar(80) [not null, unique]
+  description text
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+}
+
+Table users {
+  id bigint [pk]
+  external_id uuid [not null, unique]
+  cognito_sub uuid [not null, unique]
+  email varchar [not null, unique]
+  phone varchar [unique]
+  role_id bigint [ref: > roles.id]
+  state varchar [not null, default: 'active', note: 'ENUM: active | inactive']
+  last_login_at timestamptz
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+  
+  Note: 'CAMBIO: state es ENUM nativo (antes status_id FK). email/phone aquí son legacy - nuevos registros usan persons.email/phone'
+}
+
+Table currencies {
+  id bigint [pk]
+  external_id uuid [not null, unique]
+  code varchar(3) [not null, unique, note: 'ISO 4217: COP, USD, etc']
+  name varchar(120) [not null]
+  symbol varchar(10)
+  decimal_places int [not null, default: 2]
+  thousand_separator varchar(1)
+  decimal_separator varchar(1)
+  is_active boolean [not null, default: true]
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+
+  Indexes {
+    code [unique]
+  }
+  
+  Note: 'AGREGADA desde Schema B - Catálogo de monedas para multipaís'
+}
+
+Table states {
+  id bigint [pk]
+  external_id uuid [not null, unique]
+  country_code varchar(2) [not null]
+  state_name varchar(120) [not null]
+  state_code varchar(3)
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+
+  Indexes {
+    (country_code, state_name) [unique]
+  }
+  
+  Note: 'AGREGADA desde Schema B - Catálogo de departamentos/estados'
+}
+
+Table cities {
+  id bigint [pk]
+  external_id uuid [not null, unique]
+  country_name varchar(120) [not null]
+  country_code varchar(2) [not null]
+  state_name varchar(120) [not null]
+  state_code varchar(3)
+  city_name varchar(120) [not null]
+  currency_id bigint [not null, ref: > currencies.id]
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+
+  Indexes {
+    (country_code, state_name, city_name) [unique]
+  }
+}
+
+Table persons {
+  id bigint [pk]
+  external_id uuid [not null, unique]
+  user_id bigint [not null, ref: > users.id]
+  country_code varchar(2)
+  first_name varchar(255) [not null]
+  last_name varchar(255) [not null]
+  doc_type varchar(100) [not null]
+  doc_number varchar [not null, unique]
+  doc_issue_date date
+  birth_date date
+  gender varchar(20)
+  email varchar [unique, note: 'Email se guarda aquí para nuevos registros']
+  phone varchar [unique, note: 'Phone se guarda aquí para nuevos registros']
+  residential_address text
+  business_address text
+  city_id bigint [ref: > cities.id]
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+  
+  Note: 'email y phone agregados aquí según HU-01'
+}
+
+Table businesses {
+  id bigint [pk]
+  external_id uuid [not null, unique]
+  person_id bigint [not null, ref: > persons.id, note: 'CAMBIO: person_id (antes user_id) según HU-01']
+  entity_type varchar(10) [not null, note: 'PN | PJ']
+  business_name varchar(255)
+  legal_name varchar(255)
+  trade_name varchar(255)
+  tax_id varchar(50) [unique]
+  year_of_establishment int
+  relationship_to_business varchar(100) [note: 'Para PN: Único dueño, Socio, Empleado, Familiar']
+  city_id bigint [ref: > cities.id]
+  business_address text
+  business_type varchar(100) [note: 'Código CIIU']
+  country_code varchar(2)
+  business_seniority_id bigint [ref: > business_seniority.id]
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+}
+
+Table business_seniority {
+  id bigint [pk]
+  external_id uuid [not null, unique]
+  description varchar(100) [not null]
+  range_start int [not null]
+  range_end int [not null]
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+}
+
+Table legal_representatives {
+  id bigint [pk]
+  external_id uuid [not null, unique]
+  person_id bigint [not null, ref: > persons.id]
+  business_id bigint [not null, ref: > businesses.id]
+  is_primary boolean [not null, default: false]
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+
+  Indexes {
+    business_id
+    person_id
+  }
+  
+  Note: 'AGREGADA desde Schema B - Soporta múltiples representantes legales por empresa'
+}
+
+Table shareholders {
+  id bigint [pk]
+  external_id uuid [not null, unique]
+  business_id bigint [not null, ref: > businesses.id, note: 'CAMBIO: business_id (antes company_id) según acuerdo']
+  person_id bigint [not null, ref: > persons.id]
+  shareholder_business_id bigint [ref: > businesses.id, note: 'Si el accionista es empresa']
+  ownership_percentage decimal(5,4)
+  evaluation_order int
+  credit_check_required boolean [not null, default: false]
+  credit_check_completed boolean [not null, default: false]
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+}
+
+Table partners {
+  id bigint [pk]
+  external_id uuid [not null, unique]
+  business_id bigint [not null, ref: > businesses.id]
+  alias varchar(100) [unique, note: 'URL slug para landing']
+  acronym varchar(10)
+  logo_url text
+  co_branding_logo_url text
+  primary_color varchar(7)
+  secondary_color varchar(7)
+  light_color varchar(7)
+  notification_email varchar
+  webhook_url text
+  disbursement_notification_email varchar
+  api_key_hash text
+  send_sales_rep_voucher boolean [default: false]
+  default_rep_id bigint [ref: > sales_representatives.id]
+  default_category_ids jsonb [note: 'Array de category IDs predeterminados']
+  sales_rep_role_name varchar(100) [default: 'Sales Rep']
+  sales_rep_role_name_plural varchar(100) [default: 'Sales Reps']
+  country_code varchar(2)
+  state varchar [not null, default: 'active', note: 'CAMBIO: ENUM: active | inactive (antes status_id FK)']
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+  
+  Note: 'CAMBIO: state es ENUM nativo (antes status_id FK)'
+}
+
+Table sales_representatives {
+  id bigint [pk]
+  external_id uuid [not null, unique]
+  partner_id bigint [not null, ref: > partners.id]
+  user_id bigint [ref: > users.id]
+  name varchar(255) [not null]
+  role varchar(100) [not null]
+  status_id bigint [not null, ref: > statuses.id, note: 'Mantiene status_id FK']
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+}
+
+Table bank_accounts {
+  id bigint [pk]
+  external_id uuid [not null, unique]
+  bank_entity varchar(255) [not null]
+  account_type varchar(15) [note: 'SAVINGS | CHECKING']
+  account_number varchar(500) [not null, note: 'cifrado en app']
+  bank_certification text
+  owner_type varchar(15) [note: 'SUPPLIER | PARTNER | CLIENT']
+  owner_id bigint
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+}
+
+Table suppliers {
+  id bigint [pk]
+  external_id uuid [not null, unique]
+  business_id bigint [not null, unique, ref: > businesses.id]
+  bank_account_id bigint [unique, ref: > bank_accounts.id]
+  status_id bigint [ref: > statuses.id]
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+  
+  Note: 'Mantiene tabla separada según HU-C03'
+}
+
+Table permissions {
+  id bigint [pk]
+  external_id uuid [not null, unique]
+  code varchar(120) [not null, unique]
+  description text
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+}
+
+Table role_permissions {
+  id bigint [pk]
+  external_id uuid [not null, unique]
+  role_id bigint [not null, ref: > roles.id]
+  permission_id bigint [not null, ref: > permissions.id]
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+
+  Indexes {
+    (role_id, permission_id) [unique]
+  }
+}
+
+Table documents {
+  id bigint [pk]
+  external_id uuid [not null, unique]
+  document_type varchar [not null]
+  document_url text [note: 'URL S3 del documento']
+  credit_application_id bigint [ref: > credit_applications.id]
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+  
+  Note: 'Vinculado a credit_applications'
+}
+
+// ── MÓDULO DE CRÉDITO ────────────────────────────────────────────────────
+
+Table contract_templates {
+  id bigint [pk]
+  external_id uuid [not null, unique]
+  name varchar(255) [not null]
+  description text
+  template_url text [not null, note: 'URL del template en S3']
+  version varchar(50)
+  is_active boolean [not null, default: true]
+  status_id bigint [not null, ref: > statuses.id]
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+  
+  Note: 'AGREGADA desde Schema B - Templates de contratos'
+}
+
+Table contracts {
+  id bigint [pk]
+  external_id uuid [not null, unique]
+  user_id bigint [not null, ref: > users.id]
+  contract_template_id bigint [not null, ref: > contract_templates.id]
+  signed_contract_url text [note: 'URL del contrato firmado en S3']
+  signature_request_id varchar(255) [note: 'ID de ZapSign']
+  signed_at timestamptz
+  status_id bigint [not null, ref: > statuses.id]
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+  
+  Note: 'AGREGADA desde Schema B - Contratos firmados'
+}
+
+Table credit_facilities {
+  id bigint [pk]
+  external_id uuid [not null, unique]
+  business_id bigint [ref: > businesses.id]
+  contract_id varchar(255)
+  state varchar [not null, default: 'active', note: 'CAMBIO: ENUM: active | suspended | closed (antes status_id FK)']
+  total_limit decimal(18,4) [not null]
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+  
+  Note: 'CAMBIO: state es ENUM nativo (antes status_id FK). Mantiene estructura completa según Schema A'
+}
+
+Table categories {
+  id bigint [pk]
+  external_id uuid [not null, unique]
+  credit_facility_id bigint [not null, ref: > credit_facilities.id]
+  partner_id bigint [ref: > partners.id]
+  name varchar(255) [not null]
+  modality varchar(10) [not null, default: 'BULLET', note: 'BULLET | CUOTAS']
+  discount_percentage decimal(8,4) [not null]
+  interest_rate decimal(8,4) [not null]
+  disbursement_fee_percent decimal(8,4)
+  minimum_disbursement_fee decimal(18,4)
+  delay_days int [not null]
+  term_days int [not null]
+  installment_frequency varchar(10) [note: 'MONTHLY | BIWEEKLY | WEEKLY']
+  installment_count int [note: 'Número de cuotas si modality = CUOTAS']
+  initial_payment_pct decimal(5,4) [default: 0]
+  state varchar [not null, default: 'active', note: 'CAMBIO: ENUM: active | inactive (antes status_id FK)']
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+  
+  Note: 'CAMBIO: state es ENUM nativo (antes status_id FK)'
+}
+
+Table credit_applications {
+  id bigint [pk]
+  external_id uuid [not null, unique]
+  person_id bigint [ref: > persons.id, note: 'CAMBIO: person_id (antes user_id) según HU-01']
+  partner_id bigint [ref: > partners.id]
+  partner_category_ids jsonb [note: 'Array de category IDs - eliminada tabla application_categories']
+  sales_representative_id bigint [ref: > sales_representatives.id]
+  business_id bigint [ref: > businesses.id]
+  number_of_locations int
+  number_of_employees int
+  business_seniority varchar
+  sector_experience varchar
+  business_flagship_m2 int
+  business_has_rent boolean
+  business_rent_amount bigint
+  monthly_income bigint
+  monthly_expenses bigint
+  monthly_purchases bigint
+  current_purchases bigint
+  total_assets bigint
+  requested_credit_line bigint
+  is_current_client boolean [not null, default: false]
+  status varchar [not null, default: 'en_proceso', note: 'CAMBIO: ENUM: en_proceso | duplicado | pendiente_autorizacion | coincidencia_sarlaft | error_consulta_experian | error_agente_ai | en_estudio | error_consulta_hcpj | pendiente_aprobacion | aprobado | rechazado | cancelado (antes status_id FK)']
+  submission_date timestamptz
+  approval_date timestamptz
+  rejection_reason varchar(500)
+  credit_study_date timestamptz
+  credit_score decimal(8,2)
+  credit_decision varchar
+  approved_credit_line bigint
+  analyst_report text
+  risk_profile varchar
+  privacy_policy_accepted boolean [not null, default: false]
+  privacy_policy_date timestamptz
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+  
+  Note: 'CAMBIO: status es ENUM nativo (antes status_id FK). person_id en lugar de user_id. partner_category_ids JSONB'
+}
+
+Table experian_queries {
+  id bigint [pk]
+  external_id uuid [not null, unique]
+  application_id bigint [not null, ref: > credit_applications.id]
+  person_id bigint [ref: > persons.id]
+  business_id bigint [ref: > businesses.id]
+  query_type varchar(10) [not null, note: 'HCPN | HCPJ']
+  credit_report jsonb
+  credit_score decimal(8,2)
+  consulted_at timestamptz [not null]
+  status varchar(20) [not null]
+  error_message text
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+}
+
+Table sarlaft_checks {
+  id bigint [pk]
+  external_id uuid [not null, unique]
+  application_id bigint [not null, ref: > credit_applications.id]
+  person_id bigint [not null, ref: > persons.id]
+  business_id bigint [ref: > businesses.id, note: 'nullable para contexto PJ']
+  has_match boolean [not null]
+  status varchar(20) [not null, note: 'limpio | alerta | bloqueado']
+  consulted_at timestamptz [not null]
+  sources jsonb
+  detail text
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+}
+
+Table web_queries {
+  id bigint [pk]
+  external_id uuid [not null, unique]
+  application_id bigint [not null, ref: > credit_applications.id]
+  query_type varchar(50) [not null, note: 'bdme | rama_judicial']
+  person_id bigint [ref: > persons.id]
+  consulted_at timestamptz [not null]
+  query_result jsonb
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+}
+
+Table ai_agent_analysis {
+  id bigint [pk]
+  external_id uuid [not null, unique]
+  application_id bigint [not null, unique, ref: > credit_applications.id]
+  analysis_result jsonb [not null]
+  recommendation varchar(20) [not null, note: 'HITL | AUTO_APPROVE | AUTO_REJECT']
+  confidence_score decimal(5,4)
+  analyzed_at timestamptz [not null]
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+}
+
+// ── MÓDULO CORE FINANCIERO ───────────────────────────────────────────────
+
+Table loan_requests {
+  id bigint [pk]
+  external_id uuid [not null, unique]
+  credit_facility_id bigint [not null, ref: > credit_facilities.id]
+  category_id bigint [not null, ref: > categories.id]
+  partner_id bigint [ref: > partners.id]
+  supplier_id bigint [ref: > suppliers.id]
+  sales_representative_id bigint [ref: > sales_representatives.id]
+  product_type varchar(20) [not null, note: 'BNPL_PARTNER | BNPL_SUPPLIER']
+  loan_modality varchar(10) [not null, note: 'BULLET | CUOTAS']
+  channel varchar(20) [not null, note: 'SR_PORTAL | CLIENT_PORTAL | API']
+  order_reference varchar(255)
+  requested_amount decimal(18,4) [not null]
+  confirmed_amount decimal(18,4)
+  installment_count int
+  initial_payment_amount decimal(18,4)
+  initial_payment_paid boolean [default: false]
+  requires_client_approval boolean [not null, default: false]
+  client_approved_at timestamptz
+  client_rejection_reason text
+  partner_confirmed_at timestamptz
+  partner_rejection_reason text
+  invoice_url text
+  notes text
+  status varchar [not null, default: 'draft', note: 'CAMBIO: ENUM: draft | pending_client_approval | pending_partner_approval | pending_platam_review | approved | rejected | cancelled (antes status_id FK)']
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+
+  Indexes {
+    credit_facility_id
+    status
+    partner_id
+  }
+  
+  Note: 'CAMBIO: status es ENUM nativo (antes status_id FK)'
+}
+
+Table loans {
+  id bigint [pk]
+  external_id uuid [not null, unique]
+  loan_request_id bigint [ref: > loan_requests.id]
+  credit_facility_id bigint [not null, ref: > credit_facilities.id]
+  category_id bigint [not null, ref: > categories.id]
+  partner_id bigint [ref: > partners.id]
+  supplier_id bigint [ref: > suppliers.id]
+  product_type varchar(20) [not null, note: 'BNPL_PARTNER | BNPL_SUPPLIER']
+  loan_modality varchar(10) [not null, note: 'BULLET | CUOTAS']
+  channel varchar(20) [not null]
+  order_reference varchar(255)
+  facial_value decimal(18,4) [not null]
+  disbursement_fee_amount decimal(18,4) [not null, default: 0]
+  disbursement_fee_iva decimal(18,4) [not null, default: 0]
+  interest_rate_ea decimal(8,6) [not null]
+  mora_rate_type varchar(20) [not null, note: 'USURA | FIJA | CORRIENTE']
+  mora_rate_fixed decimal(8,6)
+  mora_category varchar(50)
+  installment_count int
+  installment_frequency varchar(10)
+  disbursement_date date [not null]
+  due_date date [not null]
+  last_accrual_date date
+  schedule_original jsonb [not null]
+  schedule_current jsonb [not null]
+  outstanding_balance decimal(18,4) [not null]
+  balance_principal_current decimal(18,4) [not null, default: 0]
+  balance_principal_overdue decimal(18,4) [not null, default: 0]
+  balance_interest_current decimal(18,4) [not null, default: 0]
+  balance_interest_overdue decimal(18,4) [not null, default: 0]
+  balance_interest_mora decimal(18,4) [not null, default: 0]
+  balance_fees decimal(18,4) [not null, default: 0]
+  balance_iva decimal(18,4) [not null, default: 0]
+  dias_mora int [not null, default: 0]
+  partner_disbursement_amount decimal(18,4)
+  partner_disbursement_date date
+  partner_disbursement_status varchar(15) [note: 'pending | in_batch | disbursed']
+  partner_disbursement_batch_id bigint [ref: > disbursement_batches.id]
+  status varchar [not null, default: 'active', note: 'CAMBIO: ENUM: active | late | default | paid | cancelled (antes status_id FK)']
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+
+  Indexes {
+    credit_facility_id
+    status
+    disbursement_date
+    due_date
+  }
+  
+  Note: 'CAMBIO: status es ENUM nativo (antes status_id FK). Tabla más consultada del Core'
+}
+
+Table disbursement_batches {
+  id bigint [pk]
+  external_id uuid [not null, unique]
+  disbursement_type varchar(10) [not null, note: 'PARTNER | SUPPLIER']
+  partner_id bigint [ref: > partners.id]
+  batch_type varchar(10) [not null, default: 'MANUAL', note: 'MANUAL | ACH']
+  gross_amount decimal(18,4) [not null, default: 0]
+  adjustments_amount decimal(18,4) [not null, default: 0]
+  net_amount decimal(18,4) [not null, default: 0]
+  total_count int [not null, default: 0]
+  success_count int [default: 0]
+  failed_count int [default: 0]
+  file_url text
+  response_file_url text
+  voucher_url text
+  disbursed_at date
+  generated_by bigint [not null, ref: > users.id]
+  status varchar(20) [not null, note: 'pending | generated | processing | disbursed | partial_failed']
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+}
+
+Table disbursements {
+  id bigint [pk]
+  external_id uuid [not null, unique]
+  disbursement_type varchar(10) [not null, note: 'PARTNER | SUPPLIER']
+  loan_id bigint [ref: > loans.id]
+  loan_request_id bigint [ref: > loan_requests.id]
+  partner_id bigint [ref: > partners.id]
+  supplier_id bigint [ref: > suppliers.id]
+  bank_account_id bigint [not null, ref: > bank_accounts.id]
+  amount decimal(18,4) [not null]
+  batch_id bigint [ref: > disbursement_batches.id]
+  status varchar(10) [not null, note: 'pending | disbursed | failed']
+  disbursed_at timestamptz
+  failure_reason text
+  voucher_url text
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+
+  Indexes {
+    batch_id
+    loan_id
+    status
+  }
+}
+
+Table partner_adjustments {
+  id bigint [pk]
+  external_id uuid [not null, unique]
+  loan_id bigint [not null, ref: > loans.id]
+  partner_id bigint [not null, ref: > partners.id]
+  disbursement_batch_id bigint [ref: > disbursement_batches.id]
+  adjustment_type varchar(25) [not null, note: 'PARTIAL_RETURN | TOTAL_RETURN | CLIENT_PAYS_PARTNER | CATEGORY_CHANGE | OTHER']
+  amount decimal(18,4) [not null]
+  event_date date [not null]
+  affects_loan_balance boolean [not null, default: false]
+  notes text
+  status varchar(10) [not null, default: 'pending', note: 'pending | applied']
+  applied_at timestamptz
+  created_by bigint [not null, ref: > users.id]
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+}
+
+Table payments {
+  id bigint [pk]
+  external_id uuid [not null, unique]
+  credit_facility_id bigint [not null, ref: > credit_facilities.id]
+  channel varchar(20) [not null, note: 'PAYVALIDA | MANUAL_CLIENT | MANUAL_LOAN']
+  payment_type varchar(25) [not null, note: 'PAGO_NORMAL | ABONO_CUOTA | CANCELACION_PARCIAL | CANCELACION_TOTAL | PAGO_A_PARTNER']
+  amount decimal(18,4) [not null]
+  remaining_balance decimal(18,4) [not null, default: 0]
+  payment_date date [not null]
+  payment_method varchar(15) [not null, note: 'PAYVALIDA | TRANSFER | DEPOSIT | OTHER']
+  reference varchar(255)
+  voucher_url text
+  payvalida_tx_id varchar(255)
+  is_partner_payment boolean [not null, default: false]
+  notes text
+  created_by bigint [ref: > users.id]
+  status varchar [not null, default: 'applied', note: 'ENUM: applied | pending_review | reversed']
+  reversed_by_payment_id bigint
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+
+  Indexes {
+    credit_facility_id
+    payment_date
+    status
+  }
+  
+  Note: 'status es varchar (se comporta como ENUM en aplicación)'
+}
+
+Table payment_allocations {
+  id bigint [pk]
+  external_id uuid [not null, unique]
+  payment_id bigint [not null, ref: > payments.id]
+  loan_id bigint [not null, ref: > loans.id]
+  allocated_amount decimal(18,4) [not null]
+  principal_allocated decimal(18,4) [not null, default: 0]
+  current_interest_allocated decimal(18,4) [not null, default: 0]
+  overdue_interest_allocated decimal(18,4) [not null, default: 0]
+  mora_interest_allocated decimal(18,4) [not null, default: 0]
+  fees_allocated decimal(18,4) [not null, default: 0]
+  iva_allocated decimal(18,4) [not null, default: 0]
+  loan_status_after varchar(15) [not null]
+  created_at timestamptz [not null]
+
+  Indexes {
+    payment_id
+    loan_id
+  }
+}
+
+Table credit_balances {
+  id bigint [pk]
+  external_id uuid [not null, unique]
+  credit_facility_id bigint [not null, ref: > credit_facilities.id]
+  payment_id bigint [not null, ref: > payments.id]
+  amount decimal(18,4) [not null]
+  status varchar(20) [not null, default: 'available', note: 'available | consumed | refund_requested | refunded']
+  consumed_by_payment_id bigint
+  consumed_at timestamptz
+  notes text
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+
+  Indexes {
+    credit_facility_id
+    status
+  }
+}
+
+Table global_params {
+  id bigint [pk]
+  external_id uuid [not null, unique]
+  code varchar(100) [not null]
+  value jsonb [not null]
+  description text
+  valid_from date [not null]
+  created_by bigint [not null, ref: > users.id]
+  created_at timestamptz [not null]
+
+  Indexes {
+    (code, valid_from) [unique]
+  }
+}
+
+Table usura_rates {
+  id bigint [pk]
+  external_id uuid [not null, unique]
+  category varchar(25) [not null, note: 'CONSUMO | PRODUCTIVO_URBANO | PRODUCTIVO_RURAL | POPULAR_URBANO | POPULAR_RURAL | MAYOR_MONTO']
+  rate_ea decimal(8,6) [not null]
+  valid_from date [not null]
+  resolution varchar(100)
+  created_by bigint [not null, ref: > users.id]
+  created_at timestamptz [not null]
+
+  Indexes {
+    (category, valid_from) [unique]
+  }
+}
+
+Table collection_fee_rules {
+  id bigint [pk]
+  external_id uuid [not null, unique]
+  days_overdue int [not null]
+  fee_rate decimal(8,6) [not null]
+  valid_from date [not null]
+  created_by bigint [not null, ref: > users.id]
+  created_at timestamptz [not null]
+
+  Indexes {
+    (days_overdue, valid_from) [unique]
+  }
+}
+
+Table accruals {
+  id bigint [pk]
+  loan_id bigint [not null, ref: > loans.id]
+  calculation_date date [not null]
+  balance_principal_overdue decimal(18,4) [not null, default: 0]
+  daily_interest_current decimal(18,4) [not null, default: 0]
+  daily_interest_mora decimal(18,4) [not null, default: 0]
+  daily_fees decimal(18,4) [not null, default: 0]
+  status_after varchar(15) [not null]
+  created_at timestamptz [not null]
+
+  Indexes {
+    (loan_id, calculation_date) [unique]
+    calculation_date
+  }
+}
+
+Table batch_logs {
+  id bigint [pk]
+  batch_type varchar(25) [not null]
+  execution_date date [not null]
+  loans_processed int [not null, default: 0]
+  loans_to_late int [not null, default: 0]
+  loans_to_default int [not null, default: 0]
+  loans_to_paid int [not null, default: 0]
+  total_interest_accrued decimal(18,4) [not null, default: 0]
+  total_mora_accrued decimal(18,4) [not null, default: 0]
+  started_at timestamptz [not null]
+  finished_at timestamptz
+  status varchar(10) [not null, note: 'success | partial | failed']
+  error_log jsonb
+  created_at timestamptz [not null]
+
+  Indexes {
+    (batch_type, execution_date) [unique]
+  }
+}
+
+Table audit_logs {
+  id bigint [pk]
+  external_id uuid [not null, unique]
+  entity_type varchar(20) [not null, note: 'loan | payment | loan_request']
+  entity_id bigint [not null]
+  action varchar(20) [not null, note: 'field_update | reversal | recalculation']
+  field_name varchar(100)
+  old_value jsonb
+  new_value jsonb
+  reason_code varchar(100)
+  notes text
+  performed_by bigint [not null, ref: > users.id]
+  performed_at timestamptz [not null]
+
+  Indexes {
+    (entity_type, entity_id)
+    performed_at
+  }
+}
+
+// ============================================================================
+// CHANGELOG
+// ============================================================================
+//
+// v2.1 - 2026-04-08
+// - ENUM nativos aplicados a:
+//   * users.state
+//   * partners.state
+//   * credit_facilities.state
+//   * categories.state
+//   * credit_applications.status
+//   * loan_requests.status (NUEVO)
+//   * loans.status (NUEVO)
+//   * payments.status (confirmado como ENUM)
+// - status_id FK mantenido en: sales_representatives, suppliers, 
+//   contract_templates, contracts (entidades de baja frecuencia)
+// - Agregadas tablas desde Schema B: legal_representatives, currencies, states,
+//   contract_templates, contracts
+// - Tabla statuses permanece como catálogo para UI/API
+// - Mantenida estructura flat (sin schemas PostgreSQL)
+// - email/phone en persons confirmado
+// - person_id en businesses/credit_applications confirmado
+// - business_id en shareholders confirmado
+// - Todas las tablas del Core Financiero incluidas completas
+// - suppliers mantenida como tabla separada
+//
+// ============================================================================

@@ -40,6 +40,7 @@ import {
   CityEntity,
   PartnerCreateUserSqsIdempotencyEntity,
   PersonEntity,
+  RoleEntity,
   UserEntity,
 } from '@app/transversal-data';
 
@@ -60,6 +61,7 @@ import {
       SalesRepresentativeEntity,
       PartnerCreateUserSqsIdempotencyEntity,
       PersonEntity,
+      RoleEntity,
       UserEntity,
       CityEntity,
     ]),

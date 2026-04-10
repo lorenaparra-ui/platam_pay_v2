@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { ContractCatalogStatus } from '@platam/shared';
 import { CONTRACT_REPOSITORY } from '@modules/contracts/contracts.tokens';
 import { CONTRACT_REFERENCE_LOOKUP } from '@common/ports/contract-reference-lookup.port';
 import { SIGNATURE_PROVIDER } from '@modules/contracts/domain/ports/signature-provider.port';
@@ -15,7 +16,7 @@ const contract_fixture = new Contract(
   null,
   5,
   'zapsign-doc-token',
-  10,
+  ContractCatalogStatus.PENDING,
   'https://orig.example/doc.pdf',
   null,
   { zapsign: { signer_token: 's1' } },
@@ -46,8 +47,8 @@ describe('CreateContractWithZapsignUseCase', () => {
   const mock_lookup = {
     get_user_internal_id_by_external_id: jest.fn(),
     get_application_internal_id_by_external_id: jest.fn(),
-    get_contract_status_internal_id_by_external_id: jest.fn(),
-    get_status_external_id_by_internal_id: jest.fn(),
+    get_contract_catalog_status_by_external_id: jest.fn(),
+    get_contract_status_external_id_by_catalog_status: jest.fn(),
     get_contract_template_internal_id_by_external_id: jest.fn(),
     get_default_contract_template_internal_id: jest.fn(),
     get_contract_template_external_id_by_internal_id: jest.fn(),
@@ -88,7 +89,9 @@ describe('CreateContractWithZapsignUseCase', () => {
   };
 
   it('rechaza si la plantilla no tiene zapsign_template_ref', async () => {
-    mock_lookup.get_contract_status_internal_id_by_external_id.mockResolvedValue(10);
+    mock_lookup.get_contract_catalog_status_by_external_id.mockResolvedValue(
+      ContractCatalogStatus.PENDING,
+    );
     mock_lookup.get_default_contract_template_internal_id.mockResolvedValue(5);
     mock_lookup.get_zapsign_template_ref_by_internal_id.mockResolvedValue(null);
 
@@ -97,7 +100,9 @@ describe('CreateContractWithZapsignUseCase', () => {
   });
 
   it('rechaza si no hay replacements ni template_data útil', async () => {
-    mock_lookup.get_contract_status_internal_id_by_external_id.mockResolvedValue(10);
+    mock_lookup.get_contract_catalog_status_by_external_id.mockResolvedValue(
+      ContractCatalogStatus.PENDING,
+    );
     mock_lookup.get_default_contract_template_internal_id.mockResolvedValue(5);
     mock_lookup.get_zapsign_template_ref_by_internal_id.mockResolvedValue('tpl-ref');
 
@@ -111,13 +116,15 @@ describe('CreateContractWithZapsignUseCase', () => {
   });
 
   it('crea en ZapSign y persiste contrato', async () => {
-    mock_lookup.get_contract_status_internal_id_by_external_id.mockResolvedValue(10);
+    mock_lookup.get_contract_catalog_status_by_external_id.mockResolvedValue(
+      ContractCatalogStatus.PENDING,
+    );
     mock_lookup.get_default_contract_template_internal_id.mockResolvedValue(5);
     mock_lookup.get_zapsign_template_ref_by_internal_id.mockResolvedValue('tpl-zapsign-ref');
     mock_lookup.get_contract_template_external_id_by_internal_id.mockResolvedValue(
       'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
     );
-    mock_lookup.get_status_external_id_by_internal_id.mockResolvedValue(
+    mock_lookup.get_contract_status_external_id_by_catalog_status.mockResolvedValue(
       'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
     );
 
@@ -143,13 +150,13 @@ describe('CreateContractWithZapsignUseCase', () => {
       expect.objectContaining({
         zapsign_token: 'zapsign-doc-token',
         contract_template_id: 5,
-        status_id: 10,
+        status: ContractCatalogStatus.PENDING,
       }),
     );
   });
 
   it('lanza NotFoundException si el status no existe', async () => {
-    mock_lookup.get_contract_status_internal_id_by_external_id.mockResolvedValue(null);
+    mock_lookup.get_contract_catalog_status_by_external_id.mockResolvedValue(null);
 
     await expect(use_case.execute(base_input)).rejects.toBeInstanceOf(NotFoundException);
   });

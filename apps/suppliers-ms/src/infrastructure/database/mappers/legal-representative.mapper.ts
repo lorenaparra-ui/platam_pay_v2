@@ -6,6 +6,7 @@ export const LegalRepresentativeMapper = {
     return new LegalRepresentative(
       Number(row.id),
       row.externalId,
+      row.businessId,
       row.personId,
       row.isPrimary,
       row.createdAt,
@@ -17,6 +18,7 @@ export const LegalRepresentativeMapper = {
     return new LegalRepresentative(
       Number(row.id),
       String(row.external_id),
+      Number(row.business_id),
       Number(row.person_id),
       Boolean(row.is_primary),
       row.created_at as Date,

@@ -1,5 +1,5 @@
 import { Entity } from '@platam/shared';
-import type { Statuses } from '@platam/shared';
+import type { PartnerState } from '@platam/shared';
 
 export interface PartnerProps {
   readonly internal_id: number;
@@ -15,7 +15,7 @@ export interface PartnerProps {
   readonly webhook_url: string | null;
   readonly send_sales_rep_voucher: boolean;
   readonly disbursement_notification_email: string | null;
-  readonly state: Statuses;
+  readonly state: PartnerState;
   readonly created_at: Date;
   readonly updated_at: Date;
 }
@@ -81,7 +81,7 @@ export class Partner extends Entity<PartnerProps> {
     return this.props.disbursement_notification_email;
   }
 
-  get state(): Statuses {
+  get state(): PartnerState {
     return this.props.state;
   }
 
@@ -123,5 +123,5 @@ export type UpdatePartnerProps = Partial<{
   webhook_url: string | null;
   send_sales_rep_voucher: boolean;
   disbursement_notification_email: string | null;
-  state: Statuses;
+  state: PartnerState;
 }>;

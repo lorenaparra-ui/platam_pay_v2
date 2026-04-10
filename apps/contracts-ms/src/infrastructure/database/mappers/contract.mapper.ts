@@ -1,5 +1,17 @@
 import { ContractEntity } from '@app/products-data';
+import type { ContractCatalogStatus } from '@platam/shared';
 import { Contract } from '@modules/contracts/domain/models/contract.models';
+
+function parse_contract_state(value: unknown): ContractCatalogStatus {
+  if (
+    value === ContractCatalogStatus.PENDING ||
+    value === ContractCatalogStatus.SIGNED ||
+    value === ContractCatalogStatus.CANCELLED
+  ) {
+    return value;
+  }
+  return ContractCatalogStatus.PENDING;
+}
 
 export class ContractMapper {
   static to_domain(row: ContractEntity): Contract {
@@ -9,7 +21,7 @@ export class ContractMapper {
       row.userId ?? null,
       row.contractTemplateId ?? null,
       row.zapsignToken ?? null,
-      row.statusId,
+      row.state,
       row.originalFileUrl ?? null,
       row.signedFileUrl ?? null,
       row.formAnswersJson ?? null,
@@ -32,7 +44,7 @@ export class ContractMapper {
       row['zapsign_token'] === null || row['zapsign_token'] === undefined
         ? null
         : String(row['zapsign_token']),
-      Number(row['status_id']),
+      parse_contract_state(row['state']),
       row['original_file_url'] === null || row['original_file_url'] === undefined
         ? null
         : String(row['original_file_url']),

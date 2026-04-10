@@ -77,6 +77,24 @@
         "tsConfigPath": "libs/transversal-data/tsconfig.lib.json"
       }
     },
+    "disbursement-data": {
+      "type": "library",
+      "root": "libs/disbursement-data",
+      "entryFile": "index",
+      "sourceRoot": "libs/disbursement-data/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/disbursement-data/tsconfig.lib.json"
+      }
+    },
+    "collections-data": {
+      "type": "library",
+      "root": "libs/collections-data",
+      "entryFile": "index",
+      "sourceRoot": "libs/collections-data/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/collections-data/tsconfig.lib.json"
+      }
+    },
     "shared": {
       "type": "library",
       "root": "libs/shared",

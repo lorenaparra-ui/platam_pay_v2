@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
+import { ContractCatalogStatus } from '@platam/shared';
 import { CONTRACT_REFERENCE_LOOKUP } from '@common/ports/contract-reference-lookup.port';
 import { CONTRACT_REPOSITORY } from '@modules/contracts/contracts.tokens';
 import { CreateContractUseCase } from './create-contract.use-case';
@@ -13,8 +14,8 @@ describe('CreateContractUseCase', () => {
   const mock_lookup = {
     get_user_internal_id_by_external_id: jest.fn(),
     get_application_internal_id_by_external_id: jest.fn(),
-    get_contract_status_internal_id_by_external_id: jest.fn(),
-    get_status_external_id_by_internal_id: jest.fn(),
+    get_contract_catalog_status_by_external_id: jest.fn(),
+    get_contract_status_external_id_by_catalog_status: jest.fn(),
     get_contract_template_internal_id_by_external_id: jest.fn(),
     get_default_contract_template_internal_id: jest.fn(),
     get_contract_template_external_id_by_internal_id: jest.fn(),
@@ -48,9 +49,11 @@ describe('CreateContractUseCase', () => {
 
   it('crea y devuelve respuesta pública', async () => {
     mock_lookup.get_user_internal_id_by_external_id.mockResolvedValue(10);
-    mock_lookup.get_contract_status_internal_id_by_external_id.mockResolvedValue(20);
+    mock_lookup.get_contract_catalog_status_by_external_id.mockResolvedValue(
+      ContractCatalogStatus.PENDING,
+    );
     mock_lookup.get_default_contract_template_internal_id.mockResolvedValue(99);
-    mock_lookup.get_status_external_id_by_internal_id.mockResolvedValue(
+    mock_lookup.get_contract_status_external_id_by_catalog_status.mockResolvedValue(
       'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
     );
     mock_lookup.get_contract_template_external_id_by_internal_id.mockResolvedValue(
@@ -63,7 +66,7 @@ describe('CreateContractUseCase', () => {
       10,
       99,
       null,
-      20,
+      ContractCatalogStatus.PENDING,
       null,
       null,
       null,
@@ -87,9 +90,11 @@ describe('CreateContractUseCase', () => {
   });
 
   it('crea sin titular en users cuando no se envía user_external_id', async () => {
-    mock_lookup.get_contract_status_internal_id_by_external_id.mockResolvedValue(20);
+    mock_lookup.get_contract_catalog_status_by_external_id.mockResolvedValue(
+      ContractCatalogStatus.PENDING,
+    );
     mock_lookup.get_default_contract_template_internal_id.mockResolvedValue(99);
-    mock_lookup.get_status_external_id_by_internal_id.mockResolvedValue(
+    mock_lookup.get_contract_status_external_id_by_catalog_status.mockResolvedValue(
       'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
     );
     mock_lookup.get_contract_template_external_id_by_internal_id.mockResolvedValue(
@@ -102,7 +107,7 @@ describe('CreateContractUseCase', () => {
       null,
       99,
       null,
-      20,
+      ContractCatalogStatus.PENDING,
       null,
       null,
       null,

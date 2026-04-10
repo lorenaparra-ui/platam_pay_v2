@@ -1,6 +1,6 @@
 ﻿import { Inject, Injectable, Logger } from '@nestjs/common';
 import type { UseCase } from '@platam/shared';
-import { Statuses } from '@platam/shared';
+import { CategoryState, CreditFacilityState } from '@platam/shared';
 import { TransversalInboundMessageDto } from '../dto/transversal-inbound-message.dto';
 import { TransversalEventType } from '../dto/transversal-outbound-event.dto';
 import { CreateCreditFacilityUseCase } from '@modules/credit-facilities/application/use-cases/create-credit-facility/create-credit-facility.use-case';
@@ -36,18 +36,30 @@ type CategoryBatchPayload = Readonly<{
   categories?: CategoryItemPayload[];
 }>;
 
-function parse_facility_state(raw: string | undefined): Statuses | null {
+function parse_credit_facility_state(
+  raw: string | undefined,
+): CreditFacilityState | null {
   if (raw === undefined) {
     return null;
   }
   const v = raw.trim().toLowerCase();
-  if (v === Statuses.ACTIVE) {
-    return Statuses.ACTIVE;
+  if (v === CreditFacilityState.ACTIVE) {
+    return CreditFacilityState.ACTIVE;
   }
-  if (v === Statuses.INACTIVE) {
-    return Statuses.INACTIVE;
+  if (v === CreditFacilityState.INACTIVE) {
+    return CreditFacilityState.INACTIVE;
   }
   return null;
+}
+
+function parse_category_state(raw: string | undefined): CategoryState | null {
+  const cf = parse_credit_facility_state(raw);
+  if (cf === null) {
+    return null;
+  }
+  return cf === CreditFacilityState.ACTIVE
+    ? CategoryState.ACTIVE
+    : CategoryState.INACTIVE;
 }
 
 @Injectable()
@@ -84,7 +96,7 @@ export class ProcessProductsInboundMessageUseCase
     const payload = dto.payload as CreditFacilityPayload;
     const external_id = payload.credit_facility_external_id;
     const total_limit = payload.total_limit;
-    const state = parse_facility_state(payload.state);
+    const state = parse_credit_facility_state(payload.state);
     if (
       external_id === undefined ||
       external_id.length === 0 ||
@@ -124,7 +136,7 @@ export class ProcessProductsInboundMessageUseCase
   ): Promise<void> {
     const payload = dto.payload as CategoryBatchPayload;
     const cf = payload.credit_facility_external_id;
-    const state = parse_facility_state(payload.state);
+    const state = parse_category_state(payload.state);
     const categories = payload.categories;
     if (
       cf === undefined ||

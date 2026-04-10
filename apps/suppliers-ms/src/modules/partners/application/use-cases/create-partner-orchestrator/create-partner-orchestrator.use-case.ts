@@ -1,5 +1,9 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { new_uuid, Statuses } from '@platam/shared';
+import {
+  CreditFacilityState,
+  new_uuid,
+  PartnerOnboardingSagaStatus,
+} from '@platam/shared';
 import { CreateBusinessUseCase } from '@modules/businesses/application/use-cases/create-business/create-business.use-case';
 import { CreateBusinessRequest } from '@modules/businesses/application/use-cases/create-business/create-business.request';
 import { CreateBankAccountUseCase } from '@modules/bank-accounts/application/use-cases/create-bank-account/create-bank-account.use-case';
@@ -106,7 +110,7 @@ export class CreatePartnerOrchestratorUseCase {
     await this.saga_repository.create_initial({
       external_id: saga_external_id,
       correlation_id,
-      status: 'RUNNING',
+      status: PartnerOnboardingSagaStatus.RUNNING,
       current_step: 0,
     });
 
@@ -146,7 +150,7 @@ export class CreatePartnerOrchestratorUseCase {
         credit_facility_external_id,
         contract_id: command.contract_id,
         total_limit: command.total_limit,
-        state: Statuses.INACTIVE,
+        state: CreditFacilityState.INACTIVE,
       });
       created.credit_facility_external_id = credit_facility_external_id;
       await this.publish_create_credit_facility.execute({
@@ -154,7 +158,7 @@ export class CreatePartnerOrchestratorUseCase {
         external_id: credit_facility_external_id,
         contract_id: command.contract_id,
         total_limit: command.total_limit,
-        state: Statuses.INACTIVE,
+        state: CreditFacilityState.INACTIVE,
       });
       await this.saga_repository.update_by_external_id(saga_external_id, { current_step: 1 });
 
@@ -252,7 +256,7 @@ export class CreatePartnerOrchestratorUseCase {
       let legal_representative_external_id: string | null = null;
       if (lr !== null) {
         const lr_row = await this.create_legal_representative.execute(
-          new CreateLegalRepresentativeRequest(person_internal_id, true, supplier.internal_id),
+          new CreateLegalRepresentativeRequest(person_internal_id, true, business.internal_id),
         );
         legal_representative_external_id = lr_row.external_id;
       }
@@ -299,11 +303,11 @@ export class CreatePartnerOrchestratorUseCase {
       this.log_step(9, correlation_id, 'activar credit_facility → ACTIVE');
       await this.credit_facility_sync.update_credit_facility_state(
         credit_facility_external_id,
-        Statuses.ACTIVE,
+        CreditFacilityState.ACTIVE,
       );
       await this.saga_repository.update_by_external_id(saga_external_id, {
         current_step: 9,
-        status: 'COMPLETED',
+        status: PartnerOnboardingSagaStatus.COMPLETED,
         credit_facility_external_id,
         partner_external_id: partner.external_id,
       });
@@ -332,14 +336,14 @@ export class CreatePartnerOrchestratorUseCase {
         `[Saga][FAILED][correlation_id=${correlation_id}] ${message}`,
       );
       await this.saga_repository.update_by_external_id(saga_external_id, {
-        status: 'COMPENSATING',
+        status: PartnerOnboardingSagaStatus.COMPENSATING,
         error_message: message,
       });
 
       await this.compensate(correlation_id, created);
 
       await this.saga_repository.update_by_external_id(saga_external_id, {
-        status: 'FAILED',
+        status: PartnerOnboardingSagaStatus.FAILED,
       });
     }
   }

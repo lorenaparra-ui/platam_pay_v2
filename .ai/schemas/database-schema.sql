@@ -37,7 +37,7 @@ CREATE SCHEMA IF NOT EXISTS products_schema;
 -- ---------------------------------------------------------------------------
 -- Catálogo de estados (fuente de verdad para tablas que usan status_id FK)
 -- ---------------------------------------------------------------------------
-CREATE TABLE transversal_schema.statuses (
+CREATE TABLE transversal_schema.catalog_status_types (
   id           BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   external_id  UUID         NOT NULL UNIQUE DEFAULT gen_random_uuid(),
   entity_type  VARCHAR(100) NOT NULL,
@@ -47,12 +47,12 @@ CREATE TABLE transversal_schema.statuses (
   is_active    BOOLEAN      NOT NULL DEFAULT TRUE,
   created_at   TIMESTAMPTZ  NOT NULL DEFAULT now(),
   updated_at   TIMESTAMPTZ  NOT NULL DEFAULT now(),
-  CONSTRAINT uq_statuses_entity_code UNIQUE (entity_type, code)
+  CONSTRAINT uq_catalog_status_types_entity_code UNIQUE (entity_type, code)
 );
 
-CREATE INDEX idx_statuses_entity_type ON transversal_schema.statuses (entity_type);
-COMMENT ON TABLE  transversal_schema.statuses IS 'Catálogo maestro de estados. Validado por trigger validate_status_entity().';
-COMMENT ON COLUMN transversal_schema.statuses.entity_type IS 'Entidad dueña: contracts, credit_applications, sales_representatives, contract_templates, etc.';
+CREATE INDEX idx_catalog_status_types_entity_type ON transversal_schema.catalog_status_types (entity_type);
+COMMENT ON TABLE  transversal_schema.catalog_status_types IS 'Catálogo maestro de estados. Validado por trigger validate_status_entity().';
+COMMENT ON COLUMN transversal_schema.catalog_status_types.entity_type IS 'Entidad dueña: contracts, credit_applications, sales_representatives, contract_templates, etc.';
 
 
 -- ---------------------------------------------------------------------------
@@ -218,7 +218,7 @@ CREATE TABLE transversal_schema.partner_create_user_sqs_idempotency (
 CREATE OR REPLACE FUNCTION transversal_schema.get_status_id(p_entity_type TEXT, p_code TEXT)
 RETURNS BIGINT
 LANGUAGE sql STABLE AS $$
-  SELECT id FROM transversal_schema.statuses
+  SELECT id FROM transversal_schema.catalog_status_types
   WHERE entity_type = p_entity_type AND code = p_code AND is_active = TRUE
   LIMIT 1;
 $$;
@@ -248,7 +248,7 @@ BEGIN
   END IF;
 
   SELECT entity_type INTO actual_entity
-  FROM transversal_schema.statuses
+  FROM transversal_schema.catalog_status_types
   WHERE id = incoming_id AND is_active = TRUE;
 
   IF actual_entity IS NULL THEN
@@ -410,7 +410,7 @@ CREATE TABLE suppliers_schema.sales_representatives (
   -- Columnas en BD no mapeadas en entidad TypeORM (pendiente de mapear):
   name        VARCHAR(255),
   role        VARCHAR(100),
-  status_id   BIGINT REFERENCES transversal_schema.statuses(id),
+  status_id   BIGINT REFERENCES transversal_schema.catalog_status_types(id),
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -483,7 +483,7 @@ CREATE TABLE products_schema.contract_templates (
   effective_from       TIMESTAMPTZ,
   effective_to         TIMESTAMPTZ,
   zapsign_template_ref VARCHAR(255),
-  status_id            BIGINT       NOT NULL REFERENCES transversal_schema.statuses(id),
+  status_id            BIGINT       NOT NULL REFERENCES transversal_schema.catalog_status_types(id),
   created_at           TIMESTAMPTZ  NOT NULL DEFAULT now(),
   updated_at           TIMESTAMPTZ  NOT NULL DEFAULT now()
 );
@@ -505,7 +505,7 @@ CREATE TABLE products_schema.contracts (
   user_id              BIGINT  REFERENCES transversal_schema.users(id),
   contract_template_id BIGINT  REFERENCES products_schema.contract_templates(id),
   zapsign_token        VARCHAR UNIQUE,
-  status_id            BIGINT  NOT NULL REFERENCES transversal_schema.statuses(id),
+  status_id            BIGINT  NOT NULL REFERENCES transversal_schema.catalog_status_types(id),
   original_file_url    TEXT,
   signed_file_url      TEXT,
   form_answers_json    JSONB,
@@ -601,7 +601,7 @@ CREATE TABLE products_schema.credit_applications (
   total_assets          BIGINT,   -- centavos/mínima unidad
   requested_credit_line BIGINT,   -- centavos/mínima unidad
   is_current_client     BOOLEAN   NOT NULL DEFAULT FALSE,
-  status_id             BIGINT    NOT NULL REFERENCES transversal_schema.statuses(id),
+  status_id             BIGINT    NOT NULL REFERENCES transversal_schema.catalog_status_types(id),
   submission_date       TIMESTAMPTZ,
   approval_date         TIMESTAMPTZ,
   rejection_reason      VARCHAR(500),
@@ -650,7 +650,7 @@ DO $$
 DECLARE t TEXT;
 BEGIN
   FOREACH t IN ARRAY ARRAY[
-    'transversal_schema.statuses',
+    'transversal_schema.catalog_status_types',
     'transversal_schema.roles',
     'transversal_schema.permissions',
     'transversal_schema.role_permissions',

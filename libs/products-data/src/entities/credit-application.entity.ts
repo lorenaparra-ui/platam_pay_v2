@@ -1,36 +1,41 @@
 import {
   Column,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   OneToOne,
 } from 'typeorm';
-import { SalesRepresentativeEntity } from '@app/suppliers-data';
-import { StatusesCreditApplications } from '@platam/shared';
+import { SalesRepresentativeEntity } from '../../../suppliers-data/src/entities/sales-representative.entity';
+import { CreditApplicationStatus } from '@platam/shared';
 import { BaseExternalIdEntity } from './base-external-id.entity';
 import { ContractEntity } from './contract.entity';
-
+import { PersonEntity } from '@app/transversal-data';
+import { BusinessEntity, PartnersEntity } from '@app/suppliers-data';
+import { CategoryEntity } from './category.entity';
 
 @Entity({ name: 'credit_applications', schema: 'products_schema' })
+@Index('IDX_credit_applications_partner_created_at', ['partner', 'createdAt'])
+@Index('IDX_credit_applications_person_created_at', ['person', 'createdAt'])
 export class CreditApplicationEntity extends BaseExternalIdEntity {
-  @Column({ name: 'person_id', type: 'bigint', nullable: true })
-  personId: number | null;
+  @ManyToOne(
+    () => PersonEntity,
+    { nullable: true, onDelete: 'SET NULL', onUpdate: 'CASCADE' }
+  )
+  @JoinColumn({ name: 'person_id', referencedColumnName: 'id' })
+  person: PersonEntity | null;
 
-  @Column({ name: 'partner_id', type: 'bigint', nullable: true })
-  partnerId: number | null;
+  @ManyToOne(() => PartnersEntity, { nullable: true, onDelete: 'SET NULL', onUpdate: 'CASCADE' })
+  @JoinColumn({ name: 'partner_id', referencedColumnName: 'id' })
+  partner: PartnersEntity | null;
 
-  @Column({ name: 'partner_category_id', type: 'bigint', nullable: true })
-  partnerCategoryId: number | null;
+  @ManyToOne(() => CategoryEntity, { nullable: true, onDelete: 'SET NULL', onUpdate: 'CASCADE' })
+  @JoinColumn({ name: 'partner_category_id', referencedColumnName: 'id' })
+  partnerCategory: CategoryEntity | null;
 
-  @Column({ name: 'business_id', type: 'bigint', nullable: true })
-  businessId: number | null;
-
-  @ManyToOne(() => SalesRepresentativeEntity, { nullable: true })
-  @JoinColumn({
-    name: 'sales_representative_id',
-    referencedColumnName: 'id',
-  })
-  salesRepresentative: SalesRepresentativeEntity | null;
+  @ManyToOne(() => BusinessEntity, { nullable: true, onDelete: 'SET NULL', onUpdate: 'CASCADE' })
+  @JoinColumn({ name: 'business_id', referencedColumnName: 'id' })
+  business: BusinessEntity | null;
 
   @Column({ name: 'number_of_locations', type: 'int', nullable: true })
   numberOfLocations: number | null;
@@ -82,15 +87,11 @@ export class CreditApplicationEntity extends BaseExternalIdEntity {
   @Column({
     name: 'status',
     type: 'enum',
-    enum: StatusesCreditApplications,
+    enum: CreditApplicationStatus,
     enumName: 'credit_application_status',
-    default: StatusesCreditApplications.IN_PROGRESS,
+    default: CreditApplicationStatus.IN_PROGRESS,
   })
-  status: StatusesCreditApplications;
-
-  @OneToOne(() => ContractEntity, { nullable: true })
-  @JoinColumn({ name: 'contract_id', referencedColumnName: 'id' })
-  contract: ContractEntity | null;
+  status: CreditApplicationStatus;
 
   @Column({ name: 'submission_date', type: 'timestamptz', nullable: true })
   submissionDate: Date | null;
@@ -140,4 +141,13 @@ export class CreditApplicationEntity extends BaseExternalIdEntity {
 
   @Column({ name: 'privacy_policy_date', type: 'timestamptz', nullable: true })
   privacyPolicyDate: Date | null;
+
+  // Relaciones al final
+  @ManyToOne(() => SalesRepresentativeEntity, { nullable: false })
+  @JoinColumn({
+    name: 'sales_representative_id',
+    referencedColumnName: 'id',
+  })
+  salesRepresentative: SalesRepresentativeEntity 
+
 }

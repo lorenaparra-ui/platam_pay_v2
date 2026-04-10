@@ -1,4 +1,4 @@
-/** Catálogo transversal_schema.statuses (exposición HTTP por external_id). */
+/** Catálogo transversal_schema.catalog_status_types (exposición HTTP por external_id). */
 export interface CatalogStatus {
   id: number;
   external_id: string;

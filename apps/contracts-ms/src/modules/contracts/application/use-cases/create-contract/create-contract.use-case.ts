@@ -37,10 +37,10 @@ export class CreateContractUseCase {
       credit_application_internal_id = app_id;
     }
 
-    const status_id = await this.lookup.get_contract_status_internal_id_by_external_id(
+    const status = await this.lookup.get_contract_catalog_status_by_external_id(
       command.status_external_id,
     );
-    if (status_id === null) {
+    if (status === null) {
       throw new NotFoundException('status not found');
     }
 
@@ -66,7 +66,7 @@ export class CreateContractUseCase {
       user_id,
       contract_template_id,
       zapsign_token: command.zapsign_token ?? null,
-      status_id,
+      status,
       original_file_url: command.original_file_url ?? null,
       signed_file_url: command.signed_file_url ?? null,
       form_answers_json: command.form_answers_json ?? null,

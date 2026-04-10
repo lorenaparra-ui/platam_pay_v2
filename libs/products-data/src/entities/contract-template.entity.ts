@@ -1,32 +1,32 @@
 import { Column, Entity } from 'typeorm';
+import { ContractTemplateCatalogStatus } from '@platam/shared';
 import { BaseExternalIdEntity } from './base-external-id.entity';
 
-/**
- * Plantilla de contrato versionada (products_schema.contract_templates).
- * Agrupación lógica por template_family_key (sin tabla de familias).
- */
 @Entity({ name: 'contract_templates', schema: 'products_schema' })
 export class ContractTemplateEntity extends BaseExternalIdEntity {
-  @Column({ name: 'template_family_key', type: 'varchar', length: 120 })
-  templateFamilyKey: string;
+  @Column({ name: 'name', type: 'varchar', length: 255, nullable: false })
+  name: string;
 
-  @Column({ name: 'version', type: 'int' })
-  version: number;
+  @Column({ name: 'description', type: 'text', nullable: true })
+  description: string | null;
 
-  @Column({ name: 'effective_from', type: 'timestamptz', nullable: true })
-  effectiveFrom: Date | null;
+  @Column({ 
+    name: 'template_url', 
+    type: 'text', 
+    nullable: false, 
+    comment: 'URL del template en S3' 
+  })
+  templateUrl: string;
 
-  @Column({ name: 'effective_to', type: 'timestamptz', nullable: true })
-  effectiveTo: Date | null;
+  @Column({ name: 'version', type: 'varchar', length: 50, nullable: true })
+  version: string | null;
 
   @Column({
-    name: 'zapsign_template_ref',
-    type: 'varchar',
-    length: 255,
-    nullable: true,
+    name: 'state',
+    type: 'enum',
+    enum: ContractTemplateCatalogStatus,
+    enumName: 'credit_facility_state',
+    default: ContractTemplateCatalogStatus.ACTIVE,
   })
-  zapsignTemplateRef: string | null;
-
-  @Column({ name: 'status_id', type: 'bigint' })
-  statusId: number;
+  state: ContractTemplateCatalogStatus;
 }

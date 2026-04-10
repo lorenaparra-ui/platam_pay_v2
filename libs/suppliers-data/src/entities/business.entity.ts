@@ -1,7 +1,8 @@
-import { Column, Entity, JoinColumn, ManyToOne, RelationId } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToOne, RelationId } from 'typeorm';
 import { PersonEntity } from '../../../transversal-data/src/entities/person.entity';
 import { BaseExternalIdEntity } from './base-external-id.entity';
 import { BusinessSeniorityEntity } from './business-seniority.entity';
+import { CityEntity } from '../../../transversal-data/src/entities/city.entity';
 
 @Entity({ name: 'businesses', schema: 'suppliers_schema' })
 export class BusinessEntity extends BaseExternalIdEntity {
@@ -19,8 +20,9 @@ export class BusinessEntity extends BaseExternalIdEntity {
   @RelationId((b: BusinessEntity) => b.businessSeniority)
   businessSeniorityId: number | null;
 
-  @Column({ name: 'city_id', type: 'bigint', nullable: true })
-  cityId: number | null;
+  @OneToOne(() => CityEntity, { nullable: false })
+  @JoinColumn({ name: 'city_id', referencedColumnName: 'id' })
+  city: CityEntity;
 
   @Column({ name: 'entity_type', type: 'varchar', length: 10 })
   entityType: string;

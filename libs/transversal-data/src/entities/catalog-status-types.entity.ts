@@ -1,7 +1,8 @@
 import { Column, Entity, Index } from 'typeorm';
+import { CatalogActivationState } from '@platam/shared';
 import { BaseExternalIdEntity } from '../../../products-data/src/entities/base-external-id.entity';
 
-@Entity({ name: 'statuses', schema: 'transversal_schema' })
+@Entity({ name: 'catalog_status_types', schema: 'transversal_schema' })
 @Index(['entityType', 'code'], { unique: true })
 export class StatusEntity extends BaseExternalIdEntity {
   @Column({ name: 'entity_type', type: 'varchar', length: 100 })
@@ -18,4 +19,15 @@ export class StatusEntity extends BaseExternalIdEntity {
 
   @Column({ name: 'is_active', type: 'boolean', default: true })
   isActive: boolean;
+
+  /** Refleja `is_active` con tipo de dominio aislado (sin columna adicional). */
+  get state(): CatalogActivationState {
+    return this.isActive
+      ? CatalogActivationState.ACTIVE
+      : CatalogActivationState.INACTIVE;
+  }
+
+  set state(v: CatalogActivationState) {
+    this.isActive = v === CatalogActivationState.ACTIVE;
+  }
 }

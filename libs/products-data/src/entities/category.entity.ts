@@ -1,8 +1,8 @@
 ﻿import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
-import { Statuses } from '@platam/shared';
+import { CategoryState, InstallmentFrequencyTypes, ModalityTypes } from '@platam/shared';
 import { BaseExternalIdEntity } from './base-external-id.entity';
 import { CreditFacilityEntity } from './credit-facility.entity';
-import { PartnersEntity } from '../../../suppliers-data/src/entities/partners.entity';
+import { PartnersEntity } from '@app/suppliers-data';
 
 /**
  * Entidad TypeORM para categories.
@@ -10,14 +10,18 @@ import { PartnersEntity } from '../../../suppliers-data/src/entities/partners.en
  */
 @Entity({ name: 'categories', schema: 'products_schema' })
 export class CategoryEntity extends BaseExternalIdEntity {
-  @Column({ name: 'credit_facility_id', type: 'bigint' })
-  creditFacilityId: number;
-
-  @Column({ name: 'partner_id', type: 'bigint', nullable: true })
-  partnerId: number | null;
+ 
 
   @Column({ name: 'name', type: 'varchar', length: 255 })
   name: string;
+
+  @Column({
+    name: 'modality',
+    type: 'enum',
+    enum: ModalityTypes,
+    enumName: 'loan_request_modality',
+  })
+  modality: ModalityTypes;
 
   @Column({
     name: 'discount_percentage',
@@ -59,14 +63,29 @@ export class CategoryEntity extends BaseExternalIdEntity {
   @Column({ name: 'term_days', type: 'int' })
   termDays: number;
 
+  
+  @Column({
+    name: 'installment_frequency',
+    type: 'enum',
+    enum: InstallmentFrequencyTypes,
+    enumName: 'category_installment_frequency',
+  })
+  installmentFrequency: InstallmentFrequencyTypes;
+  
+  @Column({ name: 'installment_count', type: 'int' })
+  installmentCount: number;
+  
+  @Column({ name: 'initial_payment_pct', type: 'decimal', precision: 8, scale: 4 })
+  initialPaymentPct: string;
+  
   @Column({
     name: 'state',
     type: 'enum',
-    enum: Statuses,
+    enum: CategoryState,
     enumName: 'credit_facility_state',
-    default: Statuses.ACTIVE,
+    default: CategoryState.ACTIVE,
   })
-  state: Statuses;
+  state: CategoryState;
 
   @ManyToOne(() => CreditFacilityEntity, (cf) => cf.categories, {
     onDelete: 'CASCADE',
@@ -74,7 +93,7 @@ export class CategoryEntity extends BaseExternalIdEntity {
   @JoinColumn({ name: 'credit_facility_id' })
   creditFacility: CreditFacilityEntity;
 
-  @ManyToOne(() => PartnersEntity, {
+  @ManyToOne(() => PartnersEntity, (p) => p.categories, {
     nullable: true,
     onDelete: 'SET NULL',
     onUpdate: 'CASCADE',

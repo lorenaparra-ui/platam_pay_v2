@@ -16,7 +16,7 @@ import {
   ValidateIf,
   ValidateNested,
 } from 'class-validator';
-import { Statuses } from '@platam/shared';
+import { PartnerState } from '@platam/shared';
 import { PartnerCategoryPayloadDto } from './create-partner-payload.dto';
 
 /**
@@ -218,12 +218,12 @@ export class UpdatePartnerSectionPayloadDto {
   disbursementNotificationEmail?: string | null;
 
   @ApiPropertyOptional({
-    enum: Statuses,
+    enum: PartnerState,
     description: 'Estado operativo del partner (`active` | `inactive`).',
   })
   @IsOptional()
-  @IsIn([Statuses.ACTIVE, Statuses.INACTIVE])
-  state?: Statuses;
+  @IsIn([PartnerState.ACTIVE, PartnerState.INACTIVE])
+  state?: PartnerState;
 }
 
 export class UpdateBankAccountPayloadDto {

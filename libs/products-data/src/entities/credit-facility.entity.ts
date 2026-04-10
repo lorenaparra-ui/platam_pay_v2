@@ -1,8 +1,17 @@
-﻿import { Column, Entity, JoinColumn, OneToMany, OneToOne } from 'typeorm';
-import { Statuses } from '@platam/shared';
+﻿import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  OneToOne,
+  RelationId,
+} from 'typeorm';
+import { CreditFacilityState } from '@platam/shared';
 import { BaseExternalIdEntity } from './base-external-id.entity';
 import { CategoryEntity } from './category.entity';
 import { ContractEntity } from './contract.entity';
+import { BusinessEntity } from '@app/suppliers-data';
 
 @Entity({ name: 'credit_facilities', schema: 'products_schema' })
 export class CreditFacilityEntity extends BaseExternalIdEntity {
@@ -13,11 +22,11 @@ export class CreditFacilityEntity extends BaseExternalIdEntity {
   @Column({
     name: 'state',
     type: 'enum',
-    enum: Statuses,
+    enum: CreditFacilityState,
     enumName: 'credit_facility_state',
-    default: Statuses.ACTIVE,
+    default: CreditFacilityState.ACTIVE,
   })
-  state: Statuses;
+  state: CreditFacilityState;
 
   @Column({
     name: 'total_limit',
@@ -26,6 +35,13 @@ export class CreditFacilityEntity extends BaseExternalIdEntity {
     scale: 4,
   })
   totalLimit: string;
+
+  @ManyToOne(() => BusinessEntity, { nullable: false })
+  @JoinColumn({ name: 'business_id', referencedColumnName: 'id' })
+  business: BusinessEntity;
+
+  @RelationId((cf: CreditFacilityEntity) => cf.business)
+  businessId: number;
 
   @OneToMany(() => CategoryEntity, (category) => category.creditFacility)
   categories: CategoryEntity[];

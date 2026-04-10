@@ -17,7 +17,7 @@ const CONTRACT_SELECT = {
   userId: true,
   contractTemplateId: true,
   zapsignToken: true,
-  statusId: true,
+  state: true,
   originalFileUrl: true,
   signedFileUrl: true,
   formAnswersJson: true,
@@ -95,8 +95,8 @@ export class TypeormContractRepository implements ContractRepository {
         { app_id: filters.credit_application_internal_id },
       );
     }
-    if (filters.status_id !== undefined) {
-      qb.andWhere('contract.statusId = :sid', { sid: filters.status_id });
+    if (filters.status !== undefined) {
+      qb.andWhere('contract.state = :st', { st: filters.status });
     }
 
     qb.orderBy('contract.id', 'ASC').skip(offset).take(limit);
@@ -108,19 +108,19 @@ export class TypeormContractRepository implements ContractRepository {
   async create(props: CreateContractRepositoryInput): Promise<Contract> {
     const rows = await this.repo.query(
       `INSERT INTO products_schema.contracts (
-        external_id, user_id, contract_template_id, zapsign_token, status_id,
+        external_id, user_id, contract_template_id, zapsign_token, state,
         original_file_url, signed_file_url, form_answers_json
       ) VALUES (
-        COALESCE($1::uuid, gen_random_uuid()), $2, $3, $4, $5, $6, $7, $8::jsonb
+        COALESCE($1::uuid, gen_random_uuid()), $2, $3, $4, $5::products_schema.contract_catalog_status, $6, $7, $8::jsonb
       )
       RETURNING id, external_id, created_at, updated_at, user_id,
-        contract_template_id, zapsign_token, status_id, original_file_url, signed_file_url, form_answers_json`,
+        contract_template_id, zapsign_token, state, original_file_url, signed_file_url, form_answers_json`,
       [
         props.external_id ?? null,
         props.user_id,
         props.contract_template_id,
         props.zapsign_token,
-        props.status_id,
+        props.status,
         props.original_file_url,
         props.signed_file_url,
         props.form_answers_json === null || props.form_answers_json === undefined
@@ -164,8 +164,10 @@ export class TypeormContractRepository implements ContractRepository {
     if (patch.zapsign_token !== undefined) {
       add('zapsign_token', patch.zapsign_token);
     }
-    if (patch.status_id !== undefined) {
-      add('status_id', patch.status_id);
+    if (patch.status !== undefined) {
+      columns.push(`"state" = $${i}::products_schema.contract_catalog_status`);
+      values.push(patch.status);
+      i += 1;
     }
     if (patch.original_file_url !== undefined) {
       add('original_file_url', patch.original_file_url);

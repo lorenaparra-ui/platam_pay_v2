@@ -1,11 +1,17 @@
+import type { ContractCatalogStatus } from '@platam/shared';
+
 export interface ContractReferenceLookupPort {
   get_user_internal_id_by_external_id(external_id: string): Promise<number | null>;
 
   get_application_internal_id_by_external_id(external_id: string): Promise<number | null>;
 
-  get_contract_status_internal_id_by_external_id(external_id: string): Promise<number | null>;
+  get_contract_catalog_status_by_external_id(
+    external_id: string,
+  ): Promise<ContractCatalogStatus | null>;
 
-  get_status_external_id_by_internal_id(internal_id: number): Promise<string | null>;
+  get_contract_status_external_id_by_catalog_status(
+    status: ContractCatalogStatus,
+  ): Promise<string | null>;
 
   get_contract_template_internal_id_by_external_id(
     external_id: string,

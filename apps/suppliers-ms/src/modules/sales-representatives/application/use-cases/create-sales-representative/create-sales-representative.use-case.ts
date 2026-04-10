@@ -49,7 +49,14 @@ export class CreateSalesRepresentativeUseCase {
       user_id,
     });
 
-    const fields = await build_sales_representative_public_fields(created, this.lookup);
+    const reloaded = await this.sales_representative_repository.find_by_external_id(
+      created.external_id,
+    );
+    if (reloaded === null) {
+      throw new InternalServerErrorException();
+    }
+
+    const fields = await build_sales_representative_public_fields(reloaded, this.lookup);
     if (fields === null) {
       throw new InternalServerErrorException();
     }

@@ -1,12 +1,8 @@
+export { PartnerOnboardingSagaStatus } from '@platam/shared';
+
 export const PARTNER_ONBOARDING_SAGA_REPOSITORY = Symbol(
   'PARTNER_ONBOARDING_SAGA_REPOSITORY',
 );
-
-export type PartnerOnboardingSagaStatus =
-  | 'RUNNING'
-  | 'COMPLETED'
-  | 'FAILED'
-  | 'COMPENSATING';
 
 export interface PartnerOnboardingSagaRecord {
   readonly external_id: string;

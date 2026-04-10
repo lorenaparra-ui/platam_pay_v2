@@ -1,3 +1,13 @@
+import { UserStates } from '@platam/shared';
+
+/** Datos de usuario resueltos en una sola consulta (join) para listados y lecturas. */
+export interface SalesRepresentativeLoadedUser {
+  readonly external_id: string;
+  readonly display_name: string;
+  readonly role_name: string;
+  readonly state: UserStates;
+}
+
 export class SalesRepresentative {
   constructor(
     readonly internal_id: number,
@@ -6,6 +16,7 @@ export class SalesRepresentative {
     readonly user_id: number | null,
     readonly created_at: Date,
     readonly updated_at: Date,
+    readonly loaded_user?: SalesRepresentativeLoadedUser,
   ) {}
 }
 

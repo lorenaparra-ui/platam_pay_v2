@@ -1,4 +1,4 @@
-﻿import type { Statuses } from '@platam/shared';
+﻿import type { CreditFacilityState } from '@platam/shared';
 
 export const PRODUCTS_CREDIT_FACILITY_SYNC_PORT = Symbol(
   'PRODUCTS_CREDIT_FACILITY_SYNC_PORT',
@@ -14,7 +14,7 @@ export interface ProductsCreditFacilitySyncPort {
     credit_facility_external_id: string;
     contract_id: string | null;
     total_limit: string;
-    state: Statuses;
+    state: CreditFacilityState;
   }>): Promise<{ internal_id: number }>;
 
   /**
@@ -22,6 +22,6 @@ export interface ProductsCreditFacilitySyncPort {
    */
   update_credit_facility_state(
     credit_facility_external_id: string,
-    state: Statuses,
+    state: CreditFacilityState,
   ): Promise<void>;
 }

@@ -7,7 +7,7 @@ export async function build_contract_public_response(
   lookup: ContractReferenceLookupPort,
 ): Promise<ContractPublicResponseDto> {
   const status_external_id =
-    await lookup.get_status_external_id_by_internal_id(contract.status_id);
+    await lookup.get_contract_status_external_id_by_catalog_status(contract.status);
   const contract_template_external_id =
     contract.contract_template_id === null
       ? null

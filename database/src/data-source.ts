@@ -3,9 +3,11 @@ import './load-monorepo-env';
 
 import { join } from 'path';
 import { DataSource } from 'typeorm';
-import { TRANSVERSAL_DATA_ENTITIES } from '@libs/transversal-data';
-import { PRODUCTS_DATA_ENTITIES } from '@libs/products-data';
-import { SUPPLIERS_DATA_ENTITIES } from '@libs/suppliers-data';
+import { COLLECTIONS_DATA_ENTITIES } from '../../libs/collections-data/src/entities/collections-data.entities';
+import { DISBURSEMENT_DATA_ENTITIES } from '../../libs/disbursement-data/src/entities/disbursement-data.entities';
+import { PRODUCTS_DATA_ENTITIES } from '../../libs/products-data/src/products-data.entities';
+import { SUPPLIERS_DATA_ENTITIES } from '../../libs/suppliers-data/src/suppliers-data.entities';
+import { TRANSVERSAL_DATA_ENTITIES } from '../../libs/transversal-data/src/transversal-data.entities';
 
 /**
  * Orquestación DDL para la CLI de TypeORM (no duplicar listas: cada lib exporta su arreglo).
@@ -18,6 +20,8 @@ export const ALL_DATA_ENTITIES = [
   ...TRANSVERSAL_DATA_ENTITIES,
   ...PRODUCTS_DATA_ENTITIES,
   ...SUPPLIERS_DATA_ENTITIES,
+  ...DISBURSEMENT_DATA_ENTITIES,
+  ...COLLECTIONS_DATA_ENTITIES,
 ];
 
 const AppDataSource = new DataSource({
