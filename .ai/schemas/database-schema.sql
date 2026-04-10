@@ -58,10 +58,20 @@ COMMENT ON COLUMN transversal_schema.catalog_status_types.entity_type IS 'Entida
 -- ---------------------------------------------------------------------------
 -- RBAC
 -- ---------------------------------------------------------------------------
+CREATE TYPE transversal_schema.roles_name AS ENUM (
+  'PARTNER_ADMIN',
+  'PARTNER_OPERATIONS',
+  'CUSTOMER',
+  'SALES_MANAGER',
+  'SALES_REPRESENTATIVE',
+  'BACK_OFFICE_ADMIN',
+  'BACK_OFFICE_ANALYST'
+);
+
 CREATE TABLE transversal_schema.roles (
   id          BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   external_id UUID        NOT NULL UNIQUE DEFAULT gen_random_uuid(),
-  name        VARCHAR(80) NOT NULL UNIQUE,
+  name        transversal_schema.roles_name NOT NULL UNIQUE,
   description TEXT,
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()

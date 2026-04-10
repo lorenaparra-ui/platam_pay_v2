@@ -1,7 +1,8 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
 /**
- * - Tabla transversal_schema.roles (RBAC).
+ * - Tabla transversal_schema.roles (RBAC); `name` es VARCHAR hasta 2150000000000-RolesNamePostgreSqlEnum
+ *   (tipo `transversal_schema.roles_name` ↔ enum `Roles` en `@platam/shared`).
  * - Tabla suppliers_schema.bank_accounts y suppliers.bank_account_id (1:1).
  * - Migra datos de suppliers.bank_account (varchar cifrado) a bank_accounts.account_number.
  * - FKs: role_permissions.role_id → roles, users.role_id → roles, suppliers.bank_account_id → bank_accounts.
