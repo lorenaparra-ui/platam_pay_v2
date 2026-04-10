@@ -1,4 +1,4 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+﻿import { Inject, Injectable, Logger } from '@nestjs/common';
 import type { UseCase } from '@platam/shared';
 import { CategoryState, CreditFacilityState } from '@platam/shared';
 import { TransversalInboundMessageDto } from '../dto/transversal-inbound-message.dto';

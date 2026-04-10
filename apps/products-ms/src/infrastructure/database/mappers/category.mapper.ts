@@ -1,6 +1,10 @@
 ﻿import { CategoryEntity } from '@app/products-data';
 import { Category } from '@modules/categories/domain/models/category.models';
-import { CategoryState } from '@platam/shared';
+import {
+  CategoryState,
+  InstallmentFrequencyTypes,
+  ModalityTypes,
+} from '@platam/shared';
 
 function credit_facility_id_from_entity(row: CategoryEntity): number {
   const cf = row.creditFacility?.[0];
@@ -20,12 +24,16 @@ export class CategoryMapper {
       credit_facility_id_from_entity(row),
       row.partnerId ?? null,
       row.name,
+      row.modality,
       row.discountPercentage,
       row.interestRate,
       row.disbursementFeePercent ?? null,
       row.minimumDisbursementFee ?? null,
       row.delayDays,
       row.termDays,
+      row.installmentFrequency,
+      row.installmentCount,
+      row.initialPaymentPct,
       row.state,
       row.createdAt,
       row.updatedAt,
@@ -47,6 +55,7 @@ export class CategoryMapper {
         ? null
         : Number(row['partner_id']),
       String(row['name']),
+      String(row['modality']) as ModalityTypes,
       String(row['discount_percentage']),
       String(row['interest_rate']),
       row['disbursement_fee_percent'] === null ||
@@ -59,6 +68,9 @@ export class CategoryMapper {
         : String(row['minimum_disbursement_fee']),
       Number(row['delay_days']),
       Number(row['term_days']),
+      String(row['installment_frequency']) as InstallmentFrequencyTypes,
+      Number(row['installment_count']),
+      String(row['initial_payment_pct']),
       state,
       new Date(String(row['created_at'])),
       new Date(String(row['updated_at'])),

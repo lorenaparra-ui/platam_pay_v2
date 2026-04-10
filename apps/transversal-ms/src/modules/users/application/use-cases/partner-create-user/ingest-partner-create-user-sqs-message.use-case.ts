@@ -17,7 +17,7 @@ import type { RoleRepository } from '@modules/transversal/domain/ports/catalog/r
 import { CreatePartnerUserInboundEventDto } from '../../../../transversal/application/dto/create-partner-user-inbound.dto';
 import { CreatePartnerUserSqsValidationError } from '../../../../transversal/application/exceptions/create-partner-user-sqs.validation.error';
 import { PartnerCreateUserSqsIdempotencyPort } from '@modules/users/domain/ports/partner-create-user-sqs-idempotency.port';
-import { RoleName } from '../../enums/role.enum';
+import { Roles } from '@platam/shared';
 
 export type IngestPartnerCreateUserSqsCommand = Readonly<{
   body: string;
@@ -86,10 +86,12 @@ export class IngestPartnerCreateUserSqsMessageUseCase
     const email_trimmed = payload.email.trim();
 
     try {
-      const role_ref = await this.role_repository.find_by_name(RoleName.PARTNER_OPERATIONS);
+      const role_ref = await this.role_repository.find_by_name(
+        Roles.PARTNER_OPERATIONS,
+      );
       if (role_ref === null) {
         throw new CreatePartnerUserSqsValidationError(
-          `role ${RoleName.PARTNER_OPERATIONS} not found in catalog`,
+          `role ${Roles.PARTNER_OPERATIONS} not found in catalog`,
         );
       }
 

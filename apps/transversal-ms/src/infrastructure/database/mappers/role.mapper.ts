@@ -6,7 +6,7 @@ export class RoleMapper {
     return {
       id: row.id,
       external_id: row.externalId,
-      name: row.name,
+      name: row.name as Role['name'],
       description: row.description ?? null,
       created_at: row.createdAt,
       updated_at: row.updatedAt,
@@ -17,7 +17,7 @@ export class RoleMapper {
     return {
       id: Number(row['id']),
       external_id: String(row['external_id']),
-      name: String(row['name']),
+      name: String(row['name']) as Role['name'],
       description:
         row['description'] === null || row['description'] === undefined
           ? null

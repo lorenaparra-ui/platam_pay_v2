@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import type { Roles } from '@platam/shared';
 import { RoleEntity } from '@app/transversal-data';
 import type { RoleRepository } from '@modules/transversal/domain/ports/catalog/role.repository.port';
 import type {
@@ -35,9 +36,9 @@ export class TypeormRoleRepository implements RoleRepository {
     return row ? RoleMapper.to_domain(row) : null;
   }
 
-  async find_by_name(name: string): Promise<Role | null> {
+  async find_by_name(name: Roles | string): Promise<Role | null> {
     const row = await this.repo.findOne({
-      where: { name },
+      where: { name: name as Roles },
       select: ROLE_SELECT,
     });
     return row ? RoleMapper.to_domain(row) : null;

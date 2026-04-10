@@ -4544,6 +4544,7 @@ var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CreateCategoryUseCase = void 0;
 const common_1 = __webpack_require__(6);
+const shared_1 = __webpack_require__(15);
 const categories_tokens_1 = __webpack_require__(90);
 const products_reference_lookup_port_1 = __webpack_require__(91);
 const category_ports_1 = __webpack_require__(92);
@@ -4566,12 +4567,16 @@ let CreateCategoryUseCase = class CreateCategoryUseCase {
             credit_facility_id,
             partner_id,
             name: req.name,
+            modality: req.modality ?? shared_1.ModalityTypes.BULLET,
             discount_percentage: req.discount_percentage,
             interest_rate: req.interest_rate,
             disbursement_fee_percent: req.disbursement_fee_percent,
             minimum_disbursement_fee: req.minimum_disbursement_fee,
             delay_days: req.delay_days,
             term_days: req.term_days,
+            installment_frequency: req.installment_frequency ?? shared_1.InstallmentFrequencyTypes.MONTHLY,
+            installment_count: req.installment_count ?? 1,
+            initial_payment_pct: req.initial_payment_pct ?? '0',
             state: req.state,
         });
         const fields = await (0, category_public_fields_builder_1.build_category_public_fields)(created, this.reference_lookup);
@@ -4636,12 +4641,16 @@ async function build_category_public_fields(row, lookup) {
         credit_facility_external_id,
         partner_external_id,
         name: row.name,
+        modality: row.modality,
         discount_percentage: row.discount_percentage,
         interest_rate: row.interest_rate,
         disbursement_fee_percent: row.disbursement_fee_percent,
         minimum_disbursement_fee: row.minimum_disbursement_fee,
         delay_days: row.delay_days,
         term_days: row.term_days,
+        installment_frequency: row.installment_frequency,
+        installment_count: row.installment_count,
+        initial_payment_pct: row.initial_payment_pct,
         state: row.state,
         created_at: row.created_at,
         updated_at: row.updated_at,
@@ -4661,12 +4670,16 @@ class CreateCategoryResponse {
     credit_facility_external_id;
     partner_external_id;
     name;
+    modality;
     discount_percentage;
     interest_rate;
     disbursement_fee_percent;
     minimum_disbursement_fee;
     delay_days;
     term_days;
+    installment_frequency;
+    installment_count;
+    initial_payment_pct;
     state;
     created_at;
     updated_at;
@@ -4695,7 +4708,11 @@ class CreateCategoryRequest {
     delay_days;
     term_days;
     state;
-    constructor(credit_facility_external_id, partner_id, name, discount_percentage, interest_rate, disbursement_fee_percent, minimum_disbursement_fee, delay_days, term_days, state) {
+    modality;
+    installment_frequency;
+    installment_count;
+    initial_payment_pct;
+    constructor(credit_facility_external_id, partner_id, name, discount_percentage, interest_rate, disbursement_fee_percent, minimum_disbursement_fee, delay_days, term_days, state, modality, installment_frequency, installment_count, initial_payment_pct) {
         this.credit_facility_external_id = credit_facility_external_id;
         this.partner_id = partner_id;
         this.name = name;
@@ -4706,6 +4723,10 @@ class CreateCategoryRequest {
         this.delay_days = delay_days;
         this.term_days = term_days;
         this.state = state;
+        this.modality = modality;
+        this.installment_frequency = installment_frequency;
+        this.installment_count = installment_count;
+        this.initial_payment_pct = initial_payment_pct;
     }
 }
 exports.CreateCategoryRequest = CreateCategoryRequest;
@@ -5249,12 +5270,16 @@ class GetCategoryByExternalIdResponse {
     credit_facility_external_id;
     partner_external_id;
     name;
+    modality;
     discount_percentage;
     interest_rate;
     disbursement_fee_percent;
     minimum_disbursement_fee;
     delay_days;
     term_days;
+    installment_frequency;
+    installment_count;
+    initial_payment_pct;
     state;
     created_at;
     updated_at;
@@ -5337,12 +5362,16 @@ class ListCategoriesItemResponse {
     credit_facility_external_id;
     partner_external_id;
     name;
+    modality;
     discount_percentage;
     interest_rate;
     disbursement_fee_percent;
     minimum_disbursement_fee;
     delay_days;
     term_days;
+    installment_frequency;
+    installment_count;
+    initial_payment_pct;
     state;
     created_at;
     updated_at;
@@ -5451,12 +5480,16 @@ class UpdateCategoryByExternalIdResponse {
     credit_facility_external_id;
     partner_external_id;
     name;
+    modality;
     discount_percentage;
     interest_rate;
     disbursement_fee_percent;
     minimum_disbursement_fee;
     delay_days;
     term_days;
+    installment_frequency;
+    installment_count;
+    initial_payment_pct;
     state;
     created_at;
     updated_at;
@@ -5540,12 +5573,16 @@ const CATEGORY_SELECT = {
     externalId: true,
     partnerId: true,
     name: true,
+    modality: true,
     discountPercentage: true,
     interestRate: true,
     disbursementFeePercent: true,
     minimumDisbursementFee: true,
     delayDays: true,
     termDays: true,
+    installmentFrequency: true,
+    installmentCount: true,
+    initialPaymentPct: true,
     state: true,
     createdAt: true,
     updatedAt: true,
@@ -5584,23 +5621,33 @@ let TypeormCategoryRepository = class TypeormCategoryRepository {
     async create(props) {
         return await this.repo.manager.transaction(async (manager) => {
             const rows = await manager.query(`INSERT INTO products_schema.categories (
-        external_id, partner_id, name,
+        external_id, partner_id, name, modality,
         discount_percentage, interest_rate, disbursement_fee_percent,
-        minimum_disbursement_fee, delay_days, term_days, state
+        minimum_disbursement_fee, delay_days, term_days,
+        installment_frequency, installment_count, initial_payment_pct,
+        state
       ) VALUES (
-        gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9::products_schema.credit_facility_state
+        gen_random_uuid(), $1, $2, $3::products_schema.loan_request_modality,
+        $4, $5, $6, $7, $8, $9,
+        $10::products_schema.category_installment_frequency, $11, $12,
+        $13::products_schema.credit_facility_state
       )
-      RETURNING id, external_id, created_at, updated_at, partner_id, name,
+      RETURNING id, external_id, created_at, updated_at, partner_id, name, modality,
         discount_percentage, interest_rate, disbursement_fee_percent, minimum_disbursement_fee,
-        delay_days, term_days, state`, [
+        delay_days, term_days, installment_frequency, installment_count, initial_payment_pct,
+        state`, [
                 props.partner_id,
                 props.name,
+                props.modality,
                 props.discount_percentage,
                 props.interest_rate,
                 props.disbursement_fee_percent,
                 props.minimum_disbursement_fee,
                 props.delay_days,
                 props.term_days,
+                props.installment_frequency,
+                props.installment_count,
+                props.initial_payment_pct,
                 props.state,
             ]);
             const raw = rows[0];
@@ -5698,7 +5745,7 @@ function credit_facility_id_from_entity(row) {
 }
 class CategoryMapper {
     static to_domain(row) {
-        return new category_models_1.Category(row.id, row.externalId, credit_facility_id_from_entity(row), row.partnerId ?? null, row.name, row.discountPercentage, row.interestRate, row.disbursementFeePercent ?? null, row.minimumDisbursementFee ?? null, row.delayDays, row.termDays, row.state, row.createdAt, row.updatedAt);
+        return new category_models_1.Category(row.id, row.externalId, credit_facility_id_from_entity(row), row.partnerId ?? null, row.name, row.modality, row.discountPercentage, row.interestRate, row.disbursementFeePercent ?? null, row.minimumDisbursementFee ?? null, row.delayDays, row.termDays, row.installmentFrequency, row.installmentCount, row.initialPaymentPct, row.state, row.createdAt, row.updatedAt);
     }
     static from_raw_row(row) {
         const state_raw = String(row['state'] ?? shared_1.CategoryState.ACTIVE);
@@ -5707,13 +5754,13 @@ class CategoryMapper {
             : shared_1.CategoryState.ACTIVE;
         return new category_models_1.Category(Number(row['id']), String(row['external_id']), Number(row['credit_facility_id']), row['partner_id'] === null || row['partner_id'] === undefined
             ? null
-            : Number(row['partner_id']), String(row['name']), String(row['discount_percentage']), String(row['interest_rate']), row['disbursement_fee_percent'] === null ||
+            : Number(row['partner_id']), String(row['name']), String(row['modality']), String(row['discount_percentage']), String(row['interest_rate']), row['disbursement_fee_percent'] === null ||
             row['disbursement_fee_percent'] === undefined
             ? null
             : String(row['disbursement_fee_percent']), row['minimum_disbursement_fee'] === null ||
             row['minimum_disbursement_fee'] === undefined
             ? null
-            : String(row['minimum_disbursement_fee']), Number(row['delay_days']), Number(row['term_days']), state, new Date(String(row['created_at'])), new Date(String(row['updated_at'])));
+            : String(row['minimum_disbursement_fee']), Number(row['delay_days']), Number(row['term_days']), String(row['installment_frequency']), Number(row['installment_count']), String(row['initial_payment_pct']), state, new Date(String(row['created_at'])), new Date(String(row['updated_at'])));
     }
 }
 exports.CategoryMapper = CategoryMapper;
@@ -5732,27 +5779,35 @@ class Category {
     credit_facility_id;
     partner_id;
     name;
+    modality;
     discount_percentage;
     interest_rate;
     disbursement_fee_percent;
     minimum_disbursement_fee;
     delay_days;
     term_days;
+    installment_frequency;
+    installment_count;
+    initial_payment_pct;
     state;
     created_at;
     updated_at;
-    constructor(internal_id, external_id, credit_facility_id, partner_id, name, discount_percentage, interest_rate, disbursement_fee_percent, minimum_disbursement_fee, delay_days, term_days, state, created_at, updated_at) {
+    constructor(internal_id, external_id, credit_facility_id, partner_id, name, modality, discount_percentage, interest_rate, disbursement_fee_percent, minimum_disbursement_fee, delay_days, term_days, installment_frequency, installment_count, initial_payment_pct, state, created_at, updated_at) {
         this.internal_id = internal_id;
         this.external_id = external_id;
         this.credit_facility_id = credit_facility_id;
         this.partner_id = partner_id;
         this.name = name;
+        this.modality = modality;
         this.discount_percentage = discount_percentage;
         this.interest_rate = interest_rate;
         this.disbursement_fee_percent = disbursement_fee_percent;
         this.minimum_disbursement_fee = minimum_disbursement_fee;
         this.delay_days = delay_days;
         this.term_days = term_days;
+        this.installment_frequency = installment_frequency;
+        this.installment_count = installment_count;
+        this.initial_payment_pct = initial_payment_pct;
         this.state = state;
         this.created_at = created_at;
         this.updated_at = updated_at;

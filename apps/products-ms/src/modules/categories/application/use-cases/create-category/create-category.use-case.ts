@@ -1,4 +1,8 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  InstallmentFrequencyTypes,
+  ModalityTypes,
+} from '@platam/shared';
 import { CATEGORY_REPOSITORY } from '@modules/categories/categories.tokens';
 import {
   PRODUCTS_REFERENCE_LOOKUP,
@@ -33,12 +37,17 @@ export class CreateCategoryUseCase {
       credit_facility_id,
       partner_id,
       name: req.name,
+      modality: req.modality ?? ModalityTypes.BULLET,
       discount_percentage: req.discount_percentage,
       interest_rate: req.interest_rate,
       disbursement_fee_percent: req.disbursement_fee_percent,
       minimum_disbursement_fee: req.minimum_disbursement_fee,
       delay_days: req.delay_days,
       term_days: req.term_days,
+      installment_frequency:
+        req.installment_frequency ?? InstallmentFrequencyTypes.MONTHLY,
+      installment_count: req.installment_count ?? 1,
+      initial_payment_pct: req.initial_payment_pct ?? '0',
       state: req.state,
     });
 

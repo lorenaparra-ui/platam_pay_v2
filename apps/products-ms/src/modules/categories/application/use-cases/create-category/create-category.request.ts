@@ -1,4 +1,8 @@
-import type { CategoryState } from '@platam/shared';
+﻿import type {
+  CategoryState,
+  InstallmentFrequencyTypes,
+  ModalityTypes,
+} from '@platam/shared';
 
 export class CreateCategoryRequest {
   constructor(
@@ -13,5 +17,9 @@ export class CreateCategoryRequest {
     readonly delay_days: number,
     readonly term_days: number,
     readonly state: CategoryState,
+    readonly modality?: ModalityTypes,
+    readonly installment_frequency?: InstallmentFrequencyTypes,
+    readonly installment_count?: number,
+    readonly initial_payment_pct?: string,
   ) {}
 }

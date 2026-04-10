@@ -1,3 +1,0 @@
-export enum RoleName {
-  PARTNER_OPERATIONS = 'PARTNER_OPERATIONS',
-}

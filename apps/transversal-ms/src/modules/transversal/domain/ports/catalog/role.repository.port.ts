@@ -1,3 +1,4 @@
+import type { Roles } from '@platam/shared';
 import type {
   Role,
   CreateRoleProps,
@@ -8,8 +9,8 @@ import type {
 export interface RoleRepository {
   find_by_external_id(external_id: string): Promise<Role | null>;
 
-  /** Nombre estable de catálogo (p. ej. partner_operations). */
-  find_by_name(name: string): Promise<Role | null>;
+  /** Código de catálogo (`Roles` en `@platam/shared`). */
+  find_by_name(name: Roles | string): Promise<Role | null>;
 
   find_by_internal_id(internal_id: number): Promise<Role | null>;
 

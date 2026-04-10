@@ -7,10 +7,11 @@ import {
 import { ROLE_REPOSITORY } from '@modules/transversal/transversal.tokens';
 import type { RoleRepository } from '@modules/transversal/domain/ports/catalog/role.repository.port';
 import type { Role } from '@modules/transversal/domain/models/role.models';
+import type { Roles } from '@platam/shared';
 import { is_pg_unique_violation } from '@common/utils/pg-error.util';
 
 export interface CreateRolePayload {
-  name: string;
+  name: Roles;
   description: string | null;
 }
 

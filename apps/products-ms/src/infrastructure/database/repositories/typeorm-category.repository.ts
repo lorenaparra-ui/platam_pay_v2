@@ -15,12 +15,16 @@ const CATEGORY_SELECT = {
   externalId: true,
   partnerId: true,
   name: true,
+  modality: true,
   discountPercentage: true,
   interestRate: true,
   disbursementFeePercent: true,
   minimumDisbursementFee: true,
   delayDays: true,
   termDays: true,
+  installmentFrequency: true,
+  installmentCount: true,
+  initialPaymentPct: true,
   state: true,
   createdAt: true,
   updatedAt: true,
@@ -68,24 +72,34 @@ export class TypeormCategoryRepository implements CategoryRepository {
     return await this.repo.manager.transaction(async (manager) => {
       const rows = await manager.query(
         `INSERT INTO products_schema.categories (
-        external_id, partner_id, name,
+        external_id, partner_id, name, modality,
         discount_percentage, interest_rate, disbursement_fee_percent,
-        minimum_disbursement_fee, delay_days, term_days, state
+        minimum_disbursement_fee, delay_days, term_days,
+        installment_frequency, installment_count, initial_payment_pct,
+        state
       ) VALUES (
-        gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9::products_schema.credit_facility_state
+        gen_random_uuid(), $1, $2, $3::products_schema.loan_request_modality,
+        $4, $5, $6, $7, $8, $9,
+        $10::products_schema.category_installment_frequency, $11, $12,
+        $13::products_schema.credit_facility_state
       )
-      RETURNING id, external_id, created_at, updated_at, partner_id, name,
+      RETURNING id, external_id, created_at, updated_at, partner_id, name, modality,
         discount_percentage, interest_rate, disbursement_fee_percent, minimum_disbursement_fee,
-        delay_days, term_days, state`,
+        delay_days, term_days, installment_frequency, installment_count, initial_payment_pct,
+        state`,
         [
           props.partner_id,
           props.name,
+          props.modality,
           props.discount_percentage,
           props.interest_rate,
           props.disbursement_fee_percent,
           props.minimum_disbursement_fee,
           props.delay_days,
           props.term_days,
+          props.installment_frequency,
+          props.installment_count,
+          props.initial_payment_pct,
           props.state,
         ],
       );

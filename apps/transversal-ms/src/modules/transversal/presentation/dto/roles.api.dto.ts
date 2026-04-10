@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
-import { IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsEnum, IsOptional, IsString, MaxLength } from 'class-validator';
+import { Roles } from '@platam/shared';
 import { PaginationQueryDto } from './pagination-query.dto';
 
 export class RoleResponseDto {
@@ -10,8 +11,8 @@ export class RoleResponseDto {
   })
   external_id!: string;
 
-  @ApiProperty()
-  name!: string;
+  @ApiProperty({ enum: Roles })
+  name!: Roles;
 
   @ApiPropertyOptional({ nullable: true })
   description!: string | null;
@@ -38,10 +39,9 @@ export class PaginatedRolesResponseDto {
 }
 
 export class CreateRoleBodyDto {
-  @ApiProperty()
-  @IsString()
-  @MaxLength(80)
-  name!: string;
+  @ApiProperty({ enum: Roles })
+  @IsEnum(Roles)
+  name!: Roles;
 
   @ApiPropertyOptional({ nullable: true })
   @IsOptional()
