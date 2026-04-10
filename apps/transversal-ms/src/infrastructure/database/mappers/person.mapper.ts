@@ -17,7 +17,7 @@ export class PersonMapper {
     return new Person(
       row.id,
       row.externalId,
-      row.countryCode ?? null,
+      null,
       row.firstName,
       row.lastName,
       row.docType,
@@ -27,7 +27,7 @@ export class PersonMapper {
       row.gender ?? null,
       row.phone ?? null,
       row.residentialAddress ?? null,
-      row.businessAddress ?? null,
+      null,
       row.cityId ?? null,
       row.createdAt,
       row.updatedAt,

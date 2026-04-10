@@ -19,6 +19,11 @@ export interface UserRepository {
 
   find_all(): Promise<User[]>;
 
+  /** Lista usuarios cuyo id interno está en el conjunto (p. ej. filtro por alcance organizacional). */
+  find_all_where_internal_id_in(
+    internal_ids: readonly number[],
+  ): Promise<User[]>;
+
   create(props: CreateUserProps): Promise<User>;
 
   update_by_external_id(

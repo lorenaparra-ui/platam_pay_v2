@@ -11,6 +11,10 @@
       "@infrastructure/*": ["src/infrastructure/*"],
       "@transversal/*": ["src/modules/transversal/*"],
       "@app/transversal-data": ["../../libs/transversal-data/src"],
+      "@app/products-data": ["../../libs/products-data/src"],
+      "@app/suppliers-data": ["../../libs/suppliers-data/src"],
+      "@app/disbursement-data": ["../../libs/disbursement-data/src"],
+      "@app/collections-data": ["../../libs/collections-data/src"],
       "@platam/shared": ["../../libs/shared/src"]
     }
   },

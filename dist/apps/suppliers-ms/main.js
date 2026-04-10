@@ -138,14 +138,14 @@ const dotenv_config_1 = __webpack_require__(2);
 const common_1 = __webpack_require__(6);
 const config_1 = __webpack_require__(8);
 const infrastructure_module_1 = __webpack_require__(11);
-const businesses_module_1 = __webpack_require__(144);
-const partners_module_1 = __webpack_require__(157);
-const suppliers_module_1 = __webpack_require__(177);
-const bank_accounts_module_1 = __webpack_require__(160);
-const sales_representatives_module_1 = __webpack_require__(217);
-const app_config_1 = __importDefault(__webpack_require__(239));
-const sqs_config_1 = __webpack_require__(240);
-const app_controller_1 = __webpack_require__(241);
+const businesses_module_1 = __webpack_require__(147);
+const partners_module_1 = __webpack_require__(160);
+const suppliers_module_1 = __webpack_require__(180);
+const bank_accounts_module_1 = __webpack_require__(163);
+const sales_representatives_module_1 = __webpack_require__(220);
+const app_config_1 = __importDefault(__webpack_require__(242));
+const sqs_config_1 = __webpack_require__(243);
+const app_controller_1 = __webpack_require__(244);
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -186,30 +186,30 @@ const common_1 = __webpack_require__(6);
 const typeorm_1 = __webpack_require__(12);
 const config_1 = __webpack_require__(8);
 const postgres_type_orm_config_service_1 = __webpack_require__(13);
-const sqs_module_1 = __webpack_require__(78);
-const messaging_application_module_1 = __webpack_require__(90);
-const typeorm_business_repository_1 = __webpack_require__(112);
-const typeorm_partner_repository_1 = __webpack_require__(115);
-const typeorm_supplier_repository_1 = __webpack_require__(118);
-const typeorm_bank_account_repository_1 = __webpack_require__(121);
-const typeorm_suppliers_reference_lookup_adapter_1 = __webpack_require__(124);
-const typeorm_partner_onboarding_saga_repository_1 = __webpack_require__(125);
-const sql_products_credit_facility_sync_adapter_1 = __webpack_require__(126);
-const typeorm_partner_user_sqs_result_poll_adapter_1 = __webpack_require__(127);
-const partner_saga_compensation_adapter_1 = __webpack_require__(128);
-const typeorm_legal_representative_repository_1 = __webpack_require__(129);
-const typeorm_sales_representative_repository_1 = __webpack_require__(132);
-const sqs_transversal_user_person_writer_adapter_1 = __webpack_require__(135);
-const partner_onboarding_saga_repository_port_1 = __webpack_require__(136);
-const products_credit_facility_sync_port_1 = __webpack_require__(137);
-const transversal_user_person_writer_port_1 = __webpack_require__(138);
-const partner_user_sqs_result_reader_port_1 = __webpack_require__(139);
-const partner_onboarding_files_port_1 = __webpack_require__(140);
-const partner_saga_compensation_port_1 = __webpack_require__(141);
-const sqs_partner_onboarding_files_adapter_1 = __webpack_require__(142);
-const suppliers_reference_lookup_port_1 = __webpack_require__(143);
+const sqs_module_1 = __webpack_require__(81);
+const messaging_application_module_1 = __webpack_require__(93);
+const typeorm_business_repository_1 = __webpack_require__(115);
+const typeorm_partner_repository_1 = __webpack_require__(118);
+const typeorm_supplier_repository_1 = __webpack_require__(121);
+const typeorm_bank_account_repository_1 = __webpack_require__(124);
+const typeorm_suppliers_reference_lookup_adapter_1 = __webpack_require__(127);
+const typeorm_partner_onboarding_saga_repository_1 = __webpack_require__(128);
+const sql_products_credit_facility_sync_adapter_1 = __webpack_require__(129);
+const typeorm_partner_user_sqs_result_poll_adapter_1 = __webpack_require__(130);
+const partner_saga_compensation_adapter_1 = __webpack_require__(131);
+const typeorm_legal_representative_repository_1 = __webpack_require__(132);
+const typeorm_sales_representative_repository_1 = __webpack_require__(135);
+const sqs_transversal_user_person_writer_adapter_1 = __webpack_require__(138);
+const partner_onboarding_saga_repository_port_1 = __webpack_require__(139);
+const products_credit_facility_sync_port_1 = __webpack_require__(140);
+const transversal_user_person_writer_port_1 = __webpack_require__(141);
+const partner_user_sqs_result_reader_port_1 = __webpack_require__(142);
+const partner_onboarding_files_port_1 = __webpack_require__(143);
+const partner_saga_compensation_port_1 = __webpack_require__(144);
+const sqs_partner_onboarding_files_adapter_1 = __webpack_require__(145);
+const suppliers_reference_lookup_port_1 = __webpack_require__(146);
 const suppliers_data_1 = __webpack_require__(15);
-const transversal_data_1 = __webpack_require__(56);
+const transversal_data_1 = __webpack_require__(57);
 let InfrastructureModule = class InfrastructureModule {
 };
 exports.InfrastructureModule = InfrastructureModule;
@@ -350,7 +350,7 @@ exports.PostgresTypeOrmConfigService = PostgresTypeOrmConfigService = __decorate
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 __webpack_require__(2);
 const suppliers_data_1 = __webpack_require__(15);
-const transversal_data_1 = __webpack_require__(56);
+const transversal_data_1 = __webpack_require__(57);
 const TypeormConfig = {
     type: "postgres",
     host: process.env.POSTGRES_HOST,
@@ -399,13 +399,13 @@ __exportStar(__webpack_require__(45), exports);
 __exportStar(__webpack_require__(49), exports);
 __exportStar(__webpack_require__(50), exports);
 __exportStar(__webpack_require__(51), exports);
-__exportStar(__webpack_require__(75), exports);
-__exportStar(__webpack_require__(73), exports);
-__exportStar(__webpack_require__(55), exports);
-__exportStar(__webpack_require__(74), exports);
-__exportStar(__webpack_require__(72), exports);
+__exportStar(__webpack_require__(78), exports);
 __exportStar(__webpack_require__(76), exports);
+__exportStar(__webpack_require__(56), exports);
 __exportStar(__webpack_require__(77), exports);
+__exportStar(__webpack_require__(75), exports);
+__exportStar(__webpack_require__(79), exports);
+__exportStar(__webpack_require__(80), exports);
 __exportStar(__webpack_require__(20), exports);
 
 
@@ -421,11 +421,11 @@ const business_entity_1 = __webpack_require__(45);
 const business_seniority_entity_1 = __webpack_require__(49);
 const legal_representative_entity_1 = __webpack_require__(50);
 const partners_entity_1 = __webpack_require__(51);
-const order_entity_1 = __webpack_require__(73);
-const sales_representative_entity_1 = __webpack_require__(55);
-const shareholder_entity_1 = __webpack_require__(74);
-const supplier_entity_1 = __webpack_require__(72);
-const partner_onboarding_saga_entity_1 = __webpack_require__(75);
+const order_entity_1 = __webpack_require__(76);
+const sales_representative_entity_1 = __webpack_require__(56);
+const shareholder_entity_1 = __webpack_require__(77);
+const supplier_entity_1 = __webpack_require__(75);
+const partner_onboarding_saga_entity_1 = __webpack_require__(78);
 exports.SUPPLIERS_DATA_ENTITIES = [
     bank_account_entity_1.BankAccountEntity,
     business_entity_1.BusinessEntity,
@@ -825,7 +825,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.BusinessSeniorityCatalogState = exports.RolePermissionLinkState = exports.PermissionDefinitionState = exports.RoleDefinitionState = exports.PurchaseOrderRecordState = exports.BankAccountRecordState = exports.ShareholderRecordState = exports.LegalRepresentativeLifecycleState = exports.PersonRecordState = exports.BusinessLifecycleState = exports.CatalogActivationState = exports.UserState = exports.SalesRepresentativeRecordState = exports.PartnerOnboardingSagaStatus = exports.SupplierState = exports.PartnerState = exports.DocumentVerificationStatus = exports.ContractTemplateCatalogStatus = exports.ContractCatalogStatus = exports.CreditApplicationStatus = exports.CategoryState = exports.CreditFacilityState = void 0;
+exports.BatchLogsStatus = exports.PaymentsMethod = exports.PaymentsStatus = exports.AdjustmentsStatus = exports.DisbursementBatchesStatus = exports.DisbursementStatus = exports.LoanStatus = exports.LoanRequestStatus = exports.SarlaftCheckStatus = exports.ExperianQueryStatus = exports.BusinessSeniorityCatalogState = exports.RolePermissionLinkState = exports.PermissionDefinitionState = exports.RoleDefinitionState = exports.PurchaseOrderRecordState = exports.BankAccountRecordState = exports.ShareholderRecordState = exports.LegalRepresentativeLifecycleState = exports.PersonRecordState = exports.BusinessLifecycleState = exports.CatalogActivationState = exports.UserState = exports.SalesRepresentativeRecordState = exports.PartnerOnboardingSagaStatus = exports.SupplierState = exports.PartnerState = exports.DocumentVerificationStatus = exports.ContractTemplateCatalogStatus = exports.ContractCatalogStatus = exports.CreditApplicationStatus = exports.CategoryState = exports.CreditFacilityState = void 0;
 var CreditFacilityState;
 (function (CreditFacilityState) {
     CreditFacilityState["ACTIVE"] = "active";
@@ -951,6 +951,74 @@ var BusinessSeniorityCatalogState;
     BusinessSeniorityCatalogState["ACTIVE"] = "active";
     BusinessSeniorityCatalogState["INACTIVE"] = "inactive";
 })(BusinessSeniorityCatalogState || (exports.BusinessSeniorityCatalogState = BusinessSeniorityCatalogState = {}));
+var ExperianQueryStatus;
+(function (ExperianQueryStatus) {
+    ExperianQueryStatus["PENDING"] = "pending";
+    ExperianQueryStatus["COMPLETED"] = "completed";
+    ExperianQueryStatus["ERROR"] = "error";
+})(ExperianQueryStatus || (exports.ExperianQueryStatus = ExperianQueryStatus = {}));
+var SarlaftCheckStatus;
+(function (SarlaftCheckStatus) {
+    SarlaftCheckStatus["PENDING"] = "pending";
+    SarlaftCheckStatus["COMPLETED"] = "completed";
+    SarlaftCheckStatus["ERROR"] = "error";
+})(SarlaftCheckStatus || (exports.SarlaftCheckStatus = SarlaftCheckStatus = {}));
+var LoanRequestStatus;
+(function (LoanRequestStatus) {
+    LoanRequestStatus["DRAFT"] = "draft";
+    LoanRequestStatus["PENDING_CLIENT_APPROVAL"] = "pending_client_approval";
+    LoanRequestStatus["PENDING_PARTNER_APPROVAL"] = "pending_partner_approval";
+    LoanRequestStatus["PENDING_PLATAM_REVIEW"] = "pending_platam_review";
+    LoanRequestStatus["APPROVED"] = "approved";
+    LoanRequestStatus["REJECTED"] = "rejected";
+    LoanRequestStatus["CANCELLED"] = "cancelled";
+})(LoanRequestStatus || (exports.LoanRequestStatus = LoanRequestStatus = {}));
+var LoanStatus;
+(function (LoanStatus) {
+    LoanStatus["ACTIVE"] = "active";
+    LoanStatus["LATE"] = "late";
+    LoanStatus["DEFAULT"] = "default";
+    LoanStatus["PAID"] = "paid";
+    LoanStatus["CANCELLED"] = "cancelled";
+})(LoanStatus || (exports.LoanStatus = LoanStatus = {}));
+var DisbursementStatus;
+(function (DisbursementStatus) {
+    DisbursementStatus["PENDING"] = "pending";
+    DisbursementStatus["DISBURSED"] = "disbursed";
+    DisbursementStatus["FAILED"] = "failed";
+})(DisbursementStatus || (exports.DisbursementStatus = DisbursementStatus = {}));
+var DisbursementBatchesStatus;
+(function (DisbursementBatchesStatus) {
+    DisbursementBatchesStatus["PENDING"] = "pending";
+    DisbursementBatchesStatus["GENERATED"] = "generated";
+    DisbursementBatchesStatus["PROCESSING"] = "processing";
+    DisbursementBatchesStatus["DISBURSED"] = "disbursed";
+    DisbursementBatchesStatus["PARTIAL_FAILED"] = "partial_failed";
+})(DisbursementBatchesStatus || (exports.DisbursementBatchesStatus = DisbursementBatchesStatus = {}));
+var AdjustmentsStatus;
+(function (AdjustmentsStatus) {
+    AdjustmentsStatus["PENDING"] = "pending";
+    AdjustmentsStatus["APPLIED"] = "applied";
+})(AdjustmentsStatus || (exports.AdjustmentsStatus = AdjustmentsStatus = {}));
+var PaymentsStatus;
+(function (PaymentsStatus) {
+    PaymentsStatus["APPLIED"] = "applied";
+    PaymentsStatus["PENDING_REVIEW"] = "pending_review";
+    PaymentsStatus["REVERSED"] = "reversed";
+})(PaymentsStatus || (exports.PaymentsStatus = PaymentsStatus = {}));
+var PaymentsMethod;
+(function (PaymentsMethod) {
+    PaymentsMethod["PAYVALIDA"] = "payvalida";
+    PaymentsMethod["TRANSFER"] = "transfer";
+    PaymentsMethod["DEPOSIT"] = "deposit";
+    PaymentsMethod["OTHER"] = "other";
+})(PaymentsMethod || (exports.PaymentsMethod = PaymentsMethod = {}));
+var BatchLogsStatus;
+(function (BatchLogsStatus) {
+    BatchLogsStatus["SUCCESS"] = "success";
+    BatchLogsStatus["PARTIAL"] = "partial";
+    BatchLogsStatus["FAILED"] = "failed";
+})(BatchLogsStatus || (exports.BatchLogsStatus = BatchLogsStatus = {}));
 
 
 /***/ }),
@@ -959,7 +1027,7 @@ var BusinessSeniorityCatalogState;
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.DocIssueDateTypes = exports.DocTypes = exports.GenderTypes = exports.OwnerTypes = exports.AccountTypes = void 0;
+exports.ActionType = exports.EntityType = exports.UsuraRateType = exports.PaymentMethodType = exports.PaymentType = exports.PaymentChannelType = exports.AdjustmentsType = exports.BatchType = exports.DisbursementType = exports.LoanRequestChannel = exports.LoanRequestProductType = exports.AiAgentAnalysisRecommendation = exports.WebQueryType = exports.SarlaftCheckStatuses = exports.ExperianQueryTypes = exports.InstallmentFrequencyTypes = exports.ModalityTypes = exports.DocIssueDateTypes = exports.DocTypes = exports.GenderTypes = exports.OwnerTypes = exports.AccountTypes = void 0;
 var AccountTypes;
 (function (AccountTypes) {
     AccountTypes["Saving"] = "saving";
@@ -988,6 +1056,113 @@ var DocIssueDateTypes;
     DocIssueDateTypes["RESIDENCE"] = "residence";
     DocIssueDateTypes["WORK"] = "work";
 })(DocIssueDateTypes || (exports.DocIssueDateTypes = DocIssueDateTypes = {}));
+var ModalityTypes;
+(function (ModalityTypes) {
+    ModalityTypes["BULLET"] = "bullet";
+    ModalityTypes["CUOTAS"] = "cuotas";
+})(ModalityTypes || (exports.ModalityTypes = ModalityTypes = {}));
+var InstallmentFrequencyTypes;
+(function (InstallmentFrequencyTypes) {
+    InstallmentFrequencyTypes["MONTHLY"] = "monthly";
+    InstallmentFrequencyTypes["BIWEEKLY"] = "biweekly";
+    InstallmentFrequencyTypes["WEEKLY"] = "weekly";
+})(InstallmentFrequencyTypes || (exports.InstallmentFrequencyTypes = InstallmentFrequencyTypes = {}));
+var ExperianQueryTypes;
+(function (ExperianQueryTypes) {
+    ExperianQueryTypes["HCPN"] = "hcpn";
+    ExperianQueryTypes["HCPJ"] = "hcpj";
+})(ExperianQueryTypes || (exports.ExperianQueryTypes = ExperianQueryTypes = {}));
+var SarlaftCheckStatuses;
+(function (SarlaftCheckStatuses) {
+    SarlaftCheckStatuses["CLEAN"] = "clean";
+    SarlaftCheckStatuses["ALERT"] = "alert";
+    SarlaftCheckStatuses["BLOCKED"] = "blocked";
+})(SarlaftCheckStatuses || (exports.SarlaftCheckStatuses = SarlaftCheckStatuses = {}));
+var WebQueryType;
+(function (WebQueryType) {
+    WebQueryType["BDME"] = "bdme";
+    WebQueryType["RAMA_JUDICIAL"] = "rama_judicial";
+})(WebQueryType || (exports.WebQueryType = WebQueryType = {}));
+var AiAgentAnalysisRecommendation;
+(function (AiAgentAnalysisRecommendation) {
+    AiAgentAnalysisRecommendation["HITL"] = "hitl";
+    AiAgentAnalysisRecommendation["AUTO_APPROVE"] = "auto_approve";
+    AiAgentAnalysisRecommendation["AUTO_REJECT"] = "auto_reject";
+})(AiAgentAnalysisRecommendation || (exports.AiAgentAnalysisRecommendation = AiAgentAnalysisRecommendation = {}));
+var LoanRequestProductType;
+(function (LoanRequestProductType) {
+    LoanRequestProductType["BNPL_PARTNER"] = "bnpl_partner";
+    LoanRequestProductType["BNPL_SUPPLIER"] = "bnpl_supplier";
+})(LoanRequestProductType || (exports.LoanRequestProductType = LoanRequestProductType = {}));
+var LoanRequestChannel;
+(function (LoanRequestChannel) {
+    LoanRequestChannel["SR_PORTAL"] = "sr_portal";
+    LoanRequestChannel["CLIENT_PORTAL"] = "client_portal";
+    LoanRequestChannel["API"] = "api";
+})(LoanRequestChannel || (exports.LoanRequestChannel = LoanRequestChannel = {}));
+var DisbursementType;
+(function (DisbursementType) {
+    DisbursementType["PARTNER"] = "partner";
+    DisbursementType["SUPPLIER"] = "supplier";
+})(DisbursementType || (exports.DisbursementType = DisbursementType = {}));
+var BatchType;
+(function (BatchType) {
+    BatchType["MANUAL"] = "manual";
+    BatchType["ACH"] = "ach";
+})(BatchType || (exports.BatchType = BatchType = {}));
+var AdjustmentsType;
+(function (AdjustmentsType) {
+    AdjustmentsType["PARTIAL_RETURN"] = "partial_return";
+    AdjustmentsType["TOTAL_RETURN"] = "total_return";
+    AdjustmentsType["CLIENT_PAYS_PARTNER"] = "client_pays_partner";
+    AdjustmentsType["CATEGORY_CHANGE"] = "category_change";
+    AdjustmentsType["OTHER"] = "other";
+})(AdjustmentsType || (exports.AdjustmentsType = AdjustmentsType = {}));
+var PaymentChannelType;
+(function (PaymentChannelType) {
+    PaymentChannelType["PAYVALIDA"] = "payvalida";
+    PaymentChannelType["MANUAL_CLIENT"] = "manual_client";
+    PaymentChannelType["MANUAL_LOAN"] = "manual_loan";
+})(PaymentChannelType || (exports.PaymentChannelType = PaymentChannelType = {}));
+var PaymentType;
+(function (PaymentType) {
+    PaymentType["NORMAL_PAYMENT"] = "normal_payment";
+    PaymentType["INSTALLMENT_PAYMENT"] = "installment_payment";
+    PaymentType["PARTIAL_CANCELLATION"] = "partial_cancellation";
+    PaymentType["TOTAL_CANCELLATION"] = "total_cancellation";
+    PaymentType["PAYMENT_TO_PARTNER"] = "payment_to_partner";
+})(PaymentType || (exports.PaymentType = PaymentType = {}));
+var PaymentMethodType;
+(function (PaymentMethodType) {
+    PaymentMethodType["PAYVALIDA"] = "payvalida";
+    PaymentMethodType["TRANSFER"] = "transfer";
+    PaymentMethodType["DEPOSIT"] = "deposit";
+    PaymentMethodType["OTHER"] = "other";
+})(PaymentMethodType || (exports.PaymentMethodType = PaymentMethodType = {}));
+var UsuraRateType;
+(function (UsuraRateType) {
+    UsuraRateType["USURY"] = "usury";
+    UsuraRateType["FIXED"] = "fixed";
+    UsuraRateType["ORDINARY"] = "ordinary";
+    UsuraRateType["CONSUMPTION"] = "consumption";
+    UsuraRateType["PRODUCTIVE_URBAN"] = "productive_urban";
+    UsuraRateType["PRODUCTIVE_RURAL"] = "productive_rural";
+    UsuraRateType["POPULAR_URBAN"] = "popular_urban";
+    UsuraRateType["POPULAR_RURAL"] = "popular_rural";
+    UsuraRateType["HIGH_AMOUNT"] = "high_amount";
+})(UsuraRateType || (exports.UsuraRateType = UsuraRateType = {}));
+var EntityType;
+(function (EntityType) {
+    EntityType["LOAN"] = "loan";
+    EntityType["PAYMENT"] = "payment";
+    EntityType["LOAN_REQUEST"] = "loan_request";
+})(EntityType || (exports.EntityType = EntityType = {}));
+var ActionType;
+(function (ActionType) {
+    ActionType["FIELD_UPDATE"] = "field_update";
+    ActionType["REVERSAL"] = "reversal";
+    ActionType["RECALCULATION"] = "recalculation";
+})(ActionType || (exports.ActionType = ActionType = {}));
 
 
 /***/ }),
@@ -1361,6 +1536,7 @@ let PersonEntity = class PersonEntity extends base_external_id_entity_1.BaseExte
     email;
     residentialAddress;
     city;
+    cityId;
     bankAccount;
 };
 exports.PersonEntity = PersonEntity;
@@ -1414,6 +1590,10 @@ __decorate([
     (0, typeorm_1.JoinColumn)({ name: 'city_id', referencedColumnName: 'id' }),
     __metadata("design:type", typeof (_c = typeof city_entity_1.CityEntity !== "undefined" && city_entity_1.CityEntity) === "function" ? _c : Object)
 ], PersonEntity.prototype, "city", void 0);
+__decorate([
+    (0, typeorm_1.RelationId)((p) => p.city),
+    __metadata("design:type", Number)
+], PersonEntity.prototype, "cityId", void 0);
 __decorate([
     (0, typeorm_1.OneToOne)(() => bank_account_entity_1.BankAccountEntity, { nullable: true }),
     (0, typeorm_1.JoinColumn)({ name: 'bank_account_id' }),
@@ -1661,9 +1841,8 @@ const category_entity_1 = __webpack_require__(52);
 const shared_1 = __webpack_require__(21);
 const base_external_id_entity_1 = __webpack_require__(19);
 const business_entity_1 = __webpack_require__(45);
-const sales_representative_entity_1 = __webpack_require__(55);
-const supplier_entity_1 = __webpack_require__(72);
-const transversal_data_1 = __webpack_require__(56);
+const sales_representative_entity_1 = __webpack_require__(56);
+const supplier_entity_1 = __webpack_require__(75);
 let PartnersEntity = class PartnersEntity extends base_external_id_entity_1.BaseExternalIdEntity {
     business;
     supplier;
@@ -1679,7 +1858,6 @@ let PartnersEntity = class PartnersEntity extends base_external_id_entity_1.Base
     disbursementNotificationEmail;
     apiKeyHash;
     sendSalesRepVoucher;
-    roles;
     salesRepresentatives;
     categories;
     countryCode;
@@ -1769,11 +1947,6 @@ __decorate([
     __metadata("design:type", Boolean)
 ], PartnersEntity.prototype, "sendSalesRepVoucher", void 0);
 __decorate([
-    (0, typeorm_1.OneToMany)(() => transversal_data_1.RoleEntity, (r) => r.partner),
-    (0, typeorm_1.JoinColumn)({ name: 'partner_id', referencedColumnName: 'id' }),
-    __metadata("design:type", Array)
-], PartnersEntity.prototype, "roles", void 0);
-__decorate([
     (0, typeorm_1.OneToMany)(() => sales_representative_entity_1.SalesRepresentativeEntity, (sr) => sr.partner),
     __metadata("design:type", Array)
 ], PartnersEntity.prototype, "salesRepresentatives", void 0);
@@ -1816,41 +1989,44 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var _a, _b, _c;
+var _a, _b, _c, _d, _e;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CategoryEntity = void 0;
 const typeorm_1 = __webpack_require__(18);
 const shared_1 = __webpack_require__(21);
 const base_external_id_entity_1 = __webpack_require__(47);
 const credit_facility_entity_1 = __webpack_require__(53);
-const partners_entity_1 = __webpack_require__(51);
+const suppliers_data_1 = __webpack_require__(15);
 let CategoryEntity = class CategoryEntity extends base_external_id_entity_1.BaseExternalIdEntity {
-    creditFacilityId;
-    partnerId;
     name;
+    modality;
     discountPercentage;
     interestRate;
     disbursementFeePercent;
     minimumDisbursementFee;
     delayDays;
     termDays;
+    installmentFrequency;
+    installmentCount;
+    initialPaymentPct;
     state;
     creditFacility;
     partner;
 };
 exports.CategoryEntity = CategoryEntity;
 __decorate([
-    (0, typeorm_1.Column)({ name: 'credit_facility_id', type: 'bigint' }),
-    __metadata("design:type", Number)
-], CategoryEntity.prototype, "creditFacilityId", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ name: 'partner_id', type: 'bigint', nullable: true }),
-    __metadata("design:type", Object)
-], CategoryEntity.prototype, "partnerId", void 0);
-__decorate([
     (0, typeorm_1.Column)({ name: 'name', type: 'varchar', length: 255 }),
     __metadata("design:type", String)
 ], CategoryEntity.prototype, "name", void 0);
+__decorate([
+    (0, typeorm_1.Column)({
+        name: 'modality',
+        type: 'enum',
+        enum: shared_1.ModalityTypes,
+        enumName: 'loan_request_modality',
+    }),
+    __metadata("design:type", typeof (_a = typeof shared_1.ModalityTypes !== "undefined" && shared_1.ModalityTypes) === "function" ? _a : Object)
+], CategoryEntity.prototype, "modality", void 0);
 __decorate([
     (0, typeorm_1.Column)({
         name: 'discount_percentage',
@@ -1899,23 +2075,40 @@ __decorate([
 ], CategoryEntity.prototype, "termDays", void 0);
 __decorate([
     (0, typeorm_1.Column)({
+        name: 'installment_frequency',
+        type: 'enum',
+        enum: shared_1.InstallmentFrequencyTypes,
+        enumName: 'category_installment_frequency',
+    }),
+    __metadata("design:type", typeof (_b = typeof shared_1.InstallmentFrequencyTypes !== "undefined" && shared_1.InstallmentFrequencyTypes) === "function" ? _b : Object)
+], CategoryEntity.prototype, "installmentFrequency", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'installment_count', type: 'int' }),
+    __metadata("design:type", Number)
+], CategoryEntity.prototype, "installmentCount", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'initial_payment_pct', type: 'decimal', precision: 8, scale: 4 }),
+    __metadata("design:type", String)
+], CategoryEntity.prototype, "initialPaymentPct", void 0);
+__decorate([
+    (0, typeorm_1.Column)({
         name: 'state',
         type: 'enum',
         enum: shared_1.CategoryState,
         enumName: 'credit_facility_state',
         default: shared_1.CategoryState.ACTIVE,
     }),
-    __metadata("design:type", typeof (_a = typeof shared_1.CategoryState !== "undefined" && shared_1.CategoryState) === "function" ? _a : Object)
+    __metadata("design:type", typeof (_c = typeof shared_1.CategoryState !== "undefined" && shared_1.CategoryState) === "function" ? _c : Object)
 ], CategoryEntity.prototype, "state", void 0);
 __decorate([
     (0, typeorm_1.ManyToOne)(() => credit_facility_entity_1.CreditFacilityEntity, (cf) => cf.categories, {
         onDelete: 'CASCADE',
     }),
     (0, typeorm_1.JoinColumn)({ name: 'credit_facility_id' }),
-    __metadata("design:type", typeof (_b = typeof credit_facility_entity_1.CreditFacilityEntity !== "undefined" && credit_facility_entity_1.CreditFacilityEntity) === "function" ? _b : Object)
+    __metadata("design:type", typeof (_d = typeof credit_facility_entity_1.CreditFacilityEntity !== "undefined" && credit_facility_entity_1.CreditFacilityEntity) === "function" ? _d : Object)
 ], CategoryEntity.prototype, "creditFacility", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => partners_entity_1.PartnersEntity, (p) => p.categories, {
+    (0, typeorm_1.ManyToOne)(() => suppliers_data_1.PartnersEntity, (p) => p.categories, {
         nullable: true,
         onDelete: 'SET NULL',
         onUpdate: 'CASCADE',
@@ -1942,7 +2135,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var _a, _b;
+var _a, _b, _c;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CreditFacilityEntity = void 0;
 const typeorm_1 = __webpack_require__(18);
@@ -1950,10 +2143,13 @@ const shared_1 = __webpack_require__(21);
 const base_external_id_entity_1 = __webpack_require__(47);
 const category_entity_1 = __webpack_require__(52);
 const contract_entity_1 = __webpack_require__(54);
+const suppliers_data_1 = __webpack_require__(15);
 let CreditFacilityEntity = class CreditFacilityEntity extends base_external_id_entity_1.BaseExternalIdEntity {
     contractId;
     state;
     totalLimit;
+    business;
+    businessId;
     categories;
 };
 exports.CreditFacilityEntity = CreditFacilityEntity;
@@ -1982,6 +2178,15 @@ __decorate([
     __metadata("design:type", String)
 ], CreditFacilityEntity.prototype, "totalLimit", void 0);
 __decorate([
+    (0, typeorm_1.ManyToOne)(() => suppliers_data_1.BusinessEntity, { nullable: false }),
+    (0, typeorm_1.JoinColumn)({ name: 'business_id', referencedColumnName: 'id' }),
+    __metadata("design:type", typeof (_c = typeof suppliers_data_1.BusinessEntity !== "undefined" && suppliers_data_1.BusinessEntity) === "function" ? _c : Object)
+], CreditFacilityEntity.prototype, "business", void 0);
+__decorate([
+    (0, typeorm_1.RelationId)((cf) => cf.business),
+    __metadata("design:type", Number)
+], CreditFacilityEntity.prototype, "businessId", void 0);
+__decorate([
     (0, typeorm_1.OneToMany)(() => category_entity_1.CategoryEntity, (category) => category.creditFacility),
     __metadata("design:type", Array)
 ], CreditFacilityEntity.prototype, "categories", void 0);
@@ -2004,20 +2209,21 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var _a, _b;
+var _a, _b, _c;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ContractEntity = void 0;
 const typeorm_1 = __webpack_require__(18);
 const shared_1 = __webpack_require__(21);
 const base_external_id_entity_1 = __webpack_require__(47);
+const contract_template_entity_1 = __webpack_require__(55);
 let ContractEntity = class ContractEntity extends base_external_id_entity_1.BaseExternalIdEntity {
     userId;
-    contractTemplateId;
+    contractTemplate;
     zapsignToken;
-    state;
     originalFileUrl;
     signedFileUrl;
     formAnswersJson;
+    state;
 };
 exports.ContractEntity = ContractEntity;
 __decorate([
@@ -2025,23 +2231,18 @@ __decorate([
     __metadata("design:type", Object)
 ], ContractEntity.prototype, "userId", void 0);
 __decorate([
+    (0, typeorm_1.ManyToOne)(() => contract_template_entity_1.ContractTemplateEntity, {
+        nullable: true,
+        onDelete: 'SET NULL',
+        onUpdate: 'CASCADE',
+    }),
     (0, typeorm_1.Column)({ name: 'contract_template_id', type: 'bigint', nullable: true }),
     __metadata("design:type", Object)
-], ContractEntity.prototype, "contractTemplateId", void 0);
+], ContractEntity.prototype, "contractTemplate", void 0);
 __decorate([
     (0, typeorm_1.Column)({ name: 'zapsign_token', type: 'varchar', nullable: true, unique: true }),
     __metadata("design:type", Object)
 ], ContractEntity.prototype, "zapsignToken", void 0);
-__decorate([
-    (0, typeorm_1.Column)({
-        name: 'state',
-        type: 'enum',
-        enum: shared_1.ContractCatalogStatus,
-        enumName: 'contract_catalog_status',
-        default: shared_1.ContractCatalogStatus.PENDING,
-    }),
-    __metadata("design:type", typeof (_a = typeof shared_1.ContractCatalogStatus !== "undefined" && shared_1.ContractCatalogStatus) === "function" ? _a : Object)
-], ContractEntity.prototype, "state", void 0);
 __decorate([
     (0, typeorm_1.Column)({ name: 'original_file_url', type: 'text', nullable: true }),
     __metadata("design:type", Object)
@@ -2054,6 +2255,16 @@ __decorate([
     (0, typeorm_1.Column)({ name: 'form_answers_json', type: 'jsonb', nullable: true }),
     __metadata("design:type", Object)
 ], ContractEntity.prototype, "formAnswersJson", void 0);
+__decorate([
+    (0, typeorm_1.Column)({
+        name: 'state',
+        type: 'enum',
+        enum: shared_1.ContractCatalogStatus,
+        enumName: 'contract_catalog_status',
+        default: shared_1.ContractCatalogStatus.PENDING,
+    }),
+    __metadata("design:type", typeof (_c = typeof shared_1.ContractCatalogStatus !== "undefined" && shared_1.ContractCatalogStatus) === "function" ? _c : Object)
+], ContractEntity.prototype, "state", void 0);
 exports.ContractEntity = ContractEntity = __decorate([
     (0, typeorm_1.Entity)({ name: 'contracts', schema: 'products_schema' })
 ], ContractEntity);
@@ -2073,6 +2284,70 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var _a;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ContractTemplateEntity = void 0;
+const typeorm_1 = __webpack_require__(18);
+const shared_1 = __webpack_require__(21);
+const base_external_id_entity_1 = __webpack_require__(47);
+let ContractTemplateEntity = class ContractTemplateEntity extends base_external_id_entity_1.BaseExternalIdEntity {
+    name;
+    description;
+    templateUrl;
+    version;
+    state;
+};
+exports.ContractTemplateEntity = ContractTemplateEntity;
+__decorate([
+    (0, typeorm_1.Column)({ name: 'name', type: 'varchar', length: 255, nullable: false }),
+    __metadata("design:type", String)
+], ContractTemplateEntity.prototype, "name", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'description', type: 'text', nullable: true }),
+    __metadata("design:type", Object)
+], ContractTemplateEntity.prototype, "description", void 0);
+__decorate([
+    (0, typeorm_1.Column)({
+        name: 'template_url',
+        type: 'text',
+        nullable: false,
+        comment: 'URL del template en S3'
+    }),
+    __metadata("design:type", String)
+], ContractTemplateEntity.prototype, "templateUrl", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'version', type: 'varchar', length: 50, nullable: true }),
+    __metadata("design:type", Object)
+], ContractTemplateEntity.prototype, "version", void 0);
+__decorate([
+    (0, typeorm_1.Column)({
+        name: 'state',
+        type: 'enum',
+        enum: shared_1.ContractTemplateCatalogStatus,
+        enumName: 'credit_facility_state',
+        default: shared_1.ContractTemplateCatalogStatus.ACTIVE,
+    }),
+    __metadata("design:type", typeof (_a = typeof shared_1.ContractTemplateCatalogStatus !== "undefined" && shared_1.ContractTemplateCatalogStatus) === "function" ? _a : Object)
+], ContractTemplateEntity.prototype, "state", void 0);
+exports.ContractTemplateEntity = ContractTemplateEntity = __decorate([
+    (0, typeorm_1.Entity)({ name: 'contract_templates', schema: 'products_schema' })
+], ContractTemplateEntity);
+
+
+/***/ }),
+/* 56 */
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
 var _a, _b, _c;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SalesRepresentativeEntity = void 0;
@@ -2080,7 +2355,7 @@ const typeorm_1 = __webpack_require__(18);
 const shared_1 = __webpack_require__(21);
 const base_external_id_entity_1 = __webpack_require__(19);
 const partners_entity_1 = __webpack_require__(51);
-const transversal_data_1 = __webpack_require__(56);
+const transversal_data_1 = __webpack_require__(57);
 let SalesRepresentativeEntity = class SalesRepresentativeEntity extends base_external_id_entity_1.BaseExternalIdEntity {
     partner;
     partnerId;
@@ -2125,7 +2400,7 @@ exports.SalesRepresentativeEntity = SalesRepresentativeEntity = __decorate([
 
 
 /***/ }),
-/* 56 */
+/* 57 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -2144,41 +2419,45 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-__exportStar(__webpack_require__(57), exports);
-__exportStar(__webpack_require__(64), exports);
-__exportStar(__webpack_require__(48), exports);
 __exportStar(__webpack_require__(58), exports);
+__exportStar(__webpack_require__(65), exports);
+__exportStar(__webpack_require__(48), exports);
 __exportStar(__webpack_require__(59), exports);
-__exportStar(__webpack_require__(46), exports);
 __exportStar(__webpack_require__(60), exports);
+__exportStar(__webpack_require__(46), exports);
 __exportStar(__webpack_require__(61), exports);
 __exportStar(__webpack_require__(62), exports);
 __exportStar(__webpack_require__(63), exports);
-__exportStar(__webpack_require__(65), exports);
+__exportStar(__webpack_require__(64), exports);
 __exportStar(__webpack_require__(66), exports);
 __exportStar(__webpack_require__(68), exports);
-__exportStar(__webpack_require__(69), exports);
 __exportStar(__webpack_require__(70), exports);
+__exportStar(__webpack_require__(67), exports);
 __exportStar(__webpack_require__(71), exports);
+__exportStar(__webpack_require__(72), exports);
+__exportStar(__webpack_require__(73), exports);
+__exportStar(__webpack_require__(74), exports);
 
 
 /***/ }),
-/* 57 */
+/* 58 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.TRANSVERSAL_DATA_ENTITIES = void 0;
 const city_entity_1 = __webpack_require__(48);
-const currency_entity_1 = __webpack_require__(58);
-const permission_entity_1 = __webpack_require__(59);
+const currency_entity_1 = __webpack_require__(59);
+const permission_entity_1 = __webpack_require__(60);
 const person_entity_1 = __webpack_require__(46);
-const role_entity_1 = __webpack_require__(60);
-const role_permission_entity_1 = __webpack_require__(61);
-const catalog_status_types_entity_1 = __webpack_require__(62);
-const partner_create_user_sqs_idempotency_entity_1 = __webpack_require__(63);
-const upload_files_idempotency_entity_1 = __webpack_require__(65);
-const user_entity_1 = __webpack_require__(66);
+const role_entity_1 = __webpack_require__(61);
+const role_permission_entity_1 = __webpack_require__(62);
+const catalog_status_types_entity_1 = __webpack_require__(63);
+const partner_create_user_sqs_idempotency_entity_1 = __webpack_require__(64);
+const upload_files_idempotency_entity_1 = __webpack_require__(66);
+const audit_log_entity_1 = __webpack_require__(67);
+const global_param_entity_1 = __webpack_require__(70);
+const user_entity_1 = __webpack_require__(68);
 exports.TRANSVERSAL_DATA_ENTITIES = [
     city_entity_1.CityEntity,
     currency_entity_1.CurrencyEntity,
@@ -2190,11 +2469,13 @@ exports.TRANSVERSAL_DATA_ENTITIES = [
     upload_files_idempotency_entity_1.UploadFilesIdempotencyEntity,
     partner_create_user_sqs_idempotency_entity_1.PartnerCreateUserSqsIdempotencyEntity,
     user_entity_1.UserEntity,
+    global_param_entity_1.GlobalParamEntity,
+    audit_log_entity_1.AuditLogEntity,
 ];
 
 
 /***/ }),
-/* 58 */
+/* 59 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -2275,7 +2556,7 @@ exports.CurrencyEntity = CurrencyEntity = __decorate([
 
 
 /***/ }),
-/* 59 */
+/* 60 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -2311,7 +2592,7 @@ exports.PermissionEntity = PermissionEntity = __decorate([
 
 
 /***/ }),
-/* 60 */
+/* 61 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -2324,16 +2605,13 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.RoleEntity = void 0;
 const typeorm_1 = __webpack_require__(18);
 const base_external_id_entity_1 = __webpack_require__(47);
-const suppliers_data_1 = __webpack_require__(15);
 let RoleEntity = class RoleEntity extends base_external_id_entity_1.BaseExternalIdEntity {
     name;
     description;
-    partner;
 };
 exports.RoleEntity = RoleEntity;
 __decorate([
@@ -2344,18 +2622,13 @@ __decorate([
     (0, typeorm_1.Column)({ name: 'description', type: 'text', nullable: true }),
     __metadata("design:type", Object)
 ], RoleEntity.prototype, "description", void 0);
-__decorate([
-    (0, typeorm_1.ManyToOne)(() => suppliers_data_1.PartnersEntity, (p) => p.roles, { nullable: false }),
-    (0, typeorm_1.JoinColumn)({ name: 'partner_id', referencedColumnName: 'id' }),
-    __metadata("design:type", typeof (_a = typeof suppliers_data_1.PartnersEntity !== "undefined" && suppliers_data_1.PartnersEntity) === "function" ? _a : Object)
-], RoleEntity.prototype, "partner", void 0);
 exports.RoleEntity = RoleEntity = __decorate([
     (0, typeorm_1.Entity)({ name: 'roles', schema: 'transversal_schema' })
 ], RoleEntity);
 
 
 /***/ }),
-/* 61 */
+/* 62 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -2392,7 +2665,7 @@ exports.RolePermissionEntity = RolePermissionEntity = __decorate([
 
 
 /***/ }),
-/* 62 */
+/* 63 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -2453,7 +2726,7 @@ exports.StatusEntity = StatusEntity = __decorate([
 
 
 /***/ }),
-/* 63 */
+/* 64 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -2466,7 +2739,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.PartnerCreateUserSqsIdempotencyEntity = void 0;
 const typeorm_1 = __webpack_require__(18);
-const base_sqs_idempotency_entity_1 = __webpack_require__(64);
+const base_sqs_idempotency_entity_1 = __webpack_require__(65);
 let PartnerCreateUserSqsIdempotencyEntity = class PartnerCreateUserSqsIdempotencyEntity extends base_sqs_idempotency_entity_1.BaseSqsIdempotencyEntity {
     result = null;
 };
@@ -2477,7 +2750,7 @@ exports.PartnerCreateUserSqsIdempotencyEntity = PartnerCreateUserSqsIdempotencyE
 
 
 /***/ }),
-/* 64 */
+/* 65 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -2525,7 +2798,7 @@ __decorate([
 
 
 /***/ }),
-/* 65 */
+/* 66 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -2538,7 +2811,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.UploadFilesIdempotencyEntity = void 0;
 const typeorm_1 = __webpack_require__(18);
-const base_sqs_idempotency_entity_1 = __webpack_require__(64);
+const base_sqs_idempotency_entity_1 = __webpack_require__(65);
 let UploadFilesIdempotencyEntity = class UploadFilesIdempotencyEntity extends base_sqs_idempotency_entity_1.BaseSqsIdempotencyEntity {
     result = null;
 };
@@ -2549,7 +2822,123 @@ exports.UploadFilesIdempotencyEntity = UploadFilesIdempotencyEntity = __decorate
 
 
 /***/ }),
-/* 66 */
+/* 67 */
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var _a, _b, _c, _d;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.AuditLogEntity = void 0;
+const typeorm_1 = __webpack_require__(18);
+const shared_1 = __webpack_require__(21);
+const user_entity_1 = __webpack_require__(68);
+let AuditLogEntity = class AuditLogEntity {
+    id;
+    externalId;
+    entityType;
+    entityId;
+    action;
+    fieldName;
+    oldValue;
+    newValue;
+    reasonCode;
+    notes;
+    performedBy;
+    performedById;
+    performedAt;
+};
+exports.AuditLogEntity = AuditLogEntity;
+__decorate([
+    (0, typeorm_1.PrimaryGeneratedColumn)({ type: 'bigint' }),
+    __metadata("design:type", Number)
+], AuditLogEntity.prototype, "id", void 0);
+__decorate([
+    (0, typeorm_1.Column)({
+        name: 'external_id',
+        type: 'uuid',
+        unique: true,
+        insert: false,
+        update: false,
+    }),
+    __metadata("design:type", String)
+], AuditLogEntity.prototype, "externalId", void 0);
+__decorate([
+    (0, typeorm_1.Column)({
+        name: 'entity_type',
+        type: 'enum',
+        enum: shared_1.EntityType,
+        enumName: 'audit_log_entity_type',
+    }),
+    __metadata("design:type", typeof (_a = typeof shared_1.EntityType !== "undefined" && shared_1.EntityType) === "function" ? _a : Object)
+], AuditLogEntity.prototype, "entityType", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'entity_id', type: 'bigint' }),
+    __metadata("design:type", Number)
+], AuditLogEntity.prototype, "entityId", void 0);
+__decorate([
+    (0, typeorm_1.Column)({
+        name: 'action',
+        type: 'enum',
+        enum: shared_1.ActionType,
+        enumName: 'audit_log_action_type',
+    }),
+    __metadata("design:type", typeof (_b = typeof shared_1.ActionType !== "undefined" && shared_1.ActionType) === "function" ? _b : Object)
+], AuditLogEntity.prototype, "action", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'field_name', type: 'varchar', length: 100, nullable: true }),
+    __metadata("design:type", Object)
+], AuditLogEntity.prototype, "fieldName", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'old_value', type: 'jsonb', nullable: true }),
+    __metadata("design:type", Object)
+], AuditLogEntity.prototype, "oldValue", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'new_value', type: 'jsonb', nullable: true }),
+    __metadata("design:type", Object)
+], AuditLogEntity.prototype, "newValue", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'reason_code', type: 'varchar', length: 100, nullable: true }),
+    __metadata("design:type", Object)
+], AuditLogEntity.prototype, "reasonCode", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'notes', type: 'text', nullable: true }),
+    __metadata("design:type", Object)
+], AuditLogEntity.prototype, "notes", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => user_entity_1.UserEntity, {
+        nullable: false,
+        onDelete: 'RESTRICT',
+        onUpdate: 'CASCADE',
+    }),
+    (0, typeorm_1.JoinColumn)({ name: 'performed_by', referencedColumnName: 'id' }),
+    __metadata("design:type", typeof (_c = typeof user_entity_1.UserEntity !== "undefined" && user_entity_1.UserEntity) === "function" ? _c : Object)
+], AuditLogEntity.prototype, "performedBy", void 0);
+__decorate([
+    (0, typeorm_1.RelationId)((a) => a.performedBy),
+    __metadata("design:type", Number)
+], AuditLogEntity.prototype, "performedById", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'performed_at', type: 'timestamptz' }),
+    __metadata("design:type", typeof (_d = typeof Date !== "undefined" && Date) === "function" ? _d : Object)
+], AuditLogEntity.prototype, "performedAt", void 0);
+exports.AuditLogEntity = AuditLogEntity = __decorate([
+    (0, typeorm_1.Entity)({ name: 'audit_logs', schema: 'transversal_schema' }),
+    (0, typeorm_1.Index)('IDX_audit_logs_entity_type_entity_id', ['entityType', 'entityId']),
+    (0, typeorm_1.Index)('IDX_audit_logs_performed_at', ['performedAt'])
+], AuditLogEntity);
+
+
+/***/ }),
+/* 68 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -2566,14 +2955,15 @@ var _a, _b, _c, _d;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.UserEntity = void 0;
 const typeorm_1 = __webpack_require__(18);
-const role_entity_1 = __webpack_require__(60);
+const role_entity_1 = __webpack_require__(61);
 const person_entity_1 = __webpack_require__(46);
-const base_external_id_entity_1 = __webpack_require__(67);
+const base_external_id_entity_1 = __webpack_require__(69);
 const shared_1 = __webpack_require__(21);
 let UserEntity = class UserEntity extends base_external_id_entity_1.BaseExternalIdEntity {
     cognitoSub;
     email;
     role;
+    roleId;
     state;
     person;
     lastLoginAt;
@@ -2592,6 +2982,10 @@ __decorate([
     (0, typeorm_1.JoinColumn)({ name: 'role_id', referencedColumnName: 'id' }),
     __metadata("design:type", typeof (_a = typeof role_entity_1.RoleEntity !== "undefined" && role_entity_1.RoleEntity) === "function" ? _a : Object)
 ], UserEntity.prototype, "role", void 0);
+__decorate([
+    (0, typeorm_1.RelationId)((u) => u.role),
+    __metadata("design:type", Number)
+], UserEntity.prototype, "roleId", void 0);
 __decorate([
     (0, typeorm_1.Column)({
         name: 'state',
@@ -2617,7 +3011,7 @@ exports.UserEntity = UserEntity = __decorate([
 
 
 /***/ }),
-/* 67 */
+/* 69 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -2676,7 +3070,96 @@ __decorate([
 
 
 /***/ }),
-/* 68 */
+/* 70 */
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var _a, _b;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.GlobalParamEntity = void 0;
+const typeorm_1 = __webpack_require__(18);
+const user_entity_1 = __webpack_require__(68);
+let GlobalParamEntity = class GlobalParamEntity {
+    id;
+    externalId;
+    code;
+    value;
+    description;
+    validFrom;
+    createdBy;
+    createdById;
+    createdAt;
+};
+exports.GlobalParamEntity = GlobalParamEntity;
+__decorate([
+    (0, typeorm_1.PrimaryGeneratedColumn)({ type: 'bigint' }),
+    __metadata("design:type", Number)
+], GlobalParamEntity.prototype, "id", void 0);
+__decorate([
+    (0, typeorm_1.Column)({
+        name: 'external_id',
+        type: 'uuid',
+        unique: true,
+        insert: false,
+        update: false,
+    }),
+    __metadata("design:type", String)
+], GlobalParamEntity.prototype, "externalId", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'code', type: 'varchar', length: 100 }),
+    __metadata("design:type", String)
+], GlobalParamEntity.prototype, "code", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'value', type: 'jsonb' }),
+    __metadata("design:type", Object)
+], GlobalParamEntity.prototype, "value", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'description', type: 'text', nullable: true }),
+    __metadata("design:type", Object)
+], GlobalParamEntity.prototype, "description", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'valid_from', type: 'date' }),
+    __metadata("design:type", String)
+], GlobalParamEntity.prototype, "validFrom", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => user_entity_1.UserEntity, {
+        nullable: false,
+        onDelete: 'RESTRICT',
+        onUpdate: 'CASCADE',
+    }),
+    (0, typeorm_1.JoinColumn)({ name: 'created_by', referencedColumnName: 'id' }),
+    __metadata("design:type", typeof (_a = typeof user_entity_1.UserEntity !== "undefined" && user_entity_1.UserEntity) === "function" ? _a : Object)
+], GlobalParamEntity.prototype, "createdBy", void 0);
+__decorate([
+    (0, typeorm_1.RelationId)((g) => g.createdBy),
+    __metadata("design:type", Number)
+], GlobalParamEntity.prototype, "createdById", void 0);
+__decorate([
+    (0, typeorm_1.CreateDateColumn)({
+        name: 'created_at',
+        type: 'timestamptz',
+        insert: false,
+        update: false,
+    }),
+    __metadata("design:type", typeof (_b = typeof Date !== "undefined" && Date) === "function" ? _b : Object)
+], GlobalParamEntity.prototype, "createdAt", void 0);
+exports.GlobalParamEntity = GlobalParamEntity = __decorate([
+    (0, typeorm_1.Entity)({ name: 'global_params', schema: 'transversal_schema' }),
+    (0, typeorm_1.Index)('UQ_global_params_code_valid_from', ['code', 'validFrom'], { unique: true })
+], GlobalParamEntity);
+
+
+/***/ }),
+/* 71 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
@@ -2737,7 +3220,7 @@ exports.TypeormSqsIdempotencyBaseAdapter = TypeormSqsIdempotencyBaseAdapter;
 
 
 /***/ }),
-/* 69 */
+/* 72 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -2773,7 +3256,7 @@ exports.TypeormSqsIdempotencyPollBaseAdapter = TypeormSqsIdempotencyPollBaseAdap
 
 
 /***/ }),
-/* 70 */
+/* 73 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -2787,9 +3270,9 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.TransversalDataModule = exports.TRANSVERSAL_DATA_ENTITIES = void 0;
 const common_1 = __webpack_require__(6);
 const typeorm_1 = __webpack_require__(12);
-const transversal_data_service_1 = __webpack_require__(71);
-const transversal_data_entities_1 = __webpack_require__(57);
-var transversal_data_entities_2 = __webpack_require__(57);
+const transversal_data_service_1 = __webpack_require__(74);
+const transversal_data_entities_1 = __webpack_require__(58);
+var transversal_data_entities_2 = __webpack_require__(58);
 Object.defineProperty(exports, "TRANSVERSAL_DATA_ENTITIES", ({ enumerable: true, get: function () { return transversal_data_entities_2.TRANSVERSAL_DATA_ENTITIES; } }));
 let TransversalDataModule = class TransversalDataModule {
 };
@@ -2804,7 +3287,7 @@ exports.TransversalDataModule = TransversalDataModule = __decorate([
 
 
 /***/ }),
-/* 71 */
+/* 74 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -2826,7 +3309,7 @@ exports.TransversalDataService = TransversalDataService = __decorate([
 
 
 /***/ }),
-/* 72 */
+/* 75 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -2889,7 +3372,7 @@ exports.SupplierEntity = SupplierEntity = __decorate([
 
 
 /***/ }),
-/* 73 */
+/* 76 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -2940,7 +3423,7 @@ exports.PurchaseOrderEntity = PurchaseOrderEntity = __decorate([
 
 
 /***/ }),
-/* 74 */
+/* 77 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -3053,7 +3536,7 @@ exports.ShareholderEntity = ShareholderEntity = __decorate([
 
 
 /***/ }),
-/* 75 */
+/* 78 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -3150,7 +3633,7 @@ exports.PartnerOnboardingSagaEntity = PartnerOnboardingSagaEntity = __decorate([
 
 
 /***/ }),
-/* 76 */
+/* 79 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -3164,7 +3647,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SuppliersDataModule = exports.SUPPLIERS_DATA_ENTITIES = void 0;
 const common_1 = __webpack_require__(6);
 const typeorm_1 = __webpack_require__(12);
-const suppliers_data_service_1 = __webpack_require__(77);
+const suppliers_data_service_1 = __webpack_require__(80);
 const suppliers_data_entities_1 = __webpack_require__(16);
 var suppliers_data_entities_2 = __webpack_require__(16);
 Object.defineProperty(exports, "SUPPLIERS_DATA_ENTITIES", ({ enumerable: true, get: function () { return suppliers_data_entities_2.SUPPLIERS_DATA_ENTITIES; } }));
@@ -3181,7 +3664,7 @@ exports.SuppliersDataModule = SuppliersDataModule = __decorate([
 
 
 /***/ }),
-/* 77 */
+/* 80 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -3203,7 +3686,7 @@ exports.SuppliersDataService = SuppliersDataService = __decorate([
 
 
 /***/ }),
-/* 78 */
+/* 81 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -3218,25 +3701,25 @@ exports.SqsModule = void 0;
 const common_1 = __webpack_require__(6);
 const config_1 = __webpack_require__(8);
 const shared_1 = __webpack_require__(21);
-const sqs_message_publisher_adapter_1 = __webpack_require__(79);
-const config_outbound_transversal_queue_url_adapter_1 = __webpack_require__(80);
-const config_outbound_products_queue_url_adapter_1 = __webpack_require__(81);
-const transversal_inbound_sqs_consumer_1 = __webpack_require__(82);
-const messaging_application_module_1 = __webpack_require__(90);
-const outbound_message_publisher_port_1 = __webpack_require__(92);
-const transversal_outbound_queue_url_port_1 = __webpack_require__(93);
-const products_outbound_queue_url_port_1 = __webpack_require__(105);
-const transversal_upload_files_queue_url_port_1 = __webpack_require__(96);
-const config_transversal_upload_files_queue_url_adapter_1 = __webpack_require__(106);
-const transversal_create_partner_user_queue_url_port_1 = __webpack_require__(98);
-const config_transversal_create_partner_user_queue_url_adapter_1 = __webpack_require__(107);
-const transversal_create_person_queue_url_port_1 = __webpack_require__(100);
-const config_transversal_create_person_queue_url_adapter_1 = __webpack_require__(108);
-const publish_products_event_use_case_1 = __webpack_require__(109);
-const products_create_credit_facility_queue_url_port_1 = __webpack_require__(102);
-const config_products_create_credit_facility_queue_url_adapter_1 = __webpack_require__(110);
-const products_create_categories_queue_url_port_1 = __webpack_require__(104);
-const config_products_create_categories_queue_url_adapter_1 = __webpack_require__(111);
+const sqs_message_publisher_adapter_1 = __webpack_require__(82);
+const config_outbound_transversal_queue_url_adapter_1 = __webpack_require__(83);
+const config_outbound_products_queue_url_adapter_1 = __webpack_require__(84);
+const transversal_inbound_sqs_consumer_1 = __webpack_require__(85);
+const messaging_application_module_1 = __webpack_require__(93);
+const outbound_message_publisher_port_1 = __webpack_require__(95);
+const transversal_outbound_queue_url_port_1 = __webpack_require__(96);
+const products_outbound_queue_url_port_1 = __webpack_require__(108);
+const transversal_upload_files_queue_url_port_1 = __webpack_require__(99);
+const config_transversal_upload_files_queue_url_adapter_1 = __webpack_require__(109);
+const transversal_create_partner_user_queue_url_port_1 = __webpack_require__(101);
+const config_transversal_create_partner_user_queue_url_adapter_1 = __webpack_require__(110);
+const transversal_create_person_queue_url_port_1 = __webpack_require__(103);
+const config_transversal_create_person_queue_url_adapter_1 = __webpack_require__(111);
+const publish_products_event_use_case_1 = __webpack_require__(112);
+const products_create_credit_facility_queue_url_port_1 = __webpack_require__(105);
+const config_products_create_credit_facility_queue_url_adapter_1 = __webpack_require__(113);
+const products_create_categories_queue_url_port_1 = __webpack_require__(107);
+const config_products_create_categories_queue_url_adapter_1 = __webpack_require__(114);
 let SqsModule = class SqsModule {
 };
 exports.SqsModule = SqsModule;
@@ -3326,7 +3809,7 @@ exports.SqsModule = SqsModule = __decorate([
 
 
 /***/ }),
-/* 79 */
+/* 82 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -3393,7 +3876,7 @@ exports.SqsMessagePublisherAdapter = SqsMessagePublisherAdapter = __decorate([
 
 
 /***/ }),
-/* 80 */
+/* 83 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -3431,7 +3914,7 @@ exports.ConfigOutboundTransversalQueueUrlAdapter = ConfigOutboundTransversalQueu
 
 
 /***/ }),
-/* 81 */
+/* 84 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -3466,7 +3949,7 @@ exports.ConfigOutboundProductsQueueUrlAdapter = ConfigOutboundProductsQueueUrlAd
 
 
 /***/ }),
-/* 82 */
+/* 85 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -3488,7 +3971,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.TransversalInboundSqsConsumer = void 0;
 const common_1 = __webpack_require__(6);
 const config_1 = __webpack_require__(8);
-const ingest_transversal_inbound_sqs_message_use_case_1 = __webpack_require__(83);
+const ingest_transversal_inbound_sqs_message_use_case_1 = __webpack_require__(86);
 const shared_1 = __webpack_require__(21);
 let TransversalInboundSqsConsumer = TransversalInboundSqsConsumer_1 = class TransversalInboundSqsConsumer extends shared_1.BaseConsumer {
     queues_config;
@@ -3542,7 +4025,7 @@ exports.TransversalInboundSqsConsumer = TransversalInboundSqsConsumer = Transver
 
 
 /***/ }),
-/* 83 */
+/* 86 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -3562,10 +4045,10 @@ exports.IngestTransversalInboundSqsMessageUseCase = void 0;
 const common_1 = __webpack_require__(6);
 const class_transformer_1 = __webpack_require__(42);
 const class_validator_1 = __webpack_require__(43);
-const files_uploaded_inbound_dto_1 = __webpack_require__(84);
-const transversal_inbound_message_dto_1 = __webpack_require__(85);
-const process_transversal_inbound_message_use_case_1 = __webpack_require__(87);
-const process_files_uploaded_inbound_use_case_1 = __webpack_require__(88);
+const files_uploaded_inbound_dto_1 = __webpack_require__(87);
+const transversal_inbound_message_dto_1 = __webpack_require__(88);
+const process_transversal_inbound_message_use_case_1 = __webpack_require__(90);
+const process_files_uploaded_inbound_use_case_1 = __webpack_require__(91);
 function is_files_uploaded_event(v) {
     return (typeof v === 'object' &&
         v !== null &&
@@ -3641,7 +4124,7 @@ exports.IngestTransversalInboundSqsMessageUseCase = IngestTransversalInboundSqsM
 
 
 /***/ }),
-/* 84 */
+/* 87 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -3712,7 +4195,7 @@ __decorate([
 
 
 /***/ }),
-/* 85 */
+/* 88 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -3729,7 +4212,7 @@ var _a, _b;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.TransversalInboundMessageDto = void 0;
 const class_validator_1 = __webpack_require__(43);
-const transversal_outbound_event_dto_1 = __webpack_require__(86);
+const transversal_outbound_event_dto_1 = __webpack_require__(89);
 class TransversalInboundMessageDto {
     correlation_id;
     event_type;
@@ -3758,7 +4241,7 @@ __decorate([
 
 
 /***/ }),
-/* 86 */
+/* 89 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -3812,7 +4295,7 @@ __decorate([
 
 
 /***/ }),
-/* 87 */
+/* 90 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -3839,7 +4322,7 @@ exports.ProcessTransversalInboundMessageUseCase = ProcessTransversalInboundMessa
 
 
 /***/ }),
-/* 88 */
+/* 91 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -3857,7 +4340,7 @@ var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ProcessFilesUploadedInboundUseCase = void 0;
 const common_1 = __webpack_require__(6);
-const files_uploaded_correlation_awaiter_service_1 = __webpack_require__(89);
+const files_uploaded_correlation_awaiter_service_1 = __webpack_require__(92);
 const FOLDER_BANK = 'bank-certifications';
 const FOLDER_LOGO = 'logos/logo';
 const FOLDER_CO_BRANDING = 'logos/co-branding';
@@ -3899,7 +4382,7 @@ exports.ProcessFilesUploadedInboundUseCase = ProcessFilesUploadedInboundUseCase 
 
 
 /***/ }),
-/* 89 */
+/* 92 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -3947,7 +4430,7 @@ exports.FilesUploadedCorrelationAwaiter = FilesUploadedCorrelationAwaiter = __de
 
 
 /***/ }),
-/* 90 */
+/* 93 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -3960,16 +4443,16 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.MessagingApplicationModule = void 0;
 const common_1 = __webpack_require__(6);
-const publish_transversal_event_use_case_1 = __webpack_require__(91);
-const publish_upload_files_event_use_case_1 = __webpack_require__(95);
-const publish_create_partner_user_command_use_case_1 = __webpack_require__(97);
-const publish_create_person_command_use_case_1 = __webpack_require__(99);
-const publish_create_credit_facility_command_use_case_1 = __webpack_require__(101);
-const publish_create_categories_command_use_case_1 = __webpack_require__(103);
-const process_transversal_inbound_message_use_case_1 = __webpack_require__(87);
-const process_files_uploaded_inbound_use_case_1 = __webpack_require__(88);
-const ingest_transversal_inbound_sqs_message_use_case_1 = __webpack_require__(83);
-const files_uploaded_correlation_awaiter_service_1 = __webpack_require__(89);
+const publish_transversal_event_use_case_1 = __webpack_require__(94);
+const publish_upload_files_event_use_case_1 = __webpack_require__(98);
+const publish_create_partner_user_command_use_case_1 = __webpack_require__(100);
+const publish_create_person_command_use_case_1 = __webpack_require__(102);
+const publish_create_credit_facility_command_use_case_1 = __webpack_require__(104);
+const publish_create_categories_command_use_case_1 = __webpack_require__(106);
+const process_transversal_inbound_message_use_case_1 = __webpack_require__(90);
+const process_files_uploaded_inbound_use_case_1 = __webpack_require__(91);
+const ingest_transversal_inbound_sqs_message_use_case_1 = __webpack_require__(86);
+const files_uploaded_correlation_awaiter_service_1 = __webpack_require__(92);
 let MessagingApplicationModule = class MessagingApplicationModule {
 };
 exports.MessagingApplicationModule = MessagingApplicationModule;
@@ -4004,7 +4487,7 @@ exports.MessagingApplicationModule = MessagingApplicationModule = __decorate([
 
 
 /***/ }),
-/* 91 */
+/* 94 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -4025,10 +4508,10 @@ exports.PublishTransversalEventUseCase = void 0;
 const common_1 = __webpack_require__(6);
 const class_transformer_1 = __webpack_require__(42);
 const class_validator_1 = __webpack_require__(43);
-const outbound_message_publisher_port_1 = __webpack_require__(92);
-const transversal_outbound_queue_url_port_1 = __webpack_require__(93);
-const transversal_outbound_event_dto_1 = __webpack_require__(86);
-const validation_failed_error_1 = __webpack_require__(94);
+const outbound_message_publisher_port_1 = __webpack_require__(95);
+const transversal_outbound_queue_url_port_1 = __webpack_require__(96);
+const transversal_outbound_event_dto_1 = __webpack_require__(89);
+const validation_failed_error_1 = __webpack_require__(97);
 let PublishTransversalEventUseCase = class PublishTransversalEventUseCase {
     message_publisher;
     outbound_queue_url;
@@ -4067,7 +4550,7 @@ exports.PublishTransversalEventUseCase = PublishTransversalEventUseCase = __deco
 
 
 /***/ }),
-/* 92 */
+/* 95 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -4077,7 +4560,7 @@ exports.OUTBOUND_MESSAGE_PUBLISHER_PORT = Symbol('OUTBOUND_MESSAGE_PUBLISHER_POR
 
 
 /***/ }),
-/* 93 */
+/* 96 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -4087,7 +4570,7 @@ exports.TRANSVERSAL_OUTBOUND_QUEUE_URL_PORT = Symbol('TRANSVERSAL_OUTBOUND_QUEUE
 
 
 /***/ }),
-/* 94 */
+/* 97 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -4103,7 +4586,7 @@ exports.ValidationFailedError = ValidationFailedError;
 
 
 /***/ }),
-/* 95 */
+/* 98 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -4124,9 +4607,9 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.PublishUploadFilesEventUseCase = void 0;
 const common_1 = __webpack_require__(6);
 const config_1 = __webpack_require__(8);
-const outbound_message_publisher_port_1 = __webpack_require__(92);
-const transversal_upload_files_queue_url_port_1 = __webpack_require__(96);
-const validation_failed_error_1 = __webpack_require__(94);
+const outbound_message_publisher_port_1 = __webpack_require__(95);
+const transversal_upload_files_queue_url_port_1 = __webpack_require__(99);
+const validation_failed_error_1 = __webpack_require__(97);
 let PublishUploadFilesEventUseCase = class PublishUploadFilesEventUseCase {
     message_publisher;
     upload_queue_url;
@@ -4198,7 +4681,7 @@ exports.PublishUploadFilesEventUseCase = PublishUploadFilesEventUseCase = __deco
 
 
 /***/ }),
-/* 96 */
+/* 99 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -4208,7 +4691,7 @@ exports.TRANSVERSAL_UPLOAD_FILES_QUEUE_URL_PORT = Symbol('TRANSVERSAL_UPLOAD_FIL
 
 
 /***/ }),
-/* 97 */
+/* 100 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -4227,9 +4710,9 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.PublishCreatePartnerUserCommandUseCase = void 0;
 const common_1 = __webpack_require__(6);
-const outbound_message_publisher_port_1 = __webpack_require__(92);
-const transversal_create_partner_user_queue_url_port_1 = __webpack_require__(98);
-const validation_failed_error_1 = __webpack_require__(94);
+const outbound_message_publisher_port_1 = __webpack_require__(95);
+const transversal_create_partner_user_queue_url_port_1 = __webpack_require__(101);
+const validation_failed_error_1 = __webpack_require__(97);
 let PublishCreatePartnerUserCommandUseCase = class PublishCreatePartnerUserCommandUseCase {
     message_publisher;
     create_user_queue_url;
@@ -4271,7 +4754,7 @@ exports.PublishCreatePartnerUserCommandUseCase = PublishCreatePartnerUserCommand
 
 
 /***/ }),
-/* 98 */
+/* 101 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -4281,7 +4764,7 @@ exports.TRANSVERSAL_CREATE_PARTNER_USER_QUEUE_URL_PORT = Symbol('TRANSVERSAL_CRE
 
 
 /***/ }),
-/* 99 */
+/* 102 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -4300,9 +4783,9 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.PublishCreatePersonCommandUseCase = void 0;
 const common_1 = __webpack_require__(6);
-const outbound_message_publisher_port_1 = __webpack_require__(92);
-const transversal_create_person_queue_url_port_1 = __webpack_require__(100);
-const validation_failed_error_1 = __webpack_require__(94);
+const outbound_message_publisher_port_1 = __webpack_require__(95);
+const transversal_create_person_queue_url_port_1 = __webpack_require__(103);
+const validation_failed_error_1 = __webpack_require__(97);
 let PublishCreatePersonCommandUseCase = class PublishCreatePersonCommandUseCase {
     message_publisher;
     create_person_queue_url;
@@ -4343,7 +4826,7 @@ exports.PublishCreatePersonCommandUseCase = PublishCreatePersonCommandUseCase = 
 
 
 /***/ }),
-/* 100 */
+/* 103 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -4353,7 +4836,7 @@ exports.TRANSVERSAL_CREATE_PERSON_QUEUE_URL_PORT = Symbol('TRANSVERSAL_CREATE_PE
 
 
 /***/ }),
-/* 101 */
+/* 104 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -4372,9 +4855,9 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.PublishCreateCreditFacilityCommandUseCase = void 0;
 const common_1 = __webpack_require__(6);
-const outbound_message_publisher_port_1 = __webpack_require__(92);
-const products_create_credit_facility_queue_url_port_1 = __webpack_require__(102);
-const validation_failed_error_1 = __webpack_require__(94);
+const outbound_message_publisher_port_1 = __webpack_require__(95);
+const products_create_credit_facility_queue_url_port_1 = __webpack_require__(105);
+const validation_failed_error_1 = __webpack_require__(97);
 let PublishCreateCreditFacilityCommandUseCase = class PublishCreateCreditFacilityCommandUseCase {
     message_publisher;
     queue_url_port;
@@ -4411,7 +4894,7 @@ exports.PublishCreateCreditFacilityCommandUseCase = PublishCreateCreditFacilityC
 
 
 /***/ }),
-/* 102 */
+/* 105 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -4421,7 +4904,7 @@ exports.PRODUCTS_CREATE_CREDIT_FACILITY_QUEUE_URL_PORT = Symbol('PRODUCTS_CREATE
 
 
 /***/ }),
-/* 103 */
+/* 106 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -4440,9 +4923,9 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.PublishCreateCategoriesCommandUseCase = void 0;
 const common_1 = __webpack_require__(6);
-const outbound_message_publisher_port_1 = __webpack_require__(92);
-const products_create_categories_queue_url_port_1 = __webpack_require__(104);
-const validation_failed_error_1 = __webpack_require__(94);
+const outbound_message_publisher_port_1 = __webpack_require__(95);
+const products_create_categories_queue_url_port_1 = __webpack_require__(107);
+const validation_failed_error_1 = __webpack_require__(97);
 let PublishCreateCategoriesCommandUseCase = class PublishCreateCategoriesCommandUseCase {
     message_publisher;
     queue_url_port;
@@ -4478,7 +4961,7 @@ exports.PublishCreateCategoriesCommandUseCase = PublishCreateCategoriesCommandUs
 
 
 /***/ }),
-/* 104 */
+/* 107 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -4488,7 +4971,7 @@ exports.PRODUCTS_CREATE_CATEGORIES_QUEUE_URL_PORT = Symbol('PRODUCTS_CREATE_CATE
 
 
 /***/ }),
-/* 105 */
+/* 108 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -4498,7 +4981,7 @@ exports.PRODUCTS_OUTBOUND_QUEUE_URL_PORT = Symbol('PRODUCTS_OUTBOUND_QUEUE_URL_P
 
 
 /***/ }),
-/* 106 */
+/* 109 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -4536,7 +5019,7 @@ exports.ConfigTransversalUploadFilesQueueUrlAdapter = ConfigTransversalUploadFil
 
 
 /***/ }),
-/* 107 */
+/* 110 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -4574,7 +5057,7 @@ exports.ConfigTransversalCreatePartnerUserQueueUrlAdapter = ConfigTransversalCre
 
 
 /***/ }),
-/* 108 */
+/* 111 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -4612,7 +5095,7 @@ exports.ConfigTransversalCreatePersonQueueUrlAdapter = ConfigTransversalCreatePe
 
 
 /***/ }),
-/* 109 */
+/* 112 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -4633,10 +5116,10 @@ exports.PublishProductsEventUseCase = void 0;
 const common_1 = __webpack_require__(6);
 const class_transformer_1 = __webpack_require__(42);
 const class_validator_1 = __webpack_require__(43);
-const outbound_message_publisher_port_1 = __webpack_require__(92);
-const products_outbound_queue_url_port_1 = __webpack_require__(105);
-const transversal_outbound_event_dto_1 = __webpack_require__(86);
-const validation_failed_error_1 = __webpack_require__(94);
+const outbound_message_publisher_port_1 = __webpack_require__(95);
+const products_outbound_queue_url_port_1 = __webpack_require__(108);
+const transversal_outbound_event_dto_1 = __webpack_require__(89);
+const validation_failed_error_1 = __webpack_require__(97);
 let PublishProductsEventUseCase = class PublishProductsEventUseCase {
     message_publisher;
     outbound_queue_url;
@@ -4675,7 +5158,7 @@ exports.PublishProductsEventUseCase = PublishProductsEventUseCase = __decorate([
 
 
 /***/ }),
-/* 110 */
+/* 113 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -4710,7 +5193,7 @@ exports.ConfigProductsCreateCreditFacilityQueueUrlAdapter = ConfigProductsCreate
 
 
 /***/ }),
-/* 111 */
+/* 114 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -4745,7 +5228,7 @@ exports.ConfigProductsCreateCategoriesQueueUrlAdapter = ConfigProductsCreateCate
 
 
 /***/ }),
-/* 112 */
+/* 115 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -4768,7 +5251,7 @@ const common_1 = __webpack_require__(6);
 const typeorm_1 = __webpack_require__(12);
 const typeorm_2 = __webpack_require__(18);
 const suppliers_data_1 = __webpack_require__(15);
-const business_mapper_1 = __webpack_require__(113);
+const business_mapper_1 = __webpack_require__(116);
 const BUSINESS_SELECT = {
     id: true,
     externalId: true,
@@ -4898,13 +5381,13 @@ exports.TypeormBusinessRepository = TypeormBusinessRepository = __decorate([
 
 
 /***/ }),
-/* 113 */
+/* 116 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.BusinessMapper = void 0;
-const business_entity_1 = __webpack_require__(114);
+const business_entity_1 = __webpack_require__(117);
 class BusinessMapper {
     static to_domain(row) {
         return new business_entity_1.Business(row.id, row.externalId, row.personId, row.cityId ?? null, row.entityType, row.businessName ?? null, row.businessAddress ?? null, row.businessType ?? null, row.relationshipToBusiness ?? null, row.legalName ?? null, row.tradeName ?? null, row.taxId ?? null, row.yearOfEstablishment ?? null, row.createdAt, row.updatedAt);
@@ -4922,7 +5405,7 @@ exports.BusinessMapper = BusinessMapper;
 
 
 /***/ }),
-/* 114 */
+/* 117 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -4966,7 +5449,7 @@ exports.Business = Business;
 
 
 /***/ }),
-/* 115 */
+/* 118 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -4989,7 +5472,7 @@ const common_1 = __webpack_require__(6);
 const typeorm_1 = __webpack_require__(12);
 const typeorm_2 = __webpack_require__(18);
 const suppliers_data_1 = __webpack_require__(15);
-const partner_mapper_1 = __webpack_require__(116);
+const partner_mapper_1 = __webpack_require__(119);
 const PARTNER_SELECT = {
     id: true,
     externalId: true,
@@ -5105,13 +5588,13 @@ exports.TypeormPartnerRepository = TypeormPartnerRepository = __decorate([
 
 
 /***/ }),
-/* 116 */
+/* 119 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.PartnerMapper = void 0;
-const partner_entity_1 = __webpack_require__(117);
+const partner_entity_1 = __webpack_require__(120);
 const shared_1 = __webpack_require__(21);
 class PartnerMapper {
     static to_domain(row) {
@@ -5163,7 +5646,7 @@ exports.PartnerMapper = PartnerMapper;
 
 
 /***/ }),
-/* 117 */
+/* 120 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
@@ -5233,7 +5716,7 @@ exports.Partner = Partner;
 
 
 /***/ }),
-/* 118 */
+/* 121 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -5256,7 +5739,7 @@ const common_1 = __webpack_require__(6);
 const typeorm_1 = __webpack_require__(12);
 const typeorm_2 = __webpack_require__(18);
 const suppliers_data_1 = __webpack_require__(15);
-const supplier_mapper_1 = __webpack_require__(119);
+const supplier_mapper_1 = __webpack_require__(122);
 const SUPPLIER_ORM_SELECT = {
     id: true,
     externalId: true,
@@ -5332,13 +5815,13 @@ exports.TypeormSupplierRepository = TypeormSupplierRepository = __decorate([
 
 
 /***/ }),
-/* 119 */
+/* 122 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SupplierMapper = void 0;
-const supplier_entity_1 = __webpack_require__(120);
+const supplier_entity_1 = __webpack_require__(123);
 class SupplierMapper {
     static to_domain(row, bank_account_id) {
         return new supplier_entity_1.Supplier(row.id, row.externalId, row.businessId, bank_account_id, row.createdAt, row.updatedAt);
@@ -5353,7 +5836,7 @@ exports.SupplierMapper = SupplierMapper;
 
 
 /***/ }),
-/* 120 */
+/* 123 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -5379,7 +5862,7 @@ exports.Supplier = Supplier;
 
 
 /***/ }),
-/* 121 */
+/* 124 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -5402,7 +5885,7 @@ const common_1 = __webpack_require__(6);
 const typeorm_1 = __webpack_require__(12);
 const typeorm_2 = __webpack_require__(18);
 const suppliers_data_1 = __webpack_require__(15);
-const bank_account_mapper_1 = __webpack_require__(122);
+const bank_account_mapper_1 = __webpack_require__(125);
 const BANK_ACCOUNT_SELECT = {
     id: true,
     externalId: true,
@@ -5471,13 +5954,13 @@ exports.TypeormBankAccountRepository = TypeormBankAccountRepository = __decorate
 
 
 /***/ }),
-/* 122 */
+/* 125 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.BankAccountMapper = void 0;
-const bank_account_entity_1 = __webpack_require__(123);
+const bank_account_entity_1 = __webpack_require__(126);
 class BankAccountMapper {
     static to_domain(row) {
         return new bank_account_entity_1.BankAccount(row.id, row.externalId, row.bankEntity, row.accountNumber, row.bankCertification ?? null, row.createdAt, row.updatedAt);
@@ -5490,7 +5973,7 @@ exports.BankAccountMapper = BankAccountMapper;
 
 
 /***/ }),
-/* 123 */
+/* 126 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -5518,7 +6001,7 @@ exports.BankAccount = BankAccount;
 
 
 /***/ }),
-/* 124 */
+/* 127 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -5540,7 +6023,7 @@ exports.TypeormSuppliersReferenceLookupAdapter = void 0;
 const common_1 = __webpack_require__(6);
 const typeorm_1 = __webpack_require__(12);
 const typeorm_2 = __webpack_require__(18);
-const transversal_data_1 = __webpack_require__(56);
+const transversal_data_1 = __webpack_require__(57);
 const suppliers_data_1 = __webpack_require__(15);
 let TypeormSuppliersReferenceLookupAdapter = class TypeormSuppliersReferenceLookupAdapter {
     users;
@@ -5666,7 +6149,7 @@ exports.TypeormSuppliersReferenceLookupAdapter = TypeormSuppliersReferenceLookup
 
 
 /***/ }),
-/* 125 */
+/* 128 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -5783,7 +6266,7 @@ exports.TypeormPartnerOnboardingSagaRepository = TypeormPartnerOnboardingSagaRep
 
 
 /***/ }),
-/* 126 */
+/* 129 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -5857,7 +6340,7 @@ exports.SqlProductsCreditFacilitySyncAdapter = SqlProductsCreditFacilitySyncAdap
 
 
 /***/ }),
-/* 127 */
+/* 130 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -5880,7 +6363,7 @@ const common_1 = __webpack_require__(6);
 const config_1 = __webpack_require__(8);
 const typeorm_1 = __webpack_require__(12);
 const typeorm_2 = __webpack_require__(18);
-const transversal_data_1 = __webpack_require__(56);
+const transversal_data_1 = __webpack_require__(57);
 let TypeormPartnerUserSqsResultPollAdapter = class TypeormPartnerUserSqsResultPollAdapter extends transversal_data_1.TypeormSqsIdempotencyPollBaseAdapter {
     constructor(repo, config_service) {
         const po = config_service.get('config.partner_onboarding');
@@ -5909,7 +6392,7 @@ exports.TypeormPartnerUserSqsResultPollAdapter = TypeormPartnerUserSqsResultPoll
 
 
 /***/ }),
-/* 128 */
+/* 131 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -6006,7 +6489,7 @@ exports.PartnerSagaCompensationAdapter = PartnerSagaCompensationAdapter = Partne
 
 
 /***/ }),
-/* 129 */
+/* 132 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -6029,7 +6512,7 @@ const common_1 = __webpack_require__(6);
 const typeorm_1 = __webpack_require__(12);
 const typeorm_2 = __webpack_require__(18);
 const suppliers_data_1 = __webpack_require__(15);
-const legal_representative_mapper_1 = __webpack_require__(130);
+const legal_representative_mapper_1 = __webpack_require__(133);
 let TypeormLegalRepresentativeRepository = class TypeormLegalRepresentativeRepository {
     repo;
     constructor(repo) {
@@ -6052,13 +6535,13 @@ exports.TypeormLegalRepresentativeRepository = TypeormLegalRepresentativeReposit
 
 
 /***/ }),
-/* 130 */
+/* 133 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.LegalRepresentativeMapper = void 0;
-const legal_representative_entity_1 = __webpack_require__(131);
+const legal_representative_entity_1 = __webpack_require__(134);
 exports.LegalRepresentativeMapper = {
     to_domain(row) {
         return new legal_representative_entity_1.LegalRepresentative(Number(row.id), row.externalId, row.businessId, row.personId, row.isPrimary, row.createdAt, row.updatedAt);
@@ -6070,7 +6553,7 @@ exports.LegalRepresentativeMapper = {
 
 
 /***/ }),
-/* 131 */
+/* 134 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -6098,7 +6581,7 @@ exports.LegalRepresentative = LegalRepresentative;
 
 
 /***/ }),
-/* 132 */
+/* 135 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -6121,7 +6604,7 @@ const common_1 = __webpack_require__(6);
 const typeorm_1 = __webpack_require__(12);
 const typeorm_2 = __webpack_require__(18);
 const suppliers_data_1 = __webpack_require__(15);
-const sales_representative_mapper_1 = __webpack_require__(133);
+const sales_representative_mapper_1 = __webpack_require__(136);
 let TypeormSalesRepresentativeRepository = class TypeormSalesRepresentativeRepository {
     repo;
     constructor(repo) {
@@ -6194,13 +6677,13 @@ exports.TypeormSalesRepresentativeRepository = TypeormSalesRepresentativeReposit
 
 
 /***/ }),
-/* 133 */
+/* 136 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SalesRepresentativeMapper = void 0;
-const sales_representative_entity_1 = __webpack_require__(134);
+const sales_representative_entity_1 = __webpack_require__(137);
 class SalesRepresentativeMapper {
     static to_domain(row) {
         const user_id = row.userId === null || row.userId === undefined
@@ -6235,7 +6718,7 @@ exports.SalesRepresentativeMapper = SalesRepresentativeMapper;
 
 
 /***/ }),
-/* 134 */
+/* 137 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -6263,7 +6746,7 @@ exports.SalesRepresentative = SalesRepresentative;
 
 
 /***/ }),
-/* 135 */
+/* 138 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -6280,7 +6763,7 @@ var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SqsTransversalUserPersonWriterAdapter = void 0;
 const common_1 = __webpack_require__(6);
-const publish_create_partner_user_command_use_case_1 = __webpack_require__(97);
+const publish_create_partner_user_command_use_case_1 = __webpack_require__(100);
 let SqsTransversalUserPersonWriterAdapter = class SqsTransversalUserPersonWriterAdapter {
     publish_create_partner_user;
     constructor(publish_create_partner_user) {
@@ -6298,7 +6781,7 @@ exports.SqsTransversalUserPersonWriterAdapter = SqsTransversalUserPersonWriterAd
 
 
 /***/ }),
-/* 136 */
+/* 139 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
@@ -6310,7 +6793,7 @@ exports.PARTNER_ONBOARDING_SAGA_REPOSITORY = Symbol('PARTNER_ONBOARDING_SAGA_REP
 
 
 /***/ }),
-/* 137 */
+/* 140 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -6320,7 +6803,7 @@ exports.PRODUCTS_CREDIT_FACILITY_SYNC_PORT = Symbol('PRODUCTS_CREDIT_FACILITY_SY
 
 
 /***/ }),
-/* 138 */
+/* 141 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -6330,7 +6813,7 @@ exports.TRANSVERSAL_USER_PERSON_WRITER_PORT = Symbol('TRANSVERSAL_USER_PERSON_WR
 
 
 /***/ }),
-/* 139 */
+/* 142 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -6340,7 +6823,7 @@ exports.PARTNER_USER_SQS_RESULT_READER_PORT = Symbol('PARTNER_USER_SQS_RESULT_RE
 
 
 /***/ }),
-/* 140 */
+/* 143 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -6350,7 +6833,7 @@ exports.PARTNER_ONBOARDING_FILES_PORT = Symbol('PARTNER_ONBOARDING_FILES_PORT');
 
 
 /***/ }),
-/* 141 */
+/* 144 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -6360,7 +6843,7 @@ exports.PARTNER_SAGA_COMPENSATION_PORT = Symbol('PARTNER_SAGA_COMPENSATION_PORT'
 
 
 /***/ }),
-/* 142 */
+/* 145 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -6377,8 +6860,8 @@ var _a, _b;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SqsPartnerOnboardingFilesAdapter = void 0;
 const common_1 = __webpack_require__(6);
-const publish_upload_files_event_use_case_1 = __webpack_require__(95);
-const files_uploaded_correlation_awaiter_service_1 = __webpack_require__(89);
+const publish_upload_files_event_use_case_1 = __webpack_require__(98);
+const files_uploaded_correlation_awaiter_service_1 = __webpack_require__(92);
 const DEFAULT_UPLOAD_AWAIT_MS = 120_000;
 let SqsPartnerOnboardingFilesAdapter = class SqsPartnerOnboardingFilesAdapter {
     publish_upload_files;
@@ -6437,7 +6920,7 @@ exports.SqsPartnerOnboardingFilesAdapter = SqsPartnerOnboardingFilesAdapter = __
 
 
 /***/ }),
-/* 143 */
+/* 146 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -6447,7 +6930,7 @@ exports.SUPPLIERS_REFERENCE_LOOKUP = Symbol('SUPPLIERS_REFERENCE_LOOKUP');
 
 
 /***/ }),
-/* 144 */
+/* 147 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -6461,13 +6944,13 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.BusinessesModule = void 0;
 const common_1 = __webpack_require__(6);
 const infrastructure_module_1 = __webpack_require__(11);
-const typeorm_business_repository_1 = __webpack_require__(112);
-const businesses_tokens_1 = __webpack_require__(145);
-const create_business_use_case_1 = __webpack_require__(146);
-const get_business_by_external_id_use_case_1 = __webpack_require__(150);
-const list_businesses_use_case_1 = __webpack_require__(152);
-const update_business_by_external_id_use_case_1 = __webpack_require__(154);
-const delete_business_by_external_id_use_case_1 = __webpack_require__(156);
+const typeorm_business_repository_1 = __webpack_require__(115);
+const businesses_tokens_1 = __webpack_require__(148);
+const create_business_use_case_1 = __webpack_require__(149);
+const get_business_by_external_id_use_case_1 = __webpack_require__(153);
+const list_businesses_use_case_1 = __webpack_require__(155);
+const update_business_by_external_id_use_case_1 = __webpack_require__(157);
+const delete_business_by_external_id_use_case_1 = __webpack_require__(159);
 let BusinessesModule = class BusinessesModule {
 };
 exports.BusinessesModule = BusinessesModule;
@@ -6498,7 +6981,7 @@ exports.BusinessesModule = BusinessesModule = __decorate([
 
 
 /***/ }),
-/* 145 */
+/* 148 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -6508,7 +6991,7 @@ exports.BUSINESS_REPOSITORY = Symbol('BUSINESS_REPOSITORY');
 
 
 /***/ }),
-/* 146 */
+/* 149 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -6528,11 +7011,11 @@ var _a, _b;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CreateBusinessUseCase = void 0;
 const common_1 = __webpack_require__(6);
-const suppliers_reference_lookup_port_1 = __webpack_require__(143);
-const businesses_tokens_1 = __webpack_require__(145);
-const business_repository_1 = __webpack_require__(147);
-const business_public_fields_builder_1 = __webpack_require__(148);
-const create_business_response_1 = __webpack_require__(149);
+const suppliers_reference_lookup_port_1 = __webpack_require__(146);
+const businesses_tokens_1 = __webpack_require__(148);
+const business_repository_1 = __webpack_require__(150);
+const business_public_fields_builder_1 = __webpack_require__(151);
+const create_business_response_1 = __webpack_require__(152);
 let CreateBusinessUseCase = class CreateBusinessUseCase {
     business_repository;
     lookup;
@@ -6576,7 +7059,7 @@ exports.CreateBusinessUseCase = CreateBusinessUseCase = __decorate([
 
 
 /***/ }),
-/* 147 */
+/* 150 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -6584,7 +7067,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 
 
 /***/ }),
-/* 148 */
+/* 151 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
@@ -6622,7 +7105,7 @@ async function build_business_public_fields(business, lookup) {
 
 
 /***/ }),
-/* 149 */
+/* 152 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -6652,7 +7135,7 @@ exports.CreateBusinessResponse = CreateBusinessResponse;
 
 
 /***/ }),
-/* 150 */
+/* 153 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -6672,11 +7155,11 @@ var _a, _b;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.GetBusinessByExternalIdUseCase = void 0;
 const common_1 = __webpack_require__(6);
-const suppliers_reference_lookup_port_1 = __webpack_require__(143);
-const businesses_tokens_1 = __webpack_require__(145);
-const business_repository_1 = __webpack_require__(147);
-const business_public_fields_builder_1 = __webpack_require__(148);
-const get_business_by_external_id_response_1 = __webpack_require__(151);
+const suppliers_reference_lookup_port_1 = __webpack_require__(146);
+const businesses_tokens_1 = __webpack_require__(148);
+const business_repository_1 = __webpack_require__(150);
+const business_public_fields_builder_1 = __webpack_require__(151);
+const get_business_by_external_id_response_1 = __webpack_require__(154);
 let GetBusinessByExternalIdUseCase = class GetBusinessByExternalIdUseCase {
     business_repository;
     lookup;
@@ -6703,7 +7186,7 @@ exports.GetBusinessByExternalIdUseCase = GetBusinessByExternalIdUseCase = __deco
 
 
 /***/ }),
-/* 151 */
+/* 154 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -6733,7 +7216,7 @@ exports.GetBusinessByExternalIdResponse = GetBusinessByExternalIdResponse;
 
 
 /***/ }),
-/* 152 */
+/* 155 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -6753,11 +7236,11 @@ var _a, _b;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ListBusinessesUseCase = void 0;
 const common_1 = __webpack_require__(6);
-const suppliers_reference_lookup_port_1 = __webpack_require__(143);
-const businesses_tokens_1 = __webpack_require__(145);
-const business_repository_1 = __webpack_require__(147);
-const business_public_fields_builder_1 = __webpack_require__(148);
-const list_businesses_response_1 = __webpack_require__(153);
+const suppliers_reference_lookup_port_1 = __webpack_require__(146);
+const businesses_tokens_1 = __webpack_require__(148);
+const business_repository_1 = __webpack_require__(150);
+const business_public_fields_builder_1 = __webpack_require__(151);
+const list_businesses_response_1 = __webpack_require__(156);
 let ListBusinessesUseCase = class ListBusinessesUseCase {
     business_repository;
     lookup;
@@ -6785,7 +7268,7 @@ exports.ListBusinessesUseCase = ListBusinessesUseCase = __decorate([
 
 
 /***/ }),
-/* 153 */
+/* 156 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -6815,7 +7298,7 @@ exports.ListBusinessesItemResponse = ListBusinessesItemResponse;
 
 
 /***/ }),
-/* 154 */
+/* 157 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -6835,11 +7318,11 @@ var _a, _b;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.UpdateBusinessByExternalIdUseCase = void 0;
 const common_1 = __webpack_require__(6);
-const suppliers_reference_lookup_port_1 = __webpack_require__(143);
-const businesses_tokens_1 = __webpack_require__(145);
-const business_repository_1 = __webpack_require__(147);
-const business_public_fields_builder_1 = __webpack_require__(148);
-const update_business_by_external_id_response_1 = __webpack_require__(155);
+const suppliers_reference_lookup_port_1 = __webpack_require__(146);
+const businesses_tokens_1 = __webpack_require__(148);
+const business_repository_1 = __webpack_require__(150);
+const business_public_fields_builder_1 = __webpack_require__(151);
+const update_business_by_external_id_response_1 = __webpack_require__(158);
 let UpdateBusinessByExternalIdUseCase = class UpdateBusinessByExternalIdUseCase {
     business_repository;
     lookup;
@@ -6913,7 +7396,7 @@ exports.UpdateBusinessByExternalIdUseCase = UpdateBusinessByExternalIdUseCase = 
 
 
 /***/ }),
-/* 155 */
+/* 158 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -6943,7 +7426,7 @@ exports.UpdateBusinessByExternalIdResponse = UpdateBusinessByExternalIdResponse;
 
 
 /***/ }),
-/* 156 */
+/* 159 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -6963,8 +7446,8 @@ var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.DeleteBusinessByExternalIdUseCase = void 0;
 const common_1 = __webpack_require__(6);
-const businesses_tokens_1 = __webpack_require__(145);
-const business_repository_1 = __webpack_require__(147);
+const businesses_tokens_1 = __webpack_require__(148);
+const business_repository_1 = __webpack_require__(150);
 let DeleteBusinessByExternalIdUseCase = class DeleteBusinessByExternalIdUseCase {
     business_repository;
     constructor(business_repository) {
@@ -6986,7 +7469,7 @@ exports.DeleteBusinessByExternalIdUseCase = DeleteBusinessByExternalIdUseCase = 
 
 
 /***/ }),
-/* 157 */
+/* 160 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -6999,23 +7482,23 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.PartnersModule = void 0;
 const common_1 = __webpack_require__(6);
-const platform_express_1 = __webpack_require__(158);
-const multer_1 = __webpack_require__(159);
+const platform_express_1 = __webpack_require__(161);
+const multer_1 = __webpack_require__(162);
 const infrastructure_module_1 = __webpack_require__(11);
-const messaging_application_module_1 = __webpack_require__(90);
-const bank_accounts_module_1 = __webpack_require__(160);
-const businesses_module_1 = __webpack_require__(144);
-const legal_representatives_module_1 = __webpack_require__(173);
-const suppliers_module_1 = __webpack_require__(177);
-const typeorm_partner_repository_1 = __webpack_require__(115);
-const partners_tokens_1 = __webpack_require__(190);
-const create_partner_use_case_1 = __webpack_require__(191);
-const get_partner_by_external_id_use_case_1 = __webpack_require__(196);
-const list_partners_use_case_1 = __webpack_require__(198);
-const update_partner_by_external_id_use_case_1 = __webpack_require__(200);
-const delete_partner_by_external_id_use_case_1 = __webpack_require__(202);
-const create_partner_orchestrator_use_case_1 = __webpack_require__(203);
-const partners_controller_1 = __webpack_require__(210);
+const messaging_application_module_1 = __webpack_require__(93);
+const bank_accounts_module_1 = __webpack_require__(163);
+const businesses_module_1 = __webpack_require__(147);
+const legal_representatives_module_1 = __webpack_require__(176);
+const suppliers_module_1 = __webpack_require__(180);
+const typeorm_partner_repository_1 = __webpack_require__(118);
+const partners_tokens_1 = __webpack_require__(193);
+const create_partner_use_case_1 = __webpack_require__(194);
+const get_partner_by_external_id_use_case_1 = __webpack_require__(199);
+const list_partners_use_case_1 = __webpack_require__(201);
+const update_partner_by_external_id_use_case_1 = __webpack_require__(203);
+const delete_partner_by_external_id_use_case_1 = __webpack_require__(205);
+const create_partner_orchestrator_use_case_1 = __webpack_require__(206);
+const partners_controller_1 = __webpack_require__(213);
 let PartnersModule = class PartnersModule {
 };
 exports.PartnersModule = PartnersModule;
@@ -7059,19 +7542,19 @@ exports.PartnersModule = PartnersModule = __decorate([
 
 
 /***/ }),
-/* 158 */
+/* 161 */
 /***/ ((module) => {
 
 module.exports = require("@nestjs/platform-express");
 
 /***/ }),
-/* 159 */
+/* 162 */
 /***/ ((module) => {
 
 module.exports = require("multer");
 
 /***/ }),
-/* 160 */
+/* 163 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -7085,13 +7568,13 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.BankAccountsModule = void 0;
 const common_1 = __webpack_require__(6);
 const infrastructure_module_1 = __webpack_require__(11);
-const typeorm_bank_account_repository_1 = __webpack_require__(121);
-const bank_accounts_tokens_1 = __webpack_require__(161);
-const create_bank_account_use_case_1 = __webpack_require__(162);
-const get_bank_account_by_external_id_use_case_1 = __webpack_require__(166);
-const list_bank_accounts_use_case_1 = __webpack_require__(168);
-const update_bank_account_by_external_id_use_case_1 = __webpack_require__(170);
-const delete_bank_account_by_external_id_use_case_1 = __webpack_require__(172);
+const typeorm_bank_account_repository_1 = __webpack_require__(124);
+const bank_accounts_tokens_1 = __webpack_require__(164);
+const create_bank_account_use_case_1 = __webpack_require__(165);
+const get_bank_account_by_external_id_use_case_1 = __webpack_require__(169);
+const list_bank_accounts_use_case_1 = __webpack_require__(171);
+const update_bank_account_by_external_id_use_case_1 = __webpack_require__(173);
+const delete_bank_account_by_external_id_use_case_1 = __webpack_require__(175);
 let BankAccountsModule = class BankAccountsModule {
 };
 exports.BankAccountsModule = BankAccountsModule;
@@ -7122,7 +7605,7 @@ exports.BankAccountsModule = BankAccountsModule = __decorate([
 
 
 /***/ }),
-/* 161 */
+/* 164 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -7132,7 +7615,7 @@ exports.BANK_ACCOUNT_REPOSITORY = Symbol('BANK_ACCOUNT_REPOSITORY');
 
 
 /***/ }),
-/* 162 */
+/* 165 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -7152,10 +7635,10 @@ var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CreateBankAccountUseCase = void 0;
 const common_1 = __webpack_require__(6);
-const bank_accounts_tokens_1 = __webpack_require__(161);
-const bank_account_repository_1 = __webpack_require__(163);
-const bank_account_public_fields_builder_1 = __webpack_require__(164);
-const create_bank_account_response_1 = __webpack_require__(165);
+const bank_accounts_tokens_1 = __webpack_require__(164);
+const bank_account_repository_1 = __webpack_require__(166);
+const bank_account_public_fields_builder_1 = __webpack_require__(167);
+const create_bank_account_response_1 = __webpack_require__(168);
 let CreateBankAccountUseCase = class CreateBankAccountUseCase {
     bank_account_repository;
     constructor(bank_account_repository) {
@@ -7186,7 +7669,7 @@ exports.CreateBankAccountUseCase = CreateBankAccountUseCase = __decorate([
 
 
 /***/ }),
-/* 163 */
+/* 166 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -7194,7 +7677,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 
 
 /***/ }),
-/* 164 */
+/* 167 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -7214,7 +7697,7 @@ function build_bank_account_public_fields(account) {
 
 
 /***/ }),
-/* 165 */
+/* 168 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -7236,7 +7719,7 @@ exports.CreateBankAccountResponse = CreateBankAccountResponse;
 
 
 /***/ }),
-/* 166 */
+/* 169 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -7256,10 +7739,10 @@ var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.GetBankAccountByExternalIdUseCase = void 0;
 const common_1 = __webpack_require__(6);
-const bank_accounts_tokens_1 = __webpack_require__(161);
-const bank_account_repository_1 = __webpack_require__(163);
-const bank_account_public_fields_builder_1 = __webpack_require__(164);
-const get_bank_account_by_external_id_response_1 = __webpack_require__(167);
+const bank_accounts_tokens_1 = __webpack_require__(164);
+const bank_account_repository_1 = __webpack_require__(166);
+const bank_account_public_fields_builder_1 = __webpack_require__(167);
+const get_bank_account_by_external_id_response_1 = __webpack_require__(170);
 let GetBankAccountByExternalIdUseCase = class GetBankAccountByExternalIdUseCase {
     bank_account_repository;
     constructor(bank_account_repository) {
@@ -7283,7 +7766,7 @@ exports.GetBankAccountByExternalIdUseCase = GetBankAccountByExternalIdUseCase = 
 
 
 /***/ }),
-/* 167 */
+/* 170 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -7305,7 +7788,7 @@ exports.GetBankAccountByExternalIdResponse = GetBankAccountByExternalIdResponse;
 
 
 /***/ }),
-/* 168 */
+/* 171 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -7325,10 +7808,10 @@ var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ListBankAccountsUseCase = void 0;
 const common_1 = __webpack_require__(6);
-const bank_accounts_tokens_1 = __webpack_require__(161);
-const bank_account_repository_1 = __webpack_require__(163);
-const bank_account_public_fields_builder_1 = __webpack_require__(164);
-const list_bank_accounts_response_1 = __webpack_require__(169);
+const bank_accounts_tokens_1 = __webpack_require__(164);
+const bank_account_repository_1 = __webpack_require__(166);
+const bank_account_public_fields_builder_1 = __webpack_require__(167);
+const list_bank_accounts_response_1 = __webpack_require__(172);
 let ListBankAccountsUseCase = class ListBankAccountsUseCase {
     bank_account_repository;
     constructor(bank_account_repository) {
@@ -7348,7 +7831,7 @@ exports.ListBankAccountsUseCase = ListBankAccountsUseCase = __decorate([
 
 
 /***/ }),
-/* 169 */
+/* 172 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -7370,7 +7853,7 @@ exports.ListBankAccountsItemResponse = ListBankAccountsItemResponse;
 
 
 /***/ }),
-/* 170 */
+/* 173 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -7390,10 +7873,10 @@ var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.UpdateBankAccountByExternalIdUseCase = void 0;
 const common_1 = __webpack_require__(6);
-const bank_accounts_tokens_1 = __webpack_require__(161);
-const bank_account_repository_1 = __webpack_require__(163);
-const bank_account_public_fields_builder_1 = __webpack_require__(164);
-const update_bank_account_by_external_id_response_1 = __webpack_require__(171);
+const bank_accounts_tokens_1 = __webpack_require__(164);
+const bank_account_repository_1 = __webpack_require__(166);
+const bank_account_public_fields_builder_1 = __webpack_require__(167);
+const update_bank_account_by_external_id_response_1 = __webpack_require__(174);
 let UpdateBankAccountByExternalIdUseCase = class UpdateBankAccountByExternalIdUseCase {
     bank_account_repository;
     constructor(bank_account_repository) {
@@ -7433,7 +7916,7 @@ exports.UpdateBankAccountByExternalIdUseCase = UpdateBankAccountByExternalIdUseC
 
 
 /***/ }),
-/* 171 */
+/* 174 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -7455,7 +7938,7 @@ exports.UpdateBankAccountByExternalIdResponse = UpdateBankAccountByExternalIdRes
 
 
 /***/ }),
-/* 172 */
+/* 175 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -7475,8 +7958,8 @@ var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.DeleteBankAccountByExternalIdUseCase = void 0;
 const common_1 = __webpack_require__(6);
-const bank_accounts_tokens_1 = __webpack_require__(161);
-const bank_account_repository_1 = __webpack_require__(163);
+const bank_accounts_tokens_1 = __webpack_require__(164);
+const bank_account_repository_1 = __webpack_require__(166);
 let DeleteBankAccountByExternalIdUseCase = class DeleteBankAccountByExternalIdUseCase {
     bank_account_repository;
     constructor(bank_account_repository) {
@@ -7498,7 +7981,7 @@ exports.DeleteBankAccountByExternalIdUseCase = DeleteBankAccountByExternalIdUseC
 
 
 /***/ }),
-/* 173 */
+/* 176 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -7512,9 +7995,9 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.LegalRepresentativesModule = void 0;
 const common_1 = __webpack_require__(6);
 const infrastructure_module_1 = __webpack_require__(11);
-const typeorm_legal_representative_repository_1 = __webpack_require__(129);
-const legal_representatives_tokens_1 = __webpack_require__(174);
-const create_legal_representative_use_case_1 = __webpack_require__(175);
+const typeorm_legal_representative_repository_1 = __webpack_require__(132);
+const legal_representatives_tokens_1 = __webpack_require__(177);
+const create_legal_representative_use_case_1 = __webpack_require__(178);
 let LegalRepresentativesModule = class LegalRepresentativesModule {
 };
 exports.LegalRepresentativesModule = LegalRepresentativesModule;
@@ -7534,7 +8017,7 @@ exports.LegalRepresentativesModule = LegalRepresentativesModule = __decorate([
 
 
 /***/ }),
-/* 174 */
+/* 177 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -7544,7 +8027,7 @@ exports.LEGAL_REPRESENTATIVE_REPOSITORY = Symbol('LEGAL_REPRESENTATIVE_REPOSITOR
 
 
 /***/ }),
-/* 175 */
+/* 178 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -7563,8 +8046,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CreateLegalRepresentativeUseCase = void 0;
 const common_1 = __webpack_require__(6);
-const legal_representatives_tokens_1 = __webpack_require__(174);
-const create_legal_representative_response_1 = __webpack_require__(176);
+const legal_representatives_tokens_1 = __webpack_require__(177);
+const create_legal_representative_response_1 = __webpack_require__(179);
 let CreateLegalRepresentativeUseCase = class CreateLegalRepresentativeUseCase {
     legal_representatives;
     constructor(legal_representatives) {
@@ -7588,7 +8071,7 @@ exports.CreateLegalRepresentativeUseCase = CreateLegalRepresentativeUseCase = __
 
 
 /***/ }),
-/* 176 */
+/* 179 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -7604,7 +8087,7 @@ exports.CreateLegalRepresentativeResponse = CreateLegalRepresentativeResponse;
 
 
 /***/ }),
-/* 177 */
+/* 180 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -7618,13 +8101,13 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SuppliersModule = void 0;
 const common_1 = __webpack_require__(6);
 const infrastructure_module_1 = __webpack_require__(11);
-const typeorm_supplier_repository_1 = __webpack_require__(118);
-const suppliers_tokens_1 = __webpack_require__(178);
-const create_supplier_use_case_1 = __webpack_require__(179);
-const get_supplier_by_external_id_use_case_1 = __webpack_require__(183);
-const list_suppliers_use_case_1 = __webpack_require__(185);
-const update_supplier_by_external_id_use_case_1 = __webpack_require__(187);
-const delete_supplier_by_external_id_use_case_1 = __webpack_require__(189);
+const typeorm_supplier_repository_1 = __webpack_require__(121);
+const suppliers_tokens_1 = __webpack_require__(181);
+const create_supplier_use_case_1 = __webpack_require__(182);
+const get_supplier_by_external_id_use_case_1 = __webpack_require__(186);
+const list_suppliers_use_case_1 = __webpack_require__(188);
+const update_supplier_by_external_id_use_case_1 = __webpack_require__(190);
+const delete_supplier_by_external_id_use_case_1 = __webpack_require__(192);
 let SuppliersModule = class SuppliersModule {
 };
 exports.SuppliersModule = SuppliersModule;
@@ -7652,7 +8135,7 @@ exports.SuppliersModule = SuppliersModule = __decorate([
 
 
 /***/ }),
-/* 178 */
+/* 181 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -7662,7 +8145,7 @@ exports.SUPPLIER_REPOSITORY = Symbol('SUPPLIER_REPOSITORY');
 
 
 /***/ }),
-/* 179 */
+/* 182 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -7682,11 +8165,11 @@ var _a, _b;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CreateSupplierUseCase = void 0;
 const common_1 = __webpack_require__(6);
-const suppliers_reference_lookup_port_1 = __webpack_require__(143);
-const suppliers_tokens_1 = __webpack_require__(178);
-const supplier_repository_1 = __webpack_require__(180);
-const supplier_public_fields_builder_1 = __webpack_require__(181);
-const create_supplier_response_1 = __webpack_require__(182);
+const suppliers_reference_lookup_port_1 = __webpack_require__(146);
+const suppliers_tokens_1 = __webpack_require__(181);
+const supplier_repository_1 = __webpack_require__(183);
+const supplier_public_fields_builder_1 = __webpack_require__(184);
+const create_supplier_response_1 = __webpack_require__(185);
 let CreateSupplierUseCase = class CreateSupplierUseCase {
     supplier_repository;
     lookup;
@@ -7713,7 +8196,7 @@ exports.CreateSupplierUseCase = CreateSupplierUseCase = __decorate([
 
 
 /***/ }),
-/* 180 */
+/* 183 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -7721,7 +8204,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 
 
 /***/ }),
-/* 181 */
+/* 184 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
@@ -7753,7 +8236,7 @@ async function build_supplier_public_fields(supplier, lookup) {
 
 
 /***/ }),
-/* 182 */
+/* 185 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -7774,7 +8257,7 @@ exports.CreateSupplierResponse = CreateSupplierResponse;
 
 
 /***/ }),
-/* 183 */
+/* 186 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -7794,11 +8277,11 @@ var _a, _b;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.GetSupplierByExternalIdUseCase = void 0;
 const common_1 = __webpack_require__(6);
-const suppliers_reference_lookup_port_1 = __webpack_require__(143);
-const suppliers_tokens_1 = __webpack_require__(178);
-const supplier_repository_1 = __webpack_require__(180);
-const supplier_public_fields_builder_1 = __webpack_require__(181);
-const get_supplier_by_external_id_response_1 = __webpack_require__(184);
+const suppliers_reference_lookup_port_1 = __webpack_require__(146);
+const suppliers_tokens_1 = __webpack_require__(181);
+const supplier_repository_1 = __webpack_require__(183);
+const supplier_public_fields_builder_1 = __webpack_require__(184);
+const get_supplier_by_external_id_response_1 = __webpack_require__(187);
 let GetSupplierByExternalIdUseCase = class GetSupplierByExternalIdUseCase {
     supplier_repository;
     lookup;
@@ -7825,7 +8308,7 @@ exports.GetSupplierByExternalIdUseCase = GetSupplierByExternalIdUseCase = __deco
 
 
 /***/ }),
-/* 184 */
+/* 187 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -7846,7 +8329,7 @@ exports.GetSupplierByExternalIdResponse = GetSupplierByExternalIdResponse;
 
 
 /***/ }),
-/* 185 */
+/* 188 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -7866,11 +8349,11 @@ var _a, _b;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ListSuppliersUseCase = void 0;
 const common_1 = __webpack_require__(6);
-const suppliers_reference_lookup_port_1 = __webpack_require__(143);
-const suppliers_tokens_1 = __webpack_require__(178);
-const supplier_repository_1 = __webpack_require__(180);
-const supplier_public_fields_builder_1 = __webpack_require__(181);
-const list_suppliers_response_1 = __webpack_require__(186);
+const suppliers_reference_lookup_port_1 = __webpack_require__(146);
+const suppliers_tokens_1 = __webpack_require__(181);
+const supplier_repository_1 = __webpack_require__(183);
+const supplier_public_fields_builder_1 = __webpack_require__(184);
+const list_suppliers_response_1 = __webpack_require__(189);
 let ListSuppliersUseCase = class ListSuppliersUseCase {
     supplier_repository;
     lookup;
@@ -7898,7 +8381,7 @@ exports.ListSuppliersUseCase = ListSuppliersUseCase = __decorate([
 
 
 /***/ }),
-/* 186 */
+/* 189 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -7919,7 +8402,7 @@ exports.ListSuppliersItemResponse = ListSuppliersItemResponse;
 
 
 /***/ }),
-/* 187 */
+/* 190 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -7939,11 +8422,11 @@ var _a, _b;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.UpdateSupplierByExternalIdUseCase = void 0;
 const common_1 = __webpack_require__(6);
-const suppliers_reference_lookup_port_1 = __webpack_require__(143);
-const suppliers_tokens_1 = __webpack_require__(178);
-const supplier_repository_1 = __webpack_require__(180);
-const supplier_public_fields_builder_1 = __webpack_require__(181);
-const update_supplier_by_external_id_response_1 = __webpack_require__(188);
+const suppliers_reference_lookup_port_1 = __webpack_require__(146);
+const suppliers_tokens_1 = __webpack_require__(181);
+const supplier_repository_1 = __webpack_require__(183);
+const supplier_public_fields_builder_1 = __webpack_require__(184);
+const update_supplier_by_external_id_response_1 = __webpack_require__(191);
 let UpdateSupplierByExternalIdUseCase = class UpdateSupplierByExternalIdUseCase {
     supplier_repository;
     lookup;
@@ -7983,7 +8466,7 @@ exports.UpdateSupplierByExternalIdUseCase = UpdateSupplierByExternalIdUseCase = 
 
 
 /***/ }),
-/* 188 */
+/* 191 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -8004,7 +8487,7 @@ exports.UpdateSupplierByExternalIdResponse = UpdateSupplierByExternalIdResponse;
 
 
 /***/ }),
-/* 189 */
+/* 192 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -8024,8 +8507,8 @@ var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.DeleteSupplierByExternalIdUseCase = void 0;
 const common_1 = __webpack_require__(6);
-const suppliers_tokens_1 = __webpack_require__(178);
-const supplier_repository_1 = __webpack_require__(180);
+const suppliers_tokens_1 = __webpack_require__(181);
+const supplier_repository_1 = __webpack_require__(183);
 let DeleteSupplierByExternalIdUseCase = class DeleteSupplierByExternalIdUseCase {
     supplier_repository;
     constructor(supplier_repository) {
@@ -8047,7 +8530,7 @@ exports.DeleteSupplierByExternalIdUseCase = DeleteSupplierByExternalIdUseCase = 
 
 
 /***/ }),
-/* 190 */
+/* 193 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -8057,7 +8540,7 @@ exports.PARTNER_REPOSITORY = Symbol('PARTNER_REPOSITORY');
 
 
 /***/ }),
-/* 191 */
+/* 194 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -8077,13 +8560,13 @@ var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CreatePartnerUseCase = void 0;
 const common_1 = __webpack_require__(6);
-const suppliers_reference_lookup_port_1 = __webpack_require__(143);
-const partners_tokens_1 = __webpack_require__(190);
-const partner_repository_1 = __webpack_require__(192);
-const partner_public_fields_builder_1 = __webpack_require__(193);
-const partner_created_event_1 = __webpack_require__(194);
+const suppliers_reference_lookup_port_1 = __webpack_require__(146);
+const partners_tokens_1 = __webpack_require__(193);
+const partner_repository_1 = __webpack_require__(195);
+const partner_public_fields_builder_1 = __webpack_require__(196);
+const partner_created_event_1 = __webpack_require__(197);
 const shared_1 = __webpack_require__(21);
-const create_partner_response_1 = __webpack_require__(195);
+const create_partner_response_1 = __webpack_require__(198);
 let CreatePartnerUseCase = class CreatePartnerUseCase {
     partner_repository;
     lookup;
@@ -8124,7 +8607,7 @@ exports.CreatePartnerUseCase = CreatePartnerUseCase = __decorate([
 
 
 /***/ }),
-/* 192 */
+/* 195 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -8132,7 +8615,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 
 
 /***/ }),
-/* 193 */
+/* 196 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
@@ -8166,7 +8649,7 @@ async function build_partner_public_fields(partner, lookup) {
 
 
 /***/ }),
-/* 194 */
+/* 197 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
@@ -8193,7 +8676,7 @@ exports.PartnerCreatedEvent = PartnerCreatedEvent;
 
 
 /***/ }),
-/* 195 */
+/* 198 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -8224,7 +8707,7 @@ exports.CreatePartnerResponse = CreatePartnerResponse;
 
 
 /***/ }),
-/* 196 */
+/* 199 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -8244,11 +8727,11 @@ var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.GetPartnerByExternalIdUseCase = void 0;
 const common_1 = __webpack_require__(6);
-const suppliers_reference_lookup_port_1 = __webpack_require__(143);
-const partners_tokens_1 = __webpack_require__(190);
-const partner_repository_1 = __webpack_require__(192);
-const partner_public_fields_builder_1 = __webpack_require__(193);
-const get_partner_by_external_id_response_1 = __webpack_require__(197);
+const suppliers_reference_lookup_port_1 = __webpack_require__(146);
+const partners_tokens_1 = __webpack_require__(193);
+const partner_repository_1 = __webpack_require__(195);
+const partner_public_fields_builder_1 = __webpack_require__(196);
+const get_partner_by_external_id_response_1 = __webpack_require__(200);
 let GetPartnerByExternalIdUseCase = class GetPartnerByExternalIdUseCase {
     partner_repository;
     lookup;
@@ -8275,7 +8758,7 @@ exports.GetPartnerByExternalIdUseCase = GetPartnerByExternalIdUseCase = __decora
 
 
 /***/ }),
-/* 197 */
+/* 200 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -8306,7 +8789,7 @@ exports.GetPartnerByExternalIdResponse = GetPartnerByExternalIdResponse;
 
 
 /***/ }),
-/* 198 */
+/* 201 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -8326,11 +8809,11 @@ var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ListPartnersUseCase = void 0;
 const common_1 = __webpack_require__(6);
-const suppliers_reference_lookup_port_1 = __webpack_require__(143);
-const partners_tokens_1 = __webpack_require__(190);
-const partner_repository_1 = __webpack_require__(192);
-const partner_public_fields_builder_1 = __webpack_require__(193);
-const list_partners_response_1 = __webpack_require__(199);
+const suppliers_reference_lookup_port_1 = __webpack_require__(146);
+const partners_tokens_1 = __webpack_require__(193);
+const partner_repository_1 = __webpack_require__(195);
+const partner_public_fields_builder_1 = __webpack_require__(196);
+const list_partners_response_1 = __webpack_require__(202);
 let ListPartnersUseCase = class ListPartnersUseCase {
     partner_repository;
     lookup;
@@ -8358,7 +8841,7 @@ exports.ListPartnersUseCase = ListPartnersUseCase = __decorate([
 
 
 /***/ }),
-/* 199 */
+/* 202 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -8389,7 +8872,7 @@ exports.ListPartnersItemResponse = ListPartnersItemResponse;
 
 
 /***/ }),
-/* 200 */
+/* 203 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -8409,11 +8892,11 @@ var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.UpdatePartnerByExternalIdUseCase = void 0;
 const common_1 = __webpack_require__(6);
-const suppliers_reference_lookup_port_1 = __webpack_require__(143);
-const partners_tokens_1 = __webpack_require__(190);
-const partner_repository_1 = __webpack_require__(192);
-const partner_public_fields_builder_1 = __webpack_require__(193);
-const update_partner_by_external_id_response_1 = __webpack_require__(201);
+const suppliers_reference_lookup_port_1 = __webpack_require__(146);
+const partners_tokens_1 = __webpack_require__(193);
+const partner_repository_1 = __webpack_require__(195);
+const partner_public_fields_builder_1 = __webpack_require__(196);
+const update_partner_by_external_id_response_1 = __webpack_require__(204);
 let UpdatePartnerByExternalIdUseCase = class UpdatePartnerByExternalIdUseCase {
     partner_repository;
     lookup;
@@ -8475,7 +8958,7 @@ exports.UpdatePartnerByExternalIdUseCase = UpdatePartnerByExternalIdUseCase = __
 
 
 /***/ }),
-/* 201 */
+/* 204 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -8506,7 +8989,7 @@ exports.UpdatePartnerByExternalIdResponse = UpdatePartnerByExternalIdResponse;
 
 
 /***/ }),
-/* 202 */
+/* 205 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -8526,8 +9009,8 @@ var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.DeletePartnerByExternalIdUseCase = void 0;
 const common_1 = __webpack_require__(6);
-const partners_tokens_1 = __webpack_require__(190);
-const partner_repository_1 = __webpack_require__(192);
+const partners_tokens_1 = __webpack_require__(193);
+const partner_repository_1 = __webpack_require__(195);
 let DeletePartnerByExternalIdUseCase = class DeletePartnerByExternalIdUseCase {
     partner_repository;
     constructor(partner_repository) {
@@ -8549,7 +9032,7 @@ exports.DeletePartnerByExternalIdUseCase = DeletePartnerByExternalIdUseCase = __
 
 
 /***/ }),
-/* 203 */
+/* 206 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -8571,26 +9054,26 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CreatePartnerOrchestratorUseCase = void 0;
 const common_1 = __webpack_require__(6);
 const shared_1 = __webpack_require__(21);
-const create_business_use_case_1 = __webpack_require__(146);
-const create_business_request_1 = __webpack_require__(204);
-const create_bank_account_use_case_1 = __webpack_require__(162);
-const create_bank_account_request_1 = __webpack_require__(205);
-const publish_create_person_command_use_case_1 = __webpack_require__(99);
-const publish_create_credit_facility_command_use_case_1 = __webpack_require__(101);
-const publish_create_categories_command_use_case_1 = __webpack_require__(103);
-const partner_onboarding_saga_repository_port_1 = __webpack_require__(136);
-const partner_user_sqs_result_reader_port_1 = __webpack_require__(139);
-const partner_onboarding_files_port_1 = __webpack_require__(140);
-const products_credit_facility_sync_port_1 = __webpack_require__(137);
-const partner_saga_compensation_port_1 = __webpack_require__(141);
-const create_partner_orchestrator_response_1 = __webpack_require__(206);
-const suppliers_reference_lookup_port_1 = __webpack_require__(143);
-const create_legal_representative_use_case_1 = __webpack_require__(175);
-const create_legal_representative_request_1 = __webpack_require__(207);
-const create_supplier_use_case_1 = __webpack_require__(179);
-const create_supplier_request_1 = __webpack_require__(208);
-const create_partner_use_case_1 = __webpack_require__(191);
-const create_partner_request_1 = __webpack_require__(209);
+const create_business_use_case_1 = __webpack_require__(149);
+const create_business_request_1 = __webpack_require__(207);
+const create_bank_account_use_case_1 = __webpack_require__(165);
+const create_bank_account_request_1 = __webpack_require__(208);
+const publish_create_person_command_use_case_1 = __webpack_require__(102);
+const publish_create_credit_facility_command_use_case_1 = __webpack_require__(104);
+const publish_create_categories_command_use_case_1 = __webpack_require__(106);
+const partner_onboarding_saga_repository_port_1 = __webpack_require__(139);
+const partner_user_sqs_result_reader_port_1 = __webpack_require__(142);
+const partner_onboarding_files_port_1 = __webpack_require__(143);
+const products_credit_facility_sync_port_1 = __webpack_require__(140);
+const partner_saga_compensation_port_1 = __webpack_require__(144);
+const create_partner_orchestrator_response_1 = __webpack_require__(209);
+const suppliers_reference_lookup_port_1 = __webpack_require__(146);
+const create_legal_representative_use_case_1 = __webpack_require__(178);
+const create_legal_representative_request_1 = __webpack_require__(210);
+const create_supplier_use_case_1 = __webpack_require__(182);
+const create_supplier_request_1 = __webpack_require__(211);
+const create_partner_use_case_1 = __webpack_require__(194);
+const create_partner_request_1 = __webpack_require__(212);
 const TOTAL_STEPS = 9;
 const PARTNER_ONBOARDING_FILE_FOLDERS = {
     bank_certification: 'bank-certifications',
@@ -8809,7 +9292,7 @@ exports.CreatePartnerOrchestratorUseCase = CreatePartnerOrchestratorUseCase = Cr
 
 
 /***/ }),
-/* 204 */
+/* 207 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -8845,7 +9328,7 @@ exports.CreateBusinessRequest = CreateBusinessRequest;
 
 
 /***/ }),
-/* 205 */
+/* 208 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -8865,7 +9348,7 @@ exports.CreateBankAccountRequest = CreateBankAccountRequest;
 
 
 /***/ }),
-/* 206 */
+/* 209 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -8905,7 +9388,7 @@ exports.CreatePartnerOrchestratorResponse = CreatePartnerOrchestratorResponse;
 
 
 /***/ }),
-/* 207 */
+/* 210 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -8925,7 +9408,7 @@ exports.CreateLegalRepresentativeRequest = CreateLegalRepresentativeRequest;
 
 
 /***/ }),
-/* 208 */
+/* 211 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -8943,7 +9426,7 @@ exports.CreateSupplierRequest = CreateSupplierRequest;
 
 
 /***/ }),
-/* 209 */
+/* 212 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -8979,7 +9462,7 @@ exports.CreatePartnerRequest = CreatePartnerRequest;
 
 
 /***/ }),
-/* 210 */
+/* 213 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -9001,19 +9484,19 @@ exports.PartnersController = void 0;
 const common_1 = __webpack_require__(6);
 const config_1 = __webpack_require__(8);
 const shared_1 = __webpack_require__(21);
-const platform_express_1 = __webpack_require__(158);
+const platform_express_1 = __webpack_require__(161);
 const swagger_1 = __webpack_require__(9);
 const class_transformer_1 = __webpack_require__(42);
 const class_validator_1 = __webpack_require__(43);
-const create_partner_orchestrator_use_case_1 = __webpack_require__(203);
-const update_partner_by_external_id_use_case_1 = __webpack_require__(200);
-const partner_onboarding_files_port_1 = __webpack_require__(140);
-const partner_onboarding_saga_repository_port_1 = __webpack_require__(136);
-const create_partner_payload_dto_1 = __webpack_require__(211);
-const update_partner_payload_dto_1 = __webpack_require__(212);
-const create_partner_payload_mapper_1 = __webpack_require__(213);
-const update_partner_payload_mapper_1 = __webpack_require__(214);
-const update_partner_payload_supported_guard_1 = __webpack_require__(216);
+const create_partner_orchestrator_use_case_1 = __webpack_require__(206);
+const update_partner_by_external_id_use_case_1 = __webpack_require__(203);
+const partner_onboarding_files_port_1 = __webpack_require__(143);
+const partner_onboarding_saga_repository_port_1 = __webpack_require__(139);
+const create_partner_payload_dto_1 = __webpack_require__(214);
+const update_partner_payload_dto_1 = __webpack_require__(215);
+const create_partner_payload_mapper_1 = __webpack_require__(216);
+const update_partner_payload_mapper_1 = __webpack_require__(217);
+const update_partner_payload_supported_guard_1 = __webpack_require__(219);
 let PartnersController = class PartnersController {
     create_partner_orchestrator;
     update_partner;
@@ -9251,7 +9734,7 @@ exports.PartnersController = PartnersController = __decorate([
 
 
 /***/ }),
-/* 211 */
+/* 214 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -9742,7 +10225,7 @@ __decorate([
 
 
 /***/ }),
-/* 212 */
+/* 215 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -9762,7 +10245,7 @@ const swagger_1 = __webpack_require__(9);
 const class_transformer_1 = __webpack_require__(42);
 const class_validator_1 = __webpack_require__(43);
 const shared_1 = __webpack_require__(21);
-const create_partner_payload_dto_1 = __webpack_require__(211);
+const create_partner_payload_dto_1 = __webpack_require__(214);
 class UpdateOperatingUserPayloadDto {
     firstName;
     lastName;
@@ -10144,7 +10627,7 @@ __decorate([
 
 
 /***/ }),
-/* 213 */
+/* 216 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -10245,13 +10728,13 @@ function map_create_partner_payload_to_command(dto, defaults) {
 
 
 /***/ }),
-/* 214 */
+/* 217 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.map_update_partner_payload_to_request = map_update_partner_payload_to_request;
-const update_partner_by_external_id_request_1 = __webpack_require__(215);
+const update_partner_by_external_id_request_1 = __webpack_require__(218);
 function map_update_partner_payload_to_request(external_id, dto, urls) {
     const p = dto.partner;
     return new update_partner_by_external_id_request_1.UpdatePartnerByExternalIdRequest(external_id, p?.acronym, urls.logo_url, urls.co_branding_logo_url, p?.primaryColor, p?.secondaryColor, p?.lightColor, p?.notificationEmail, p?.webhookUrl, p?.sendSalesRepVoucher, p?.disbursementNotificationEmail, p?.state);
@@ -10259,7 +10742,7 @@ function map_update_partner_payload_to_request(external_id, dto, urls) {
 
 
 /***/ }),
-/* 215 */
+/* 218 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -10297,7 +10780,7 @@ exports.UpdatePartnerByExternalIdRequest = UpdatePartnerByExternalIdRequest;
 
 
 /***/ }),
-/* 216 */
+/* 219 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
@@ -10338,7 +10821,7 @@ function update_payload_has_partner_changes(dto) {
 
 
 /***/ }),
-/* 217 */
+/* 220 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -10352,14 +10835,14 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SalesRepresentativesModule = void 0;
 const common_1 = __webpack_require__(6);
 const infrastructure_module_1 = __webpack_require__(11);
-const typeorm_sales_representative_repository_1 = __webpack_require__(132);
-const sales_representatives_tokens_1 = __webpack_require__(218);
-const create_sales_representative_use_case_1 = __webpack_require__(219);
-const get_sales_representative_by_external_id_use_case_1 = __webpack_require__(223);
-const list_sales_representatives_use_case_1 = __webpack_require__(225);
-const update_sales_representative_by_external_id_use_case_1 = __webpack_require__(226);
-const delete_sales_representative_by_external_id_use_case_1 = __webpack_require__(228);
-const sales_representatives_controller_1 = __webpack_require__(229);
+const typeorm_sales_representative_repository_1 = __webpack_require__(135);
+const sales_representatives_tokens_1 = __webpack_require__(221);
+const create_sales_representative_use_case_1 = __webpack_require__(222);
+const get_sales_representative_by_external_id_use_case_1 = __webpack_require__(226);
+const list_sales_representatives_use_case_1 = __webpack_require__(228);
+const update_sales_representative_by_external_id_use_case_1 = __webpack_require__(229);
+const delete_sales_representative_by_external_id_use_case_1 = __webpack_require__(231);
+const sales_representatives_controller_1 = __webpack_require__(232);
 let SalesRepresentativesModule = class SalesRepresentativesModule {
 };
 exports.SalesRepresentativesModule = SalesRepresentativesModule;
@@ -10391,7 +10874,7 @@ exports.SalesRepresentativesModule = SalesRepresentativesModule = __decorate([
 
 
 /***/ }),
-/* 218 */
+/* 221 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -10401,7 +10884,7 @@ exports.SALES_REPRESENTATIVE_REPOSITORY = Symbol('SALES_REPRESENTATIVE_REPOSITOR
 
 
 /***/ }),
-/* 219 */
+/* 222 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -10421,11 +10904,11 @@ var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CreateSalesRepresentativeUseCase = void 0;
 const common_1 = __webpack_require__(6);
-const suppliers_reference_lookup_port_1 = __webpack_require__(143);
-const sales_representatives_tokens_1 = __webpack_require__(218);
-const sales_representative_repository_1 = __webpack_require__(220);
-const sales_representative_public_fields_builder_1 = __webpack_require__(221);
-const create_sales_representative_response_1 = __webpack_require__(222);
+const suppliers_reference_lookup_port_1 = __webpack_require__(146);
+const sales_representatives_tokens_1 = __webpack_require__(221);
+const sales_representative_repository_1 = __webpack_require__(223);
+const sales_representative_public_fields_builder_1 = __webpack_require__(224);
+const create_sales_representative_response_1 = __webpack_require__(225);
 let CreateSalesRepresentativeUseCase = class CreateSalesRepresentativeUseCase {
     sales_representative_repository;
     lookup;
@@ -10475,7 +10958,7 @@ exports.CreateSalesRepresentativeUseCase = CreateSalesRepresentativeUseCase = __
 
 
 /***/ }),
-/* 220 */
+/* 223 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -10483,7 +10966,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 
 
 /***/ }),
-/* 221 */
+/* 224 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -10515,7 +10998,7 @@ async function build_sales_representative_public_fields(rep, lookup) {
 
 
 /***/ }),
-/* 222 */
+/* 225 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -10539,7 +11022,7 @@ exports.CreateSalesRepresentativeResponse = CreateSalesRepresentativeResponse;
 
 
 /***/ }),
-/* 223 */
+/* 226 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -10559,11 +11042,11 @@ var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.GetSalesRepresentativeByExternalIdUseCase = void 0;
 const common_1 = __webpack_require__(6);
-const suppliers_reference_lookup_port_1 = __webpack_require__(143);
-const sales_representatives_tokens_1 = __webpack_require__(218);
-const sales_representative_repository_1 = __webpack_require__(220);
-const sales_representative_public_fields_builder_1 = __webpack_require__(221);
-const get_sales_representative_by_external_id_response_1 = __webpack_require__(224);
+const suppliers_reference_lookup_port_1 = __webpack_require__(146);
+const sales_representatives_tokens_1 = __webpack_require__(221);
+const sales_representative_repository_1 = __webpack_require__(223);
+const sales_representative_public_fields_builder_1 = __webpack_require__(224);
+const get_sales_representative_by_external_id_response_1 = __webpack_require__(227);
 let GetSalesRepresentativeByExternalIdUseCase = class GetSalesRepresentativeByExternalIdUseCase {
     sales_representative_repository;
     lookup;
@@ -10593,7 +11076,7 @@ exports.GetSalesRepresentativeByExternalIdUseCase = GetSalesRepresentativeByExte
 
 
 /***/ }),
-/* 224 */
+/* 227 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -10617,7 +11100,7 @@ exports.GetSalesRepresentativeByExternalIdResponse = GetSalesRepresentativeByExt
 
 
 /***/ }),
-/* 225 */
+/* 228 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -10637,10 +11120,10 @@ var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ListSalesRepresentativesUseCase = void 0;
 const common_1 = __webpack_require__(6);
-const suppliers_reference_lookup_port_1 = __webpack_require__(143);
-const sales_representatives_tokens_1 = __webpack_require__(218);
-const sales_representative_repository_1 = __webpack_require__(220);
-const sales_representative_public_fields_builder_1 = __webpack_require__(221);
+const suppliers_reference_lookup_port_1 = __webpack_require__(146);
+const sales_representatives_tokens_1 = __webpack_require__(221);
+const sales_representative_repository_1 = __webpack_require__(223);
+const sales_representative_public_fields_builder_1 = __webpack_require__(224);
 let ListSalesRepresentativesUseCase = class ListSalesRepresentativesUseCase {
     sales_representative_repository;
     lookup;
@@ -10683,7 +11166,7 @@ exports.ListSalesRepresentativesUseCase = ListSalesRepresentativesUseCase = __de
 
 
 /***/ }),
-/* 226 */
+/* 229 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -10703,11 +11186,11 @@ var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.UpdateSalesRepresentativeByExternalIdUseCase = void 0;
 const common_1 = __webpack_require__(6);
-const suppliers_reference_lookup_port_1 = __webpack_require__(143);
-const sales_representatives_tokens_1 = __webpack_require__(218);
-const sales_representative_repository_1 = __webpack_require__(220);
-const sales_representative_public_fields_builder_1 = __webpack_require__(221);
-const update_sales_representative_by_external_id_response_1 = __webpack_require__(227);
+const suppliers_reference_lookup_port_1 = __webpack_require__(146);
+const sales_representatives_tokens_1 = __webpack_require__(221);
+const sales_representative_repository_1 = __webpack_require__(223);
+const sales_representative_public_fields_builder_1 = __webpack_require__(224);
+const update_sales_representative_by_external_id_response_1 = __webpack_require__(230);
 let UpdateSalesRepresentativeByExternalIdUseCase = class UpdateSalesRepresentativeByExternalIdUseCase {
     sales_representative_repository;
     lookup;
@@ -10755,7 +11238,7 @@ exports.UpdateSalesRepresentativeByExternalIdUseCase = UpdateSalesRepresentative
 
 
 /***/ }),
-/* 227 */
+/* 230 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -10779,7 +11262,7 @@ exports.UpdateSalesRepresentativeByExternalIdResponse = UpdateSalesRepresentativ
 
 
 /***/ }),
-/* 228 */
+/* 231 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -10799,8 +11282,8 @@ var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.DeleteSalesRepresentativeByExternalIdUseCase = void 0;
 const common_1 = __webpack_require__(6);
-const sales_representatives_tokens_1 = __webpack_require__(218);
-const sales_representative_repository_1 = __webpack_require__(220);
+const sales_representatives_tokens_1 = __webpack_require__(221);
+const sales_representative_repository_1 = __webpack_require__(223);
 let DeleteSalesRepresentativeByExternalIdUseCase = class DeleteSalesRepresentativeByExternalIdUseCase {
     sales_representative_repository;
     constructor(sales_representative_repository) {
@@ -10822,7 +11305,7 @@ exports.DeleteSalesRepresentativeByExternalIdUseCase = DeleteSalesRepresentative
 
 
 /***/ }),
-/* 229 */
+/* 232 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -10843,20 +11326,20 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SalesRepresentativesController = void 0;
 const common_1 = __webpack_require__(6);
 const swagger_1 = __webpack_require__(9);
-const create_sales_representative_use_case_1 = __webpack_require__(219);
-const create_sales_representative_request_1 = __webpack_require__(230);
-const get_sales_representative_by_external_id_use_case_1 = __webpack_require__(223);
-const get_sales_representative_by_external_id_request_1 = __webpack_require__(231);
-const list_sales_representatives_use_case_1 = __webpack_require__(225);
-const list_sales_representatives_request_1 = __webpack_require__(232);
-const update_sales_representative_by_external_id_use_case_1 = __webpack_require__(226);
-const update_sales_representative_by_external_id_request_1 = __webpack_require__(233);
-const delete_sales_representative_by_external_id_use_case_1 = __webpack_require__(228);
-const delete_sales_representative_by_external_id_request_1 = __webpack_require__(234);
-const create_sales_representative_body_dto_1 = __webpack_require__(235);
-const patch_sales_representative_body_dto_1 = __webpack_require__(236);
-const list_sales_representatives_query_dto_1 = __webpack_require__(237);
-const sales_representative_response_dto_1 = __webpack_require__(238);
+const create_sales_representative_use_case_1 = __webpack_require__(222);
+const create_sales_representative_request_1 = __webpack_require__(233);
+const get_sales_representative_by_external_id_use_case_1 = __webpack_require__(226);
+const get_sales_representative_by_external_id_request_1 = __webpack_require__(234);
+const list_sales_representatives_use_case_1 = __webpack_require__(228);
+const list_sales_representatives_request_1 = __webpack_require__(235);
+const update_sales_representative_by_external_id_use_case_1 = __webpack_require__(229);
+const update_sales_representative_by_external_id_request_1 = __webpack_require__(236);
+const delete_sales_representative_by_external_id_use_case_1 = __webpack_require__(231);
+const delete_sales_representative_by_external_id_request_1 = __webpack_require__(237);
+const create_sales_representative_body_dto_1 = __webpack_require__(238);
+const patch_sales_representative_body_dto_1 = __webpack_require__(239);
+const list_sales_representatives_query_dto_1 = __webpack_require__(240);
+const sales_representative_response_dto_1 = __webpack_require__(241);
 let SalesRepresentativesController = class SalesRepresentativesController {
     create_sales_representative;
     get_by_external_id;
@@ -10950,7 +11433,7 @@ exports.SalesRepresentativesController = SalesRepresentativesController = __deco
 
 
 /***/ }),
-/* 230 */
+/* 233 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -10968,7 +11451,7 @@ exports.CreateSalesRepresentativeRequest = CreateSalesRepresentativeRequest;
 
 
 /***/ }),
-/* 231 */
+/* 234 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -10984,7 +11467,7 @@ exports.GetSalesRepresentativeByExternalIdRequest = GetSalesRepresentativeByExte
 
 
 /***/ }),
-/* 232 */
+/* 235 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -11000,7 +11483,7 @@ exports.ListSalesRepresentativesRequest = ListSalesRepresentativesRequest;
 
 
 /***/ }),
-/* 233 */
+/* 236 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -11018,7 +11501,7 @@ exports.UpdateSalesRepresentativeUserByExternalIdRequest = UpdateSalesRepresenta
 
 
 /***/ }),
-/* 234 */
+/* 237 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -11034,7 +11517,7 @@ exports.DeleteSalesRepresentativeByExternalIdRequest = DeleteSalesRepresentative
 
 
 /***/ }),
-/* 235 */
+/* 238 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -11070,7 +11553,7 @@ __decorate([
 
 
 /***/ }),
-/* 236 */
+/* 239 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -11104,7 +11587,7 @@ __decorate([
 
 
 /***/ }),
-/* 237 */
+/* 240 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -11134,7 +11617,7 @@ __decorate([
 
 
 /***/ }),
-/* 238 */
+/* 241 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -11203,7 +11686,7 @@ __decorate([
 
 
 /***/ }),
-/* 239 */
+/* 242 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
@@ -11244,7 +11727,7 @@ exports["default"] = (0, config_1.registerAs)('config', () => {
 
 
 /***/ }),
-/* 240 */
+/* 243 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -11410,7 +11893,7 @@ exports.sqs_config = (0, config_1.registerAs)('sqs', () => get_sqs_config_from_e
 
 
 /***/ }),
-/* 241 */
+/* 244 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -11428,7 +11911,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.appController = void 0;
 const common_1 = __webpack_require__(6);
 const swagger_1 = __webpack_require__(9);
-const health_response_dto_1 = __webpack_require__(242);
+const health_response_dto_1 = __webpack_require__(245);
 let appController = class appController {
     health() {
         return { status: 'ok', service: 'suppliers-ms' };
@@ -11450,7 +11933,7 @@ exports.appController = appController = __decorate([
 
 
 /***/ }),
-/* 242 */
+/* 245 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 

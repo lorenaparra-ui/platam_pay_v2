@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { UserEntity } from '@app/transversal-data';
 import { UserRepository } from '@modules/users/domain/ports/user.ports';
 import {
@@ -68,6 +68,20 @@ export class TypeormUserRepository implements UserRepository {
 
   async find_all(): Promise<User[]> {
     const rows = await this.repo.find({
+      select: USER_SELECT,
+      order: { id: 'ASC' },
+    });
+    return rows.map((r) => UserMapper.to_domain(r));
+  }
+
+  async find_all_where_internal_id_in(
+    internal_ids: readonly number[],
+  ): Promise<User[]> {
+    if (internal_ids.length === 0) {
+      return [];
+    }
+    const rows = await this.repo.find({
+      where: { id: In([...internal_ids]) },
       select: USER_SELECT,
       order: { id: 'ASC' },
     });

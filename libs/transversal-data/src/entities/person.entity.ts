@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, OneToOne } from 'typeorm';
+import { Column, Entity, JoinColumn, OneToOne, RelationId } from 'typeorm';
 import { BaseExternalIdEntity } from '../../../products-data/src/entities/base-external-id.entity';
 import { BankAccountEntity } from '../../../suppliers-data/src/entities/bank-account.entity';
 import { DocTypes } from '@platam/shared';
@@ -46,6 +46,9 @@ export class PersonEntity extends BaseExternalIdEntity {
   @OneToOne(() => CityEntity, { nullable: false })
   @JoinColumn({ name: 'city_id', referencedColumnName: 'id' })
   city: CityEntity;
+
+  @RelationId((p: PersonEntity) => p.city)
+  cityId: number;
 
   @OneToOne(() => BankAccountEntity, { nullable: true })
   @JoinColumn({ name: 'bank_account_id' })

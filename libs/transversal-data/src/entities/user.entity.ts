@@ -1,6 +1,13 @@
-import { Column, Entity ,JoinColumn, ManyToOne, OneToOne} from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  OneToOne,
+  RelationId,
+} from 'typeorm';
 
- 
 import { RoleEntity } from './role.entity';
 import { PersonEntity } from './person.entity';
 import { BaseExternalIdEntity } from './base-external-id.entity';
@@ -15,9 +22,26 @@ export class UserEntity extends BaseExternalIdEntity {
   @Column({ name: 'email', type: 'varchar', length: 320, unique: true })
   email: string;
 
+  /** Permisos globales del usuario: solo a través de este rol → `role_permissions`. */
   @ManyToOne(() => RoleEntity, { nullable: false })
   @JoinColumn({ name: 'role_id', referencedColumnName: 'id' })
   role: RoleEntity;
+
+  @RelationId((u: UserEntity) => u.role)
+  roleId: number;
+
+  @ManyToOne(() => UserEntity, (user) => user.children, {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
+  @JoinColumn({ name: 'parent_id', referencedColumnName: 'id' })
+  parent: UserEntity | null;
+
+  @RelationId((u: UserEntity) => u.parent)
+  parent_id: number | null;
+
+  @OneToMany(() => UserEntity, (user) => user.parent)
+  children: UserEntity[];
 
   @Column({
     name: 'state',

@@ -1,7 +1,9 @@
-import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
+import { Column, Entity } from 'typeorm';
 import { BaseExternalIdEntity } from '../../../products-data/src/entities/base-external-id.entity';
-import { PartnersEntity } from '@app/suppliers-data';
 
+/**
+ * Rol RBAC: única vía para agrupar permisos (`role_permissions` → `permissions`).
+ */
 @Entity({ name: 'roles', schema: 'transversal_schema' })
 export class RoleEntity extends BaseExternalIdEntity {
   @Column({ name: 'name', type: 'varchar', length: 80, unique: true })
@@ -9,9 +11,4 @@ export class RoleEntity extends BaseExternalIdEntity {
 
   @Column({ name: 'description', type: 'text', nullable: true })
   description: string | null;
-
-
-  @ManyToOne(() => PartnersEntity, (p) => p.roles, { nullable: false })
-  @JoinColumn({ name: 'partner_id', referencedColumnName: 'id' })
-  partner: PartnersEntity;
 }

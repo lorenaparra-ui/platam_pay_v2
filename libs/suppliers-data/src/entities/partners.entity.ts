@@ -15,7 +15,6 @@ import { BaseExternalIdEntity } from './base-external-id.entity';
 import { BusinessEntity } from './business.entity';
 import { SalesRepresentativeEntity } from './sales-representative.entity';
 import { SupplierEntity } from './supplier.entity';
-import { RoleEntity } from '@app/transversal-data';
 
 /**
  * Partner operativo. Propiedades en orden DBML tras `BaseExternalIdEntity`; `supplier` refleja `supplier_id` del DDL.
@@ -91,11 +90,6 @@ export class PartnersEntity extends BaseExternalIdEntity {
     default: false,
   })
   sendSalesRepVoucher: boolean;
-
-  @OneToMany(() => RoleEntity, (r) => r.partner)
-  @JoinColumn({ name: 'partner_id', referencedColumnName: 'id' })
-  roles: RoleEntity[];
-
 
   @OneToMany(() => SalesRepresentativeEntity, (sr) => sr.partner)
   salesRepresentatives: SalesRepresentativeEntity[];
