@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToOne } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, RelationId } from 'typeorm';
 import { ContractCatalogStatus } from '@platam/shared';
 import { BaseExternalIdEntity } from './base-external-id.entity';
 import { ContractTemplateEntity } from './contract-template.entity';
@@ -13,8 +13,11 @@ export class ContractEntity extends BaseExternalIdEntity {
     onDelete: 'SET NULL',
     onUpdate: 'CASCADE',
   })
-  @Column({ name: 'contract_template_id', type: 'bigint', nullable: true })
+  @JoinColumn({ name: 'contract_template_id', referencedColumnName: 'id' })
   contractTemplate: ContractTemplateEntity | null;
+
+  @RelationId((c: ContractEntity) => c.contractTemplate)
+  contractTemplateId: number | null;
 
   @Column({ name: 'zapsign_token', type: 'varchar', nullable: true, unique: true })
   zapsignToken: string | null;

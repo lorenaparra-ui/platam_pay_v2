@@ -1,5 +1,5 @@
 import { ContractEntity } from '@app/products-data';
-import type { ContractCatalogStatus } from '@platam/shared';
+import { ContractCatalogStatus } from '@platam/shared';
 import { Contract } from '@modules/contracts/domain/models/contract.models';
 
 function parse_contract_state(value: unknown): ContractCatalogStatus {

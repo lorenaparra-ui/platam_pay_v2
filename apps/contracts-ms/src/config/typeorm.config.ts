@@ -1,7 +1,11 @@
 import './dotenv.config';
 import { DataSourceOptions } from 'typeorm';
-import { ContractEntity } from '@app/products-data';
+import { ContractEntity, ContractTemplateEntity } from '@app/products-data';
 
+/**
+ * Plantilla antes que contrato: `ContractEntity#contractTemplate` → `ContractTemplateEntity`
+ * debe existir en el mismo registro de entidades del DataSource.
+ */
 const TypeormConfig = {
   type: 'postgres' as const,
   host: process.env.POSTGRES_HOST,
@@ -9,7 +13,7 @@ const TypeormConfig = {
   port: Number(process.env.TYPEORM_PORT ?? 5432),
   database: process.env.POSTGRES_DATABASE,
   password: process.env.POSTGRES_PASSWORD,
-  entities: [ContractEntity],
+  entities: [ContractTemplateEntity, ContractEntity],
   synchronize: false,
   migrationsRun: false,
   migrationsTableName: 'typeorm_migrations',
