@@ -2,7 +2,7 @@ import { Column, Entity, JoinColumn, OneToOne, RelationId } from 'typeorm';
 import { BaseExternalIdEntity } from './base-external-id.entity';
 import { BankAccountEntity } from './bank-account.entity';
 import { BusinessEntity } from './business.entity';
-import { PartnersEntity } from './partner.entity';
+import { PartnerEntity } from './partner.entity';
 import { SupplierState } from '@platam/shared';
 
 @Entity({ name: 'suppliers', schema: 'suppliers_schema' })
@@ -18,8 +18,8 @@ export class SupplierEntity extends BaseExternalIdEntity {
   @JoinColumn({ name: 'bank_account_id' })
   bankAccount: BankAccountEntity | null;
 
-  @OneToOne(() => PartnersEntity, (p) => p.supplier)
-  partner: PartnersEntity | null;
+  @OneToOne(() => PartnerEntity, (p) => p.supplier)
+  partner: PartnerEntity | null;
 
   @Column({
     name: 'state',

@@ -8,16 +8,16 @@ import {
 } from 'typeorm';
 import { SalesRepresentativeRecordState } from '@platam/shared';
 import { BaseExternalIdEntity } from './base-external-id.entity';
-import { PartnersEntity } from './partner.entity';
+import { PartnerEntity } from './partner.entity';
 import { UserEntity } from '@app/transversal-data';
 
 @Entity({ name: 'sales_representatives', schema: 'suppliers_schema' })
 export class SalesRepresentativeEntity extends BaseExternalIdEntity {
-  @ManyToOne(() => PartnersEntity, (p) => p.salesRepresentatives, {
+  @ManyToOne(() => PartnerEntity, (p) => p.salesRepresentatives, {
     nullable: false,
   })
   @JoinColumn({ name: 'partner_id', referencedColumnName: 'id' })
-  partner: PartnersEntity;
+  partner: PartnerEntity;
 
   @RelationId((sr: SalesRepresentativeEntity) => sr.partner)
   partnerId: number;

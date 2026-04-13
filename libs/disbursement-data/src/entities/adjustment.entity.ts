@@ -7,7 +7,7 @@ import {
 } from 'typeorm';
 import { AdjustmentsStatus, AdjustmentsType } from '@platam/shared';
 import { UserEntity } from '@app/transversal-data';
-import { PartnersEntity } from '@app/suppliers-data';
+import { PartnerEntity } from '@app/suppliers-data';
 import { DISBURSEMENT_SCHEMA } from '../disbursement-schema.constants';
 import { BaseExternalIdEntity } from './base-external-id.entity';
 import { DisbursementBatchEntity } from './disbursement-batch.entity';
@@ -26,13 +26,13 @@ export class AdjustmentEntity extends BaseExternalIdEntity {
   @RelationId((a: AdjustmentEntity) => a.loan)
   loanId: number;
 
-  @ManyToOne(() => PartnersEntity, {
+  @ManyToOne(() => PartnerEntity, {
     nullable: false,
     onDelete: 'RESTRICT',
     onUpdate: 'CASCADE',
   })
   @JoinColumn({ name: 'partner_id', referencedColumnName: 'id' })
-  partner: PartnersEntity;
+  partner: PartnerEntity;
 
   @RelationId((a: AdjustmentEntity) => a.partner)
   partnerId: number;

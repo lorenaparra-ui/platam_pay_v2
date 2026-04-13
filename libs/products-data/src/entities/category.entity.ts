@@ -8,7 +8,7 @@
 } from 'typeorm';
 import { CategoryState, InstallmentFrequencyTypes, ModalityTypes } from '@platam/shared';
 import { BaseExternalIdEntity } from './base-external-id.entity';
-import { PartnersEntity } from '@app/suppliers-data';
+import { PartnerEntity } from '@app/suppliers-data';
 import { CreditFacilityEntity } from './credit-facility.entity';
 
 /**
@@ -102,13 +102,13 @@ export class CategoryEntity extends BaseExternalIdEntity {
   })
   isDefault: boolean;
 
-  @ManyToOne(() => PartnersEntity, (p: PartnersEntity) => p.categories, {
+  @ManyToOne(() => PartnerEntity, (p: PartnerEntity) => p.categories, {
     nullable: true,
     onDelete: 'SET NULL',
     onUpdate: 'CASCADE',
   })
   @JoinColumn({ name: 'partner_id' })
-  partner: PartnersEntity | null;
+  partner: PartnerEntity | null;
 
   @RelationId((c: CategoryEntity) => c.partner)
   partnerId: number | null;

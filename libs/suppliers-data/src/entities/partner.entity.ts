@@ -109,4 +109,4 @@ export class PartnerEntity extends BaseExternalIdEntity {
   state: PartnerState;
 }
 
-export { PartnerEntity as PartnersEntity };
+

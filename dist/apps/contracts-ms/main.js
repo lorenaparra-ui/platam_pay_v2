@@ -3554,7 +3554,7 @@ __decorate([
     __metadata("design:type", Boolean)
 ], CategoryEntity.prototype, "isDefault", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => suppliers_data_1.PartnersEntity, (p) => p.categories, {
+    (0, typeorm_1.ManyToOne)(() => suppliers_data_1.PartnerEntity, (p) => p.categories, {
         nullable: true,
         onDelete: 'SET NULL',
         onUpdate: 'CASCADE',
@@ -3795,7 +3795,7 @@ __decorate([
     __metadata("design:type", Object)
 ], CreditApplicationEntity.prototype, "person", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => suppliers_data_1.PartnersEntity, { nullable: true, onDelete: 'SET NULL', onUpdate: 'CASCADE' }),
+    (0, typeorm_1.ManyToOne)(() => suppliers_data_1.PartnerEntity, { nullable: true, onDelete: 'SET NULL', onUpdate: 'CASCADE' }),
     (0, typeorm_1.JoinColumn)({ name: 'partner_id', referencedColumnName: 'id' }),
     __metadata("design:type", Object)
 ], CreditApplicationEntity.prototype, "partner", void 0);
@@ -4315,7 +4315,7 @@ __decorate([
     __metadata("design:type", Number)
 ], LoanRequestEntity.prototype, "categoryId", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => suppliers_data_1.PartnersEntity, {
+    (0, typeorm_1.ManyToOne)(() => suppliers_data_1.PartnerEntity, {
         nullable: true,
         onDelete: 'SET NULL',
         onUpdate: 'CASCADE',
@@ -6364,7 +6364,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 var _a, _b, _c;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.PartnersEntity = exports.PartnerEntity = void 0;
+exports.PartnerEntity = void 0;
 const typeorm_1 = __webpack_require__(/*! typeorm */ "typeorm");
 const category_entity_1 = __webpack_require__(/*! ../../../products-data/src/entities/category.entity */ "./libs/products-data/src/entities/category.entity.ts");
 const shared_1 = __webpack_require__(/*! @platam/shared */ "./libs/shared/src/index.ts");
@@ -6392,7 +6392,6 @@ let PartnerEntity = class PartnerEntity extends base_external_id_entity_1.BaseEx
     state;
 };
 exports.PartnerEntity = PartnerEntity;
-exports.PartnersEntity = PartnerEntity;
 __decorate([
     (0, typeorm_1.ManyToOne)(() => business_entity_1.BusinessEntity, { nullable: false }),
     (0, typeorm_1.JoinColumn)({ name: 'business_id', referencedColumnName: 'id' }),
@@ -6496,7 +6495,7 @@ __decorate([
     }),
     __metadata("design:type", typeof (_c = typeof shared_1.PartnerState !== "undefined" && shared_1.PartnerState) === "function" ? _c : Object)
 ], PartnerEntity.prototype, "state", void 0);
-exports.PartnersEntity = exports.PartnerEntity = PartnerEntity = __decorate([
+exports.PartnerEntity = PartnerEntity = __decorate([
     (0, typeorm_1.Entity)({ name: 'partners', schema: 'suppliers_schema' }),
     (0, typeorm_1.Index)('IDX_partners_state', ['state']),
     (0, typeorm_1.Index)('IDX_partners_business_id', ['business'])
@@ -6539,11 +6538,11 @@ let SalesRepresentativeEntity = class SalesRepresentativeEntity extends base_ext
 };
 exports.SalesRepresentativeEntity = SalesRepresentativeEntity;
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => partner_entity_1.PartnersEntity, (p) => p.salesRepresentatives, {
+    (0, typeorm_1.ManyToOne)(() => partner_entity_1.PartnerEntity, (p) => p.salesRepresentatives, {
         nullable: false,
     }),
     (0, typeorm_1.JoinColumn)({ name: 'partner_id', referencedColumnName: 'id' }),
-    __metadata("design:type", typeof (_a = typeof partner_entity_1.PartnersEntity !== "undefined" && partner_entity_1.PartnersEntity) === "function" ? _a : Object)
+    __metadata("design:type", typeof (_a = typeof partner_entity_1.PartnerEntity !== "undefined" && partner_entity_1.PartnerEntity) === "function" ? _a : Object)
 ], SalesRepresentativeEntity.prototype, "partner", void 0);
 __decorate([
     (0, typeorm_1.RelationId)((sr) => sr.partner),
@@ -6748,7 +6747,7 @@ __decorate([
     __metadata("design:type", Object)
 ], SupplierEntity.prototype, "bankAccount", void 0);
 __decorate([
-    (0, typeorm_1.OneToOne)(() => partner_entity_1.PartnersEntity, (p) => p.supplier),
+    (0, typeorm_1.OneToOne)(() => partner_entity_1.PartnerEntity, (p) => p.supplier),
     __metadata("design:type", Object)
 ], SupplierEntity.prototype, "partner", void 0);
 __decorate([
@@ -6831,7 +6830,7 @@ exports.SUPPLIERS_DATA_ENTITIES = [
     business_entity_1.BusinessEntity,
     business_seniority_entity_1.BusinessSeniorityEntity,
     legal_representative_entity_1.LegalRepresentativeEntity,
-    partner_entity_1.PartnersEntity,
+    partner_entity_1.PartnerEntity,
     partner_onboarding_saga_entity_1.PartnerOnboardingSagaEntity,
     order_entity_1.PurchaseOrderEntity,
     sales_representative_entity_1.SalesRepresentativeEntity,

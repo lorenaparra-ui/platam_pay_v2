@@ -16,7 +16,7 @@ import { BaseExternalIdEntity } from './base-external-id.entity';
 import { CategoryEntity } from './category.entity';
 import { CreditFacilityEntity } from './credit-facility.entity';
 import {
-  PartnersEntity,
+  PartnerEntity,
   SalesRepresentativeEntity,
   SupplierEntity,
 } from '@app/suppliers-data';
@@ -48,13 +48,13 @@ export class LoanRequestEntity extends BaseExternalIdEntity {
   @RelationId((r: LoanRequestEntity) => r.category)
   categoryId: number;
 
-  @ManyToOne(() => PartnersEntity, {
+  @ManyToOne(() => PartnerEntity, {
     nullable: true,
     onDelete: 'SET NULL',
     onUpdate: 'CASCADE',
   })
   @JoinColumn({ name: 'partner_id', referencedColumnName: 'id' })
-  partner: PartnersEntity | null;
+  partner: PartnerEntity | null;
 
   @RelationId((r: LoanRequestEntity) => r.partner)
   partnerId: number | null;

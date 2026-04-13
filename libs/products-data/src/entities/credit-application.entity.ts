@@ -11,7 +11,7 @@ import { CreditApplicationStatus } from '@platam/shared';
 import { BaseExternalIdEntity } from './base-external-id.entity';
 import { ContractEntity } from './contract.entity';
 import { PersonEntity } from '@app/transversal-data';
-import { BusinessEntity, PartnersEntity } from '@app/suppliers-data';
+import { BusinessEntity, PartnerEntity } from '@app/suppliers-data';
 import { CategoryEntity } from './category.entity';
 
 @Entity({ name: 'credit_applications', schema: 'products_schema' })
@@ -25,9 +25,9 @@ export class CreditApplicationEntity extends BaseExternalIdEntity {
   @JoinColumn({ name: 'person_id', referencedColumnName: 'id' })
   person: PersonEntity | null;
 
-  @ManyToOne(() => PartnersEntity, { nullable: true, onDelete: 'SET NULL', onUpdate: 'CASCADE' })
+  @ManyToOne(() => PartnerEntity, { nullable: true, onDelete: 'SET NULL', onUpdate: 'CASCADE' })
   @JoinColumn({ name: 'partner_id', referencedColumnName: 'id' })
-  partner: PartnersEntity | null;
+  partner: PartnerEntity | null;
 
   @ManyToOne(() => CategoryEntity, { nullable: true, onDelete: 'SET NULL', onUpdate: 'CASCADE' })
   @JoinColumn({ name: 'partner_category_id', referencedColumnName: 'id' })

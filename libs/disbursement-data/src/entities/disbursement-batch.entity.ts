@@ -11,7 +11,7 @@ import {
   DisbursementType,
 } from '@platam/shared';
 import { UserEntity } from '@app/transversal-data';
-import { PartnersEntity } from '@app/suppliers-data';
+import { PartnerEntity } from '@app/suppliers-data';
 import { DISBURSEMENT_SCHEMA } from '../disbursement-schema.constants';
 import { BaseExternalIdEntity } from './base-external-id.entity';
 
@@ -25,13 +25,13 @@ export class DisbursementBatchEntity extends BaseExternalIdEntity {
   })
   disbursementType: DisbursementType;
 
-  @ManyToOne(() => PartnersEntity, {
+  @ManyToOne(() => PartnerEntity, {
     nullable: false,
     onDelete: 'RESTRICT',
     onUpdate: 'CASCADE',
   })
   @JoinColumn({ name: 'partner_id', referencedColumnName: 'id' })
-  partner: PartnersEntity;
+  partner: PartnerEntity;
 
   @RelationId((b: DisbursementBatchEntity) => b.partner)
   partnerId: number;
