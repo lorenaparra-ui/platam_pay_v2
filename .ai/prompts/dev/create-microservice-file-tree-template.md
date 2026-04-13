@@ -1,195 +1,80 @@
 # CONTEXTO
-Monorepo backend con microservicios NestJS + TypeScript + TypeORM bajo arquitectura hexagonal.
-El repositorio usa:
-- `docker-compose.yml` en raíz para orquestación.
-- Un servicio base de referencia (`platam_pay_users`) con estructura estándar.
-- Convención de módulos por feature en `src/modules/<feature>/`.
-- Infraestructura compartida por servicio en `src/infrastructure/`.
+Monorepo **platam-pay-v2**: NestJS + TypeScript + TypeORM, arquitectura hexagonal, **un solo `nest-cli.json` en la raíz** y aplicaciones bajo `apps/<microservicio>/`.
 
-Este prompt crea la **plantilla exacta de árbol de archivos (archivo por archivo)** para un microservicio nuevo, reusable para cualquier dominio, y con ejemplo aplicado a `platam_pay_partners`.
+- Orquestación local: `docker-compose.yml` en raíz (si aplica al nuevo MS).
+- Convención de features: `apps/<MS>/src/modules/<feature>/` con `domain/`, `application/`, `presentation/`.
+- Infraestructura por MS: `apps/<MS>/src/infrastructure/` (TypeORM, SQS, storage, etc.).
+- Entidades TypeORM compartibles: librerías `libs/*-data/` (no duplicar tablas entre libs).
+
+Este prompt define la **plantilla de árbol de archivos** para incorporar un **nuevo microservicio** al monorepo, clonando la convención de un MS existente (recomendado: uno con perfil similar, p. ej. `notifications-ms` si no hay BD, o `transversal-ms` / `suppliers-ms` si hay TypeORM + SQS).
 
 # OBJETIVO
-Crear un nuevo microservicio clonando la convención de `platam_pay_users`, con:
-1) estructura base completa de proyecto,
-2) wiring mínimo para arrancar (`main`, `app.module`, config, infraestructura),
-3) árbol de archivos exacto para implementar features hexagonales,
-4) actualización de `docker-compose.yml` para levantar el servicio nuevo.
+1. Añadir proyecto de aplicación bajo `apps/<MicroserviceFolderName>/` siguiendo el patrón de los MS actuales.
+2. Registrar el proyecto en `nest-cli.json` (raíz) y el workspace en `package.json` raíz (`"workspaces": ["apps/*", "database"]` ya incluye `apps/*`).
+3. Añadir script de arranque en raíz: `start:<MicroserviceFolderName>:dev` → `npx nest start <MicroserviceFolderName> --watch --builder webpack` (mismo estilo que los MS existentes).
+4. Actualizar `docker-compose.yml` solo si el nuevo servicio debe contenerrizarse igual que los demás.
 
 # IDENTIFICADORES (REEMPLAZAR)
-- MicroserviceFolderName: `<REEMPLAZAR>` (kebab_case con prefijo `platam_pay_`; ej: `platam_pay_partners`)
-- ComposeServiceName: `<REEMPLAZAR>` (ej: `partners-service`)
-- ContainerName: `<REEMPLAZAR>` (ej: `platam_partners`)
-- DomainName: `<REEMPLAZAR>` (ej: `partners`)
-- DomainNameSingular: `<REEMPLAZAR>` (ej: `partner`)
-- ModuleClassName: `<REEMPLAZAR>` (ej: `PartnersModule`)
-- HostPort: `<REEMPLAZAR>` (ej: `3001`)
-- InternalPort: `<REEMPLAZAR>` (ej: `3000`)
-- TsPathAlias: `<REEMPLAZAR>` (ej: `@partners/*`)
+- **MicroserviceFolderName:** `<REEMPLAZAR>` — carpeta bajo `apps/`, kebab-case con sufijo `-ms` (ej: `risk-ms`).
+- **NestProjectKey:** `<REEMPLAZAR>` — clave en `nest-cli.json` (coincidir con `MicroserviceFolderName` salvo decisión explícita).
+- **ComposeServiceName:** `<REEMPLAZAR>` (ej: `risk-ms`)
+- **ContainerName:** `<REEMPLAZAR>` (ej: `platam_risk_ms`)
+- **SwaggerTitle:** `<REEMPLAZAR>`
+- **DefaultHttpPort:** `<REEMPLAZAR>` (ej: `8090`; evitar colisiones con otros MS en `.env` / compose)
 
-# EJEMPLO APLICADO (platam_pay_partners)
-- MicroserviceFolderName: `platam_pay_partners`
-- ComposeServiceName: `partners-service`
-- ContainerName: `platam_partners`
-- DomainName: `partners`
-- DomainNameSingular: `partner`
-- ModuleClassName: `PartnersModule`
-- HostPort: `3001`
-- InternalPort: `3000`
-- TsPathAlias: `@partners/*`
-
-# ÁRBOL DE ARCHIVOS OBLIGATORIO (GENÉRICO, REUTILIZABLE)
-> Crear **archivo por archivo** en estas rutas exactas (ajustando placeholders):
+# ÁRBOL MÍNIMO ESPERADO (GENÉRICO)
 
 ```txt
 <repo-root>/
-├─ docker-compose.yml                              (actualizar: agregar <ComposeServiceName>)
-├─ .env.docker                                     (reusar o extender variables globales)
-└─ <MicroserviceFolderName>/
+├─ nest-cli.json                    (agregar bloque "NestProjectKey": { ... })
+├─ package.json                     (script start:<MicroserviceFolderName>:dev)
+├─ docker-compose.yml               (opcional: nuevo servicio)
+└─ apps/<MicroserviceFolderName>/
    ├─ package.json
-   ├─ package-lock.json
-   ├─ Dockerfile
-   ├─ README.md
-   ├─ nest-cli.json
    ├─ tsconfig.json
    ├─ tsconfig.build.json
-   ├─ .env
    └─ src/
       ├─ main.ts
       ├─ app.module.ts
-      ├─ app.controller.ts
-      ├─ app.controller.spec.ts
-      ├─ common/
-      │  └─ common.module.ts
-      ├─ config/
-      │  ├─ app.config.ts
-      │  ├─ dotenv.config.ts
-      │  └─ typeorm.config.ts
+      ├─ config/                    (app.config, dotenv, typeorm si aplica)
       ├─ infrastructure/
-      │  ├─ infrastructure.module.ts
-      │  └─ database/
-      │     ├─ entities/
-      │     │  └─ base-external-id.entity.ts
-      │     ├─ mappers/
-      │     ├─ repositories/
-      │     └─ services/
-      │        └─ postgres-type-orm-config.service.ts
+      │  ├─ infrastructure.module.ts   (@Global() si sigue patrón actual)
+      │  └─ ...
       └─ modules/
-         ├─ transversal/
-         │  ├─ transversal.module.ts
-         │  ├─ domain/
-         │  │  ├─ models/
-         │  │  └─ ports/
-         │  ├─ application/
-         │  │  ├─ dto/
-         │  │  └─ use-cases/
-         │  └─ presentation/
-         └─ <DomainName>/
-            ├─ <DomainName>.module.ts
+         └─ <feature>/
+            ├─ <feature>.module.ts
             ├─ domain/
-            │  ├─ models/
-            │  └─ ports/
             ├─ application/
-            │  ├─ dto/
-            │  │  ├─ <DomainNameSingular>-response.dto.ts
-            │  │  ├─ create-<DomainNameSingular>-request.dto.ts
-            │  │  └─ update-<DomainNameSingular>-request.dto.ts
-            │  └─ use-cases/
             └─ presentation/
-               └─ <DomainName>.controller.ts
-```
-
-# ÁRBOL DE ARCHIVOS OBLIGATORIO (EJEMPLO EXACTO: platam_pay_partners)
-```txt
-platam_pay_partners/
-├─ package.json
-├─ package-lock.json
-├─ Dockerfile
-├─ README.md
-├─ nest-cli.json
-├─ tsconfig.json
-├─ tsconfig.build.json
-├─ .env
-└─ src/
-   ├─ main.ts
-   ├─ app.module.ts
-   ├─ app.controller.ts
-   ├─ app.controller.spec.ts
-   ├─ common/common.module.ts
-   ├─ config/
-   │  ├─ app.config.ts
-   │  ├─ dotenv.config.ts
-   │  └─ typeorm.config.ts
-   ├─ infrastructure/
-   │  ├─ infrastructure.module.ts
-   │  └─ database/
-   │     ├─ entities/base-external-id.entity.ts
-   │     ├─ mappers/
-   │     ├─ repositories/
-   │     └─ services/postgres-type-orm-config.service.ts
-   └─ modules/
-      ├─ transversal/
-      │  ├─ transversal.module.ts
-      │  ├─ domain/models/
-      │  ├─ domain/ports/
-      │  ├─ application/dto/
-      │  ├─ application/use-cases/
-      │  └─ presentation/
-      └─ partners/
-         ├─ partners.module.ts
-         ├─ domain/models/
-         ├─ domain/ports/
-         ├─ application/dto/
-         │  ├─ partner-response.dto.ts
-         │  ├─ create-partner-request.dto.ts
-         │  └─ update-partner-request.dto.ts
-         ├─ application/use-cases/
-         └─ presentation/partners.controller.ts
 ```
 
 # REGLAS OBLIGATORIAS
-- Mantener la misma convención de `platam_pay_users` para scripts, Dockerfile y bootstrap Nest.
-- No mover infraestructura ORM fuera de `src/infrastructure/database/`.
-- Usar `external_id` UUID para exposición pública; no exponer `id` incremental en APIs.
-- En features con CRUD, usar `src/modules/<DomainName>/domain|application|presentation`.
-- Mantener `ValidationPipe` global en `main.ts`.
-- Swagger en `/docs` y healthcheck en `/health`.
-- No usar `console.log` en producción; usar `Logger` de NestJS.
+- **No** crear un microservicio como carpeta suelta en la raíz (`platam_pay_*`); todo bajo `apps/<MicroserviceFolderName>/`.
+- **TypeORM:** si el MS persiste en PostgreSQL, reutilizar el patrón `PostgresTypeOrmConfigService` + entidades en la lib `*-data` que corresponda al bounded context; `synchronize: false`; migraciones en `database/src/migrations/`.
+- Prefijo global HTTP: en MS existentes suele usarse `app.setGlobalPrefix('api')`; mantener consistencia.
+- Swagger en `/docs`, salvo que el MS sea solo consumidor SQS sin HTTP.
+- Logger de NestJS; **no** `console.log` en producción.
 
 # DO (PASOS DE IMPLEMENTACIÓN)
-1. Copiar base de `platam_pay_users` a `<MicroserviceFolderName>`.
-2. Renombrar metadatos (`package.json`, nombre de servicio, README, puertos y tags Swagger).
-3. Actualizar `tsconfig.json` agregando alias del nuevo dominio (`<TsPathAlias>`).
-4. Crear carpeta `src/modules/<DomainName>/` con árbol completo `domain/application/presentation`.
-5. Registrar `<ModuleClassName>` en `src/app.module.ts`.
-6. Ajustar `docker-compose.yml` con `<ComposeServiceName>`:
-   - `build.context: ./<MicroserviceFolderName>`
-   - `container_name: <ContainerName>`
-   - `ports: "<HostPort>:<InternalPort>"`
-   - conexión DB vía host `postgres`.
-7. Verificar que `main.ts` publique Swagger en `/docs` y endpoint `/health`.
+1. Copiar `apps/<ms-plantilla>/` → `apps/<MicroserviceFolderName>/` y renombrar `package.json`, imports, prefijos Swagger y puerto.
+2. Añadir proyecto en `nest-cli.json` (copiar bloque de otro `*-ms`, ajustar `root` y `sourceRoot`).
+3. Ajustar `tsconfig.json` paths del nuevo MS (`@modules/*`, `@infrastructure/*`, `@app/...-data` si aplica).
+4. Registrar módulos en `app.module.ts`; si hay BD, cablear `InfrastructureModule` como en el MS plantilla.
+5. Si aplica Docker: añadir servicio en `docker-compose.yml` (build context `apps/<MicroserviceFolderName>` o Dockerfile compartido según patrón del repo).
 
 # DON'T
-- No crear microservicio sin `Dockerfile`, `nest-cli.json`, `tsconfig.build.json` o `.env`.
-- No mezclar DTOs/controladores de un feature en raíz de `src/`.
-- No duplicar lógica de mapeo ORM dentro de controladores.
-- No hardcodear secretos ni credenciales en código.
+- No duplicar `nest-cli.json` dentro del app (la convención del monorepo es un solo archivo raíz).
+- No hardcodear secretos ni credenciales.
+- No crear entidades ORM duplicadas para la misma tabla en dos libs distintas.
 
 # CRITERIOS DE ACEPTACIÓN
-- [ ] Existe carpeta `./<MicroserviceFolderName>/` con el árbol exacto definido.
-- [ ] `docker-compose.yml` tiene `<ComposeServiceName>` operativo.
-- [ ] El servicio responde `/health` y expone Swagger en `/docs`.
-- [ ] Build y lint del nuevo microservicio pasan.
-- [ ] Estructura hexagonal por feature (`domain/application/presentation`) implementada.
-
-# DEFINITION OF DONE (DoD)
-- [ ] Plantilla creada y aplicada para `platam_pay_partners`.
-- [ ] Plantilla documentada y reusable para futuros servicios (cambiando solo identificadores).
-- [ ] Checklist de puertos, compose y configuración validado.
-- [ ] Resumen final incluye riesgos y próximos pasos (migraciones, seeds, e2e, CI/CD).
+- [ ] `npx nest build <NestProjectKey>` compila.
+- [ ] `npm run start:<MicroserviceFolderName>:dev` arranca en watch.
+- [ ] Si expone HTTP: `/docs` y health según patrón del MS plantilla.
 
 # FORMATO DE RESPUESTA OBLIGATORIO
-1) Decisiones clave (4-6 bullets)  
-2) Árbol de archivos generado (genérico + aplicado)  
-3) Archivos creados/modificados  
-4) Wiring Docker/Compose/configuración  
-5) Validación (build/lint/health/docs) y siguientes pasos
+1) Decisiones clave (BD sí/no, SQS sí/no, libs `*-data` a usar).  
+2) Árbol de archivos (genérico + rutas concretas creadas).  
+3) Archivos tocados en raíz (`nest-cli.json`, `package.json`, compose).  
+4) Validación (build / smoke).  
+5) Siguientes pasos: migración en `database/`, CI, observabilidad.

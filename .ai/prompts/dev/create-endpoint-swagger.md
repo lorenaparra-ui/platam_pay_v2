@@ -1,6 +1,6 @@
 # CONTEXTO
 Proyecto NestJS con arquitectura hexagonal y Swagger en `/docs`. La estructura de features sigue la misma convención que **hexa-typeorm-ddl-entity**: todo bajo **src/modules/** con `domain/`, `application/`, `presentation/` y `<feature>.module.ts`. La infraestructura (ORM) vive en **src/infrastructure/database/**.
-Este prompt expone endpoints REST que consumen un repositorio de dominio ya implementado con hexa-typeorm-ddl-entity, documentados en Swagger y testeables desde http://localhost:3000/docs.
+Este prompt expone endpoints REST que consumen un repositorio de dominio ya implementado con hexa-typeorm-ddl-entity, documentados en Swagger. La URL depende del MS y del puerto (p. ej. transversal-ms documenta en `http://localhost:<puerto>/docs`; el puerto sale de `config.port` / variables de entorno).
 
 # PRERREQUISITO (hexa-typeorm-ddl-entity)
 El **port**, el **modelo de dominio** y el **repositorio TypeORM** deben estar implementados con el prompt **hexa-typeorm-ddl-entity**. Este prompt **no crea ni modifica** dominio ni port ni infraestructura; solo añade o actualiza la capa HTTP del feature: DTOs en `application/dto/`, controlador en `presentation/`, uso del token de DI y documentación Swagger. Usar exactamente los mismos identificadores que en hexa: **RepositoryToken**, **DomainPortName**, **DomainModelName**, **FeatureModuleName**.
@@ -87,7 +87,7 @@ Aplicar en Request DTOs según port/DDL:
 
 # CRITERIOS DE ACEPTACIÓN
 - [ ] Build sin errores.
-- [ ] Endpoints visibles en http://localhost:3000/docs.
+- [ ] Endpoints visibles en `/docs` del MS en el puerto configurado.
 - [ ] ParseUUIDPipe en rutas con externalId.
 - [ ] POST crea y responde 201 con DTO sin id incremental.
 - [ ] GET list 200 con array DTO; GET by externalId 200 o 404.

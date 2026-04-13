@@ -1,9 +1,12 @@
 # CONTEXTO
-Proyecto NestJS + TypeORM con arquitectura hexagonal:
-- `src/modules/<feature>/domain` (modelos + puertos)
-- `src/modules/<feature>/application` (casos de uso, DTOs)
-- `src/modules/<feature>/presentation` (controllers)
-- `src/infrastructure/database` (entities, mappers, repositories, migrations)
+Monorepo NestJS + TypeORM con arquitectura hexagonal en cada MS (`apps/<ms>/src/modules/...`).
+
+Las **migraciones ejecutables por CLI** viven en el workspace **`database/`** (`@platam/database`), no dentro de cada app:
+
+- Archivos: `database/src/migrations/<timestamp>-<nombre>.ts`
+- DataSource: `database/src/data-source.ts` (agrega entidades desde `libs/*-data` según corresponda para `migration:generate`)
+
+Las entidades ORM de negocio suelen estar en **`libs/*-data/src/entities/`**; tras cambiar columnas allí, alinear dominio/mappers/repos en el MS que implementa el puerto.
 
 Objetivo: crear migraciones seguras cuando cambia el DDL y ya existen datos en base.
 
@@ -97,7 +100,9 @@ Para cambios con datos existentes, aplicar patrón de 3 fases:
 
 ## 3) Implementación de migración TypeORM
 Crear archivo en:
-`src/infrastructure/database/migrations/<timestamp>-<change-name>.ts`
+`database/src/migrations/<timestamp>-<change-name>.ts`
+
+TypeORM descubre migraciones por glob (`migrations: [.../migrations/*.ts]` en `database/src/data-source.ts`); basta con que el archivo exporte una clase que implemente `MigrationInterface`.
 
 Plantilla base:
 ```ts
@@ -126,9 +131,9 @@ Después de migración, actualizar:
 - `domain/ports/*` si cambia contrato.
 
 ### Infraestructura
-- `entities/*` (`@Column`, `nullable`, `default`, `name` snake_case).
-- `mappers/*` (`toDomain`, `toEntity`).
-- `repositories/*` (queries y filtros por nuevas columnas).
+- Entidades en `libs/<context>-data/src/entities/*` o equivalente (`@Column`, `nullable`, `default`, `name` snake_case).
+- `apps/<ms>/src/infrastructure/database/mappers/*` (`toDomain`, `toEntity`).
+- `apps/<ms>/src/infrastructure/database/repositories/*` (queries y filtros por nuevas columnas).
 
 ### Aplicación/API
 - DTOs request/response.
@@ -230,10 +235,20 @@ Preferir estrategia expand-contract si hay múltiples servicios:
 
 # COMANDOS OPERATIVOS
 
-## Crear migración vacía
+## Generar migración a partir del diff (TypeORM)
+Desde la raíz del monorepo (el nombre de salida va **después de `--`**; ver comentario en `database/src/data-source.ts`):
+
 ```bash
-npm run migration:create --name=add-sample-column
+npm run migration:generate -w @platam/database -- src/migrations/1730000000000-DescripcionCambio
 ```
+
+Equivalente desde la carpeta `database/`:
+
+```bash
+npm run migration:generate -- src/migrations/1730000000000-DescripcionCambio
+```
+
+Si necesitas una migración **vacía** manual, crear el archivo en `database/src/migrations/` con timestamp y nombre coherentes con el resto del directorio (no hay script `migration:create` en el `package.json` actual).
 
 ## Ejecutar migraciones
 ```bash
@@ -243,6 +258,11 @@ npm run migration:run
 ## Revertir última migración
 ```bash
 npm run migration:revert
+```
+
+## Listar estado
+```bash
+npm run migration:show
 ```
 
 ---

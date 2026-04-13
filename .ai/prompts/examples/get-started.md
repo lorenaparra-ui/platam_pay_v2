@@ -38,7 +38,7 @@
 # Tu Misión
 Crear la estructura completa del proyecto siguiendo las mejores prácticas:
 
-1. Genera estructura de carpetas (monorepo Turborepo)
+1. Genera estructura de carpetas (monorepo npm workspaces + Nest multi-proyecto; en este repo ya existe el layout `apps/*`, `libs/*`, `database/`)
 2. Configura herramientas (TypeScript, ESLint, Prettier, Jest, Docker)
 3. Crea carpeta @.ai/context con documentos base:
    - requirements.md (template para llenar)

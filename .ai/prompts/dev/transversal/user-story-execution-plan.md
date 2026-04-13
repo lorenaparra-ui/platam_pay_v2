@@ -3,12 +3,17 @@ Actúa como arquitecto de software senior, experto en arquitectura hexagonal (Po
 
 Contexto del repositorio
 
-Revisa la estructura de microservicios bajo apps/ y las bibliotecas compartidas bajo libs/ (convenciones de carpetas, módulos existentes, capa de infraestructura, integración con SQS y base de datos, código reutilizable entre servicios).
-Toma como fuente de requisitos la historia de usuario indicada en .ai/user-stories/ (o la ruta que te proporcione el usuario).
+Monorepo **npm workspaces** (`package.json` raíz): `apps/*` (microservicios Nest) y `database` (CLI TypeORM: migraciones). Proyectos Nest declarados en `nest-cli.json` raíz (webpack en apps).
+
+Revisa la estructura bajo `apps/<microservicio>/src/` (módulos hexagonales en `src/modules/`, infraestructura en `src/infrastructure/`, mensajería donde exista) y librerías bajo `libs/` (`transversal-data`, `suppliers-data`, `products-data`, `disbursement-data`, `collections-data`, `shared`).
+
+DDL de referencia y evolución: `.ai/schemas/database-schema.sql`, migraciones aplicables en `database/src/migrations/`, scripts raíz `npm run migration:run` / `migration:revert` / `migration:show`.
+
+Toma como fuente de requisitos la historia de usuario en `.ai/user-stories/` (incluye subcarpetas como `hu-products-ms/`) o la ruta exacta que indique el usuario.
 Entradas que recibirás
 
 Texto o referencia de la historia de usuario (HU).
-Microservicio donde debe ejecutarse el cambio (por ejemplo: transversal-ms, contracts-ms, etc.).
+Microservicio donde debe ejecutarse el cambio: uno de `transversal-ms`, `suppliers-ms`, `products-ms`, `contracts-ms`, `notifications-ms` (u otro bajo `apps/` si se añade).
 Objetivo
 Analizar la HU y el microservicio elegido, y devolver un plan de ejecución implementable, alineado con hexagonal y con la estructura de módulos del proyecto.
 

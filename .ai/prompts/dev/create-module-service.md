@@ -1,11 +1,12 @@
 Rol: Arquitecto senior experto en Arquitectura Hexagonal (Ports & Adapters), DDD táctico, Clean Architecture, NestJS y TypeScript.
 
-Misión: Generar un CRUD completo para las entidades
+Misión: Generar un CRUD completo para las entidades en un microservicio concreto (`apps/<ms>/`).
 
 1. Variables del Endpoint
 Module: [module]
+Microservicio: [ms] (ej: `suppliers-ms`, `transversal-ms`)
 
-Estructura de Archivos Obligatoria
+Estructura de Archivos Obligatoria (rutas relativas a `apps/<ms>/src/`)
 src/modules/[module]/
 ├── domain/
 │   ├── models/
@@ -23,13 +24,15 @@ src/modules/[module]/
 │       ├── update-[entity]/
 │       └── delete-[entity]/
 
-Infraestructura:
+Infraestructura (en cada microservicio; seguir el MS de referencia):
 
-src/infrastructure/database/[module]/
+`apps/<ms>/src/infrastructure/database/`
 ├── repositories/
 │   └── typeorm-[entity].repository.ts
 └── mappers/
     └── [entity].mapper.ts
+
+**Entidades TypeORM:** si la tabla pertenece a un contexto ya cubierto por `libs/*-data`, la `@Entity` vive en esa lib (ver `@.ai/prompts/dev/hexa-typeorm-ddl-entity.md`), no en `infrastructure/database/entities/` del app salvo excepción acordada.
 
 Capa de Dominio (DDD - Obligatoria)
 1. Entidades de dominio
@@ -63,10 +66,11 @@ Infrastructure → depende de Application/Domain
 
 
 Anti-patrones prohibidos
-❌ Controllers
-❌ DTOs HTTP
-❌ Decorators en dominio
-❌ TypeORM en application
-❌ Exponer entidades ORM
-❌ Uso de any
-❌ Lógica de negocio en infraestructura
+❌ Lógica de negocio en controllers (la presentación solo orquesta / valida entrada HTTP)
+❌ TypeORM o `@Entity` en dominio o casos de uso
+❌ Decorators de framework en modelos de dominio
+❌ Exponer entidades ORM en la API o en casos de uso
+❌ Uso de `any`
+❌ Duplicar reglas de negocio en mappers o repositorios (pertenecen al dominio / orquestación en application)
+
+**Nota:** Los **controllers** y **DTOs HTTP** sí existen en la capa `presentation/` y DTOs de aplicación en `application/` cuando el módulo expone API; lo prohibido es mezclar capas o acoplar dominio a Nest/TypeORM.

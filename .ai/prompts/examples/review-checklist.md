@@ -19,11 +19,11 @@
 - [ ] Sin dependencias innecesarias
 
 ## Integraciones
-- [ ] Clientes en `packages/integration-clients`
-- [ ] Reintentos y timeouts configurados
-- [ ] Documentación actualizada en `api-integrations.md`
+- [ ] Clientes HTTP/SDK en el lugar acordado por el MS (p. ej. módulo `infrastructure` o lib compartida); sin credenciales en código
+- [ ] Reintentos y timeouts configurados donde aplique
+- [ ] Documentación actualizada en `.ai/context/api-integrations.md`
 
 ## Schemas y contratos
-- [ ] Cambios en DB reflejados en `database-schema.sql` y migraciones
-- [ ] Cambios de API en `api-contracts.yaml`
-- [ ] Eventos nuevos en `event-schemas.json`
+- [ ] Cambios en DB reflejados en `.ai/schemas/database-schema.sql` (o DBML vigente) y en `database/src/migrations/`
+- [ ] Contratos HTTP/documentación OpenAPI al día (Swagger por MS en `/docs` donde esté habilitado)
+- [ ] Si el proyecto define catálogo de eventos/mensajes SQS, actualizarlo en el artefacto que use el equipo (no asumir un archivo concreto si no existe en el repo)

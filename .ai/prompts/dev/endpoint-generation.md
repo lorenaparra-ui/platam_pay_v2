@@ -12,21 +12,17 @@ BaseSegment: [SEGMENTO] (ej: register)
 RepositoryToken: [TOKEN_DI] (ej: PARTNER_REPOSITORY)
 
 2. Estructura de Archivos Obligatoria
-Genera el código en estas rutas exactas:
+Genera el código bajo **`apps/<microservicio>/src/`** en estas rutas (alineado con `@.ai/prompts/dev/hexa-typeorm-ddl-entity.md`):
 
-src/modules/[module]/domain/entities/[entity].entity.ts: Clase pura (sin decoradores).
+`src/modules/[module]/domain/models/[entity].model.ts` — modelo de dominio (sin decoradores).
 
-src/modules/[module]/domain/repositories/[entity].repository.ts: Interface del puerto.
+`src/modules/[module]/domain/ports/[entity].repository.port.ts` — interfaz del puerto.
 
-src/modules/[module]/application/use-cases/[case]/: Clases de lógica y sus DTOs (Request/Response).
+`src/modules/[module]/application/use-cases/[case]/` — casos de uso y DTOs de aplicación si aplican.
 
-src/modules/[module]/presentation/[entity].controller.ts: Solo orquestación y Swagger.
+`src/modules/[module]/presentation/[entity].controller.ts` — solo orquestación y Swagger.
 
-src/infrastructure/database/entities/[entity].orm-entity.ts: Decoradores TypeORM (PK bigint, external_id uuid).
-
-src/infrastructure/database/repositories/typeorm-[entity].repository.ts: Implementación del puerto.
-
-src/infrastructure/database/mappers/[entity].mapper.ts: Conversión ToDomain / ToPersistence.
+**Persistencia:** `@Entity` en `libs/<*-data>/src/entities/` cuando la tabla pertenezca a esa lib; **mapper** y **typeorm-[entity].repository.ts** en `src/infrastructure/database/mappers/` y `src/infrastructure/database/repositories/` del microservicio que implementa el puerto.
 
 3. Reglas de Oro (Constraints)
 Cero exposición de IDs: Las rutas usan external_id (UUID). El ParseUUIDPipe es obligatorio en el controlador.

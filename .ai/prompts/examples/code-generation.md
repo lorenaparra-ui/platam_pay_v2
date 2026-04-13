@@ -2,11 +2,11 @@
 
 <!-- Prompts reutilizables para que la IA genere código alineado con el proyecto. -->
 
-## Backend (Node.js)
+## Backend (NestJS en monorepo)
 - Usar TypeScript estricto.
-- Rutas en `apps/api`: agrupar por dominio (auth, loans, payments, etc.).
-- Validación con Zod/Joi según estándar del proyecto.
-- Respuestas con códigos HTTP y formato JSON consistente.
+- Código por microservicio en `apps/<nombre>-ms/src/modules/<feature>/` (hexagonal: domain / application / presentation).
+- Validación de entrada: `class-validator` + `ValidationPipe` global (ver `main.ts` del MS).
+- Respuestas REST coherentes; no exponer `id` incremental en rutas públicas cuando el dominio use `external_id` (UUID).
 
 ## Frontend (React + TypeScript)
 - Componentes funcionales con hooks.

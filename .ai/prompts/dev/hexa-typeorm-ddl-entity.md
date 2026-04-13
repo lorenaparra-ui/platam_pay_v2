@@ -17,11 +17,13 @@ Objetivo del prompt: implementar o alinear **una** entidad de dominio (modelo + 
 | `contracts-ms`      | Sí           | `@app/products-data` (p. ej. contratos) | Alcance reducido: entidades pueden vivir en `products-data` y consumirse desde este MS (no duplicar tabla/entidad). |
 | `notifications-ms`  | No (actual)  | N/A                                 | **Fuera de alcance** de este prompt para capa ORM: no hay flujo estándar `entity + mapper + TypeORM repo` como en los MS anteriores. |
 
+**Librerías de esquemas dedicados (BNPL / cobranza):** viven en `libs/disbursement-data` y `libs/collections-data`. Las migraciones del monorepo cargan sus listas de entidades desde `@platam/database` / `data-source.ts` para generar DDL coherente. Un MS solo debe importar `DisbursementDataModule` / `CollectionsDataModule` si ese bounded context expone casos de uso con persistencia en ese esquema; **no** duplicar `@Entity` para tablas ya modeladas ahí.
+
 **`libs/shared`:** utilidades de dominio/mensajería comunes; **no** es el lugar habitual de nuevas `@Entity` de negocio (salvo decisión explícita de arquitectura).
 
 # VARIABLES DE ENTRADA (RELLENAR)
 - **TargetMicroservice:** `<REEMPLAZAR>` — nombre de carpeta bajo `apps/` (ej. `transversal-ms`, `suppliers-ms`).
-- **TargetDataLib:** `<REEMPLAZAR | N/A>` — `transversal-data` | `suppliers-data` | `products-data` | reutilizar entidad existente en otra lib (documentar cuál).
+- **TargetDataLib:** `<REEMPLAZAR | N/A>` — `transversal-data` | `suppliers-data` | `products-data` | `disbursement-data` | `collections-data` | reutilizar entidad existente en otra lib (documentar cuál).
 - **DomainModelName:** `<REEMPLAZAR>`
 - **OrmEntityName:** `<REEMPLAZAR>`
 - **TypeOrmRepoName:** `<REEMPLAZAR>`
@@ -97,7 +99,7 @@ Evaluar y decidir brevemente (sin razonamiento largo):
 5. DI: ¿token + `useClass`? → alineado a `<feature>.tokens.ts` + `InfrastructureModule`.
 6. Consultas públicas: ¿`external_id` y no id incremental? → justificar.
 7. Foreign keys: representación en dominio vs infraestructura; orden de persistencia y transacciones.
-8. **Monorepo:** ¿nueva entidad en qué `*-data` y qué arrays (`TRANSVERSAL_DATA_ENTITIES`, `PRODUCTS_DATA_ENTITIES`, etc.) y `typeorm.config` hay que actualizar?
+8. **Monorepo:** ¿nueva entidad en qué `*-data` y qué arrays (`TRANSVERSAL_DATA_ENTITIES`, `PRODUCTS_DATA_ENTITIES`, `DISBURSEMENT_*` / `COLLECTIONS_*` según lib, etc.) y `typeorm.config` del MS **y** entidades registradas en `@platam/database` (migraciones) hay que actualizar?
 
 # REGLAS OBLIGATORIAS
 - El dominio **no** depende de TypeORM ni de decoradores de Nest.
