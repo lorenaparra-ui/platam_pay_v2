@@ -32,7 +32,7 @@ import {
   BusinessEntity,
   LegalRepresentativeEntity,
   PartnerOnboardingSagaEntity,
-  PartnersEntity,
+  PartnerEntity,
   SalesRepresentativeEntity,
   SupplierEntity,
 } from '@app/suppliers-data';
@@ -55,7 +55,7 @@ import {
       BankAccountEntity,
       BusinessEntity,
       PartnerOnboardingSagaEntity,
-      PartnersEntity,
+      PartnerEntity,
       SupplierEntity,
       LegalRepresentativeEntity,
       SalesRepresentativeEntity,

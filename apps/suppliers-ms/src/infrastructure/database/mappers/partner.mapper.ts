@@ -1,9 +1,9 @@
-import { PartnersEntity } from '@app/suppliers-data';
+import { PartnerEntity } from '@app/suppliers-data';
 import { Partner } from '@modules/partners/domain/entities/partner.entity';
 import { PartnerState } from '@platam/shared';
 
 export class PartnerMapper {
-  static to_domain(row: PartnersEntity): Partner {
+  static to_domain(row: PartnerEntity): Partner {
     return new Partner({
       internal_id: row.id,
       supplier_id: row.supplier.id,

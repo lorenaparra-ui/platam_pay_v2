@@ -6,7 +6,7 @@ import { CityEntity, PersonEntity, UserEntity } from '@app/transversal-data';
 import {
   BankAccountEntity,
   BusinessEntity,
-  PartnersEntity,
+  PartnerEntity,
   SupplierEntity,
 } from '@app/suppliers-data';
 
@@ -25,8 +25,8 @@ export class TypeormSuppliersReferenceLookupAdapter
     private readonly businesses: Repository<BusinessEntity>,
     @InjectRepository(BankAccountEntity)
     private readonly bank_accounts: Repository<BankAccountEntity>,
-    @InjectRepository(PartnersEntity)
-    private readonly partners: Repository<PartnersEntity>,
+    @InjectRepository(PartnerEntity)
+    private readonly partners: Repository<PartnerEntity>,
     @InjectRepository(SupplierEntity)
     private readonly suppliers: Repository<SupplierEntity>,
   ) {}

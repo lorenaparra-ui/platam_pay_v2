@@ -4,7 +4,7 @@ import { DataSource, Repository } from 'typeorm';
 import {
   BankAccountEntity,
   BusinessEntity,
-  PartnersEntity,
+  PartnerEntity,
   SupplierEntity,
 } from '@app/suppliers-data';
 import type { PartnerSagaCompensationPort } from '@modules/partners/application/ports/partner-saga-compensation.port';
@@ -15,8 +15,8 @@ export class PartnerSagaCompensationAdapter implements PartnerSagaCompensationPo
 
   constructor(
     @InjectDataSource() private readonly data_source: DataSource,
-    @InjectRepository(PartnersEntity)
-    private readonly partner_repo: Repository<PartnersEntity>,
+    @InjectRepository(PartnerEntity)
+    private readonly partner_repo: Repository<PartnerEntity>,
     @InjectRepository(SupplierEntity)
     private readonly supplier_repo: Repository<SupplierEntity>,
     @InjectRepository(BusinessEntity)

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { type QueryDeepPartialEntity, Repository } from 'typeorm';
-import { PartnersEntity } from '@app/suppliers-data';
+import { PartnerEntity } from '@app/suppliers-data';
 import { PartnerRepository } from '@modules/partners/domain/repositories/partner.repository';
 import {
   Partner,
@@ -32,8 +32,8 @@ const PARTNER_SELECT = {
 @Injectable()
 export class TypeormPartnerRepository implements PartnerRepository {
   constructor(
-    @InjectRepository(PartnersEntity)
-    private readonly repo: Repository<PartnersEntity>,
+    @InjectRepository(PartnerEntity)
+    private readonly repo: Repository<PartnerEntity>,
   ) {}
 
   async find_by_external_id(external_id: string): Promise<Partner | null> {
@@ -88,7 +88,7 @@ export class TypeormPartnerRepository implements PartnerRepository {
     external_id: string,
     patch: UpdatePartnerProps,
   ): Promise<Partner | null> {
-    const fields: Partial<PartnersEntity> = {};
+    const fields: Partial<PartnerEntity> = {};
 
     if (patch.acronym !== undefined) fields.acronym = patch.acronym ?? undefined;
     if (patch.logo_url !== undefined) fields.logoUrl = patch.logo_url ?? undefined;
@@ -114,11 +114,11 @@ export class TypeormPartnerRepository implements PartnerRepository {
 
     await this.repo
       .createQueryBuilder()
-      .update(PartnersEntity)
+      .update(PartnerEntity)
       .set({
         ...fields,
         updatedAt: () => 'now()',
-      } as QueryDeepPartialEntity<PartnersEntity>)
+      } as QueryDeepPartialEntity<PartnerEntity>)
       .where('"external_id" = :external_id', { external_id })
       .execute();
 
