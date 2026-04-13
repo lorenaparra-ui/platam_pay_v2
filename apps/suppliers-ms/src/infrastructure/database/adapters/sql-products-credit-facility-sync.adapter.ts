@@ -17,6 +17,7 @@ export class SqlProductsCreditFacilitySyncAdapter
     contract_id: string | null;
     total_limit: string;
     state: CreditFacilityState;
+    business_id: number;
   }>): Promise<{ internal_id: number }> {
     const existing = (await this.data_source.query<{ id: number }[]>(
       `SELECT id FROM products_schema.credit_facilities WHERE external_id = $1::uuid LIMIT 1`,
@@ -45,18 +46,20 @@ export class SqlProductsCreditFacilitySyncAdapter
 
     const rows = (await this.data_source.query<{ id: number }[]>(
       `INSERT INTO products_schema.credit_facilities (
-        external_id, contract_id, state, total_limit
+        external_id, contract_id, state, total_limit, business_id
       ) VALUES (
         $1::uuid,
         $2::bigint,
         $3::products_schema.credit_facility_state,
-        $4::numeric
+        $4::numeric,
+        $5::bigint
       ) RETURNING id`,
       [
         input.credit_facility_external_id,
         contract_internal_id,
         input.state,
         input.total_limit,
+        input.business_id,
       ],
     ));
 

@@ -19,6 +19,7 @@ export class CreateCreditFacilityUseCase {
       contract_id: req.contract_id,
       total_limit: req.total_limit,
       state: req.state,
+      business_id: req.business_id,
       external_id: req.external_id,
     });
 

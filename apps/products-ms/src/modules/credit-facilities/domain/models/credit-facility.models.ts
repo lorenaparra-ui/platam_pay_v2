@@ -18,6 +18,8 @@ export interface CreateCreditFacilityProps {
   contract_id: string | null;
   state: CreditFacilityState;
   total_limit: string;
+  /** FK interna `suppliers_schema.businesses.id`. */
+  business_id: number;
 }
 
 export type UpdateCreditFacilityProps = Partial<CreateCreditFacilityProps>;

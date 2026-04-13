@@ -46,16 +46,17 @@ export class TypeormCreditFacilityRepository implements CreditFacilityRepository
   async create(props: CreateCreditFacilityProps): Promise<CreditFacility> {
     const rows = await this.repo.query(
       `INSERT INTO products_schema.credit_facilities (
-        external_id, contract_id, state, total_limit
+        external_id, contract_id, state, total_limit, business_id
       ) VALUES (
-        COALESCE($1::uuid, gen_random_uuid()), $2, $3::products_schema.credit_facility_state, $4
+        COALESCE($1::uuid, gen_random_uuid()), $2, $3::products_schema.credit_facility_state, $4, $5
       )
-      RETURNING id, external_id, created_at, updated_at, contract_id, state, total_limit`,
+      RETURNING id, external_id, created_at, updated_at, contract_id, state, total_limit, business_id`,
       [
         props.external_id ?? null,
         props.contract_id,
         props.state,
         props.total_limit,
+        props.business_id,
       ],
     );
     return CreditFacilityMapper.from_raw_row(rows[0] as Record<string, unknown>);

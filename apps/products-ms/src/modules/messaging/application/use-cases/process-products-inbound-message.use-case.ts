@@ -12,10 +12,14 @@ import type { CreditFacilityRepository } from '@modules/credit-facilities/domain
 
 type CreditFacilityPayload = Readonly<{
   credit_facility_external_id?: string;
+  /** Compatibilidad con mensajes antiguos de suppliers-ms. */
+  external_id?: string;
   contract_id?: string | null;
   total_limit?: string;
   /** `active` | `inactive` (alineado con ENUM PostgreSQL). */
   state?: string;
+  /** FK interna `suppliers_schema.businesses.id`. */
+  business_id?: number;
 }>;
 
 type CategoryItemPayload = Readonly<{
@@ -94,14 +98,19 @@ export class ProcessProductsInboundMessageUseCase
     dto: TransversalInboundMessageDto,
   ): Promise<void> {
     const payload = dto.payload as CreditFacilityPayload;
-    const external_id = payload.credit_facility_external_id;
+    const external_id =
+      payload.credit_facility_external_id ?? payload.external_id;
     const total_limit = payload.total_limit;
     const state = parse_credit_facility_state(payload.state);
+    const business_id = payload.business_id;
     if (
       external_id === undefined ||
       external_id.length === 0 ||
       total_limit === undefined ||
-      state === null
+      state === null ||
+      business_id === undefined ||
+      typeof business_id !== 'number' ||
+      !Number.isFinite(business_id)
     ) {
       this.logger.warn(
         `Payload inválido para credit_facility correlation_id=${dto.correlation_id}`,
@@ -123,6 +132,7 @@ export class ProcessProductsInboundMessageUseCase
         payload.contract_id ?? null,
         total_limit,
         state,
+        business_id,
         external_id,
       ),
     );

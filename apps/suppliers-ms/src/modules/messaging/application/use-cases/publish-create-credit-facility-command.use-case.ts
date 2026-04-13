@@ -7,6 +7,7 @@ import {
   PRODUCTS_CREATE_CREDIT_FACILITY_QUEUE_URL_PORT,
   type ProductsCreateCreditFacilityQueueUrlPort,
 } from '@messaging/domain/ports/products-create-credit-facility-queue-url.port';
+import { TransversalEventType } from '../dto/transversal-outbound-event.dto';
 import { ValidationFailedError } from '../exceptions/validation-failed.error';
 
 export type PublishCreateCreditFacilityCommandInput = Readonly<{
@@ -15,6 +16,7 @@ export type PublishCreateCreditFacilityCommandInput = Readonly<{
   contract_id: string | null;
   total_limit: string;
   state: string;
+  business_id: number;
 }>;
 
 @Injectable()
@@ -35,14 +37,14 @@ export class PublishCreateCreditFacilityCommandUseCase {
     }
 
     const body = JSON.stringify({
-      event: 'create-credit-facility',
-      version: '1.0',
-      correlationId: command.correlation_id,
+      correlation_id: command.correlation_id,
+      event_type: TransversalEventType.partner_onboarding_credit_facility_requested,
       payload: {
-        external_id: command.external_id,
+        credit_facility_external_id: command.external_id,
         contract_id: command.contract_id,
         total_limit: command.total_limit,
         state: command.state,
+        business_id: command.business_id,
       },
     });
 

@@ -7,6 +7,7 @@ import {
   PRODUCTS_CREATE_CATEGORIES_QUEUE_URL_PORT,
   type ProductsCreateCategoriesQueueUrlPort,
 } from '@messaging/domain/ports/products-create-categories-queue-url.port';
+import { TransversalEventType } from '../dto/transversal-outbound-event.dto';
 import { ValidationFailedError } from '../exceptions/validation-failed.error';
 
 export type CategoryItem = Readonly<{
@@ -21,8 +22,10 @@ export type CategoryItem = Readonly<{
 
 export type PublishCreateCategoriesCommandInput = Readonly<{
   correlation_id: string;
-  credit_facility_id: number;
+  credit_facility_external_id: string;
   partner_id: number;
+  /** Estado de categoría alineado con `CreditFacilityState` (`active` / `inactive`). */
+  state: string;
   categories: readonly CategoryItem[];
 }>;
 
@@ -44,12 +47,12 @@ export class PublishCreateCategoriesCommandUseCase {
     }
 
     const body = JSON.stringify({
-      event: 'create-categories-batch',
-      version: '1.0',
-      correlationId: command.correlation_id,
+      correlation_id: command.correlation_id,
+      event_type: TransversalEventType.partner_onboarding_category_batch_requested,
       payload: {
-        credit_facility_id: command.credit_facility_id,
+        credit_facility_external_id: command.credit_facility_external_id,
         partner_id: command.partner_id,
+        state: command.state,
         categories: command.categories,
       },
     });

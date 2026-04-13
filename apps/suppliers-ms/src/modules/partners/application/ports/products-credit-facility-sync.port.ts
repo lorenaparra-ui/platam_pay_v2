@@ -15,6 +15,8 @@ export interface ProductsCreditFacilitySyncPort {
     contract_id: string | null;
     total_limit: string;
     state: CreditFacilityState;
+    /** FK interna `suppliers_schema.businesses.id`. */
+    business_id: number;
   }>): Promise<{ internal_id: number }>;
 
   /**

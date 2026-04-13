@@ -144,26 +144,8 @@ export class CreatePartnerOrchestratorUseCase {
         file_folders: PARTNER_ONBOARDING_FILE_FOLDERS,
       });
 
-      // Paso 1 — Crear credit_facility INACTIVE
-      this.log_step(1, correlation_id, 'crear credit_facility INACTIVE → products_schema');
-      const cf = await this.credit_facility_sync.create_credit_facility({
-        credit_facility_external_id,
-        contract_id: command.contract_id,
-        total_limit: command.total_limit,
-        state: CreditFacilityState.INACTIVE,
-      });
-      created.credit_facility_external_id = credit_facility_external_id;
-      await this.publish_create_credit_facility.execute({
-        correlation_id,
-        external_id: credit_facility_external_id,
-        contract_id: command.contract_id,
-        total_limit: command.total_limit,
-        state: CreditFacilityState.INACTIVE,
-      });
-      await this.saga_repository.update_by_external_id(saga_external_id, { current_step: 1 });
-
-      // Paso 2 — Crear cuenta bancaria
-      this.log_step(2, correlation_id, 'crear bank_account');
+      // Paso 1 — Crear cuenta bancaria
+      this.log_step(1, correlation_id, 'crear bank_account');
       const bank_cert_url =
         file_urls.bank_certification_url.trim().length > 0
           ? file_urls.bank_certification_url.trim()
@@ -177,12 +159,12 @@ export class CreatePartnerOrchestratorUseCase {
       );
       created.bank_account_external_id = bank_account.external_id;
       await this.saga_repository.update_by_external_id(saga_external_id, {
-        current_step: 2,
+        current_step: 1,
         bank_account_external_id: bank_account.external_id,
       });
 
-      // Paso 3 — Crear persona del representante legal (SQS)
-      this.log_step(3, correlation_id, 'publicar create-person (RL) → SQS');
+      // Paso 2 — Crear persona del representante legal (SQS)
+      this.log_step(2, correlation_id, 'publicar create-person (RL) → SQS');
       const lr = command.legal_representative;
       const lr_idempotency_key = `${saga_external_id}__legal_representative`;
       let lr_person_external_id: string | null = null;
@@ -208,15 +190,15 @@ export class CreatePartnerOrchestratorUseCase {
             lr_person_external_id,
           );
         await this.saga_repository.update_by_external_id(saga_external_id, {
-          current_step: 3,
+          current_step: 2,
           person_external_id: lr_person_external_id,
         });
       } else {
-        await this.saga_repository.update_by_external_id(saga_external_id, { current_step: 3 });
+        await this.saga_repository.update_by_external_id(saga_external_id, { current_step: 2 });
       }
 
-      // Paso 4 — Crear business
-      this.log_step(4, correlation_id, 'crear business');
+      // Paso 3 — Crear business
+      this.log_step(3, correlation_id, 'crear business');
       if (person_internal_id === null) {
         throw new Error(
           'person_internal_id requerido para crear business (legal_representative es null)',
@@ -239,9 +221,29 @@ export class CreatePartnerOrchestratorUseCase {
       );
       created.business_external_id = business.external_id;
       await this.saga_repository.update_by_external_id(saga_external_id, {
-        current_step: 4,
+        current_step: 3,
         business_external_id: business.external_id,
       });
+
+      // Paso 4 — Crear credit_facility INACTIVE (requiere business_id)
+      this.log_step(4, correlation_id, 'crear credit_facility INACTIVE → products_schema');
+      const cf = await this.credit_facility_sync.create_credit_facility({
+        credit_facility_external_id,
+        contract_id: command.contract_id,
+        total_limit: command.total_limit,
+        state: CreditFacilityState.INACTIVE,
+        business_id: business.internal_id,
+      });
+      created.credit_facility_external_id = credit_facility_external_id;
+      await this.publish_create_credit_facility.execute({
+        correlation_id,
+        external_id: credit_facility_external_id,
+        contract_id: command.contract_id,
+        total_limit: command.total_limit,
+        state: CreditFacilityState.INACTIVE,
+        business_id: business.internal_id,
+      });
+      await this.saga_repository.update_by_external_id(saga_external_id, { current_step: 4 });
 
       // Paso 5 — Crear supplier
       this.log_step(5, correlation_id, 'crear supplier');
@@ -293,8 +295,9 @@ export class CreatePartnerOrchestratorUseCase {
       this.log_step(8, correlation_id, 'publicar categorías → SQS');
       await this.publish_create_categories.execute({
         correlation_id,
-        credit_facility_id: cf.internal_id,
+        credit_facility_external_id,
         partner_id: partner.internal_id,
+        state: CreditFacilityState.INACTIVE,
         categories: command.categories,
       });
       await this.saga_repository.update_by_external_id(saga_external_id, { current_step: 8 });
@@ -366,14 +369,14 @@ export class CreatePartnerOrchestratorUseCase {
     if (created.supplier_external_id) {
       await this.compensation.delete_supplier(created.supplier_external_id);
     }
+    if (created.credit_facility_external_id) {
+      await this.compensation.delete_credit_facility(created.credit_facility_external_id);
+    }
     if (created.business_external_id) {
       await this.compensation.delete_business(created.business_external_id);
     }
     if (created.bank_account_external_id) {
       await this.compensation.delete_bank_account(created.bank_account_external_id);
-    }
-    if (created.credit_facility_external_id) {
-      await this.compensation.delete_credit_facility(created.credit_facility_external_id);
     }
   }
 
