@@ -1,47 +1,63 @@
 ---
-description: Reglas backend mínimas para NestJS + TypeORM + arquitectura hexagonal.
+description: Reglas backend mínimas para NestJS + TypeORM + arquitectura hexagonal en el monorepo platam-pay-v2.
 alwaysApply: false
 ---
+
 # Backend Rules (Minimal)
 
+## Monorepo (estructura real)
+
+- **Microservicios** (`apps/`): `transversal-ms`, `suppliers-ms`, `products-ms`, `contracts-ms`, `notifications-ms` (Nest, `nest-cli.json`).
+- **Librerías de datos ORM** (`libs/`): `transversal-data`, `products-data`, `suppliers-data`, `disbursement-data`, `collections-data`; utilidades `shared`.
+- **Migraciones y CLI TypeORM** (`database/`): workspace npm `@platam/database`; `DataSource` en `database/src/data-source.ts` con `synchronize: false` y entidades agregadas desde las libs (no duplicar listas manualmente fuera del patrón del repo).
+
 ## Stack objetivo
-- NestJS 11 + Node 20 + TypeORM 0.3.x + PostgreSQL 15.
+
+- NestJS 11 + Node 20 + TypeORM 0.3.x + PostgreSQL (compatible con 15+).
 
 ## Arquitectura
-- Mantener separación por capas: `domain`, `application`, `infrastructure`.
+
+- Mantener separación por capas: `domain`, `application`, `infrastructure` bajo `apps/<ms>/src/modules/<bounded-context>/`.
 - El dominio no depende de NestJS ni TypeORM.
 - Los repositorios de infraestructura implementan puertos del dominio.
 
 ## Dominio
+
 - Modelos y puertos sin imports de framework.
 - No usar entidades ORM como contratos del dominio.
-- Si existe identificador público, exponer `externalId` y mantener `id` como interno.
+- Si existe identificador público, exponer `external_id` / `externalId` y mantener `id` como interno.
 
 ## Infraestructura (ORM y repositorios)
-- Entidades TypeORM alineadas al DDL (tabla, columnas, tipos y nullability).
+
+- Entidades TypeORM en `libs/*-data` alineadas al DDL (tabla, columnas, tipos y nullability).
 - Usar `name` en `@Column` cuando el DDL use `snake_case`.
-- Adaptadores TypeORM deben mapear ORM <-> dominio mediante mappers dedicados.
+- Adaptadores TypeORM en cada MS deben mapear ORM ↔ dominio mediante mappers dedicados.
 - Evitar lógica de negocio en repositorios; solo acceso a datos.
 
 ## DI y providers
+
 - Inyectar por token de puerto (no por implementación concreta).
 - Registrar providers en módulos con `provide` + `useClass`.
 
 ## Datos financieros y seguridad
+
 - No usar `float/double` para dinero; usar `decimal` o enteros en mínima unidad.
-- No exponer `id` autoincremental en URLs públicas; usar `externalId`.
+- No exponer `id` autoincremental en URLs públicas; usar `external_id` / `externalId`.
 - Nunca loguear secretos ni PII.
 
 ## Configuración
+
 - Usar `ConfigService` en código de negocio.
-- Evitar acceso directo a `process.env` fuera de configuración.
+- Evitar acceso directo a `process.env` fuera de configuración (salvo capas explícitas de bootstrap/CLI como `data-source`).
 
 ## Convención de nombres
-- Usar `snake_case` para nombres de variables y campos.
+
+- Usar `snake_case` para nombres de variables y campos en dominio/DTOs alineados al proyecto.
 - Escribir palabras en minúsculas separadas por guion bajo (`_`).
 - Ejemplos válidos: `first_name`, `last_name`, `phone_number`.
 
 ## Calidad mínima por cambio backend
-- Compila (`npm run build`) y sin lints nuevos.
+
+- Compila (`npm run build` en el workspace afectado) y sin lints nuevos.
 - Mappers, puertos y repositorios consistentes entre sí.
-- Sin dependencias invertidas (domain -> infrastructure).
+- Sin dependencias invertidas (domain → infrastructure).

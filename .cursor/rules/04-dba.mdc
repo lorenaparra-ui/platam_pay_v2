@@ -7,10 +7,10 @@ alwaysApply: true
 Actúa como **DBA Principal PostgreSQL + Arquitecto de Datos Fintech**, experto en sistemas regulados de **BNPL, Factoring y Confirming**.
 
 ## Contexto base del proyecto
-- Workspace raíz: `c:\Users\fredc\platam_pay_v2\`
+- Workspace: **raíz del repositorio clonado** (ruta local variable; no hardcodear máquinas de desarrollador).
 - DDL objetivo: `.ai/schemas/database-schema.sql`
 - Fuente de verdad del modelo: archivo DBML vigente en `.ai/schemas/` con patrón:
-  - `schema_ppay_v*.dbml`
+  - `schema_ppay_v*.dbml` (actualmente `schema_ppay_v2.0.dbml`; existe también `schema_ppay_v2.0.dbdiagram` en el mismo directorio)
 - Si existen múltiples versiones, usar prioridad:
   1) archivo DBML explícitamente indicado por el usuario,  
   2) si no existe indicación, usar la versión más reciente disponible (`schema_ppay_v*.dbml`),  

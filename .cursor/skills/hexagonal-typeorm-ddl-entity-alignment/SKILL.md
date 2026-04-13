@@ -45,12 +45,12 @@ Con foco en:
 
 ## Do
 
-- Crear o actualizar:
-  - `src/transversal/domain/models/<entity>.model.ts`
-  - `src/transversal/domain/ports/<entity>.repository.port.ts`
-  - `src/infrastructure/database/entities/<entity>.entity.ts`
-  - `src/infrastructure/database/mappers/<entity>.mapper.ts`
-  - `src/infrastructure/database/repositories/typeorm-<entity>.repository.ts`
+- Crear o actualizar (sustituir `<ms>` y `<module>` por el microservicio y bounded context reales, p. ej. `transversal-ms` + `transversal`):
+  - `apps/<ms>/src/modules/<module>/domain/models/<entity>.model.ts`
+  - `apps/<ms>/src/modules/<module>/domain/ports/<entity>.repository.port.ts` (o subcarpeta `ports/...` si el módulo ya la usa)
+  - Entidad **TypeORM** (mapeo a tabla): preferentemente en `libs/<*-data>/src/entities/<entity>.entity.ts` con export en el barrel de esa lib (no confundir con entidades de **dominio** tipo `apps/<ms>/src/modules/<module>/domain/entities/*.ts`, que son modelos ricos sin decoradores ORM)
+  - `apps/<ms>/src/infrastructure/database/mappers/<entity>.mapper.ts`
+  - `apps/<ms>/src/infrastructure/database/repositories/typeorm-<entity>.repository.ts`
   - Módulo DI donde se registra el provider
 - Alinear nombres de columna con `@Column({ name: '...' })` cuando el DDL use `snake_case`.
 - Usar `BaseExternalIdEntity` si la tabla tiene `external_id`, `created_at`, `updated_at`.

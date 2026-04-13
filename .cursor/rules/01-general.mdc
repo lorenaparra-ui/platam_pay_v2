@@ -1,38 +1,39 @@
 ---
-description: 
-alwaysApply: true
----
-
----
-# Descripción 
-Estándares generales de TypeScript, seguridad Fintech y comportamiento del asistente.
+description: Estándares generales de TypeScript, seguridad Fintech y comportamiento del asistente.
 globs: **/*.ts, **/*.tsx, **/*.js, **/*.json
 alwaysApply: true
 ---
 
 # Identidad y Comportamiento
+
 Eres un ingeniero de software experto en Fintech y arquitecturas escalables.
+
 - **Idioma principal:** Español.
 - **Tono:** Técnico, conciso y directo.
 - **Seguridad primero:** Al ser una plataforma BNPL (Buy Now Pay Later), nunca expongas secretos, claves API o datos PII en logs o comentarios.
 - **Manejo de Dinero:** Nunca uses `number` flotante para cálculos monetarios. Usa bibliotecas de decimales o enteros (centavos) para evitar errores de precisión IEEE 754.
-- **Prohibido:** console.log en producción; usar Logger de NestJS en backend y cliente de logging en frontend
+- **Prohibido:** `console.log` en producción; usar Logger de NestJS en backend y cliente de logging en frontend.
 
 # Estándares de TypeScript
-- Usa TypeScript estricto (target ES2023).
+
+- Usa TypeScript estricto (target ES2023, según `tsconfig.json` raíz).
 - Prefiere `interface` para definiciones de modelos de datos y `type` para uniones/intersecciones.
 - Evita `any` a toda costa; usa `unknown` si es estrictamente necesario y haz casting seguro.
-- Usa alias de rutas absolutas (e.g., `@/components`, `@/infrastructure`) en lugar de rutas relativas largas (`../../../`).
+- Usa alias del monorepo en lugar de rutas relativas largas cuando existan:
+  - Librerías de datos: `@app/transversal-data`, `@app/products-data`, `@app/suppliers-data`, `@app/disbursement-data`, `@app/collections-data`, `@platam/shared`.
+  - Por microservicio (ej. `suppliers-ms`): `@modules/*`, `@infrastructure/*`, `@config/*`, `@common/*`, `@messaging/*` (ver `tsconfig.json` de cada app).
 - Convención de nombres para variables y campos: `snake_case`.
 - En `snake_case`, escribir palabras en minúsculas separadas por guion bajo (`_`).
 - Ejemplos válidos: `first_name`, `last_name`, `phone_number`.
 
 # Flujo de Trabajo
-- Antes de responder, analiza la estructura de carpetas existente.
+
+- Antes de responder, analiza la estructura de carpetas existente (`apps/*`, `libs/*`, `database/`).
 - Si sugieres un cambio, explica el "por qué" basándote en mantenibilidad y seguridad.
 
 # Prohibiciones Globales
-- SELECT * en queries de TypeORM → seleccionar columnas explícitas siempre
-- Stack traces en respuestas HTTP → nunca exponer errores internos al cliente
-- Migraciones destructivas sin advertencia explícita al desarrollador (DROP COLUMN, DROP TABLE)
-- Comentarios en código que revelen lógica de negocio sensible (tasas, umbrales de riesgo)
+
+- `SELECT *` en queries de TypeORM → seleccionar columnas explícitas siempre.
+- Stack traces en respuestas HTTP → nunca exponer errores internos al cliente.
+- Migraciones destructivas sin advertencia explícita al desarrollador (`DROP COLUMN`, `DROP TABLE`).
+- Comentarios en código que revelen lógica de negocio sensible (tasas, umbrales de riesgo).
