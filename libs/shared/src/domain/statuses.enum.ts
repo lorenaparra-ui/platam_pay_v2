@@ -23,6 +23,7 @@ export enum CreditApplicationStatus {
   HCPJ_QUERY_ERROR = 'hcpj_query_error',
   PENDING_AUTHORIZATION = 'pending_authorization',
   AUTHORIZED = 'authorized',
+  APPROVED_PENDING_SIGNATURE = 'approved_pending_signature',
   REJECTED = 'rejected',
   CANCELLED = 'cancelled',
   CLOSED = 'closed',
@@ -152,13 +153,6 @@ export enum ExperianQueryStatus {
   COMPLETED = 'completed',
   ERROR = 'error',
 }
-
-export enum SarlaftCheckStatus {
-  PENDING = 'pending',
-  COMPLETED = 'completed',
-  ERROR = 'error',
-}
-
 
 export enum LoanRequestStatus {
   DRAFT = 'draft',

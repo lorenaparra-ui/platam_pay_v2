@@ -57,6 +57,7 @@ export enum WebQueryType {
 /** Recomendación del agente de análisis (`ai_agent_analysis.recommendation`). */
 export enum AiAgentAnalysisRecommendation {
   HITL = 'hitl',
+  INTERVIEW = 'interview',
   AUTO_APPROVE = 'auto_approve',
   AUTO_REJECT = 'auto_reject',
 }

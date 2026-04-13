@@ -3,7 +3,7 @@ export * from './entities/bank-account.entity';
 export * from './entities/business.entity';
 export * from './entities/business-seniority.entity';
 export * from './entities/legal-representative.entity';
-export * from './entities/partners.entity';
+export * from './entities/partner.entity';
 export * from './entities/partner-onboarding-saga.entity';
 export * from './entities/order.entity';
 export * from './entities/sales-representative.entity';

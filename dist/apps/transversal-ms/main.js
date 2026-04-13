@@ -7438,7 +7438,7 @@ var Roles;
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.BatchLogsStatus = exports.PaymentsMethod = exports.PaymentsStatus = exports.AdjustmentsStatus = exports.DisbursementBatchesStatus = exports.DisbursementStatus = exports.LoanStatus = exports.LoanRequestStatus = exports.SarlaftCheckStatus = exports.ExperianQueryStatus = exports.BusinessSeniorityCatalogState = exports.RolePermissionLinkState = exports.PermissionDefinitionState = exports.RoleDefinitionState = exports.PurchaseOrderRecordState = exports.BankAccountRecordState = exports.ShareholderRecordState = exports.LegalRepresentativeLifecycleState = exports.PersonRecordState = exports.BusinessLifecycleState = exports.CatalogActivationState = exports.UserState = exports.SalesRepresentativeRecordState = exports.PartnerOnboardingSagaStatus = exports.SupplierState = exports.PartnerState = exports.DocumentVerificationStatus = exports.ContractTemplateCatalogStatus = exports.ContractCatalogStatus = exports.CreditApplicationStatus = exports.CategoryState = exports.CreditFacilityState = void 0;
+exports.BatchLogsStatus = exports.PaymentsMethod = exports.PaymentsStatus = exports.AdjustmentsStatus = exports.DisbursementBatchesStatus = exports.DisbursementStatus = exports.LoanStatus = exports.LoanRequestStatus = exports.ExperianQueryStatus = exports.BusinessSeniorityCatalogState = exports.RolePermissionLinkState = exports.PermissionDefinitionState = exports.RoleDefinitionState = exports.PurchaseOrderRecordState = exports.BankAccountRecordState = exports.ShareholderRecordState = exports.LegalRepresentativeLifecycleState = exports.PersonRecordState = exports.BusinessLifecycleState = exports.CatalogActivationState = exports.UserState = exports.SalesRepresentativeRecordState = exports.PartnerOnboardingSagaStatus = exports.SupplierState = exports.PartnerState = exports.DocumentVerificationStatus = exports.ContractTemplateCatalogStatus = exports.ContractCatalogStatus = exports.CreditApplicationStatus = exports.CategoryState = exports.CreditFacilityState = void 0;
 var CreditFacilityState;
 (function (CreditFacilityState) {
     CreditFacilityState["ACTIVE"] = "active";
@@ -7461,6 +7461,7 @@ var CreditApplicationStatus;
     CreditApplicationStatus["HCPJ_QUERY_ERROR"] = "hcpj_query_error";
     CreditApplicationStatus["PENDING_AUTHORIZATION"] = "pending_authorization";
     CreditApplicationStatus["AUTHORIZED"] = "authorized";
+    CreditApplicationStatus["APPROVED_PENDING_SIGNATURE"] = "approved_pending_signature";
     CreditApplicationStatus["REJECTED"] = "rejected";
     CreditApplicationStatus["CANCELLED"] = "cancelled";
     CreditApplicationStatus["CLOSED"] = "closed";
@@ -7570,12 +7571,6 @@ var ExperianQueryStatus;
     ExperianQueryStatus["COMPLETED"] = "completed";
     ExperianQueryStatus["ERROR"] = "error";
 })(ExperianQueryStatus || (exports.ExperianQueryStatus = ExperianQueryStatus = {}));
-var SarlaftCheckStatus;
-(function (SarlaftCheckStatus) {
-    SarlaftCheckStatus["PENDING"] = "pending";
-    SarlaftCheckStatus["COMPLETED"] = "completed";
-    SarlaftCheckStatus["ERROR"] = "error";
-})(SarlaftCheckStatus || (exports.SarlaftCheckStatus = SarlaftCheckStatus = {}));
 var LoanRequestStatus;
 (function (LoanRequestStatus) {
     LoanRequestStatus["DRAFT"] = "draft";
@@ -7703,6 +7698,7 @@ var WebQueryType;
 var AiAgentAnalysisRecommendation;
 (function (AiAgentAnalysisRecommendation) {
     AiAgentAnalysisRecommendation["HITL"] = "hitl";
+    AiAgentAnalysisRecommendation["INTERVIEW"] = "interview";
     AiAgentAnalysisRecommendation["AUTO_APPROVE"] = "auto_approve";
     AiAgentAnalysisRecommendation["AUTO_REJECT"] = "auto_reject";
 })(AiAgentAnalysisRecommendation || (exports.AiAgentAnalysisRecommendation = AiAgentAnalysisRecommendation = {}));

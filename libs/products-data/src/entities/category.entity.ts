@@ -95,6 +95,13 @@ export class CategoryEntity extends BaseExternalIdEntity {
   state: CategoryState;
 
 
+  @Column({
+    name: 'is_default',
+    type: 'boolean',
+    default: false,
+  })
+  isDefault: boolean;
+
   @ManyToOne(() => PartnersEntity, (p: PartnersEntity) => p.categories, {
     nullable: true,
     onDelete: 'SET NULL',

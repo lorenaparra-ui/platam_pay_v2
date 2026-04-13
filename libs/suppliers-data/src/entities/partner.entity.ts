@@ -3,8 +3,6 @@
   Entity,
   Index,
   JoinColumn,
-  JoinTable,
-  ManyToMany,
   ManyToOne,
   OneToMany,
   OneToOne,
@@ -22,7 +20,7 @@ import { SupplierEntity } from './supplier.entity';
 @Entity({ name: 'partners', schema: 'suppliers_schema' })
 @Index('IDX_partners_state', ['state'])
 @Index('IDX_partners_business_id', ['business'])
-export class PartnersEntity extends BaseExternalIdEntity {
+export class PartnerEntity extends BaseExternalIdEntity {
   @ManyToOne(() => BusinessEntity, { nullable: false })
   @JoinColumn({ name: 'business_id', referencedColumnName: 'id' })
   business: BusinessEntity;
@@ -94,12 +92,12 @@ export class PartnersEntity extends BaseExternalIdEntity {
   @OneToMany(() => SalesRepresentativeEntity, (sr) => sr.partner)
   salesRepresentatives: SalesRepresentativeEntity[];
 
-  
-  @OneToMany(() => CategoryEntity, (c) => c.partner)
+  @OneToMany(() => CategoryEntity, (c) => c.partner, {
+    cascade: false,
+    eager: false,
+  })
   categories: CategoryEntity[];
 
-  @Column({ name: 'country_code', type: 'varchar', length: 2, nullable: true })
-  countryCode: string | null;
 
   @Column({
     name: 'state',
@@ -110,3 +108,5 @@ export class PartnersEntity extends BaseExternalIdEntity {
   })
   state: PartnerState;
 }
+
+export { PartnerEntity as PartnersEntity };

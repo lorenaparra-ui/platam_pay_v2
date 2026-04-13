@@ -2,7 +2,7 @@ import { Column, Entity, JoinColumn, OneToOne, RelationId } from 'typeorm';
 import { BaseExternalIdEntity } from './base-external-id.entity';
 import { BankAccountEntity } from './bank-account.entity';
 import { BusinessEntity } from './business.entity';
-import { PartnersEntity } from './partners.entity';
+import { PartnersEntity } from './partner.entity';
 import { SupplierState } from '@platam/shared';
 
 @Entity({ name: 'suppliers', schema: 'suppliers_schema' })

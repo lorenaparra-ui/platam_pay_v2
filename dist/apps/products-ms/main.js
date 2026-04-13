@@ -2998,6 +2998,8 @@ let AiAgentAnalysisEntity = class AiAgentAnalysisEntity extends base_external_id
     recommendation;
     confidenceScore;
     analyzedAt;
+    htmlUrlAgentAnalysis;
+    agentRecommendedLoc;
 };
 exports.AiAgentAnalysisEntity = AiAgentAnalysisEntity;
 __decorate([
@@ -3040,6 +3042,20 @@ __decorate([
     (0, typeorm_1.Column)({ name: 'analyzed_at', type: 'timestamptz' }),
     __metadata("design:type", typeof (_d = typeof Date !== "undefined" && Date) === "function" ? _d : Object)
 ], AiAgentAnalysisEntity.prototype, "analyzedAt", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'html_url_agent_analysis', type: 'text', nullable: true }),
+    __metadata("design:type", Object)
+], AiAgentAnalysisEntity.prototype, "htmlUrlAgentAnalysis", void 0);
+__decorate([
+    (0, typeorm_1.Column)({
+        name: 'agent_recommended_loc',
+        type: 'decimal',
+        precision: 18,
+        scale: 4,
+        nullable: true,
+    }),
+    __metadata("design:type", Object)
+], AiAgentAnalysisEntity.prototype, "agentRecommendedLoc", void 0);
 exports.AiAgentAnalysisEntity = AiAgentAnalysisEntity = __decorate([
     (0, typeorm_1.Entity)({ name: 'ai_agent_analysis', schema: 'products_schema' })
 ], AiAgentAnalysisEntity);
@@ -3147,6 +3163,7 @@ let CategoryEntity = class CategoryEntity extends base_external_id_entity_1.Base
     installmentCount;
     initialPaymentPct;
     state;
+    isDefault;
     partner;
     partnerId;
     creditFacility;
@@ -3238,6 +3255,14 @@ __decorate([
     }),
     __metadata("design:type", typeof (_c = typeof shared_1.CategoryState !== "undefined" && shared_1.CategoryState) === "function" ? _c : Object)
 ], CategoryEntity.prototype, "state", void 0);
+__decorate([
+    (0, typeorm_1.Column)({
+        name: 'is_default',
+        type: 'boolean',
+        default: false,
+    }),
+    __metadata("design:type", Boolean)
+], CategoryEntity.prototype, "isDefault", void 0);
 __decorate([
     (0, typeorm_1.ManyToOne)(() => suppliers_data_1.PartnersEntity, (p) => p.categories, {
         nullable: true,
@@ -4255,11 +4280,11 @@ __decorate([
     (0, typeorm_1.Column)({
         name: 'status',
         type: 'enum',
-        enum: shared_1.SarlaftCheckStatus,
+        enum: shared_1.SarlaftCheckStatuses,
         enumName: 'sarlaft_check_status',
-        default: shared_1.SarlaftCheckStatus.PENDING,
+        default: shared_1.SarlaftCheckStatuses.CLEAN,
     }),
-    __metadata("design:type", typeof (_d = typeof shared_1.SarlaftCheckStatus !== "undefined" && shared_1.SarlaftCheckStatus) === "function" ? _d : Object)
+    __metadata("design:type", typeof (_d = typeof shared_1.SarlaftCheckStatuses !== "undefined" && shared_1.SarlaftCheckStatuses) === "function" ? _d : Object)
 ], SarlaftCheckEntity.prototype, "status", void 0);
 __decorate([
     (0, typeorm_1.Column)({ name: 'consulted_at', type: 'timestamptz' }),
@@ -4745,7 +4770,7 @@ var Roles;
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.BatchLogsStatus = exports.PaymentsMethod = exports.PaymentsStatus = exports.AdjustmentsStatus = exports.DisbursementBatchesStatus = exports.DisbursementStatus = exports.LoanStatus = exports.LoanRequestStatus = exports.SarlaftCheckStatus = exports.ExperianQueryStatus = exports.BusinessSeniorityCatalogState = exports.RolePermissionLinkState = exports.PermissionDefinitionState = exports.RoleDefinitionState = exports.PurchaseOrderRecordState = exports.BankAccountRecordState = exports.ShareholderRecordState = exports.LegalRepresentativeLifecycleState = exports.PersonRecordState = exports.BusinessLifecycleState = exports.CatalogActivationState = exports.UserState = exports.SalesRepresentativeRecordState = exports.PartnerOnboardingSagaStatus = exports.SupplierState = exports.PartnerState = exports.DocumentVerificationStatus = exports.ContractTemplateCatalogStatus = exports.ContractCatalogStatus = exports.CreditApplicationStatus = exports.CategoryState = exports.CreditFacilityState = void 0;
+exports.BatchLogsStatus = exports.PaymentsMethod = exports.PaymentsStatus = exports.AdjustmentsStatus = exports.DisbursementBatchesStatus = exports.DisbursementStatus = exports.LoanStatus = exports.LoanRequestStatus = exports.ExperianQueryStatus = exports.BusinessSeniorityCatalogState = exports.RolePermissionLinkState = exports.PermissionDefinitionState = exports.RoleDefinitionState = exports.PurchaseOrderRecordState = exports.BankAccountRecordState = exports.ShareholderRecordState = exports.LegalRepresentativeLifecycleState = exports.PersonRecordState = exports.BusinessLifecycleState = exports.CatalogActivationState = exports.UserState = exports.SalesRepresentativeRecordState = exports.PartnerOnboardingSagaStatus = exports.SupplierState = exports.PartnerState = exports.DocumentVerificationStatus = exports.ContractTemplateCatalogStatus = exports.ContractCatalogStatus = exports.CreditApplicationStatus = exports.CategoryState = exports.CreditFacilityState = void 0;
 var CreditFacilityState;
 (function (CreditFacilityState) {
     CreditFacilityState["ACTIVE"] = "active";
@@ -4768,6 +4793,7 @@ var CreditApplicationStatus;
     CreditApplicationStatus["HCPJ_QUERY_ERROR"] = "hcpj_query_error";
     CreditApplicationStatus["PENDING_AUTHORIZATION"] = "pending_authorization";
     CreditApplicationStatus["AUTHORIZED"] = "authorized";
+    CreditApplicationStatus["APPROVED_PENDING_SIGNATURE"] = "approved_pending_signature";
     CreditApplicationStatus["REJECTED"] = "rejected";
     CreditApplicationStatus["CANCELLED"] = "cancelled";
     CreditApplicationStatus["CLOSED"] = "closed";
@@ -4877,12 +4903,6 @@ var ExperianQueryStatus;
     ExperianQueryStatus["COMPLETED"] = "completed";
     ExperianQueryStatus["ERROR"] = "error";
 })(ExperianQueryStatus || (exports.ExperianQueryStatus = ExperianQueryStatus = {}));
-var SarlaftCheckStatus;
-(function (SarlaftCheckStatus) {
-    SarlaftCheckStatus["PENDING"] = "pending";
-    SarlaftCheckStatus["COMPLETED"] = "completed";
-    SarlaftCheckStatus["ERROR"] = "error";
-})(SarlaftCheckStatus || (exports.SarlaftCheckStatus = SarlaftCheckStatus = {}));
 var LoanRequestStatus;
 (function (LoanRequestStatus) {
     LoanRequestStatus["DRAFT"] = "draft";
@@ -5010,6 +5030,7 @@ var WebQueryType;
 var AiAgentAnalysisRecommendation;
 (function (AiAgentAnalysisRecommendation) {
     AiAgentAnalysisRecommendation["HITL"] = "hitl";
+    AiAgentAnalysisRecommendation["INTERVIEW"] = "interview";
     AiAgentAnalysisRecommendation["AUTO_APPROVE"] = "auto_approve";
     AiAgentAnalysisRecommendation["AUTO_REJECT"] = "auto_reject";
 })(AiAgentAnalysisRecommendation || (exports.AiAgentAnalysisRecommendation = AiAgentAnalysisRecommendation = {}));
@@ -6035,10 +6056,10 @@ exports.PartnerOnboardingSagaEntity = PartnerOnboardingSagaEntity = __decorate([
 
 /***/ },
 
-/***/ "./libs/suppliers-data/src/entities/partners.entity.ts"
-/*!*************************************************************!*\
-  !*** ./libs/suppliers-data/src/entities/partners.entity.ts ***!
-  \*************************************************************/
+/***/ "./libs/suppliers-data/src/entities/partner.entity.ts"
+/*!************************************************************!*\
+  !*** ./libs/suppliers-data/src/entities/partner.entity.ts ***!
+  \************************************************************/
 (__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -6053,7 +6074,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 var _a, _b, _c;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.PartnersEntity = void 0;
+exports.PartnersEntity = exports.PartnerEntity = void 0;
 const typeorm_1 = __webpack_require__(/*! typeorm */ "typeorm");
 const category_entity_1 = __webpack_require__(/*! ../../../products-data/src/entities/category.entity */ "./libs/products-data/src/entities/category.entity.ts");
 const shared_1 = __webpack_require__(/*! @platam/shared */ "./libs/shared/src/index.ts");
@@ -6061,7 +6082,7 @@ const base_external_id_entity_1 = __webpack_require__(/*! ./base-external-id.ent
 const business_entity_1 = __webpack_require__(/*! ./business.entity */ "./libs/suppliers-data/src/entities/business.entity.ts");
 const sales_representative_entity_1 = __webpack_require__(/*! ./sales-representative.entity */ "./libs/suppliers-data/src/entities/sales-representative.entity.ts");
 const supplier_entity_1 = __webpack_require__(/*! ./supplier.entity */ "./libs/suppliers-data/src/entities/supplier.entity.ts");
-let PartnersEntity = class PartnersEntity extends base_external_id_entity_1.BaseExternalIdEntity {
+let PartnerEntity = class PartnerEntity extends base_external_id_entity_1.BaseExternalIdEntity {
     business;
     supplier;
     alias;
@@ -6078,20 +6099,20 @@ let PartnersEntity = class PartnersEntity extends base_external_id_entity_1.Base
     sendSalesRepVoucher;
     salesRepresentatives;
     categories;
-    countryCode;
     state;
 };
-exports.PartnersEntity = PartnersEntity;
+exports.PartnerEntity = PartnerEntity;
+exports.PartnersEntity = PartnerEntity;
 __decorate([
     (0, typeorm_1.ManyToOne)(() => business_entity_1.BusinessEntity, { nullable: false }),
     (0, typeorm_1.JoinColumn)({ name: 'business_id', referencedColumnName: 'id' }),
     __metadata("design:type", typeof (_a = typeof business_entity_1.BusinessEntity !== "undefined" && business_entity_1.BusinessEntity) === "function" ? _a : Object)
-], PartnersEntity.prototype, "business", void 0);
+], PartnerEntity.prototype, "business", void 0);
 __decorate([
     (0, typeorm_1.OneToOne)(() => supplier_entity_1.SupplierEntity, (s) => s.partner, { nullable: false }),
     (0, typeorm_1.JoinColumn)({ name: 'supplier_id', referencedColumnName: 'id' }),
     __metadata("design:type", typeof (_b = typeof supplier_entity_1.SupplierEntity !== "undefined" && supplier_entity_1.SupplierEntity) === "function" ? _b : Object)
-], PartnersEntity.prototype, "supplier", void 0);
+], PartnerEntity.prototype, "supplier", void 0);
 __decorate([
     (0, typeorm_1.Column)({
         name: 'alias',
@@ -6101,19 +6122,19 @@ __decorate([
         nullable: true,
     }),
     __metadata("design:type", Object)
-], PartnersEntity.prototype, "alias", void 0);
+], PartnerEntity.prototype, "alias", void 0);
 __decorate([
     (0, typeorm_1.Column)({ name: 'acronym', type: 'varchar', length: 10, nullable: true }),
     __metadata("design:type", Object)
-], PartnersEntity.prototype, "acronym", void 0);
+], PartnerEntity.prototype, "acronym", void 0);
 __decorate([
     (0, typeorm_1.Column)({ name: 'logo_url', type: 'text', nullable: true }),
     __metadata("design:type", Object)
-], PartnersEntity.prototype, "logoUrl", void 0);
+], PartnerEntity.prototype, "logoUrl", void 0);
 __decorate([
     (0, typeorm_1.Column)({ name: 'co_branding_logo_url', type: 'text', nullable: true }),
     __metadata("design:type", Object)
-], PartnersEntity.prototype, "coBrandingLogoUrl", void 0);
+], PartnerEntity.prototype, "coBrandingLogoUrl", void 0);
 __decorate([
     (0, typeorm_1.Column)({
         name: 'primary_color',
@@ -6122,7 +6143,7 @@ __decorate([
         nullable: true,
     }),
     __metadata("design:type", Object)
-], PartnersEntity.prototype, "primaryColor", void 0);
+], PartnerEntity.prototype, "primaryColor", void 0);
 __decorate([
     (0, typeorm_1.Column)({
         name: 'secondary_color',
@@ -6131,19 +6152,19 @@ __decorate([
         nullable: true,
     }),
     __metadata("design:type", Object)
-], PartnersEntity.prototype, "secondaryColor", void 0);
+], PartnerEntity.prototype, "secondaryColor", void 0);
 __decorate([
     (0, typeorm_1.Column)({ name: 'light_color', type: 'varchar', length: 7, nullable: true }),
     __metadata("design:type", Object)
-], PartnersEntity.prototype, "lightColor", void 0);
+], PartnerEntity.prototype, "lightColor", void 0);
 __decorate([
     (0, typeorm_1.Column)({ name: 'notification_email', type: 'varchar', nullable: true }),
     __metadata("design:type", Object)
-], PartnersEntity.prototype, "notificationEmail", void 0);
+], PartnerEntity.prototype, "notificationEmail", void 0);
 __decorate([
     (0, typeorm_1.Column)({ name: 'webhook_url', type: 'text', nullable: true }),
     __metadata("design:type", Object)
-], PartnersEntity.prototype, "webhookUrl", void 0);
+], PartnerEntity.prototype, "webhookUrl", void 0);
 __decorate([
     (0, typeorm_1.Column)({
         name: 'disbursement_notification_email',
@@ -6151,11 +6172,11 @@ __decorate([
         nullable: true,
     }),
     __metadata("design:type", Object)
-], PartnersEntity.prototype, "disbursementNotificationEmail", void 0);
+], PartnerEntity.prototype, "disbursementNotificationEmail", void 0);
 __decorate([
     (0, typeorm_1.Column)({ name: 'api_key_hash', type: 'text', nullable: true }),
     __metadata("design:type", Object)
-], PartnersEntity.prototype, "apiKeyHash", void 0);
+], PartnerEntity.prototype, "apiKeyHash", void 0);
 __decorate([
     (0, typeorm_1.Column)({
         name: 'send_sales_rep_voucher',
@@ -6163,19 +6184,18 @@ __decorate([
         default: false,
     }),
     __metadata("design:type", Boolean)
-], PartnersEntity.prototype, "sendSalesRepVoucher", void 0);
+], PartnerEntity.prototype, "sendSalesRepVoucher", void 0);
 __decorate([
     (0, typeorm_1.OneToMany)(() => sales_representative_entity_1.SalesRepresentativeEntity, (sr) => sr.partner),
     __metadata("design:type", Array)
-], PartnersEntity.prototype, "salesRepresentatives", void 0);
+], PartnerEntity.prototype, "salesRepresentatives", void 0);
 __decorate([
-    (0, typeorm_1.OneToMany)(() => category_entity_1.CategoryEntity, (c) => c.partner),
+    (0, typeorm_1.OneToMany)(() => category_entity_1.CategoryEntity, (c) => c.partner, {
+        cascade: false,
+        eager: false,
+    }),
     __metadata("design:type", Array)
-], PartnersEntity.prototype, "categories", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ name: 'country_code', type: 'varchar', length: 2, nullable: true }),
-    __metadata("design:type", Object)
-], PartnersEntity.prototype, "countryCode", void 0);
+], PartnerEntity.prototype, "categories", void 0);
 __decorate([
     (0, typeorm_1.Column)({
         name: 'state',
@@ -6185,12 +6205,12 @@ __decorate([
         default: shared_1.PartnerState.ACTIVE,
     }),
     __metadata("design:type", typeof (_c = typeof shared_1.PartnerState !== "undefined" && shared_1.PartnerState) === "function" ? _c : Object)
-], PartnersEntity.prototype, "state", void 0);
-exports.PartnersEntity = PartnersEntity = __decorate([
+], PartnerEntity.prototype, "state", void 0);
+exports.PartnersEntity = exports.PartnerEntity = PartnerEntity = __decorate([
     (0, typeorm_1.Entity)({ name: 'partners', schema: 'suppliers_schema' }),
     (0, typeorm_1.Index)('IDX_partners_state', ['state']),
     (0, typeorm_1.Index)('IDX_partners_business_id', ['business'])
-], PartnersEntity);
+], PartnerEntity);
 
 
 /***/ },
@@ -6217,7 +6237,7 @@ exports.SalesRepresentativeEntity = void 0;
 const typeorm_1 = __webpack_require__(/*! typeorm */ "typeorm");
 const shared_1 = __webpack_require__(/*! @platam/shared */ "./libs/shared/src/index.ts");
 const base_external_id_entity_1 = __webpack_require__(/*! ./base-external-id.entity */ "./libs/suppliers-data/src/entities/base-external-id.entity.ts");
-const partners_entity_1 = __webpack_require__(/*! ./partners.entity */ "./libs/suppliers-data/src/entities/partners.entity.ts");
+const partner_entity_1 = __webpack_require__(/*! ./partner.entity */ "./libs/suppliers-data/src/entities/partner.entity.ts");
 const transversal_data_1 = __webpack_require__(/*! @app/transversal-data */ "./libs/transversal-data/src/index.ts");
 let SalesRepresentativeEntity = class SalesRepresentativeEntity extends base_external_id_entity_1.BaseExternalIdEntity {
     partner;
@@ -6229,11 +6249,11 @@ let SalesRepresentativeEntity = class SalesRepresentativeEntity extends base_ext
 };
 exports.SalesRepresentativeEntity = SalesRepresentativeEntity;
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => partners_entity_1.PartnersEntity, (p) => p.salesRepresentatives, {
+    (0, typeorm_1.ManyToOne)(() => partner_entity_1.PartnersEntity, (p) => p.salesRepresentatives, {
         nullable: false,
     }),
     (0, typeorm_1.JoinColumn)({ name: 'partner_id', referencedColumnName: 'id' }),
-    __metadata("design:type", typeof (_a = typeof partners_entity_1.PartnersEntity !== "undefined" && partners_entity_1.PartnersEntity) === "function" ? _a : Object)
+    __metadata("design:type", typeof (_a = typeof partner_entity_1.PartnersEntity !== "undefined" && partner_entity_1.PartnersEntity) === "function" ? _a : Object)
 ], SalesRepresentativeEntity.prototype, "partner", void 0);
 __decorate([
     (0, typeorm_1.RelationId)((sr) => sr.partner),
@@ -6413,7 +6433,7 @@ const typeorm_1 = __webpack_require__(/*! typeorm */ "typeorm");
 const base_external_id_entity_1 = __webpack_require__(/*! ./base-external-id.entity */ "./libs/suppliers-data/src/entities/base-external-id.entity.ts");
 const bank_account_entity_1 = __webpack_require__(/*! ./bank-account.entity */ "./libs/suppliers-data/src/entities/bank-account.entity.ts");
 const business_entity_1 = __webpack_require__(/*! ./business.entity */ "./libs/suppliers-data/src/entities/business.entity.ts");
-const partners_entity_1 = __webpack_require__(/*! ./partners.entity */ "./libs/suppliers-data/src/entities/partners.entity.ts");
+const partner_entity_1 = __webpack_require__(/*! ./partner.entity */ "./libs/suppliers-data/src/entities/partner.entity.ts");
 const shared_1 = __webpack_require__(/*! @platam/shared */ "./libs/shared/src/index.ts");
 let SupplierEntity = class SupplierEntity extends base_external_id_entity_1.BaseExternalIdEntity {
     business;
@@ -6438,7 +6458,7 @@ __decorate([
     __metadata("design:type", Object)
 ], SupplierEntity.prototype, "bankAccount", void 0);
 __decorate([
-    (0, typeorm_1.OneToOne)(() => partners_entity_1.PartnersEntity, (p) => p.supplier),
+    (0, typeorm_1.OneToOne)(() => partner_entity_1.PartnersEntity, (p) => p.supplier),
     __metadata("design:type", Object)
 ], SupplierEntity.prototype, "partner", void 0);
 __decorate([
@@ -6484,7 +6504,7 @@ __exportStar(__webpack_require__(/*! ./entities/bank-account.entity */ "./libs/s
 __exportStar(__webpack_require__(/*! ./entities/business.entity */ "./libs/suppliers-data/src/entities/business.entity.ts"), exports);
 __exportStar(__webpack_require__(/*! ./entities/business-seniority.entity */ "./libs/suppliers-data/src/entities/business-seniority.entity.ts"), exports);
 __exportStar(__webpack_require__(/*! ./entities/legal-representative.entity */ "./libs/suppliers-data/src/entities/legal-representative.entity.ts"), exports);
-__exportStar(__webpack_require__(/*! ./entities/partners.entity */ "./libs/suppliers-data/src/entities/partners.entity.ts"), exports);
+__exportStar(__webpack_require__(/*! ./entities/partner.entity */ "./libs/suppliers-data/src/entities/partner.entity.ts"), exports);
 __exportStar(__webpack_require__(/*! ./entities/partner-onboarding-saga.entity */ "./libs/suppliers-data/src/entities/partner-onboarding-saga.entity.ts"), exports);
 __exportStar(__webpack_require__(/*! ./entities/order.entity */ "./libs/suppliers-data/src/entities/order.entity.ts"), exports);
 __exportStar(__webpack_require__(/*! ./entities/sales-representative.entity */ "./libs/suppliers-data/src/entities/sales-representative.entity.ts"), exports);
@@ -6510,7 +6530,7 @@ const bank_account_entity_1 = __webpack_require__(/*! ./entities/bank-account.en
 const business_entity_1 = __webpack_require__(/*! ./entities/business.entity */ "./libs/suppliers-data/src/entities/business.entity.ts");
 const business_seniority_entity_1 = __webpack_require__(/*! ./entities/business-seniority.entity */ "./libs/suppliers-data/src/entities/business-seniority.entity.ts");
 const legal_representative_entity_1 = __webpack_require__(/*! ./entities/legal-representative.entity */ "./libs/suppliers-data/src/entities/legal-representative.entity.ts");
-const partners_entity_1 = __webpack_require__(/*! ./entities/partners.entity */ "./libs/suppliers-data/src/entities/partners.entity.ts");
+const partner_entity_1 = __webpack_require__(/*! ./entities/partner.entity */ "./libs/suppliers-data/src/entities/partner.entity.ts");
 const order_entity_1 = __webpack_require__(/*! ./entities/order.entity */ "./libs/suppliers-data/src/entities/order.entity.ts");
 const sales_representative_entity_1 = __webpack_require__(/*! ./entities/sales-representative.entity */ "./libs/suppliers-data/src/entities/sales-representative.entity.ts");
 const shareholder_entity_1 = __webpack_require__(/*! ./entities/shareholder.entity */ "./libs/suppliers-data/src/entities/shareholder.entity.ts");
@@ -6521,7 +6541,7 @@ exports.SUPPLIERS_DATA_ENTITIES = [
     business_entity_1.BusinessEntity,
     business_seniority_entity_1.BusinessSeniorityEntity,
     legal_representative_entity_1.LegalRepresentativeEntity,
-    partners_entity_1.PartnersEntity,
+    partner_entity_1.PartnersEntity,
     partner_onboarding_saga_entity_1.PartnerOnboardingSagaEntity,
     order_entity_1.PurchaseOrderEntity,
     sales_representative_entity_1.SalesRepresentativeEntity,

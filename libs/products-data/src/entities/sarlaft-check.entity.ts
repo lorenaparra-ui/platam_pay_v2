@@ -5,7 +5,7 @@ import {
   ManyToOne,
   RelationId,
 } from 'typeorm';
-import { SarlaftCheckStatus } from '@platam/shared';
+import { SarlaftCheckStatuses } from '@platam/shared';
 import { PersonEntity } from '@app/transversal-data';
 import { BusinessEntity } from '@app/suppliers-data';
 import { BaseExternalIdEntity } from './base-external-id.entity';
@@ -52,11 +52,11 @@ export class SarlaftCheckEntity extends BaseExternalIdEntity {
   @Column({
     name: 'status',
     type: 'enum',
-    enum: SarlaftCheckStatus,
+    enum: SarlaftCheckStatuses,
     enumName: 'sarlaft_check_status',
-    default: SarlaftCheckStatus.PENDING,
+    default: SarlaftCheckStatuses.CLEAN,
   })
-  status: SarlaftCheckStatus;
+  status: SarlaftCheckStatuses;
 
   @Column({ name: 'consulted_at', type: 'timestamptz' })
   consultedAt: Date;

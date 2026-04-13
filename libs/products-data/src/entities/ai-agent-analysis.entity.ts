@@ -38,4 +38,16 @@ export class AiAgentAnalysisEntity extends BaseExternalIdEntity {
 
   @Column({ name: 'analyzed_at', type: 'timestamptz' })
   analyzedAt: Date;
+
+  @Column({ name: 'html_url_agent_analysis', type: 'text', nullable: true })
+  htmlUrlAgentAnalysis: string | null;
+
+  @Column({
+    name: 'agent_recommended_loc',
+    type: 'decimal',
+    precision: 18,
+    scale: 4,
+    nullable: true,
+  })
+  agentRecommendedLoc: string | null;
 }

@@ -8,7 +8,7 @@ import {
 } from 'typeorm';
 import { SalesRepresentativeRecordState } from '@platam/shared';
 import { BaseExternalIdEntity } from './base-external-id.entity';
-import { PartnersEntity } from './partners.entity';
+import { PartnersEntity } from './partner.entity';
 import { UserEntity } from '@app/transversal-data';
 
 @Entity({ name: 'sales_representatives', schema: 'suppliers_schema' })

@@ -2,7 +2,7 @@ import { BankAccountEntity } from './entities/bank-account.entity';
 import { BusinessEntity } from './entities/business.entity';
 import { BusinessSeniorityEntity } from './entities/business-seniority.entity';
 import { LegalRepresentativeEntity } from './entities/legal-representative.entity';
-import { PartnersEntity } from './entities/partners.entity';
+import { PartnersEntity } from './entities/partner.entity';
 import { PurchaseOrderEntity } from './entities/order.entity';
 import { SalesRepresentativeEntity } from './entities/sales-representative.entity';
 import { ShareholderEntity } from './entities/shareholder.entity';
