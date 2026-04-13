@@ -27,6 +27,40 @@ export class TypeormCreditFacilityRepository implements CreditFacilityRepository
     private readonly repo: Repository<CreditFacilityEntity>,
   ) {}
 
+  /**
+   * `contract_id` en dominio/API: UUID (`contracts.external_id`) o, excepcionalmente, id numérico interno.
+   */
+  private async resolve_contract_internal_id(
+    contract_ref: string | null,
+  ): Promise<number | null> {
+    if (contract_ref === null || contract_ref === undefined) {
+      return null;
+    }
+    const trimmed = String(contract_ref).trim();
+    if (trimmed.length === 0) {
+      return null;
+    }
+    if (/^\d+$/.test(trimmed)) {
+      const id = Number(trimmed);
+      const ok = await this.repo.query<{ id: number }[]>(
+        `SELECT id FROM products_schema.contracts WHERE id = $1::bigint LIMIT 1`,
+        [id],
+      );
+      if (ok.length === 0) {
+        throw new Error(`Contrato no encontrado: id=${trimmed}`);
+      }
+      return id;
+    }
+    const rows = await this.repo.query<{ id: string }[]>(
+      `SELECT id FROM products_schema.contracts WHERE external_id = $1::uuid LIMIT 1`,
+      [trimmed],
+    );
+    if (rows.length === 0) {
+      throw new Error(`Contrato no encontrado: external_id=${trimmed}`);
+    }
+    return Number(rows[0].id);
+  }
+
   async find_by_external_id(external_id: string): Promise<CreditFacility | null> {
     const row = await this.repo.findOne({
       where: { externalId: external_id },
@@ -44,6 +78,9 @@ export class TypeormCreditFacilityRepository implements CreditFacilityRepository
   }
 
   async create(props: CreateCreditFacilityProps): Promise<CreditFacility> {
+    const contract_internal_id = await this.resolve_contract_internal_id(
+      props.contract_id,
+    );
     const rows = await this.repo.query(
       `INSERT INTO products_schema.credit_facilities (
         external_id, contract_id, state, total_limit, business_id
@@ -53,7 +90,7 @@ export class TypeormCreditFacilityRepository implements CreditFacilityRepository
       RETURNING id, external_id, created_at, updated_at, contract_id, state, total_limit, business_id`,
       [
         props.external_id ?? null,
-        props.contract_id,
+        contract_internal_id,
         props.state,
         props.total_limit,
         props.business_id,
@@ -85,7 +122,8 @@ export class TypeormCreditFacilityRepository implements CreditFacilityRepository
     };
 
     if (patch.contract_id !== undefined) {
-      add('contract_id', patch.contract_id);
+      const cid = await this.resolve_contract_internal_id(patch.contract_id);
+      add('contract_id', cid);
     }
     if (patch.state !== undefined) {
       add('state', patch.state);

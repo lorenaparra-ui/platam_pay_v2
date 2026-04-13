@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { type QueryDeepPartialEntity, Repository } from 'typeorm';
 import { PartnersEntity } from '@app/suppliers-data';
 import { PartnerRepository } from '@modules/partners/domain/repositories/partner.repository';
 import {
@@ -115,7 +115,10 @@ export class TypeormPartnerRepository implements PartnerRepository {
     await this.repo
       .createQueryBuilder()
       .update(PartnersEntity)
-      .set({ ...fields, updatedAt: () => 'now()' })
+      .set({
+        ...fields,
+        updatedAt: () => 'now()',
+      } as QueryDeepPartialEntity<PartnersEntity>)
       .where('"external_id" = :external_id', { external_id })
       .execute();
 

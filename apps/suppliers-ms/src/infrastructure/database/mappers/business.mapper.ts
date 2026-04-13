@@ -7,7 +7,7 @@ export class BusinessMapper {
       row.id,
       row.externalId,
       row.personId,
-      row.cityId ?? null,
+      row.cityId,
       row.entityType,
       row.businessName ?? null,
       row.businessAddress ?? null,

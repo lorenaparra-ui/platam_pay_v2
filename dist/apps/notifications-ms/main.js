@@ -1,15 +1,155 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	"use strict";
-/******/ 	var __webpack_modules__ = ([
-/* 0 */,
-/* 1 */
-/***/ ((module) => {
+/******/ 	var __webpack_modules__ = ({
 
-module.exports = require("reflect-metadata");
+/***/ "./apps/notifications-ms/src/app.controller.ts"
+/*!*****************************************************!*\
+  !*** ./apps/notifications-ms/src/app.controller.ts ***!
+  \*****************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
 
-/***/ }),
-/* 2 */
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var _a;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.appController = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const swagger_1 = __webpack_require__(/*! @nestjs/swagger */ "@nestjs/swagger");
+const health_response_dto_1 = __webpack_require__(/*! @common/dto/health-response.dto */ "./apps/notifications-ms/src/common/dto/health-response.dto.ts");
+let appController = class appController {
+    health() {
+        return { status: 'ok', service: 'notifications-ms' };
+    }
+};
+exports.appController = appController;
+__decorate([
+    (0, common_1.Get)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Estado del servicio' }),
+    (0, swagger_1.ApiOkResponse)({ description: 'Servicio operativo', type: health_response_dto_1.HealthResponseDto }),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", typeof (_a = typeof health_response_dto_1.HealthResponseDto !== "undefined" && health_response_dto_1.HealthResponseDto) === "function" ? _a : Object)
+], appController.prototype, "health", null);
+exports.appController = appController = __decorate([
+    (0, swagger_1.ApiTags)('health'),
+    (0, common_1.Controller)('health')
+], appController);
+
+
+/***/ },
+
+/***/ "./apps/notifications-ms/src/app.module.ts"
+/*!*************************************************!*\
+  !*** ./apps/notifications-ms/src/app.module.ts ***!
+  \*************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.AppModule = void 0;
+const dotenv_config_1 = __webpack_require__(/*! ./config/dotenv.config */ "./apps/notifications-ms/src/config/dotenv.config.ts");
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const config_1 = __webpack_require__(/*! @nestjs/config */ "@nestjs/config");
+const infrastructure_module_1 = __webpack_require__(/*! @infrastructure/infrastructure.module */ "./apps/notifications-ms/src/infrastructure/infrastructure.module.ts");
+const app_config_1 = __importDefault(__webpack_require__(/*! ./config/app.config */ "./apps/notifications-ms/src/config/app.config.ts"));
+const notifications_providers_config_1 = __importDefault(__webpack_require__(/*! ./config/notifications-providers.config */ "./apps/notifications-ms/src/config/notifications-providers.config.ts"));
+const sqs_config_1 = __webpack_require__(/*! ./config/sqs.config */ "./apps/notifications-ms/src/config/sqs.config.ts");
+const app_controller_1 = __webpack_require__(/*! ./app.controller */ "./apps/notifications-ms/src/app.controller.ts");
+let AppModule = class AppModule {
+};
+exports.AppModule = AppModule;
+exports.AppModule = AppModule = __decorate([
+    (0, common_1.Module)({
+        imports: [
+            config_1.ConfigModule.forRoot({
+                isGlobal: true,
+                load: [app_config_1.default, sqs_config_1.sqs_config, notifications_providers_config_1.default],
+                envFilePath: dotenv_config_1.MONOREPO_ENV_PATH,
+            }),
+            infrastructure_module_1.InfrastructureModule,
+        ],
+        controllers: [app_controller_1.appController],
+    })
+], AppModule);
+
+
+/***/ },
+
+/***/ "./apps/notifications-ms/src/common/dto/health-response.dto.ts"
+/*!*********************************************************************!*\
+  !*** ./apps/notifications-ms/src/common/dto/health-response.dto.ts ***!
+  \*********************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.HealthResponseDto = void 0;
+const swagger_1 = __webpack_require__(/*! @nestjs/swagger */ "@nestjs/swagger");
+class HealthResponseDto {
+    status;
+    service;
+}
+exports.HealthResponseDto = HealthResponseDto;
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: 'ok' }),
+    __metadata("design:type", String)
+], HealthResponseDto.prototype, "status", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: 'notifications-ms' }),
+    __metadata("design:type", String)
+], HealthResponseDto.prototype, "service", void 0);
+
+
+/***/ },
+
+/***/ "./apps/notifications-ms/src/config/app.config.ts"
+/*!********************************************************!*\
+  !*** ./apps/notifications-ms/src/config/app.config.ts ***!
+  \********************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const config_1 = __webpack_require__(/*! @nestjs/config */ "@nestjs/config");
+exports["default"] = (0, config_1.registerAs)('config', () => ({
+    environment: process.env.APP_ENV || 'development',
+    port: process.env.NOTIFICATIONS_MS_PORT || 8085,
+}));
+
+
+/***/ },
+
+/***/ "./apps/notifications-ms/src/config/dotenv.config.ts"
+/*!***********************************************************!*\
+  !*** ./apps/notifications-ms/src/config/dotenv.config.ts ***!
+  \***********************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
 
 
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
@@ -48,9 +188,9 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.MONOREPO_ENV_PATH = void 0;
 exports.resolveMonorepoRoot = resolveMonorepoRoot;
-const path = __importStar(__webpack_require__(3));
-const fs = __importStar(__webpack_require__(4));
-const dotenv = __importStar(__webpack_require__(5));
+const path = __importStar(__webpack_require__(/*! path */ "path"));
+const fs = __importStar(__webpack_require__(/*! fs */ "fs"));
+const dotenv = __importStar(__webpack_require__(/*! dotenv */ "dotenv"));
 function findRootFrom(startDir) {
     let dir = path.resolve(startDir);
     for (let i = 0; i < 12; i++) {
@@ -76,51 +216,34 @@ if (fs.existsSync(exports.MONOREPO_ENV_PATH)) {
 }
 
 
-/***/ }),
-/* 3 */
-/***/ ((module) => {
+/***/ },
 
-module.exports = require("path");
+/***/ "./apps/notifications-ms/src/config/notifications-providers.config.ts"
+/*!****************************************************************************!*\
+  !*** ./apps/notifications-ms/src/config/notifications-providers.config.ts ***!
+  \****************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
 
-/***/ }),
-/* 4 */
-/***/ ((module) => {
 
-module.exports = require("fs");
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const config_1 = __webpack_require__(/*! @nestjs/config */ "@nestjs/config");
+exports["default"] = (0, config_1.registerAs)('notifications', () => ({
+    resend_api_key: (process.env.RESEND_API_KEY ?? '').trim(),
+    email_from_default: (process.env.NOTIFICATIONS_EMAIL_FROM ?? '').trim(),
+    twilio_account_sid: (process.env.TWILIO_ACCOUNT_SID ?? '').trim(),
+    twilio_auth_token: (process.env.TWILIO_AUTH_TOKEN ?? '').trim(),
+    twilio_from_sms: (process.env.TWILIO_FROM_SMS ?? '').trim(),
+    twilio_from_whatsapp: (process.env.TWILIO_FROM_WHATSAPP ?? '').trim(),
+}));
 
-/***/ }),
-/* 5 */
-/***/ ((module) => {
 
-module.exports = require("dotenv");
+/***/ },
 
-/***/ }),
-/* 6 */
-/***/ ((module) => {
-
-module.exports = require("@nestjs/common");
-
-/***/ }),
-/* 7 */
-/***/ ((module) => {
-
-module.exports = require("@nestjs/core");
-
-/***/ }),
-/* 8 */
-/***/ ((module) => {
-
-module.exports = require("@nestjs/config");
-
-/***/ }),
-/* 9 */
-/***/ ((module) => {
-
-module.exports = require("@nestjs/swagger");
-
-/***/ }),
-/* 10 */
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+/***/ "./apps/notifications-ms/src/config/sqs.config.ts"
+/*!********************************************************!*\
+  !*** ./apps/notifications-ms/src/config/sqs.config.ts ***!
+  \********************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
 
 
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
@@ -129,40 +252,129 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.AppModule = void 0;
-const dotenv_config_1 = __webpack_require__(2);
-const common_1 = __webpack_require__(6);
-const config_1 = __webpack_require__(8);
-const infrastructure_module_1 = __webpack_require__(11);
-const app_config_1 = __importDefault(__webpack_require__(50));
-const notifications_providers_config_1 = __importDefault(__webpack_require__(51));
-const sqs_config_1 = __webpack_require__(52);
-const app_controller_1 = __webpack_require__(53);
-let AppModule = class AppModule {
-};
-exports.AppModule = AppModule;
-exports.AppModule = AppModule = __decorate([
-    (0, common_1.Module)({
-        imports: [
-            config_1.ConfigModule.forRoot({
-                isGlobal: true,
-                load: [app_config_1.default, sqs_config_1.sqs_config, notifications_providers_config_1.default],
-                envFilePath: dotenv_config_1.MONOREPO_ENV_PATH,
-            }),
-            infrastructure_module_1.InfrastructureModule,
-        ],
-        controllers: [app_controller_1.appController],
-    })
-], AppModule);
+exports.sqs_config = void 0;
+exports.get_notifications_sqs_config_from_env = get_notifications_sqs_config_from_env;
+const config_1 = __webpack_require__(/*! @nestjs/config */ "@nestjs/config");
+const class_transformer_1 = __webpack_require__(/*! class-transformer */ "class-transformer");
+const class_validator_1 = __webpack_require__(/*! class-validator */ "class-validator");
+const NOTIFICATIONS_SQS_OUTBOUND_QUEUE_URL_DEFAULT = 'http://127.0.0.1:4566/000000000000/notifications-ms-outbound-placeholder';
+class NotificationsSqsEnv {
+    aws_region = 'us-east-1';
+    aws_sqs_endpoint;
+    notifications_sqs_outbound_queue_url;
+    notifications_sqs_inbound_queue_url;
+    notifications_sqs_wait_time_seconds = 20;
+    notifications_sqs_max_number_of_messages = 10;
+    notifications_sqs_visibility_timeout_seconds = 30;
+    notifications_sqs_delete_on_validation_error = false;
+}
+__decorate([
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", Object)
+], NotificationsSqsEnv.prototype, "aws_region", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_transformer_1.Transform)(({ value }) => (value === '' || value === undefined ? undefined : value)),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], NotificationsSqsEnv.prototype, "aws_sqs_endpoint", void 0);
+__decorate([
+    (0, class_validator_1.IsUrl)({ require_tld: false }),
+    __metadata("design:type", String)
+], NotificationsSqsEnv.prototype, "notifications_sqs_outbound_queue_url", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_transformer_1.Transform)(({ value }) => (value === '' || value === undefined ? undefined : value)),
+    (0, class_validator_1.IsUrl)({ require_tld: false }),
+    __metadata("design:type", String)
+], NotificationsSqsEnv.prototype, "notifications_sqs_inbound_queue_url", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_transformer_1.Type)(() => Number),
+    (0, class_validator_1.IsInt)(),
+    (0, class_validator_1.Min)(0),
+    (0, class_validator_1.Max)(20),
+    __metadata("design:type", Object)
+], NotificationsSqsEnv.prototype, "notifications_sqs_wait_time_seconds", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_transformer_1.Type)(() => Number),
+    (0, class_validator_1.IsInt)(),
+    (0, class_validator_1.Min)(1),
+    (0, class_validator_1.Max)(10),
+    __metadata("design:type", Object)
+], NotificationsSqsEnv.prototype, "notifications_sqs_max_number_of_messages", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_transformer_1.Type)(() => Number),
+    (0, class_validator_1.IsInt)(),
+    (0, class_validator_1.Min)(0),
+    (0, class_validator_1.Max)(43200),
+    __metadata("design:type", Object)
+], NotificationsSqsEnv.prototype, "notifications_sqs_visibility_timeout_seconds", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_transformer_1.Type)(() => Boolean),
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Object)
+], NotificationsSqsEnv.prototype, "notifications_sqs_delete_on_validation_error", void 0);
+function validate_notifications_sqs_env(config) {
+    const validated = (0, class_transformer_1.plainToInstance)(NotificationsSqsEnv, config, {
+        enableImplicitConversion: true,
+    });
+    const errors = (0, class_validator_1.validateSync)(validated, { skipMissingProperties: false });
+    if (errors.length > 0) {
+        const message = errors.map((e) => Object.values(e.constraints ?? {}).join(', ')).join('; ');
+        throw new Error(`Configuración SQS inválida (notifications-ms): ${message}`);
+    }
+    return validated;
+}
+function get_notifications_sqs_config_from_env() {
+    const outbound_raw = process.env.NOTIFICATIONS_SQS_OUTBOUND_QUEUE_URL?.trim();
+    const env = validate_notifications_sqs_env({
+        aws_region: process.env.AWS_REGION ?? 'us-east-1',
+        aws_sqs_endpoint: process.env.AWS_SQS_ENDPOINT,
+        notifications_sqs_outbound_queue_url: outbound_raw && outbound_raw.length > 0
+            ? outbound_raw
+            : NOTIFICATIONS_SQS_OUTBOUND_QUEUE_URL_DEFAULT,
+        notifications_sqs_inbound_queue_url: process.env.NOTIFICATIONS_SQS_INBOUND_QUEUE_URL,
+        notifications_sqs_wait_time_seconds: process.env.NOTIFICATIONS_SQS_WAIT_TIME_SECONDS ?? 20,
+        notifications_sqs_max_number_of_messages: process.env.NOTIFICATIONS_SQS_MAX_NUMBER_OF_MESSAGES ?? 10,
+        notifications_sqs_visibility_timeout_seconds: process.env.NOTIFICATIONS_SQS_VISIBILITY_TIMEOUT_SECONDS ?? 30,
+        notifications_sqs_delete_on_validation_error: process.env.NOTIFICATIONS_SQS_DELETE_ON_VALIDATION_ERROR === 'true',
+    });
+    const trim_url = (v) => {
+        if (v === undefined) {
+            return undefined;
+        }
+        const t = v.trim();
+        return t.length > 0 ? t : undefined;
+    };
+    return {
+        region: env.aws_region,
+        endpoint: env.aws_sqs_endpoint,
+        outbound_queue_url: env.notifications_sqs_outbound_queue_url,
+        inbound_queue_url: trim_url(env.notifications_sqs_inbound_queue_url),
+        wait_time_seconds: env.notifications_sqs_wait_time_seconds,
+        max_number_of_messages: env.notifications_sqs_max_number_of_messages,
+        visibility_timeout_seconds: env.notifications_sqs_visibility_timeout_seconds,
+        delete_on_validation_error: env.notifications_sqs_delete_on_validation_error,
+    };
+}
+exports.sqs_config = (0, config_1.registerAs)('sqs', () => get_notifications_sqs_config_from_env());
 
 
-/***/ }),
-/* 11 */
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+/***/ },
+
+/***/ "./apps/notifications-ms/src/infrastructure/infrastructure.module.ts"
+/*!***************************************************************************!*\
+  !*** ./apps/notifications-ms/src/infrastructure/infrastructure.module.ts ***!
+  \***************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
 
 
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
@@ -173,8 +385,8 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.InfrastructureModule = void 0;
-const common_1 = __webpack_require__(6);
-const sqs_module_1 = __webpack_require__(12);
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const sqs_module_1 = __webpack_require__(/*! ./messaging/sqs/sqs.module */ "./apps/notifications-ms/src/infrastructure/messaging/sqs/sqs.module.ts");
 let InfrastructureModule = class InfrastructureModule {
 };
 exports.InfrastructureModule = InfrastructureModule;
@@ -187,9 +399,94 @@ exports.InfrastructureModule = InfrastructureModule = __decorate([
 ], InfrastructureModule);
 
 
-/***/ }),
-/* 12 */
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+/***/ },
+
+/***/ "./apps/notifications-ms/src/infrastructure/messaging/sqs/consumers/notification-inbound-sqs.consumer.ts"
+/*!***************************************************************************************************************!*\
+  !*** ./apps/notifications-ms/src/infrastructure/messaging/sqs/consumers/notification-inbound-sqs.consumer.ts ***!
+  \***************************************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+var NotificationInboundSqsConsumer_1;
+var _a, _b;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.NotificationInboundSqsConsumer = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const config_1 = __webpack_require__(/*! @nestjs/config */ "@nestjs/config");
+const ingest_notification_sqs_message_use_case_1 = __webpack_require__(/*! @messaging/application/use-cases/ingest-notification-sqs-message.use-case */ "./apps/notifications-ms/src/modules/messaging/application/use-cases/ingest-notification-sqs-message.use-case.ts");
+const shared_1 = __webpack_require__(/*! @platam/shared */ "./libs/shared/src/index.ts");
+let NotificationInboundSqsConsumer = NotificationInboundSqsConsumer_1 = class NotificationInboundSqsConsumer extends shared_1.BaseConsumer {
+    queues_config;
+    config_service;
+    ingest;
+    nest_logger = new common_1.Logger(NotificationInboundSqsConsumer_1.name);
+    constructor(sqs_client, queues_config, config_service, ingest) {
+        super(sqs_client, {
+            log: (m) => this.nest_logger.log(m),
+            warn: (m) => this.nest_logger.warn(m),
+            error: (m) => this.nest_logger.error(m),
+        });
+        this.queues_config = queues_config;
+        this.config_service = config_service;
+        this.ingest = ingest;
+    }
+    onModuleInit() {
+        this.start();
+    }
+    onModuleDestroy() {
+        this.stop();
+    }
+    resolve_queue_url() {
+        return this.queues_config.notifications_inbound_queue_url;
+    }
+    get_poll_settings() {
+        return {
+            wait_time_seconds: this.config_service.getOrThrow('sqs.wait_time_seconds'),
+            max_number_of_messages: this.config_service.getOrThrow('sqs.max_number_of_messages'),
+            visibility_timeout_seconds: this.config_service.getOrThrow('sqs.visibility_timeout_seconds'),
+        };
+    }
+    inactive_reason_message() {
+        return 'Cola notifications SQS no configurada (NOTIFICATIONS_SQS_INBOUND_QUEUE_URL); worker inactivo.';
+    }
+    async handle(message) {
+        const delete_on_validation_error = this.config_service.get('sqs.delete_on_validation_error') ?? false;
+        this.nest_logger.log(`[Notify][step=consumer_handle][messageId=${message.message_id ?? 'n/a'}]`);
+        return this.ingest.execute({
+            body: message.body,
+            delete_on_validation_error,
+        });
+    }
+};
+exports.NotificationInboundSqsConsumer = NotificationInboundSqsConsumer;
+exports.NotificationInboundSqsConsumer = NotificationInboundSqsConsumer = NotificationInboundSqsConsumer_1 = __decorate([
+    (0, common_1.Injectable)(),
+    __param(0, (0, common_1.Inject)(shared_1.SQS_CLIENT)),
+    __param(1, (0, common_1.Inject)(shared_1.QUEUES_CONFIG)),
+    __metadata("design:paramtypes", [Object, Object, typeof (_a = typeof config_1.ConfigService !== "undefined" && config_1.ConfigService) === "function" ? _a : Object, typeof (_b = typeof ingest_notification_sqs_message_use_case_1.IngestNotificationSqsMessageUseCase !== "undefined" && ingest_notification_sqs_message_use_case_1.IngestNotificationSqsMessageUseCase) === "function" ? _b : Object])
+], NotificationInboundSqsConsumer);
+
+
+/***/ },
+
+/***/ "./apps/notifications-ms/src/infrastructure/messaging/sqs/sqs.module.ts"
+/*!******************************************************************************!*\
+  !*** ./apps/notifications-ms/src/infrastructure/messaging/sqs/sqs.module.ts ***!
+  \******************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
 
 
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
@@ -200,11 +497,11 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SqsModule = void 0;
-const common_1 = __webpack_require__(6);
-const config_1 = __webpack_require__(8);
-const shared_1 = __webpack_require__(13);
-const messaging_application_module_1 = __webpack_require__(36);
-const notification_inbound_sqs_consumer_1 = __webpack_require__(49);
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const config_1 = __webpack_require__(/*! @nestjs/config */ "@nestjs/config");
+const shared_1 = __webpack_require__(/*! @platam/shared */ "./libs/shared/src/index.ts");
+const messaging_application_module_1 = __webpack_require__(/*! @messaging/messaging-application.module */ "./apps/notifications-ms/src/modules/messaging/messaging-application.module.ts");
+const notification_inbound_sqs_consumer_1 = __webpack_require__(/*! ./consumers/notification-inbound-sqs.consumer */ "./apps/notifications-ms/src/infrastructure/messaging/sqs/consumers/notification-inbound-sqs.consumer.ts");
 let SqsModule = class SqsModule {
 };
 exports.SqsModule = SqsModule;
@@ -236,555 +533,13 @@ exports.SqsModule = SqsModule = __decorate([
 ], SqsModule);
 
 
-/***/ }),
-/* 13 */
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __exportStar = (this && this.__exportStar) || function(m, exports) {
-    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SQS_CLIENT = exports.QUEUES_CONFIG = void 0;
-var sqs_tokens_1 = __webpack_require__(14);
-Object.defineProperty(exports, "QUEUES_CONFIG", ({ enumerable: true, get: function () { return sqs_tokens_1.QUEUES_CONFIG; } }));
-Object.defineProperty(exports, "SQS_CLIENT", ({ enumerable: true, get: function () { return sqs_tokens_1.SQS_CLIENT; } }));
-__exportStar(__webpack_require__(15), exports);
-__exportStar(__webpack_require__(17), exports);
-__exportStar(__webpack_require__(18), exports);
-__exportStar(__webpack_require__(19), exports);
-__exportStar(__webpack_require__(20), exports);
-__exportStar(__webpack_require__(21), exports);
-__exportStar(__webpack_require__(22), exports);
-__exportStar(__webpack_require__(23), exports);
-__exportStar(__webpack_require__(24), exports);
-__exportStar(__webpack_require__(25), exports);
-__exportStar(__webpack_require__(26), exports);
-__exportStar(__webpack_require__(27), exports);
-__exportStar(__webpack_require__(28), exports);
-__exportStar(__webpack_require__(29), exports);
-__exportStar(__webpack_require__(31), exports);
-__exportStar(__webpack_require__(32), exports);
-__exportStar(__webpack_require__(35), exports);
-
-
-/***/ }),
-/* 14 */
-/***/ ((__unused_webpack_module, exports) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.QUEUES_CONFIG = exports.SQS_CLIENT = void 0;
-exports.SQS_CLIENT = Symbol('SQS_CLIENT');
-exports.QUEUES_CONFIG = Symbol('QUEUES_CONFIG');
-
-
-/***/ }),
-/* 15 */
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.create_sqs_client = create_sqs_client;
-const client_sqs_1 = __webpack_require__(16);
-function create_sqs_client(options) {
-    const config = {
-        region: options.region,
-        ...(options.endpoint ? { endpoint: options.endpoint } : {}),
-        ...(options.credentials ? { credentials: options.credentials } : {}),
-    };
-    return new client_sqs_1.SQSClient(config);
-}
-
-
-/***/ }),
-/* 16 */
-/***/ ((module) => {
-
-module.exports = require("@aws-sdk/client-sqs");
-
-/***/ }),
-/* 17 */
-/***/ ((__unused_webpack_module, exports) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-
-
-/***/ }),
-/* 18 */
-/***/ ((__unused_webpack_module, exports) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SqsPublishFailedError = void 0;
-class SqsPublishFailedError extends Error {
-    cause;
-    constructor(message, cause) {
-        super(message);
-        this.name = 'SqsPublishFailedError';
-        this.cause = cause;
-    }
-}
-exports.SqsPublishFailedError = SqsPublishFailedError;
-
-
-/***/ }),
-/* 19 */
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.BaseConsumer = exports.BaseSqsConsumer = void 0;
-const client_sqs_1 = __webpack_require__(16);
-const sleep_ms = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-const INITIAL_BACKOFF_MS = 1000;
-const MAX_BACKOFF_MS = 30_000;
-class BaseSqsConsumer {
-    sqs_client;
-    logger;
-    stopped = false;
-    poll_promise;
-    constructor(sqs_client, logger) {
-        this.sqs_client = sqs_client;
-        this.logger = logger;
-    }
-    start() {
-        if (this.poll_promise) {
-            return;
-        }
-        const queue_url = this.resolve_queue_url();
-        if (!queue_url) {
-            this.logger.warn(this.inactive_reason_message());
-            return;
-        }
-        this.logger.log(this.active_log_message(queue_url));
-        this.poll_promise = this.poll_loop(queue_url);
-    }
-    stop() {
-        this.stopped = true;
-    }
-    inactive_reason_message() {
-        return 'Cola SQS de entrada no configurada; worker inactivo.';
-    }
-    active_log_message(queue_url) {
-        return `Worker SQS escuchando: ${queue_url}`;
-    }
-    async poll_loop(queue_url) {
-        let backoff_ms = INITIAL_BACKOFF_MS;
-        while (!this.stopped) {
-            try {
-                const { wait_time_seconds, max_number_of_messages, visibility_timeout_seconds } = this.get_poll_settings();
-                const response = await this.sqs_client.send(new client_sqs_1.ReceiveMessageCommand({
-                    QueueUrl: queue_url,
-                    MaxNumberOfMessages: max_number_of_messages,
-                    WaitTimeSeconds: wait_time_seconds,
-                    VisibilityTimeout: visibility_timeout_seconds,
-                    MessageAttributeNames: ['All'],
-                    AttributeNames: ['All'],
-                }));
-                backoff_ms = INITIAL_BACKOFF_MS;
-                const messages = response.Messages ?? [];
-                for (const raw of messages) {
-                    await this.process_one(queue_url, raw);
-                }
-            }
-            catch (err) {
-                const text = err instanceof Error ? err.message : String(err);
-                this.logger.error(`Error en ciclo ReceiveMessage: ${text}`);
-                await sleep_ms(backoff_ms);
-                backoff_ms = Math.min(backoff_ms * 2, MAX_BACKOFF_MS);
-            }
-        }
-    }
-    async process_one(queue_url, raw) {
-        if (!raw.Body || !raw.ReceiptHandle) {
-            return;
-        }
-        const message = {
-            body: raw.Body,
-            receipt_handle: raw.ReceiptHandle,
-            message_id: raw.MessageId,
-        };
-        let should_delete = false;
-        try {
-            should_delete = await this.handle(message);
-        }
-        catch (err) {
-            const text = err instanceof Error ? err.message : String(err);
-            this.logger.error(`Error no controlado al procesar mensaje: ${text}`);
-            should_delete = false;
-        }
-        if (should_delete) {
-            await this.sqs_client.send(new client_sqs_1.DeleteMessageCommand({
-                QueueUrl: queue_url,
-                ReceiptHandle: message.receipt_handle,
-            }));
-        }
-    }
-}
-exports.BaseSqsConsumer = BaseSqsConsumer;
-exports.BaseConsumer = BaseSqsConsumer;
-
-
-/***/ }),
-/* 20 */
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.BasePublisher = exports.BaseSqsPublisher = void 0;
-const client_sqs_1 = __webpack_require__(16);
-const sqs_publish_failed_error_1 = __webpack_require__(18);
-class BaseSqsPublisher {
-    sqs_client;
-    constructor(sqs_client) {
-        this.sqs_client = sqs_client;
-    }
-    enrich_send_input(input) {
-        return input;
-    }
-    async send_message(input) {
-        const to_send = this.enrich_send_input(input);
-        try {
-            await this.sqs_client.send(new client_sqs_1.SendMessageCommand(to_send));
-        }
-        catch (cause) {
-            const text = cause instanceof Error ? cause.message : String(cause);
-            throw new sqs_publish_failed_error_1.SqsPublishFailedError(`Fallo SendMessage en SQS: ${text}`, cause);
-        }
-    }
-}
-exports.BaseSqsPublisher = BaseSqsPublisher;
-exports.BasePublisher = BaseSqsPublisher;
-
-
-/***/ }),
-/* 21 */
-/***/ ((__unused_webpack_module, exports) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-
-
-/***/ }),
-/* 22 */
-/***/ ((__unused_webpack_module, exports) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.Statuses = void 0;
-var Statuses;
-(function (Statuses) {
-    Statuses["ACTIVE"] = "active";
-    Statuses["INACTIVE"] = "inactive";
-})(Statuses || (exports.Statuses = Statuses = {}));
-
-
-/***/ }),
-/* 23 */
-/***/ ((__unused_webpack_module, exports) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-
-
-/***/ }),
-/* 24 */
-/***/ ((__unused_webpack_module, exports) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.Entity = void 0;
-class Entity {
-    props;
-    constructor(props) {
-        this.props = props;
-    }
-    equals(other) {
-        if (other === undefined) {
-            return false;
-        }
-        return this.id === other.id;
-    }
-}
-exports.Entity = Entity;
-
-
-/***/ }),
-/* 25 */
-/***/ ((__unused_webpack_module, exports) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.DOMAIN_EVENT_BUS = exports.DomainEventBus = void 0;
-class DomainEventBus {
-    handlers = new Map();
-    subscribe(event_name, handler) {
-        if (!this.handlers.has(event_name)) {
-            this.handlers.set(event_name, []);
-        }
-        this.handlers.get(event_name).push(handler);
-    }
-    async publish(event) {
-        const event_name = event.constructor.name;
-        const fns = this.handlers.get(event_name) ?? [];
-        await Promise.allSettled(fns.map((fn) => fn(event)));
-    }
-    async publish_many(events) {
-        await Promise.allSettled(events.map((e) => this.publish(e)));
-    }
-}
-exports.DomainEventBus = DomainEventBus;
-exports.DOMAIN_EVENT_BUS = Symbol('DOMAIN_EVENT_BUS');
-
-
-/***/ }),
-/* 26 */
-/***/ ((__unused_webpack_module, exports) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-
-
-/***/ }),
-/* 27 */
-/***/ ((__unused_webpack_module, exports) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-
-
-/***/ }),
-/* 28 */
-/***/ ((__unused_webpack_module, exports) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.NestStructuredLoggerAdapter = exports.NestLoggerAdapter = void 0;
-class NestLoggerAdapter {
-    nest_logger;
-    constructor(nest_logger) {
-        this.nest_logger = nest_logger;
-    }
-    log(message) {
-        this.nest_logger.log(message);
-    }
-    warn(message) {
-        this.nest_logger.warn(message);
-    }
-    error(message) {
-        this.nest_logger.error(message);
-    }
-}
-exports.NestLoggerAdapter = NestLoggerAdapter;
-class NestStructuredLoggerAdapter {
-    nest_logger;
-    scope;
-    trace_id;
-    constructor(nest_logger, scope, trace_id) {
-        this.nest_logger = nest_logger;
-        this.scope = scope;
-        this.trace_id = trace_id;
-    }
-    prefix() {
-        return this.trace_id
-            ? `[${this.scope}][${this.trace_id}]`
-            : `[${this.scope}]`;
-    }
-    format(message, meta) {
-        const payload = meta && Object.keys(meta).length > 0 ? ` ${JSON.stringify(meta)}` : '';
-        return `${this.prefix()} ${message}${payload}`;
-    }
-    debug(message, meta) {
-        this.nest_logger.debug?.(this.format(message, meta));
-    }
-    info(message, meta) {
-        this.nest_logger.log(this.format(message, meta));
-    }
-    warn(message, meta) {
-        this.nest_logger.warn(this.format(message, meta));
-    }
-    error(message, meta) {
-        this.nest_logger.error(this.format(message, meta));
-    }
-}
-exports.NestStructuredLoggerAdapter = NestStructuredLoggerAdapter;
-
-
-/***/ }),
-/* 29 */
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.new_uuid = new_uuid;
-const crypto_1 = __webpack_require__(30);
-function new_uuid() {
-    return (0, crypto_1.randomUUID)();
-}
-
-
-/***/ }),
-/* 30 */
-/***/ ((module) => {
-
-module.exports = require("crypto");
-
-/***/ }),
-/* 31 */
-/***/ ((__unused_webpack_module, exports) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.to_iso_utc = to_iso_utc;
-exports.is_before = is_before;
-function to_iso_utc(date) {
-    return date.toISOString();
-}
-function is_before(a, b) {
-    return a.getTime() < b.getTime();
-}
-
-
-/***/ }),
-/* 32 */
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.PaginationRequestDto = void 0;
-const class_transformer_1 = __webpack_require__(33);
-const class_validator_1 = __webpack_require__(34);
-class PaginationRequestDto {
-    offset = 0;
-    limit = 20;
-}
-exports.PaginationRequestDto = PaginationRequestDto;
-__decorate([
-    (0, class_validator_1.IsOptional)(),
-    (0, class_transformer_1.Type)(() => Number),
-    (0, class_validator_1.IsInt)(),
-    (0, class_validator_1.Min)(0),
-    __metadata("design:type", Object)
-], PaginationRequestDto.prototype, "offset", void 0);
-__decorate([
-    (0, class_validator_1.IsOptional)(),
-    (0, class_transformer_1.Type)(() => Number),
-    (0, class_validator_1.IsInt)(),
-    (0, class_validator_1.Min)(1),
-    (0, class_validator_1.Max)(500),
-    __metadata("design:type", Object)
-], PaginationRequestDto.prototype, "limit", void 0);
-
-
-/***/ }),
-/* 33 */
-/***/ ((module) => {
-
-module.exports = require("class-transformer");
-
-/***/ }),
-/* 34 */
-/***/ ((module) => {
-
-module.exports = require("class-validator");
-
-/***/ }),
-/* 35 */
-/***/ ((__unused_webpack_module, exports) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.ServiceErrorCode = void 0;
-var ServiceErrorCode;
-(function (ServiceErrorCode) {
-    ServiceErrorCode["VALIDATION_FAILED"] = "VALIDATION_FAILED";
-    ServiceErrorCode["NOT_FOUND"] = "NOT_FOUND";
-    ServiceErrorCode["CONFLICT"] = "CONFLICT";
-    ServiceErrorCode["INTERNAL"] = "INTERNAL";
-})(ServiceErrorCode || (exports.ServiceErrorCode = ServiceErrorCode = {}));
-
-
-/***/ }),
-/* 36 */
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.MessagingApplicationModule = void 0;
-const common_1 = __webpack_require__(6);
-const notifications_application_module_1 = __webpack_require__(37);
-const ingest_notification_sqs_message_use_case_1 = __webpack_require__(47);
-let MessagingApplicationModule = class MessagingApplicationModule {
-};
-exports.MessagingApplicationModule = MessagingApplicationModule;
-exports.MessagingApplicationModule = MessagingApplicationModule = __decorate([
-    (0, common_1.Module)({
-        imports: [notifications_application_module_1.NotificationsApplicationModule],
-        providers: [ingest_notification_sqs_message_use_case_1.IngestNotificationSqsMessageUseCase],
-        exports: [ingest_notification_sqs_message_use_case_1.IngestNotificationSqsMessageUseCase],
-    })
-], MessagingApplicationModule);
-
-
-/***/ }),
-/* 37 */
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.NotificationsApplicationModule = void 0;
-const common_1 = __webpack_require__(6);
-const notifications_infrastructure_module_1 = __webpack_require__(38);
-const dispatch_notification_use_case_1 = __webpack_require__(45);
-let NotificationsApplicationModule = class NotificationsApplicationModule {
-};
-exports.NotificationsApplicationModule = NotificationsApplicationModule;
-exports.NotificationsApplicationModule = NotificationsApplicationModule = __decorate([
-    (0, common_1.Module)({
-        imports: [notifications_infrastructure_module_1.NotificationsInfrastructureModule],
-        providers: [dispatch_notification_use_case_1.DispatchNotificationUseCase],
-        exports: [dispatch_notification_use_case_1.DispatchNotificationUseCase],
-    })
-], NotificationsApplicationModule);
-
-
-/***/ }),
-/* 38 */
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+/***/ },
+
+/***/ "./apps/notifications-ms/src/infrastructure/notifications/notifications-infrastructure.module.ts"
+/*!*******************************************************************************************************!*\
+  !*** ./apps/notifications-ms/src/infrastructure/notifications/notifications-infrastructure.module.ts ***!
+  \*******************************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
 
 
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
@@ -795,12 +550,12 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.NotificationsInfrastructureModule = void 0;
-const common_1 = __webpack_require__(6);
-const config_1 = __webpack_require__(8);
-const email_sender_port_1 = __webpack_require__(39);
-const twilio_messaging_port_1 = __webpack_require__(40);
-const resend_email_adapter_1 = __webpack_require__(41);
-const twilio_messaging_adapter_1 = __webpack_require__(43);
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const config_1 = __webpack_require__(/*! @nestjs/config */ "@nestjs/config");
+const email_sender_port_1 = __webpack_require__(/*! @modules/notifications/domain/ports/email-sender.port */ "./apps/notifications-ms/src/modules/notifications/domain/ports/email-sender.port.ts");
+const twilio_messaging_port_1 = __webpack_require__(/*! @modules/notifications/domain/ports/twilio-messaging.port */ "./apps/notifications-ms/src/modules/notifications/domain/ports/twilio-messaging.port.ts");
+const resend_email_adapter_1 = __webpack_require__(/*! ./resend-email.adapter */ "./apps/notifications-ms/src/infrastructure/notifications/resend-email.adapter.ts");
+const twilio_messaging_adapter_1 = __webpack_require__(/*! ./twilio-messaging.adapter */ "./apps/notifications-ms/src/infrastructure/notifications/twilio-messaging.adapter.ts");
 let NotificationsInfrastructureModule = class NotificationsInfrastructureModule {
 };
 exports.NotificationsInfrastructureModule = NotificationsInfrastructureModule;
@@ -824,29 +579,13 @@ exports.NotificationsInfrastructureModule = NotificationsInfrastructureModule = 
 ], NotificationsInfrastructureModule);
 
 
-/***/ }),
-/* 39 */
-/***/ ((__unused_webpack_module, exports) => {
+/***/ },
 
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.EMAIL_SENDER_PORT = void 0;
-exports.EMAIL_SENDER_PORT = Symbol('EMAIL_SENDER_PORT');
-
-
-/***/ }),
-/* 40 */
-/***/ ((__unused_webpack_module, exports) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.TWILIO_MESSAGING_PORT = void 0;
-exports.TWILIO_MESSAGING_PORT = Symbol('TWILIO_MESSAGING_PORT');
-
-
-/***/ }),
-/* 41 */
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+/***/ "./apps/notifications-ms/src/infrastructure/notifications/resend-email.adapter.ts"
+/*!****************************************************************************************!*\
+  !*** ./apps/notifications-ms/src/infrastructure/notifications/resend-email.adapter.ts ***!
+  \****************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
 
 
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
@@ -862,9 +601,9 @@ var ResendEmailAdapter_1;
 var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ResendEmailAdapter = void 0;
-const common_1 = __webpack_require__(6);
-const config_1 = __webpack_require__(8);
-const resend_1 = __webpack_require__(42);
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const config_1 = __webpack_require__(/*! @nestjs/config */ "@nestjs/config");
+const resend_1 = __webpack_require__(/*! resend */ "resend");
 let ResendEmailAdapter = ResendEmailAdapter_1 = class ResendEmailAdapter {
     config_service;
     logger = new common_1.Logger(ResendEmailAdapter_1.name);
@@ -911,15 +650,13 @@ exports.ResendEmailAdapter = ResendEmailAdapter = ResendEmailAdapter_1 = __decor
 ], ResendEmailAdapter);
 
 
-/***/ }),
-/* 42 */
-/***/ ((module) => {
+/***/ },
 
-module.exports = require("resend");
-
-/***/ }),
-/* 43 */
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+/***/ "./apps/notifications-ms/src/infrastructure/notifications/twilio-messaging.adapter.ts"
+/*!********************************************************************************************!*\
+  !*** ./apps/notifications-ms/src/infrastructure/notifications/twilio-messaging.adapter.ts ***!
+  \********************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
 
 
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
@@ -938,9 +675,9 @@ var TwilioMessagingAdapter_1;
 var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.TwilioMessagingAdapter = void 0;
-const common_1 = __webpack_require__(6);
-const config_1 = __webpack_require__(8);
-const twilio_1 = __importDefault(__webpack_require__(44));
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const config_1 = __webpack_require__(/*! @nestjs/config */ "@nestjs/config");
+const twilio_1 = __importDefault(__webpack_require__(/*! twilio */ "twilio"));
 let TwilioMessagingAdapter = TwilioMessagingAdapter_1 = class TwilioMessagingAdapter {
     config_service;
     logger = new common_1.Logger(TwilioMessagingAdapter_1.name);
@@ -1019,108 +756,13 @@ exports.TwilioMessagingAdapter = TwilioMessagingAdapter = TwilioMessagingAdapter
 ], TwilioMessagingAdapter);
 
 
-/***/ }),
-/* 44 */
-/***/ ((module) => {
+/***/ },
 
-module.exports = require("twilio");
-
-/***/ }),
-/* 45 */
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
-var __param = (this && this.__param) || function (paramIndex, decorator) {
-    return function (target, key) { decorator(target, key, paramIndex); }
-};
-var DispatchNotificationUseCase_1;
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.DispatchNotificationUseCase = void 0;
-const common_1 = __webpack_require__(6);
-const notification_channel_enum_1 = __webpack_require__(46);
-const email_sender_port_1 = __webpack_require__(39);
-const twilio_messaging_port_1 = __webpack_require__(40);
-let DispatchNotificationUseCase = DispatchNotificationUseCase_1 = class DispatchNotificationUseCase {
-    email_sender;
-    twilio;
-    logger = new common_1.Logger(DispatchNotificationUseCase_1.name);
-    constructor(email_sender, twilio) {
-        this.email_sender = email_sender;
-        this.twilio = twilio;
-    }
-    async execute(command) {
-        const { correlation_id, channel } = command;
-        switch (channel) {
-            case notification_channel_enum_1.NotificationChannel.email: {
-                const p = command.payload;
-                await this.email_sender.send({
-                    to: p.to,
-                    subject: p.subject,
-                    html: p.html,
-                    text: p.text,
-                    from_override: p.from_override,
-                });
-                this.logger.log(`[Notify][correlationId=${correlation_id}][channel=email][step=sent][recipients=${p.to.length}]`);
-                return;
-            }
-            case notification_channel_enum_1.NotificationChannel.sms:
-                await this.twilio.send_sms({
-                    to_e164: command.payload.to_e164,
-                    body: command.payload.body,
-                });
-                this.logger.log(`[Notify][correlationId=${correlation_id}][channel=sms][step=sent]`);
-                return;
-            case notification_channel_enum_1.NotificationChannel.whatsapp:
-                await this.twilio.send_whatsapp({
-                    to_e164: command.payload.to_e164,
-                    body: command.payload.body,
-                });
-                this.logger.log(`[Notify][correlationId=${correlation_id}][channel=whatsapp][step=sent]`);
-                return;
-            default: {
-                const _exhaustive = channel;
-                void _exhaustive;
-                throw new Error(`Canal no soportado: ${String(channel)}`);
-            }
-        }
-    }
-};
-exports.DispatchNotificationUseCase = DispatchNotificationUseCase;
-exports.DispatchNotificationUseCase = DispatchNotificationUseCase = DispatchNotificationUseCase_1 = __decorate([
-    (0, common_1.Injectable)(),
-    __param(0, (0, common_1.Inject)(email_sender_port_1.EMAIL_SENDER_PORT)),
-    __param(1, (0, common_1.Inject)(twilio_messaging_port_1.TWILIO_MESSAGING_PORT)),
-    __metadata("design:paramtypes", [Object, Object])
-], DispatchNotificationUseCase);
-
-
-/***/ }),
-/* 46 */
-/***/ ((__unused_webpack_module, exports) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.NotificationChannel = void 0;
-var NotificationChannel;
-(function (NotificationChannel) {
-    NotificationChannel["email"] = "email";
-    NotificationChannel["sms"] = "sms";
-    NotificationChannel["whatsapp"] = "whatsapp";
-})(NotificationChannel || (exports.NotificationChannel = NotificationChannel = {}));
-
-
-/***/ }),
-/* 47 */
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+/***/ "./apps/notifications-ms/src/modules/messaging/application/use-cases/ingest-notification-sqs-message.use-case.ts"
+/*!***********************************************************************************************************************!*\
+  !*** ./apps/notifications-ms/src/modules/messaging/application/use-cases/ingest-notification-sqs-message.use-case.ts ***!
+  \***********************************************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
 
 
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
@@ -1136,12 +778,12 @@ var IngestNotificationSqsMessageUseCase_1;
 var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.IngestNotificationSqsMessageUseCase = void 0;
-const common_1 = __webpack_require__(6);
-const class_transformer_1 = __webpack_require__(33);
-const class_validator_1 = __webpack_require__(34);
-const dispatch_notification_use_case_1 = __webpack_require__(45);
-const notification_channel_enum_1 = __webpack_require__(46);
-const send_notification_payload_dto_1 = __webpack_require__(48);
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const class_transformer_1 = __webpack_require__(/*! class-transformer */ "class-transformer");
+const class_validator_1 = __webpack_require__(/*! class-validator */ "class-validator");
+const dispatch_notification_use_case_1 = __webpack_require__(/*! @modules/notifications/application/use-cases/dispatch-notification.use-case */ "./apps/notifications-ms/src/modules/notifications/application/use-cases/dispatch-notification.use-case.ts");
+const notification_channel_enum_1 = __webpack_require__(/*! @modules/notifications/domain/notification-channel.enum */ "./apps/notifications-ms/src/modules/notifications/domain/notification-channel.enum.ts");
+const send_notification_payload_dto_1 = __webpack_require__(/*! @modules/notifications/application/dto/send-notification-payload.dto */ "./apps/notifications-ms/src/modules/notifications/application/dto/send-notification-payload.dto.ts");
 let IngestNotificationSqsMessageUseCase = IngestNotificationSqsMessageUseCase_1 = class IngestNotificationSqsMessageUseCase {
     dispatch;
     logger = new common_1.Logger(IngestNotificationSqsMessageUseCase_1.name);
@@ -1262,9 +904,45 @@ exports.IngestNotificationSqsMessageUseCase = IngestNotificationSqsMessageUseCas
 ], IngestNotificationSqsMessageUseCase);
 
 
-/***/ }),
-/* 48 */
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+/***/ },
+
+/***/ "./apps/notifications-ms/src/modules/messaging/messaging-application.module.ts"
+/*!*************************************************************************************!*\
+  !*** ./apps/notifications-ms/src/modules/messaging/messaging-application.module.ts ***!
+  \*************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.MessagingApplicationModule = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const notifications_application_module_1 = __webpack_require__(/*! @modules/notifications/notifications-application.module */ "./apps/notifications-ms/src/modules/notifications/notifications-application.module.ts");
+const ingest_notification_sqs_message_use_case_1 = __webpack_require__(/*! ./application/use-cases/ingest-notification-sqs-message.use-case */ "./apps/notifications-ms/src/modules/messaging/application/use-cases/ingest-notification-sqs-message.use-case.ts");
+let MessagingApplicationModule = class MessagingApplicationModule {
+};
+exports.MessagingApplicationModule = MessagingApplicationModule;
+exports.MessagingApplicationModule = MessagingApplicationModule = __decorate([
+    (0, common_1.Module)({
+        imports: [notifications_application_module_1.NotificationsApplicationModule],
+        providers: [ingest_notification_sqs_message_use_case_1.IngestNotificationSqsMessageUseCase],
+        exports: [ingest_notification_sqs_message_use_case_1.IngestNotificationSqsMessageUseCase],
+    })
+], MessagingApplicationModule);
+
+
+/***/ },
+
+/***/ "./apps/notifications-ms/src/modules/notifications/application/dto/send-notification-payload.dto.ts"
+/*!**********************************************************************************************************!*\
+  !*** ./apps/notifications-ms/src/modules/notifications/application/dto/send-notification-payload.dto.ts ***!
+  \**********************************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
 
 
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
@@ -1279,9 +957,9 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var _a, _b;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SendNotificationInboundEnvelopeDto = exports.WhatsappNotificationPayloadDto = exports.SmsNotificationPayloadDto = exports.EmailNotificationPayloadDto = void 0;
-const class_transformer_1 = __webpack_require__(33);
-const class_validator_1 = __webpack_require__(34);
-const notification_channel_enum_1 = __webpack_require__(46);
+const class_transformer_1 = __webpack_require__(/*! class-transformer */ "class-transformer");
+const class_validator_1 = __webpack_require__(/*! class-validator */ "class-validator");
+const notification_channel_enum_1 = __webpack_require__(/*! @modules/notifications/domain/notification-channel.enum */ "./apps/notifications-ms/src/modules/notifications/domain/notification-channel.enum.ts");
 class EmailNotificationPayloadDto {
     to;
     subject;
@@ -1427,9 +1105,13 @@ __decorate([
 ], SendNotificationInboundEnvelopeDto.prototype, "payload", void 0);
 
 
-/***/ }),
-/* 49 */
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+/***/ },
+
+/***/ "./apps/notifications-ms/src/modules/notifications/application/use-cases/dispatch-notification.use-case.ts"
+/*!*****************************************************************************************************************!*\
+  !*** ./apps/notifications-ms/src/modules/notifications/application/use-cases/dispatch-notification.use-case.ts ***!
+  \*****************************************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
 
 
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
@@ -1444,99 +1126,1025 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var NotificationInboundSqsConsumer_1;
-var _a, _b;
+var DispatchNotificationUseCase_1;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.NotificationInboundSqsConsumer = void 0;
-const common_1 = __webpack_require__(6);
-const config_1 = __webpack_require__(8);
-const ingest_notification_sqs_message_use_case_1 = __webpack_require__(47);
-const shared_1 = __webpack_require__(13);
-let NotificationInboundSqsConsumer = NotificationInboundSqsConsumer_1 = class NotificationInboundSqsConsumer extends shared_1.BaseConsumer {
-    queues_config;
-    config_service;
-    ingest;
-    nest_logger = new common_1.Logger(NotificationInboundSqsConsumer_1.name);
-    constructor(sqs_client, queues_config, config_service, ingest) {
-        super(sqs_client, {
-            log: (m) => this.nest_logger.log(m),
-            warn: (m) => this.nest_logger.warn(m),
-            error: (m) => this.nest_logger.error(m),
-        });
-        this.queues_config = queues_config;
-        this.config_service = config_service;
-        this.ingest = ingest;
+exports.DispatchNotificationUseCase = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const notification_channel_enum_1 = __webpack_require__(/*! @modules/notifications/domain/notification-channel.enum */ "./apps/notifications-ms/src/modules/notifications/domain/notification-channel.enum.ts");
+const email_sender_port_1 = __webpack_require__(/*! @modules/notifications/domain/ports/email-sender.port */ "./apps/notifications-ms/src/modules/notifications/domain/ports/email-sender.port.ts");
+const twilio_messaging_port_1 = __webpack_require__(/*! @modules/notifications/domain/ports/twilio-messaging.port */ "./apps/notifications-ms/src/modules/notifications/domain/ports/twilio-messaging.port.ts");
+let DispatchNotificationUseCase = DispatchNotificationUseCase_1 = class DispatchNotificationUseCase {
+    email_sender;
+    twilio;
+    logger = new common_1.Logger(DispatchNotificationUseCase_1.name);
+    constructor(email_sender, twilio) {
+        this.email_sender = email_sender;
+        this.twilio = twilio;
     }
-    onModuleInit() {
-        this.start();
-    }
-    onModuleDestroy() {
-        this.stop();
-    }
-    resolve_queue_url() {
-        return this.queues_config.notifications_inbound_queue_url;
-    }
-    get_poll_settings() {
-        return {
-            wait_time_seconds: this.config_service.getOrThrow('sqs.wait_time_seconds'),
-            max_number_of_messages: this.config_service.getOrThrow('sqs.max_number_of_messages'),
-            visibility_timeout_seconds: this.config_service.getOrThrow('sqs.visibility_timeout_seconds'),
-        };
-    }
-    inactive_reason_message() {
-        return 'Cola notifications SQS no configurada (NOTIFICATIONS_SQS_INBOUND_QUEUE_URL); worker inactivo.';
-    }
-    async handle(message) {
-        const delete_on_validation_error = this.config_service.get('sqs.delete_on_validation_error') ?? false;
-        this.nest_logger.log(`[Notify][step=consumer_handle][messageId=${message.message_id ?? 'n/a'}]`);
-        return this.ingest.execute({
-            body: message.body,
-            delete_on_validation_error,
-        });
+    async execute(command) {
+        const { correlation_id, channel } = command;
+        switch (channel) {
+            case notification_channel_enum_1.NotificationChannel.email: {
+                const p = command.payload;
+                await this.email_sender.send({
+                    to: p.to,
+                    subject: p.subject,
+                    html: p.html,
+                    text: p.text,
+                    from_override: p.from_override,
+                });
+                this.logger.log(`[Notify][correlationId=${correlation_id}][channel=email][step=sent][recipients=${p.to.length}]`);
+                return;
+            }
+            case notification_channel_enum_1.NotificationChannel.sms:
+                await this.twilio.send_sms({
+                    to_e164: command.payload.to_e164,
+                    body: command.payload.body,
+                });
+                this.logger.log(`[Notify][correlationId=${correlation_id}][channel=sms][step=sent]`);
+                return;
+            case notification_channel_enum_1.NotificationChannel.whatsapp:
+                await this.twilio.send_whatsapp({
+                    to_e164: command.payload.to_e164,
+                    body: command.payload.body,
+                });
+                this.logger.log(`[Notify][correlationId=${correlation_id}][channel=whatsapp][step=sent]`);
+                return;
+            default: {
+                const _exhaustive = channel;
+                void _exhaustive;
+                throw new Error(`Canal no soportado: ${String(channel)}`);
+            }
+        }
     }
 };
-exports.NotificationInboundSqsConsumer = NotificationInboundSqsConsumer;
-exports.NotificationInboundSqsConsumer = NotificationInboundSqsConsumer = NotificationInboundSqsConsumer_1 = __decorate([
+exports.DispatchNotificationUseCase = DispatchNotificationUseCase;
+exports.DispatchNotificationUseCase = DispatchNotificationUseCase = DispatchNotificationUseCase_1 = __decorate([
     (0, common_1.Injectable)(),
-    __param(0, (0, common_1.Inject)(shared_1.SQS_CLIENT)),
-    __param(1, (0, common_1.Inject)(shared_1.QUEUES_CONFIG)),
-    __metadata("design:paramtypes", [Object, Object, typeof (_a = typeof config_1.ConfigService !== "undefined" && config_1.ConfigService) === "function" ? _a : Object, typeof (_b = typeof ingest_notification_sqs_message_use_case_1.IngestNotificationSqsMessageUseCase !== "undefined" && ingest_notification_sqs_message_use_case_1.IngestNotificationSqsMessageUseCase) === "function" ? _b : Object])
-], NotificationInboundSqsConsumer);
+    __param(0, (0, common_1.Inject)(email_sender_port_1.EMAIL_SENDER_PORT)),
+    __param(1, (0, common_1.Inject)(twilio_messaging_port_1.TWILIO_MESSAGING_PORT)),
+    __metadata("design:paramtypes", [Object, Object])
+], DispatchNotificationUseCase);
 
 
-/***/ }),
-/* 50 */
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+/***/ },
 
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-const config_1 = __webpack_require__(8);
-exports["default"] = (0, config_1.registerAs)('config', () => ({
-    environment: process.env.APP_ENV || 'development',
-    port: process.env.NOTIFICATIONS_MS_PORT || 8085,
-}));
-
-
-/***/ }),
-/* 51 */
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+/***/ "./apps/notifications-ms/src/modules/notifications/domain/notification-channel.enum.ts"
+/*!*********************************************************************************************!*\
+  !*** ./apps/notifications-ms/src/modules/notifications/domain/notification-channel.enum.ts ***!
+  \*********************************************************************************************/
+(__unused_webpack_module, exports) {
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-const config_1 = __webpack_require__(8);
-exports["default"] = (0, config_1.registerAs)('notifications', () => ({
-    resend_api_key: (process.env.RESEND_API_KEY ?? '').trim(),
-    email_from_default: (process.env.NOTIFICATIONS_EMAIL_FROM ?? '').trim(),
-    twilio_account_sid: (process.env.TWILIO_ACCOUNT_SID ?? '').trim(),
-    twilio_auth_token: (process.env.TWILIO_AUTH_TOKEN ?? '').trim(),
-    twilio_from_sms: (process.env.TWILIO_FROM_SMS ?? '').trim(),
-    twilio_from_whatsapp: (process.env.TWILIO_FROM_WHATSAPP ?? '').trim(),
+exports.NotificationChannel = void 0;
+var NotificationChannel;
+(function (NotificationChannel) {
+    NotificationChannel["email"] = "email";
+    NotificationChannel["sms"] = "sms";
+    NotificationChannel["whatsapp"] = "whatsapp";
+})(NotificationChannel || (exports.NotificationChannel = NotificationChannel = {}));
+
+
+/***/ },
+
+/***/ "./apps/notifications-ms/src/modules/notifications/domain/ports/email-sender.port.ts"
+/*!*******************************************************************************************!*\
+  !*** ./apps/notifications-ms/src/modules/notifications/domain/ports/email-sender.port.ts ***!
+  \*******************************************************************************************/
+(__unused_webpack_module, exports) {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.EMAIL_SENDER_PORT = void 0;
+exports.EMAIL_SENDER_PORT = Symbol('EMAIL_SENDER_PORT');
+
+
+/***/ },
+
+/***/ "./apps/notifications-ms/src/modules/notifications/domain/ports/twilio-messaging.port.ts"
+/*!***********************************************************************************************!*\
+  !*** ./apps/notifications-ms/src/modules/notifications/domain/ports/twilio-messaging.port.ts ***!
+  \***********************************************************************************************/
+(__unused_webpack_module, exports) {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.TWILIO_MESSAGING_PORT = void 0;
+exports.TWILIO_MESSAGING_PORT = Symbol('TWILIO_MESSAGING_PORT');
+
+
+/***/ },
+
+/***/ "./apps/notifications-ms/src/modules/notifications/notifications-application.module.ts"
+/*!*********************************************************************************************!*\
+  !*** ./apps/notifications-ms/src/modules/notifications/notifications-application.module.ts ***!
+  \*********************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.NotificationsApplicationModule = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const notifications_infrastructure_module_1 = __webpack_require__(/*! @infrastructure/notifications/notifications-infrastructure.module */ "./apps/notifications-ms/src/infrastructure/notifications/notifications-infrastructure.module.ts");
+const dispatch_notification_use_case_1 = __webpack_require__(/*! ./application/use-cases/dispatch-notification.use-case */ "./apps/notifications-ms/src/modules/notifications/application/use-cases/dispatch-notification.use-case.ts");
+let NotificationsApplicationModule = class NotificationsApplicationModule {
+};
+exports.NotificationsApplicationModule = NotificationsApplicationModule;
+exports.NotificationsApplicationModule = NotificationsApplicationModule = __decorate([
+    (0, common_1.Module)({
+        imports: [notifications_infrastructure_module_1.NotificationsInfrastructureModule],
+        providers: [dispatch_notification_use_case_1.DispatchNotificationUseCase],
+        exports: [dispatch_notification_use_case_1.DispatchNotificationUseCase],
+    })
+], NotificationsApplicationModule);
+
+
+/***/ },
+
+/***/ "./libs/shared/src/domain/domain-event.interface.ts"
+/*!**********************************************************!*\
+  !*** ./libs/shared/src/domain/domain-event.interface.ts ***!
+  \**********************************************************/
+(__unused_webpack_module, exports) {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+
+
+/***/ },
+
+/***/ "./libs/shared/src/domain/entity.base.ts"
+/*!***********************************************!*\
+  !*** ./libs/shared/src/domain/entity.base.ts ***!
+  \***********************************************/
+(__unused_webpack_module, exports) {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.Entity = void 0;
+class Entity {
+    props;
+    constructor(props) {
+        this.props = props;
+    }
+    equals(other) {
+        if (other === undefined) {
+            return false;
+        }
+        return this.id === other.id;
+    }
+}
+exports.Entity = Entity;
+
+
+/***/ },
+
+/***/ "./libs/shared/src/domain/event-bus.ts"
+/*!*********************************************!*\
+  !*** ./libs/shared/src/domain/event-bus.ts ***!
+  \*********************************************/
+(__unused_webpack_module, exports) {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.DOMAIN_EVENT_BUS = exports.DomainEventBus = void 0;
+class DomainEventBus {
+    handlers = new Map();
+    subscribe(event_name, handler) {
+        if (!this.handlers.has(event_name)) {
+            this.handlers.set(event_name, []);
+        }
+        this.handlers.get(event_name).push(handler);
+    }
+    async publish(event) {
+        const event_name = event.constructor.name;
+        const fns = this.handlers.get(event_name) ?? [];
+        await Promise.allSettled(fns.map((fn) => fn(event)));
+    }
+    async publish_many(events) {
+        await Promise.allSettled(events.map((e) => this.publish(e)));
+    }
+}
+exports.DomainEventBus = DomainEventBus;
+exports.DOMAIN_EVENT_BUS = Symbol('DOMAIN_EVENT_BUS');
+
+
+/***/ },
+
+/***/ "./libs/shared/src/domain/repository.interface.ts"
+/*!********************************************************!*\
+  !*** ./libs/shared/src/domain/repository.interface.ts ***!
+  \********************************************************/
+(__unused_webpack_module, exports) {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+
+
+/***/ },
+
+/***/ "./libs/shared/src/domain/roles.enum.ts"
+/*!**********************************************!*\
+  !*** ./libs/shared/src/domain/roles.enum.ts ***!
+  \**********************************************/
+(__unused_webpack_module, exports) {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.Roles = exports.BackOfficeRoles = exports.PartnerRoles = void 0;
+var PartnerRoles;
+(function (PartnerRoles) {
+    PartnerRoles["PARTNER_ADMIN"] = "PARTNER_ADMIN";
+    PartnerRoles["PARTNER_OPERATIONS"] = "PARTNER_OPERATIONS";
+    PartnerRoles["CUSTOMER"] = "CUSTOMER";
+    PartnerRoles["SALES_MANAGER"] = "SALES_MANAGER";
+    PartnerRoles["SALES_REPRESENTATIVE"] = "SALES_REPRESENTATIVE";
+})(PartnerRoles || (exports.PartnerRoles = PartnerRoles = {}));
+var BackOfficeRoles;
+(function (BackOfficeRoles) {
+    BackOfficeRoles["BACK_OFFICE_ADMIN"] = "BACK_OFFICE_ADMIN";
+    BackOfficeRoles["BACK_OFFICE_ANALYST"] = "BACK_OFFICE_ANALYST";
+})(BackOfficeRoles || (exports.BackOfficeRoles = BackOfficeRoles = {}));
+var Roles;
+(function (Roles) {
+    Roles["PARTNER_ADMIN"] = "PARTNER_ADMIN";
+    Roles["PARTNER_OPERATIONS"] = "PARTNER_OPERATIONS";
+    Roles["CUSTOMER"] = "CUSTOMER";
+    Roles["SALES_MANAGER"] = "SALES_MANAGER";
+    Roles["SALES_REPRESENTATIVE"] = "SALES_REPRESENTATIVE";
+    Roles["BACK_OFFICE_ADMIN"] = "BACK_OFFICE_ADMIN";
+    Roles["BACK_OFFICE_ANALYST"] = "BACK_OFFICE_ANALYST";
+})(Roles || (exports.Roles = Roles = {}));
+
+
+/***/ },
+
+/***/ "./libs/shared/src/domain/statuses.enum.ts"
+/*!*************************************************!*\
+  !*** ./libs/shared/src/domain/statuses.enum.ts ***!
+  \*************************************************/
+(__unused_webpack_module, exports) {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.BatchLogsStatus = exports.PaymentsMethod = exports.PaymentsStatus = exports.AdjustmentsStatus = exports.DisbursementBatchesStatus = exports.DisbursementStatus = exports.LoanStatus = exports.LoanRequestStatus = exports.SarlaftCheckStatus = exports.ExperianQueryStatus = exports.BusinessSeniorityCatalogState = exports.RolePermissionLinkState = exports.PermissionDefinitionState = exports.RoleDefinitionState = exports.PurchaseOrderRecordState = exports.BankAccountRecordState = exports.ShareholderRecordState = exports.LegalRepresentativeLifecycleState = exports.PersonRecordState = exports.BusinessLifecycleState = exports.CatalogActivationState = exports.UserState = exports.SalesRepresentativeRecordState = exports.PartnerOnboardingSagaStatus = exports.SupplierState = exports.PartnerState = exports.DocumentVerificationStatus = exports.ContractTemplateCatalogStatus = exports.ContractCatalogStatus = exports.CreditApplicationStatus = exports.CategoryState = exports.CreditFacilityState = void 0;
+var CreditFacilityState;
+(function (CreditFacilityState) {
+    CreditFacilityState["ACTIVE"] = "active";
+    CreditFacilityState["INACTIVE"] = "inactive";
+})(CreditFacilityState || (exports.CreditFacilityState = CreditFacilityState = {}));
+var CategoryState;
+(function (CategoryState) {
+    CategoryState["ACTIVE"] = "active";
+    CategoryState["INACTIVE"] = "inactive";
+})(CategoryState || (exports.CategoryState = CategoryState = {}));
+var CreditApplicationStatus;
+(function (CreditApplicationStatus) {
+    CreditApplicationStatus["IN_PROGRESS"] = "in_progress";
+    CreditApplicationStatus["DUPLICATE"] = "duplicate";
+    CreditApplicationStatus["UNDER_REVIEW"] = "under_review";
+    CreditApplicationStatus["SARLAFT_MATCH"] = "sarlaft_match";
+    CreditApplicationStatus["EXPERIAN_QUERY_ERROR"] = "experian_query_error";
+    CreditApplicationStatus["AI_AGENT_ERROR"] = "ai_agent_error";
+    CreditApplicationStatus["IN_INTERVIEW"] = "in_interview";
+    CreditApplicationStatus["HCPJ_QUERY_ERROR"] = "hcpj_query_error";
+    CreditApplicationStatus["PENDING_AUTHORIZATION"] = "pending_authorization";
+    CreditApplicationStatus["AUTHORIZED"] = "authorized";
+    CreditApplicationStatus["REJECTED"] = "rejected";
+    CreditApplicationStatus["CANCELLED"] = "cancelled";
+    CreditApplicationStatus["CLOSED"] = "closed";
+})(CreditApplicationStatus || (exports.CreditApplicationStatus = CreditApplicationStatus = {}));
+var ContractCatalogStatus;
+(function (ContractCatalogStatus) {
+    ContractCatalogStatus["PENDING"] = "pending";
+    ContractCatalogStatus["SIGNED"] = "signed";
+    ContractCatalogStatus["CANCELLED"] = "cancelled";
+})(ContractCatalogStatus || (exports.ContractCatalogStatus = ContractCatalogStatus = {}));
+var ContractTemplateCatalogStatus;
+(function (ContractTemplateCatalogStatus) {
+    ContractTemplateCatalogStatus["ACTIVE"] = "active";
+    ContractTemplateCatalogStatus["INACTIVE"] = "inactive";
+})(ContractTemplateCatalogStatus || (exports.ContractTemplateCatalogStatus = ContractTemplateCatalogStatus = {}));
+var DocumentVerificationStatus;
+(function (DocumentVerificationStatus) {
+    DocumentVerificationStatus["PENDING"] = "pending";
+    DocumentVerificationStatus["VERIFIED"] = "verified";
+    DocumentVerificationStatus["REJECTED"] = "rejected";
+})(DocumentVerificationStatus || (exports.DocumentVerificationStatus = DocumentVerificationStatus = {}));
+var PartnerState;
+(function (PartnerState) {
+    PartnerState["ACTIVE"] = "active";
+    PartnerState["INACTIVE"] = "inactive";
+})(PartnerState || (exports.PartnerState = PartnerState = {}));
+var SupplierState;
+(function (SupplierState) {
+    SupplierState["ACTIVE"] = "active";
+    SupplierState["INACTIVE"] = "inactive";
+})(SupplierState || (exports.SupplierState = SupplierState = {}));
+var PartnerOnboardingSagaStatus;
+(function (PartnerOnboardingSagaStatus) {
+    PartnerOnboardingSagaStatus["RUNNING"] = "RUNNING";
+    PartnerOnboardingSagaStatus["COMPLETED"] = "COMPLETED";
+    PartnerOnboardingSagaStatus["FAILED"] = "FAILED";
+    PartnerOnboardingSagaStatus["COMPENSATING"] = "COMPENSATING";
+})(PartnerOnboardingSagaStatus || (exports.PartnerOnboardingSagaStatus = PartnerOnboardingSagaStatus = {}));
+var SalesRepresentativeRecordState;
+(function (SalesRepresentativeRecordState) {
+    SalesRepresentativeRecordState["ACTIVE"] = "active";
+    SalesRepresentativeRecordState["INACTIVE"] = "inactive";
+})(SalesRepresentativeRecordState || (exports.SalesRepresentativeRecordState = SalesRepresentativeRecordState = {}));
+var UserState;
+(function (UserState) {
+    UserState["ACTIVE"] = "active";
+    UserState["INACTIVE"] = "inactive";
+})(UserState || (exports.UserState = UserState = {}));
+var CatalogActivationState;
+(function (CatalogActivationState) {
+    CatalogActivationState["ACTIVE"] = "active";
+    CatalogActivationState["INACTIVE"] = "inactive";
+})(CatalogActivationState || (exports.CatalogActivationState = CatalogActivationState = {}));
+var BusinessLifecycleState;
+(function (BusinessLifecycleState) {
+    BusinessLifecycleState["ACTIVE"] = "active";
+    BusinessLifecycleState["INACTIVE"] = "inactive";
+})(BusinessLifecycleState || (exports.BusinessLifecycleState = BusinessLifecycleState = {}));
+var PersonRecordState;
+(function (PersonRecordState) {
+    PersonRecordState["ACTIVE"] = "active";
+    PersonRecordState["INACTIVE"] = "inactive";
+})(PersonRecordState || (exports.PersonRecordState = PersonRecordState = {}));
+var LegalRepresentativeLifecycleState;
+(function (LegalRepresentativeLifecycleState) {
+    LegalRepresentativeLifecycleState["ACTIVE"] = "active";
+    LegalRepresentativeLifecycleState["INACTIVE"] = "inactive";
+})(LegalRepresentativeLifecycleState || (exports.LegalRepresentativeLifecycleState = LegalRepresentativeLifecycleState = {}));
+var ShareholderRecordState;
+(function (ShareholderRecordState) {
+    ShareholderRecordState["ACTIVE"] = "active";
+    ShareholderRecordState["INACTIVE"] = "inactive";
+})(ShareholderRecordState || (exports.ShareholderRecordState = ShareholderRecordState = {}));
+var BankAccountRecordState;
+(function (BankAccountRecordState) {
+    BankAccountRecordState["ACTIVE"] = "active";
+    BankAccountRecordState["INACTIVE"] = "inactive";
+})(BankAccountRecordState || (exports.BankAccountRecordState = BankAccountRecordState = {}));
+var PurchaseOrderRecordState;
+(function (PurchaseOrderRecordState) {
+    PurchaseOrderRecordState["ACTIVE"] = "active";
+    PurchaseOrderRecordState["INACTIVE"] = "inactive";
+})(PurchaseOrderRecordState || (exports.PurchaseOrderRecordState = PurchaseOrderRecordState = {}));
+var RoleDefinitionState;
+(function (RoleDefinitionState) {
+    RoleDefinitionState["ACTIVE"] = "active";
+    RoleDefinitionState["INACTIVE"] = "inactive";
+})(RoleDefinitionState || (exports.RoleDefinitionState = RoleDefinitionState = {}));
+var PermissionDefinitionState;
+(function (PermissionDefinitionState) {
+    PermissionDefinitionState["ACTIVE"] = "active";
+    PermissionDefinitionState["INACTIVE"] = "inactive";
+})(PermissionDefinitionState || (exports.PermissionDefinitionState = PermissionDefinitionState = {}));
+var RolePermissionLinkState;
+(function (RolePermissionLinkState) {
+    RolePermissionLinkState["ACTIVE"] = "active";
+    RolePermissionLinkState["INACTIVE"] = "inactive";
+})(RolePermissionLinkState || (exports.RolePermissionLinkState = RolePermissionLinkState = {}));
+var BusinessSeniorityCatalogState;
+(function (BusinessSeniorityCatalogState) {
+    BusinessSeniorityCatalogState["ACTIVE"] = "active";
+    BusinessSeniorityCatalogState["INACTIVE"] = "inactive";
+})(BusinessSeniorityCatalogState || (exports.BusinessSeniorityCatalogState = BusinessSeniorityCatalogState = {}));
+var ExperianQueryStatus;
+(function (ExperianQueryStatus) {
+    ExperianQueryStatus["PENDING"] = "pending";
+    ExperianQueryStatus["COMPLETED"] = "completed";
+    ExperianQueryStatus["ERROR"] = "error";
+})(ExperianQueryStatus || (exports.ExperianQueryStatus = ExperianQueryStatus = {}));
+var SarlaftCheckStatus;
+(function (SarlaftCheckStatus) {
+    SarlaftCheckStatus["PENDING"] = "pending";
+    SarlaftCheckStatus["COMPLETED"] = "completed";
+    SarlaftCheckStatus["ERROR"] = "error";
+})(SarlaftCheckStatus || (exports.SarlaftCheckStatus = SarlaftCheckStatus = {}));
+var LoanRequestStatus;
+(function (LoanRequestStatus) {
+    LoanRequestStatus["DRAFT"] = "draft";
+    LoanRequestStatus["PENDING_CLIENT_APPROVAL"] = "pending_client_approval";
+    LoanRequestStatus["PENDING_PARTNER_APPROVAL"] = "pending_partner_approval";
+    LoanRequestStatus["PENDING_PLATAM_REVIEW"] = "pending_platam_review";
+    LoanRequestStatus["APPROVED"] = "approved";
+    LoanRequestStatus["REJECTED"] = "rejected";
+    LoanRequestStatus["CANCELLED"] = "cancelled";
+})(LoanRequestStatus || (exports.LoanRequestStatus = LoanRequestStatus = {}));
+var LoanStatus;
+(function (LoanStatus) {
+    LoanStatus["ACTIVE"] = "active";
+    LoanStatus["LATE"] = "late";
+    LoanStatus["DEFAULT"] = "default";
+    LoanStatus["PAID"] = "paid";
+    LoanStatus["CANCELLED"] = "cancelled";
+})(LoanStatus || (exports.LoanStatus = LoanStatus = {}));
+var DisbursementStatus;
+(function (DisbursementStatus) {
+    DisbursementStatus["PENDING"] = "pending";
+    DisbursementStatus["DISBURSED"] = "disbursed";
+    DisbursementStatus["FAILED"] = "failed";
+})(DisbursementStatus || (exports.DisbursementStatus = DisbursementStatus = {}));
+var DisbursementBatchesStatus;
+(function (DisbursementBatchesStatus) {
+    DisbursementBatchesStatus["PENDING"] = "pending";
+    DisbursementBatchesStatus["GENERATED"] = "generated";
+    DisbursementBatchesStatus["PROCESSING"] = "processing";
+    DisbursementBatchesStatus["DISBURSED"] = "disbursed";
+    DisbursementBatchesStatus["PARTIAL_FAILED"] = "partial_failed";
+})(DisbursementBatchesStatus || (exports.DisbursementBatchesStatus = DisbursementBatchesStatus = {}));
+var AdjustmentsStatus;
+(function (AdjustmentsStatus) {
+    AdjustmentsStatus["PENDING"] = "pending";
+    AdjustmentsStatus["APPLIED"] = "applied";
+})(AdjustmentsStatus || (exports.AdjustmentsStatus = AdjustmentsStatus = {}));
+var PaymentsStatus;
+(function (PaymentsStatus) {
+    PaymentsStatus["APPLIED"] = "applied";
+    PaymentsStatus["PENDING_REVIEW"] = "pending_review";
+    PaymentsStatus["REVERSED"] = "reversed";
+})(PaymentsStatus || (exports.PaymentsStatus = PaymentsStatus = {}));
+var PaymentsMethod;
+(function (PaymentsMethod) {
+    PaymentsMethod["PAYVALIDA"] = "payvalida";
+    PaymentsMethod["TRANSFER"] = "transfer";
+    PaymentsMethod["DEPOSIT"] = "deposit";
+    PaymentsMethod["OTHER"] = "other";
+})(PaymentsMethod || (exports.PaymentsMethod = PaymentsMethod = {}));
+var BatchLogsStatus;
+(function (BatchLogsStatus) {
+    BatchLogsStatus["SUCCESS"] = "success";
+    BatchLogsStatus["PARTIAL"] = "partial";
+    BatchLogsStatus["FAILED"] = "failed";
+})(BatchLogsStatus || (exports.BatchLogsStatus = BatchLogsStatus = {}));
+
+
+/***/ },
+
+/***/ "./libs/shared/src/domain/types.enum.ts"
+/*!**********************************************!*\
+  !*** ./libs/shared/src/domain/types.enum.ts ***!
+  \**********************************************/
+(__unused_webpack_module, exports) {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ActionType = exports.EntityType = exports.UsuraRateType = exports.PaymentMethodType = exports.PaymentType = exports.PaymentChannelType = exports.AdjustmentsType = exports.BatchType = exports.DisbursementType = exports.LoanRequestChannel = exports.LoanRequestProductType = exports.AiAgentAnalysisRecommendation = exports.WebQueryType = exports.SarlaftCheckStatuses = exports.ExperianQueryTypes = exports.InstallmentFrequencyTypes = exports.ModalityTypes = exports.DocIssueDateTypes = exports.DocTypes = exports.GenderTypes = exports.OwnerTypes = exports.AccountTypes = void 0;
+var AccountTypes;
+(function (AccountTypes) {
+    AccountTypes["Saving"] = "saving";
+    AccountTypes["Checking"] = "checking";
+})(AccountTypes || (exports.AccountTypes = AccountTypes = {}));
+var OwnerTypes;
+(function (OwnerTypes) {
+    OwnerTypes["PERSONAL"] = "personal";
+    OwnerTypes["BUSINESS"] = "business";
+})(OwnerTypes || (exports.OwnerTypes = OwnerTypes = {}));
+var GenderTypes;
+(function (GenderTypes) {
+    GenderTypes["MALE"] = "male";
+    GenderTypes["FEMALE"] = "female";
+    GenderTypes["OTHER"] = "other";
+})(GenderTypes || (exports.GenderTypes = GenderTypes = {}));
+var DocTypes;
+(function (DocTypes) {
+    DocTypes["CITIZENSHIP"] = "citizenship";
+    DocTypes["PASSPORT"] = "passport";
+    DocTypes["OTHER"] = "other";
+})(DocTypes || (exports.DocTypes = DocTypes = {}));
+var DocIssueDateTypes;
+(function (DocIssueDateTypes) {
+    DocIssueDateTypes["NATIONALITY"] = "nationality";
+    DocIssueDateTypes["RESIDENCE"] = "residence";
+    DocIssueDateTypes["WORK"] = "work";
+})(DocIssueDateTypes || (exports.DocIssueDateTypes = DocIssueDateTypes = {}));
+var ModalityTypes;
+(function (ModalityTypes) {
+    ModalityTypes["BULLET"] = "bullet";
+    ModalityTypes["CUOTAS"] = "cuotas";
+})(ModalityTypes || (exports.ModalityTypes = ModalityTypes = {}));
+var InstallmentFrequencyTypes;
+(function (InstallmentFrequencyTypes) {
+    InstallmentFrequencyTypes["MONTHLY"] = "monthly";
+    InstallmentFrequencyTypes["BIWEEKLY"] = "biweekly";
+    InstallmentFrequencyTypes["WEEKLY"] = "weekly";
+})(InstallmentFrequencyTypes || (exports.InstallmentFrequencyTypes = InstallmentFrequencyTypes = {}));
+var ExperianQueryTypes;
+(function (ExperianQueryTypes) {
+    ExperianQueryTypes["HCPN"] = "hcpn";
+    ExperianQueryTypes["HCPJ"] = "hcpj";
+})(ExperianQueryTypes || (exports.ExperianQueryTypes = ExperianQueryTypes = {}));
+var SarlaftCheckStatuses;
+(function (SarlaftCheckStatuses) {
+    SarlaftCheckStatuses["CLEAN"] = "clean";
+    SarlaftCheckStatuses["ALERT"] = "alert";
+    SarlaftCheckStatuses["BLOCKED"] = "blocked";
+})(SarlaftCheckStatuses || (exports.SarlaftCheckStatuses = SarlaftCheckStatuses = {}));
+var WebQueryType;
+(function (WebQueryType) {
+    WebQueryType["BDME"] = "bdme";
+    WebQueryType["RAMA_JUDICIAL"] = "rama_judicial";
+})(WebQueryType || (exports.WebQueryType = WebQueryType = {}));
+var AiAgentAnalysisRecommendation;
+(function (AiAgentAnalysisRecommendation) {
+    AiAgentAnalysisRecommendation["HITL"] = "hitl";
+    AiAgentAnalysisRecommendation["AUTO_APPROVE"] = "auto_approve";
+    AiAgentAnalysisRecommendation["AUTO_REJECT"] = "auto_reject";
+})(AiAgentAnalysisRecommendation || (exports.AiAgentAnalysisRecommendation = AiAgentAnalysisRecommendation = {}));
+var LoanRequestProductType;
+(function (LoanRequestProductType) {
+    LoanRequestProductType["BNPL_PARTNER"] = "bnpl_partner";
+    LoanRequestProductType["BNPL_SUPPLIER"] = "bnpl_supplier";
+})(LoanRequestProductType || (exports.LoanRequestProductType = LoanRequestProductType = {}));
+var LoanRequestChannel;
+(function (LoanRequestChannel) {
+    LoanRequestChannel["SR_PORTAL"] = "sr_portal";
+    LoanRequestChannel["CLIENT_PORTAL"] = "client_portal";
+    LoanRequestChannel["API"] = "api";
+})(LoanRequestChannel || (exports.LoanRequestChannel = LoanRequestChannel = {}));
+var DisbursementType;
+(function (DisbursementType) {
+    DisbursementType["PARTNER"] = "partner";
+    DisbursementType["SUPPLIER"] = "supplier";
+})(DisbursementType || (exports.DisbursementType = DisbursementType = {}));
+var BatchType;
+(function (BatchType) {
+    BatchType["MANUAL"] = "manual";
+    BatchType["ACH"] = "ach";
+})(BatchType || (exports.BatchType = BatchType = {}));
+var AdjustmentsType;
+(function (AdjustmentsType) {
+    AdjustmentsType["PARTIAL_RETURN"] = "partial_return";
+    AdjustmentsType["TOTAL_RETURN"] = "total_return";
+    AdjustmentsType["CLIENT_PAYS_PARTNER"] = "client_pays_partner";
+    AdjustmentsType["CATEGORY_CHANGE"] = "category_change";
+    AdjustmentsType["OTHER"] = "other";
+})(AdjustmentsType || (exports.AdjustmentsType = AdjustmentsType = {}));
+var PaymentChannelType;
+(function (PaymentChannelType) {
+    PaymentChannelType["PAYVALIDA"] = "payvalida";
+    PaymentChannelType["MANUAL_CLIENT"] = "manual_client";
+    PaymentChannelType["MANUAL_LOAN"] = "manual_loan";
+})(PaymentChannelType || (exports.PaymentChannelType = PaymentChannelType = {}));
+var PaymentType;
+(function (PaymentType) {
+    PaymentType["NORMAL_PAYMENT"] = "normal_payment";
+    PaymentType["INSTALLMENT_PAYMENT"] = "installment_payment";
+    PaymentType["PARTIAL_CANCELLATION"] = "partial_cancellation";
+    PaymentType["TOTAL_CANCELLATION"] = "total_cancellation";
+    PaymentType["PAYMENT_TO_PARTNER"] = "payment_to_partner";
+})(PaymentType || (exports.PaymentType = PaymentType = {}));
+var PaymentMethodType;
+(function (PaymentMethodType) {
+    PaymentMethodType["PAYVALIDA"] = "payvalida";
+    PaymentMethodType["TRANSFER"] = "transfer";
+    PaymentMethodType["DEPOSIT"] = "deposit";
+    PaymentMethodType["OTHER"] = "other";
+})(PaymentMethodType || (exports.PaymentMethodType = PaymentMethodType = {}));
+var UsuraRateType;
+(function (UsuraRateType) {
+    UsuraRateType["USURY"] = "usury";
+    UsuraRateType["FIXED"] = "fixed";
+    UsuraRateType["ORDINARY"] = "ordinary";
+    UsuraRateType["CONSUMPTION"] = "consumption";
+    UsuraRateType["PRODUCTIVE_URBAN"] = "productive_urban";
+    UsuraRateType["PRODUCTIVE_RURAL"] = "productive_rural";
+    UsuraRateType["POPULAR_URBAN"] = "popular_urban";
+    UsuraRateType["POPULAR_RURAL"] = "popular_rural";
+    UsuraRateType["HIGH_AMOUNT"] = "high_amount";
+})(UsuraRateType || (exports.UsuraRateType = UsuraRateType = {}));
+var EntityType;
+(function (EntityType) {
+    EntityType["LOAN"] = "loan";
+    EntityType["PAYMENT"] = "payment";
+    EntityType["LOAN_REQUEST"] = "loan_request";
+})(EntityType || (exports.EntityType = EntityType = {}));
+var ActionType;
+(function (ActionType) {
+    ActionType["FIELD_UPDATE"] = "field_update";
+    ActionType["REVERSAL"] = "reversal";
+    ActionType["RECALCULATION"] = "recalculation";
+})(ActionType || (exports.ActionType = ActionType = {}));
+
+
+/***/ },
+
+/***/ "./libs/shared/src/domain/use-case.interface.ts"
+/*!******************************************************!*\
+  !*** ./libs/shared/src/domain/use-case.interface.ts ***!
+  \******************************************************/
+(__unused_webpack_module, exports) {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+
+
+/***/ },
+
+/***/ "./libs/shared/src/index.ts"
+/*!**********************************!*\
+  !*** ./libs/shared/src/index.ts ***!
+  \**********************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
 }));
+var __exportStar = (this && this.__exportStar) || function(m, exports) {
+    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SQS_CLIENT = exports.QUEUES_CONFIG = void 0;
+var sqs_tokens_1 = __webpack_require__(/*! ./messaging/sqs.tokens */ "./libs/shared/src/messaging/sqs.tokens.ts");
+Object.defineProperty(exports, "QUEUES_CONFIG", ({ enumerable: true, get: function () { return sqs_tokens_1.QUEUES_CONFIG; } }));
+Object.defineProperty(exports, "SQS_CLIENT", ({ enumerable: true, get: function () { return sqs_tokens_1.SQS_CLIENT; } }));
+__exportStar(__webpack_require__(/*! ./messaging/sqs-client */ "./libs/shared/src/messaging/sqs-client.ts"), exports);
+__exportStar(__webpack_require__(/*! ./messaging/sqs-message.interface */ "./libs/shared/src/messaging/sqs-message.interface.ts"), exports);
+__exportStar(__webpack_require__(/*! ./messaging/sqs-publish-failed.error */ "./libs/shared/src/messaging/sqs-publish-failed.error.ts"), exports);
+__exportStar(__webpack_require__(/*! ./messaging/base.consumer */ "./libs/shared/src/messaging/base.consumer.ts"), exports);
+__exportStar(__webpack_require__(/*! ./messaging/base.publisher */ "./libs/shared/src/messaging/base.publisher.ts"), exports);
+__exportStar(__webpack_require__(/*! ./messaging/sqs-idempotency.port */ "./libs/shared/src/messaging/sqs-idempotency.port.ts"), exports);
+__exportStar(__webpack_require__(/*! ./domain/statuses.enum */ "./libs/shared/src/domain/statuses.enum.ts"), exports);
+__exportStar(__webpack_require__(/*! ./domain/roles.enum */ "./libs/shared/src/domain/roles.enum.ts"), exports);
+__exportStar(__webpack_require__(/*! ./domain/types.enum */ "./libs/shared/src/domain/types.enum.ts"), exports);
+__exportStar(__webpack_require__(/*! ./domain/domain-event.interface */ "./libs/shared/src/domain/domain-event.interface.ts"), exports);
+__exportStar(__webpack_require__(/*! ./domain/entity.base */ "./libs/shared/src/domain/entity.base.ts"), exports);
+__exportStar(__webpack_require__(/*! ./domain/event-bus */ "./libs/shared/src/domain/event-bus.ts"), exports);
+__exportStar(__webpack_require__(/*! ./domain/use-case.interface */ "./libs/shared/src/domain/use-case.interface.ts"), exports);
+__exportStar(__webpack_require__(/*! ./domain/repository.interface */ "./libs/shared/src/domain/repository.interface.ts"), exports);
+__exportStar(__webpack_require__(/*! ./utils/logger */ "./libs/shared/src/utils/logger.ts"), exports);
+__exportStar(__webpack_require__(/*! ./utils/id-generator */ "./libs/shared/src/utils/id-generator.ts"), exports);
+__exportStar(__webpack_require__(/*! ./utils/date.utils */ "./libs/shared/src/utils/date.utils.ts"), exports);
+__exportStar(__webpack_require__(/*! ./utils/pagination.dto */ "./libs/shared/src/utils/pagination.dto.ts"), exports);
+__exportStar(__webpack_require__(/*! ./utils/error-codes */ "./libs/shared/src/utils/error-codes.ts"), exports);
 
 
-/***/ }),
-/* 52 */
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+/***/ },
+
+/***/ "./libs/shared/src/messaging/base.consumer.ts"
+/*!****************************************************!*\
+  !*** ./libs/shared/src/messaging/base.consumer.ts ***!
+  \****************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.BaseConsumer = exports.BaseSqsConsumer = void 0;
+const client_sqs_1 = __webpack_require__(/*! @aws-sdk/client-sqs */ "@aws-sdk/client-sqs");
+const sleep_ms = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const INITIAL_BACKOFF_MS = 1000;
+const MAX_BACKOFF_MS = 30_000;
+class BaseSqsConsumer {
+    sqs_client;
+    logger;
+    stopped = false;
+    poll_promise;
+    constructor(sqs_client, logger) {
+        this.sqs_client = sqs_client;
+        this.logger = logger;
+    }
+    start() {
+        if (this.poll_promise) {
+            return;
+        }
+        const queue_url = this.resolve_queue_url();
+        if (!queue_url) {
+            this.logger.warn(this.inactive_reason_message());
+            return;
+        }
+        this.logger.log(this.active_log_message(queue_url));
+        this.poll_promise = this.poll_loop(queue_url);
+    }
+    stop() {
+        this.stopped = true;
+    }
+    inactive_reason_message() {
+        return 'Cola SQS de entrada no configurada; worker inactivo.';
+    }
+    active_log_message(queue_url) {
+        return `Worker SQS escuchando: ${queue_url}`;
+    }
+    async poll_loop(queue_url) {
+        let backoff_ms = INITIAL_BACKOFF_MS;
+        while (!this.stopped) {
+            try {
+                const { wait_time_seconds, max_number_of_messages, visibility_timeout_seconds } = this.get_poll_settings();
+                const response = await this.sqs_client.send(new client_sqs_1.ReceiveMessageCommand({
+                    QueueUrl: queue_url,
+                    MaxNumberOfMessages: max_number_of_messages,
+                    WaitTimeSeconds: wait_time_seconds,
+                    VisibilityTimeout: visibility_timeout_seconds,
+                    MessageAttributeNames: ['All'],
+                    AttributeNames: ['All'],
+                }));
+                backoff_ms = INITIAL_BACKOFF_MS;
+                const messages = response.Messages ?? [];
+                for (const raw of messages) {
+                    await this.process_one(queue_url, raw);
+                }
+            }
+            catch (err) {
+                const text = err instanceof Error ? err.message : String(err);
+                this.logger.error(`Error en ciclo ReceiveMessage: ${text}`);
+                await sleep_ms(backoff_ms);
+                backoff_ms = Math.min(backoff_ms * 2, MAX_BACKOFF_MS);
+            }
+        }
+    }
+    async process_one(queue_url, raw) {
+        if (!raw.Body || !raw.ReceiptHandle) {
+            return;
+        }
+        const message = {
+            body: raw.Body,
+            receipt_handle: raw.ReceiptHandle,
+            message_id: raw.MessageId,
+        };
+        let should_delete = false;
+        try {
+            should_delete = await this.handle(message);
+        }
+        catch (err) {
+            const text = err instanceof Error ? err.message : String(err);
+            this.logger.error(`Error no controlado al procesar mensaje: ${text}`);
+            should_delete = false;
+        }
+        if (should_delete) {
+            await this.sqs_client.send(new client_sqs_1.DeleteMessageCommand({
+                QueueUrl: queue_url,
+                ReceiptHandle: message.receipt_handle,
+            }));
+        }
+    }
+}
+exports.BaseSqsConsumer = BaseSqsConsumer;
+exports.BaseConsumer = BaseSqsConsumer;
+
+
+/***/ },
+
+/***/ "./libs/shared/src/messaging/base.publisher.ts"
+/*!*****************************************************!*\
+  !*** ./libs/shared/src/messaging/base.publisher.ts ***!
+  \*****************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.BasePublisher = exports.BaseSqsPublisher = void 0;
+const client_sqs_1 = __webpack_require__(/*! @aws-sdk/client-sqs */ "@aws-sdk/client-sqs");
+const sqs_publish_failed_error_1 = __webpack_require__(/*! ./sqs-publish-failed.error */ "./libs/shared/src/messaging/sqs-publish-failed.error.ts");
+class BaseSqsPublisher {
+    sqs_client;
+    constructor(sqs_client) {
+        this.sqs_client = sqs_client;
+    }
+    enrich_send_input(input) {
+        return input;
+    }
+    async send_message(input) {
+        const to_send = this.enrich_send_input(input);
+        try {
+            await this.sqs_client.send(new client_sqs_1.SendMessageCommand(to_send));
+        }
+        catch (cause) {
+            const text = cause instanceof Error ? cause.message : String(cause);
+            throw new sqs_publish_failed_error_1.SqsPublishFailedError(`Fallo SendMessage en SQS: ${text}`, cause);
+        }
+    }
+}
+exports.BaseSqsPublisher = BaseSqsPublisher;
+exports.BasePublisher = BaseSqsPublisher;
+
+
+/***/ },
+
+/***/ "./libs/shared/src/messaging/sqs-client.ts"
+/*!*************************************************!*\
+  !*** ./libs/shared/src/messaging/sqs-client.ts ***!
+  \*************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.create_sqs_client = create_sqs_client;
+const client_sqs_1 = __webpack_require__(/*! @aws-sdk/client-sqs */ "@aws-sdk/client-sqs");
+function create_sqs_client(options) {
+    const config = {
+        region: options.region,
+        ...(options.endpoint ? { endpoint: options.endpoint } : {}),
+        ...(options.credentials ? { credentials: options.credentials } : {}),
+    };
+    return new client_sqs_1.SQSClient(config);
+}
+
+
+/***/ },
+
+/***/ "./libs/shared/src/messaging/sqs-idempotency.port.ts"
+/*!***********************************************************!*\
+  !*** ./libs/shared/src/messaging/sqs-idempotency.port.ts ***!
+  \***********************************************************/
+(__unused_webpack_module, exports) {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+
+
+/***/ },
+
+/***/ "./libs/shared/src/messaging/sqs-message.interface.ts"
+/*!************************************************************!*\
+  !*** ./libs/shared/src/messaging/sqs-message.interface.ts ***!
+  \************************************************************/
+(__unused_webpack_module, exports) {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+
+
+/***/ },
+
+/***/ "./libs/shared/src/messaging/sqs-publish-failed.error.ts"
+/*!***************************************************************!*\
+  !*** ./libs/shared/src/messaging/sqs-publish-failed.error.ts ***!
+  \***************************************************************/
+(__unused_webpack_module, exports) {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SqsPublishFailedError = void 0;
+class SqsPublishFailedError extends Error {
+    cause;
+    constructor(message, cause) {
+        super(message);
+        this.name = 'SqsPublishFailedError';
+        this.cause = cause;
+    }
+}
+exports.SqsPublishFailedError = SqsPublishFailedError;
+
+
+/***/ },
+
+/***/ "./libs/shared/src/messaging/sqs.tokens.ts"
+/*!*************************************************!*\
+  !*** ./libs/shared/src/messaging/sqs.tokens.ts ***!
+  \*************************************************/
+(__unused_webpack_module, exports) {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.QUEUES_CONFIG = exports.SQS_CLIENT = void 0;
+exports.SQS_CLIENT = Symbol('SQS_CLIENT');
+exports.QUEUES_CONFIG = Symbol('QUEUES_CONFIG');
+
+
+/***/ },
+
+/***/ "./libs/shared/src/utils/date.utils.ts"
+/*!*********************************************!*\
+  !*** ./libs/shared/src/utils/date.utils.ts ***!
+  \*********************************************/
+(__unused_webpack_module, exports) {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.to_iso_utc = to_iso_utc;
+exports.is_before = is_before;
+function to_iso_utc(date) {
+    return date.toISOString();
+}
+function is_before(a, b) {
+    return a.getTime() < b.getTime();
+}
+
+
+/***/ },
+
+/***/ "./libs/shared/src/utils/error-codes.ts"
+/*!**********************************************!*\
+  !*** ./libs/shared/src/utils/error-codes.ts ***!
+  \**********************************************/
+(__unused_webpack_module, exports) {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ServiceErrorCode = void 0;
+var ServiceErrorCode;
+(function (ServiceErrorCode) {
+    ServiceErrorCode["VALIDATION_FAILED"] = "VALIDATION_FAILED";
+    ServiceErrorCode["NOT_FOUND"] = "NOT_FOUND";
+    ServiceErrorCode["CONFLICT"] = "CONFLICT";
+    ServiceErrorCode["INTERNAL"] = "INTERNAL";
+})(ServiceErrorCode || (exports.ServiceErrorCode = ServiceErrorCode = {}));
+
+
+/***/ },
+
+/***/ "./libs/shared/src/utils/id-generator.ts"
+/*!***********************************************!*\
+  !*** ./libs/shared/src/utils/id-generator.ts ***!
+  \***********************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.new_uuid = new_uuid;
+const crypto_1 = __webpack_require__(/*! crypto */ "crypto");
+function new_uuid() {
+    return (0, crypto_1.randomUUID)();
+}
+
+
+/***/ },
+
+/***/ "./libs/shared/src/utils/logger.ts"
+/*!*****************************************!*\
+  !*** ./libs/shared/src/utils/logger.ts ***!
+  \*****************************************/
+(__unused_webpack_module, exports) {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.NestStructuredLoggerAdapter = exports.NestLoggerAdapter = void 0;
+class NestLoggerAdapter {
+    nest_logger;
+    constructor(nest_logger) {
+        this.nest_logger = nest_logger;
+    }
+    log(message) {
+        this.nest_logger.log(message);
+    }
+    warn(message) {
+        this.nest_logger.warn(message);
+    }
+    error(message) {
+        this.nest_logger.error(message);
+    }
+}
+exports.NestLoggerAdapter = NestLoggerAdapter;
+class NestStructuredLoggerAdapter {
+    nest_logger;
+    scope;
+    trace_id;
+    constructor(nest_logger, scope, trace_id) {
+        this.nest_logger = nest_logger;
+        this.scope = scope;
+        this.trace_id = trace_id;
+    }
+    prefix() {
+        return this.trace_id
+            ? `[${this.scope}][${this.trace_id}]`
+            : `[${this.scope}]`;
+    }
+    format(message, meta) {
+        const payload = meta && Object.keys(meta).length > 0 ? ` ${JSON.stringify(meta)}` : '';
+        return `${this.prefix()} ${message}${payload}`;
+    }
+    debug(message, meta) {
+        this.nest_logger.debug?.(this.format(message, meta));
+    }
+    info(message, meta) {
+        this.nest_logger.log(this.format(message, meta));
+    }
+    warn(message, meta) {
+        this.nest_logger.warn(this.format(message, meta));
+    }
+    error(message, meta) {
+        this.nest_logger.error(this.format(message, meta));
+    }
+}
+exports.NestStructuredLoggerAdapter = NestStructuredLoggerAdapter;
+
+
+/***/ },
+
+/***/ "./libs/shared/src/utils/pagination.dto.ts"
+/*!*************************************************!*\
+  !*** ./libs/shared/src/utils/pagination.dto.ts ***!
+  \*************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
 
 
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
@@ -1549,192 +2157,174 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.sqs_config = void 0;
-exports.get_notifications_sqs_config_from_env = get_notifications_sqs_config_from_env;
-const config_1 = __webpack_require__(8);
-const class_transformer_1 = __webpack_require__(33);
-const class_validator_1 = __webpack_require__(34);
-const NOTIFICATIONS_SQS_OUTBOUND_QUEUE_URL_DEFAULT = 'http://127.0.0.1:4566/000000000000/notifications-ms-outbound-placeholder';
-class NotificationsSqsEnv {
-    aws_region = 'us-east-1';
-    aws_sqs_endpoint;
-    notifications_sqs_outbound_queue_url;
-    notifications_sqs_inbound_queue_url;
-    notifications_sqs_wait_time_seconds = 20;
-    notifications_sqs_max_number_of_messages = 10;
-    notifications_sqs_visibility_timeout_seconds = 30;
-    notifications_sqs_delete_on_validation_error = false;
+exports.PaginationRequestDto = void 0;
+const class_transformer_1 = __webpack_require__(/*! class-transformer */ "class-transformer");
+const class_validator_1 = __webpack_require__(/*! class-validator */ "class-validator");
+class PaginationRequestDto {
+    offset = 0;
+    limit = 20;
 }
-__decorate([
-    (0, class_validator_1.IsString)(),
-    __metadata("design:type", Object)
-], NotificationsSqsEnv.prototype, "aws_region", void 0);
-__decorate([
-    (0, class_validator_1.IsOptional)(),
-    (0, class_transformer_1.Transform)(({ value }) => (value === '' || value === undefined ? undefined : value)),
-    (0, class_validator_1.IsString)(),
-    __metadata("design:type", String)
-], NotificationsSqsEnv.prototype, "aws_sqs_endpoint", void 0);
-__decorate([
-    (0, class_validator_1.IsUrl)({ require_tld: false }),
-    __metadata("design:type", String)
-], NotificationsSqsEnv.prototype, "notifications_sqs_outbound_queue_url", void 0);
-__decorate([
-    (0, class_validator_1.IsOptional)(),
-    (0, class_transformer_1.Transform)(({ value }) => (value === '' || value === undefined ? undefined : value)),
-    (0, class_validator_1.IsUrl)({ require_tld: false }),
-    __metadata("design:type", String)
-], NotificationsSqsEnv.prototype, "notifications_sqs_inbound_queue_url", void 0);
+exports.PaginationRequestDto = PaginationRequestDto;
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_transformer_1.Type)(() => Number),
     (0, class_validator_1.IsInt)(),
     (0, class_validator_1.Min)(0),
-    (0, class_validator_1.Max)(20),
     __metadata("design:type", Object)
-], NotificationsSqsEnv.prototype, "notifications_sqs_wait_time_seconds", void 0);
+], PaginationRequestDto.prototype, "offset", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_transformer_1.Type)(() => Number),
     (0, class_validator_1.IsInt)(),
     (0, class_validator_1.Min)(1),
-    (0, class_validator_1.Max)(10),
+    (0, class_validator_1.Max)(500),
     __metadata("design:type", Object)
-], NotificationsSqsEnv.prototype, "notifications_sqs_max_number_of_messages", void 0);
-__decorate([
-    (0, class_validator_1.IsOptional)(),
-    (0, class_transformer_1.Type)(() => Number),
-    (0, class_validator_1.IsInt)(),
-    (0, class_validator_1.Min)(0),
-    (0, class_validator_1.Max)(43200),
-    __metadata("design:type", Object)
-], NotificationsSqsEnv.prototype, "notifications_sqs_visibility_timeout_seconds", void 0);
-__decorate([
-    (0, class_validator_1.IsOptional)(),
-    (0, class_transformer_1.Type)(() => Boolean),
-    (0, class_validator_1.IsBoolean)(),
-    __metadata("design:type", Object)
-], NotificationsSqsEnv.prototype, "notifications_sqs_delete_on_validation_error", void 0);
-function validate_notifications_sqs_env(config) {
-    const validated = (0, class_transformer_1.plainToInstance)(NotificationsSqsEnv, config, {
-        enableImplicitConversion: true,
-    });
-    const errors = (0, class_validator_1.validateSync)(validated, { skipMissingProperties: false });
-    if (errors.length > 0) {
-        const message = errors.map((e) => Object.values(e.constraints ?? {}).join(', ')).join('; ');
-        throw new Error(`Configuración SQS inválida (notifications-ms): ${message}`);
-    }
-    return validated;
-}
-function get_notifications_sqs_config_from_env() {
-    const outbound_raw = process.env.NOTIFICATIONS_SQS_OUTBOUND_QUEUE_URL?.trim();
-    const env = validate_notifications_sqs_env({
-        aws_region: process.env.AWS_REGION ?? 'us-east-1',
-        aws_sqs_endpoint: process.env.AWS_SQS_ENDPOINT,
-        notifications_sqs_outbound_queue_url: outbound_raw && outbound_raw.length > 0
-            ? outbound_raw
-            : NOTIFICATIONS_SQS_OUTBOUND_QUEUE_URL_DEFAULT,
-        notifications_sqs_inbound_queue_url: process.env.NOTIFICATIONS_SQS_INBOUND_QUEUE_URL,
-        notifications_sqs_wait_time_seconds: process.env.NOTIFICATIONS_SQS_WAIT_TIME_SECONDS ?? 20,
-        notifications_sqs_max_number_of_messages: process.env.NOTIFICATIONS_SQS_MAX_NUMBER_OF_MESSAGES ?? 10,
-        notifications_sqs_visibility_timeout_seconds: process.env.NOTIFICATIONS_SQS_VISIBILITY_TIMEOUT_SECONDS ?? 30,
-        notifications_sqs_delete_on_validation_error: process.env.NOTIFICATIONS_SQS_DELETE_ON_VALIDATION_ERROR === 'true',
-    });
-    const trim_url = (v) => {
-        if (v === undefined) {
-            return undefined;
-        }
-        const t = v.trim();
-        return t.length > 0 ? t : undefined;
-    };
-    return {
-        region: env.aws_region,
-        endpoint: env.aws_sqs_endpoint,
-        outbound_queue_url: env.notifications_sqs_outbound_queue_url,
-        inbound_queue_url: trim_url(env.notifications_sqs_inbound_queue_url),
-        wait_time_seconds: env.notifications_sqs_wait_time_seconds,
-        max_number_of_messages: env.notifications_sqs_max_number_of_messages,
-        visibility_timeout_seconds: env.notifications_sqs_visibility_timeout_seconds,
-        delete_on_validation_error: env.notifications_sqs_delete_on_validation_error,
-    };
-}
-exports.sqs_config = (0, config_1.registerAs)('sqs', () => get_notifications_sqs_config_from_env());
+], PaginationRequestDto.prototype, "limit", void 0);
 
 
-/***/ }),
-/* 53 */
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+/***/ },
 
+/***/ "@aws-sdk/client-sqs"
+/*!**************************************!*\
+  !*** external "@aws-sdk/client-sqs" ***!
+  \**************************************/
+(module) {
 
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
-var _a;
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.appController = void 0;
-const common_1 = __webpack_require__(6);
-const swagger_1 = __webpack_require__(9);
-const health_response_dto_1 = __webpack_require__(54);
-let appController = class appController {
-    health() {
-        return { status: 'ok', service: 'notifications-ms' };
-    }
-};
-exports.appController = appController;
-__decorate([
-    (0, common_1.Get)(),
-    (0, swagger_1.ApiOperation)({ summary: 'Estado del servicio' }),
-    (0, swagger_1.ApiOkResponse)({ description: 'Servicio operativo', type: health_response_dto_1.HealthResponseDto }),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
-    __metadata("design:returntype", typeof (_a = typeof health_response_dto_1.HealthResponseDto !== "undefined" && health_response_dto_1.HealthResponseDto) === "function" ? _a : Object)
-], appController.prototype, "health", null);
-exports.appController = appController = __decorate([
-    (0, swagger_1.ApiTags)('health'),
-    (0, common_1.Controller)('health')
-], appController);
+module.exports = require("@aws-sdk/client-sqs");
 
+/***/ },
 
-/***/ }),
-/* 54 */
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+/***/ "@nestjs/common"
+/*!*********************************!*\
+  !*** external "@nestjs/common" ***!
+  \*********************************/
+(module) {
 
+module.exports = require("@nestjs/common");
 
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.HealthResponseDto = void 0;
-const swagger_1 = __webpack_require__(9);
-class HealthResponseDto {
-    status;
-    service;
-}
-exports.HealthResponseDto = HealthResponseDto;
-__decorate([
-    (0, swagger_1.ApiProperty)({ example: 'ok' }),
-    __metadata("design:type", String)
-], HealthResponseDto.prototype, "status", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)({ example: 'notifications-ms' }),
-    __metadata("design:type", String)
-], HealthResponseDto.prototype, "service", void 0);
+/***/ },
 
+/***/ "@nestjs/config"
+/*!*********************************!*\
+  !*** external "@nestjs/config" ***!
+  \*********************************/
+(module) {
 
-/***/ })
-/******/ 	]);
+module.exports = require("@nestjs/config");
+
+/***/ },
+
+/***/ "@nestjs/core"
+/*!*******************************!*\
+  !*** external "@nestjs/core" ***!
+  \*******************************/
+(module) {
+
+module.exports = require("@nestjs/core");
+
+/***/ },
+
+/***/ "@nestjs/swagger"
+/*!**********************************!*\
+  !*** external "@nestjs/swagger" ***!
+  \**********************************/
+(module) {
+
+module.exports = require("@nestjs/swagger");
+
+/***/ },
+
+/***/ "class-transformer"
+/*!************************************!*\
+  !*** external "class-transformer" ***!
+  \************************************/
+(module) {
+
+module.exports = require("class-transformer");
+
+/***/ },
+
+/***/ "class-validator"
+/*!**********************************!*\
+  !*** external "class-validator" ***!
+  \**********************************/
+(module) {
+
+module.exports = require("class-validator");
+
+/***/ },
+
+/***/ "crypto"
+/*!*************************!*\
+  !*** external "crypto" ***!
+  \*************************/
+(module) {
+
+module.exports = require("crypto");
+
+/***/ },
+
+/***/ "dotenv"
+/*!*************************!*\
+  !*** external "dotenv" ***!
+  \*************************/
+(module) {
+
+module.exports = require("dotenv");
+
+/***/ },
+
+/***/ "fs"
+/*!*********************!*\
+  !*** external "fs" ***!
+  \*********************/
+(module) {
+
+module.exports = require("fs");
+
+/***/ },
+
+/***/ "path"
+/*!***********************!*\
+  !*** external "path" ***!
+  \***********************/
+(module) {
+
+module.exports = require("path");
+
+/***/ },
+
+/***/ "reflect-metadata"
+/*!***********************************!*\
+  !*** external "reflect-metadata" ***!
+  \***********************************/
+(module) {
+
+module.exports = require("reflect-metadata");
+
+/***/ },
+
+/***/ "resend"
+/*!*************************!*\
+  !*** external "resend" ***!
+  \*************************/
+(module) {
+
+module.exports = require("resend");
+
+/***/ },
+
+/***/ "twilio"
+/*!*************************!*\
+  !*** external "twilio" ***!
+  \*************************/
+(module) {
+
+module.exports = require("twilio");
+
+/***/ }
+
+/******/ 	});
 /************************************************************************/
 /******/ 	// The module cache
 /******/ 	var __webpack_module_cache__ = {};
@@ -1745,6 +2335,12 @@ __decorate([
 /******/ 		var cachedModule = __webpack_module_cache__[moduleId];
 /******/ 		if (cachedModule !== undefined) {
 /******/ 			return cachedModule.exports;
+/******/ 		}
+/******/ 		// Check if module exists (development only)
+/******/ 		if (__webpack_modules__[moduleId] === undefined) {
+/******/ 			var e = new Error("Cannot find module '" + moduleId + "'");
+/******/ 			e.code = 'MODULE_NOT_FOUND';
+/******/ 			throw e;
 /******/ 		}
 /******/ 		// Create a new module (and put it into the cache)
 /******/ 		var module = __webpack_module_cache__[moduleId] = {
@@ -1765,15 +2361,18 @@ var __webpack_exports__ = {};
 // This entry needs to be wrapped in an IIFE because it needs to be isolated against other modules in the chunk.
 (() => {
 var exports = __webpack_exports__;
+/*!*******************************************!*\
+  !*** ./apps/notifications-ms/src/main.ts ***!
+  \*******************************************/
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-__webpack_require__(1);
-__webpack_require__(2);
-const common_1 = __webpack_require__(6);
-const core_1 = __webpack_require__(7);
-const config_1 = __webpack_require__(8);
-const swagger_1 = __webpack_require__(9);
-const app_module_1 = __webpack_require__(10);
+__webpack_require__(/*! reflect-metadata */ "reflect-metadata");
+__webpack_require__(/*! ./config/dotenv.config */ "./apps/notifications-ms/src/config/dotenv.config.ts");
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const core_1 = __webpack_require__(/*! @nestjs/core */ "@nestjs/core");
+const config_1 = __webpack_require__(/*! @nestjs/config */ "@nestjs/config");
+const swagger_1 = __webpack_require__(/*! @nestjs/swagger */ "@nestjs/swagger");
+const app_module_1 = __webpack_require__(/*! ./app.module */ "./apps/notifications-ms/src/app.module.ts");
 async function bootstrap() {
     const app = await core_1.NestFactory.create(app_module_1.AppModule);
     app.setGlobalPrefix('api');

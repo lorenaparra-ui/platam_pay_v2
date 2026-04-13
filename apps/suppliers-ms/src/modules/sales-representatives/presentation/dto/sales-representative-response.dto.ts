@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { UserStates } from '@platam/shared';
+import { UserState } from '@platam/shared';
 
 export class SalesRepresentativeResponseDto {
   @ApiProperty()
@@ -20,8 +20,8 @@ export class SalesRepresentativeResponseDto {
   @ApiProperty({ nullable: true })
   user_role_name: string | null;
 
-  @ApiProperty({ enum: UserStates, nullable: true })
-  user_state: UserStates | null;
+  @ApiProperty({ enum: UserState, nullable: true })
+  user_state: UserState | null;
 
   @ApiProperty()
   created_at: Date;

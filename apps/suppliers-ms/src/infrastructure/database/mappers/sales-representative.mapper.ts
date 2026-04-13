@@ -1,5 +1,5 @@
 import { SalesRepresentativeEntity } from '@app/suppliers-data';
-import { UserStates } from '@platam/shared';
+import { UserState } from '@platam/shared';
 import {
   SalesRepresentative,
   type SalesRepresentativeLoadedUser,
@@ -40,7 +40,7 @@ export class SalesRepresentativeMapper {
       external_id: u.externalId,
       display_name,
       role_name: u.role.name,
-      state: u.state as UserStates,
+      state: u.state as UserState,
     };
   }
 

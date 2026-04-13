@@ -1,6 +1,5 @@
 import { Column, Entity, JoinColumn, OneToOne, RelationId } from 'typeorm';
 import { BaseExternalIdEntity } from '../../../products-data/src/entities/base-external-id.entity';
-import { BankAccountEntity } from '../../../suppliers-data/src/entities/bank-account.entity';
 import { DocTypes } from '@platam/shared';
 import { CityEntity } from './city.entity';
 
@@ -50,7 +49,11 @@ export class PersonEntity extends BaseExternalIdEntity {
   @RelationId((p: PersonEntity) => p.city)
   cityId: number;
 
-  @OneToOne(() => BankAccountEntity, { nullable: true })
-  @JoinColumn({ name: 'bank_account_id' })
-  bankAccount: BankAccountEntity | null;
+  /**
+   * FK opcional a `suppliers_schema.bank_accounts` (migración 197).
+   * Sin relación TypeORM hacia `BankAccountEntity` para no exigir esa entidad en el
+   * registro de `transversal-ms` / `TRANSVERSAL_DATA_ENTITIES` (evita metadata huérfana).
+   */
+  @Column({ name: 'bank_account_id', type: 'bigint', nullable: true })
+  bankAccountId: number | null;
 }

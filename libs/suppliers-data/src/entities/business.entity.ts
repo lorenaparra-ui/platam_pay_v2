@@ -24,6 +24,9 @@ export class BusinessEntity extends BaseExternalIdEntity {
   @JoinColumn({ name: 'city_id', referencedColumnName: 'id' })
   city: CityEntity;
 
+  @RelationId((b: BusinessEntity) => b.city)
+  cityId: number;
+
   @Column({ name: 'entity_type', type: 'varchar', length: 10 })
   entityType: string;
 

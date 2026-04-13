@@ -1,11 +1,11 @@
-import { UserStates } from '@platam/shared';
+import { UserState } from '@platam/shared';
 
 /** Datos de usuario resueltos en una sola consulta (join) para listados y lecturas. */
 export interface SalesRepresentativeLoadedUser {
   readonly external_id: string;
   readonly display_name: string;
   readonly role_name: string;
-  readonly state: UserStates;
+  readonly state: UserState;
 }
 
 export class SalesRepresentative {

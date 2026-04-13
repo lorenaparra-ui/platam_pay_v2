@@ -1,3 +1,5 @@
+import type { PartnerOnboardingSagaStatus } from '@platam/shared';
+
 export { PartnerOnboardingSagaStatus } from '@platam/shared';
 
 export const PARTNER_ONBOARDING_SAGA_REPOSITORY = Symbol(

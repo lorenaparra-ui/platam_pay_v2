@@ -1,5 +1,5 @@
 import type { SuppliersReferenceLookupPort } from '@common/ports/suppliers-reference-lookup.port';
-import { UserStates } from '@platam/shared';
+import { UserState } from '@platam/shared';
 import { SalesRepresentative } from '@modules/sales-representatives/domain/entities/sales-representative.entity';
 
 export interface SalesRepresentativePublicFields {
@@ -9,7 +9,7 @@ export interface SalesRepresentativePublicFields {
   user_external_id: string | null;
   user_display_name: string | null;
   user_role_name: string | null;
-  user_state: UserStates | null;
+  user_state: UserState | null;
   created_at: Date;
   updated_at: Date;
 }

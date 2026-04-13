@@ -25,6 +25,7 @@ const PERSON_SELECT = {
   residentialAddress: true,
   businessAddress: true,
   cityId: true,
+  bankAccountId: true,
   createdAt: true,
   updatedAt: true,
 } as const;
