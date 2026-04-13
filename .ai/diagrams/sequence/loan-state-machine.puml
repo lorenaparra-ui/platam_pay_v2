@@ -1,38 +1,35 @@
-@startuml loan-state-machine
+@startuml loan-lifecycle-state-machine
 !theme plain
-title Máquina de estados - Préstamo (Loan)
+title Ciclo de vida del préstamo — alineado a **LoanStatus** (@platam/shared)
 
-state "PENDING\n(solicitud creada)" as PENDING
-state "UNDER_REVIEW\n(en evaluación)" as UNDER_REVIEW
-state "APPROVED\n(aprobado, no desembolsado)" as APPROVED
-state "ACTIVE\n(desembolsado, con cuotas)" as ACTIVE
-state "PAID_OFF\n(pagado totalmente)" as PAID_OFF
-state "DEFAULTED\n(mora / incumplimiento)" as DEFAULTED
+state "ACTIVE\n(al día)" as ACTIVE
+state "LATE\n(mora según política)" as LATE
+state "DEFAULT\n(incumplimiento grave)" as DEFAULT
+state "PAID\n(saldado)" as PAID
 state "CANCELLED\n(cancelado)" as CANCELLED
 
-[*] --> PENDING : Crear LoanRequest
+[*] --> ACTIVE : Origen operativo\n(tabla loans en disbursement_schema;\nmodelo ORM mínimo hoy)
 
-PENDING --> UNDER_REVIEW : Iniciar evaluación
-UNDER_REVIEW --> APPROVED : Riesgo OK
-UNDER_REVIEW --> CANCELLED : Rechazado
+ACTIVE --> LATE : Incumplimiento de cuotas\nsegún calendario
+LATE --> ACTIVE : Regularización\n(pagos que cubren mora)
+LATE --> DEFAULT : Escalación según\npolítica de cartera
+ACTIVE --> PAID : Saldo cero
+LATE --> PAID : Liquidación total
+DEFAULT --> PAID : Recuperación total\n(castigo / quita según negocio)
+ACTIVE --> CANCELLED : Cancelación operativa
+LATE --> CANCELLED : Cancelación operativa
+DEFAULT --> CANCELLED : Baja definitiva
 
-APPROVED --> ACTIVE : Desembolso ejecutado
-APPROVED --> CANCELLED : Cliente cancela / expira oferta
-
-ACTIVE --> PAID_OFF : Última cuota pagada\n(balance = 0)
-ACTIVE --> DEFAULTED : Vencimiento sin pago\n(según política de días)
-
-DEFAULTED --> ACTIVE : Pago en mora recibido\n(reactivación)
-DEFAULTED --> PAID_OFF : Pago total en mora
-
-PAID_OFF --> [*]
+PAID --> [*]
 CANCELLED --> [*]
-DEFAULTED --> [*] : Escalación cobranza / castigo
 
 note right of ACTIVE
-  Estados intermedios por cuota:
-  - Cada Installment tiene su propio
-    estado (PENDING, PAID, OVERDUE)
+  **DisbursementStatus** gobierna el movimiento
+  de dinero (pending → disbursed | failed).
+  **PaymentsStatus** aplica a registros de pago
+  (applied, pending_review, reversed).
+  Detalle de cuotas puede modelarse aparte
+  cuando la entidad Loan se amplíe en ORM.
 end note
 
 @enduml

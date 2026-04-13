@@ -1,25 +1,25 @@
-%% ERD — PLATAM PAY v2 | Estado Real (Fuente: TypeORM entities)
-%% Actualizado: 2026-04-01
-%% 3 Schemas: transversal_schema | suppliers_schema | products_schema
+%% ERD — PLATAM PAY v2 | Alineado a entidades TypeORM en libs/*-data
+%% Orquestación: database/src/data-source.ts → ALL_DATA_ENTITIES
+%% Actualizado: 2026-04-13
 %%
-%% Convención de colores en notas:
-%%   [T] = transversal_schema
-%%   [S] = suppliers_schema
-%%   [P] = products_schema
+%% Schemas PostgreSQL: transversal_schema | suppliers_schema | products_schema
+%%                    | disbursement_schema | collections_schema
+%%
+%% Convención en notas: [T] transversal | [S] suppliers | [P] products | [D] disbursement | [C] collections
 
 erDiagram
 
   %% ──────────────────────────────────────────────
-  %% SCHEMA: transversal_schema
+  %% transversal_schema
   %% ──────────────────────────────────────────────
 
-  statuses {
-    bigint  id          PK
+  catalog_status_types {
+    bigint  id           PK
     uuid    external_id UK
     varchar entity_type "NOT NULL"
-    varchar code        "NOT NULL"
+    varchar code         "NOT NULL"
     varchar display_name
-    boolean is_active   "DEFAULT true"
+    boolean is_active
     tstz    created_at
     tstz    updated_at
   }
@@ -43,35 +43,34 @@ erDiagram
   }
 
   role_permissions {
-    bigint  id            PK
-    uuid    external_id   UK
-    bigint  role_id       FK
-    bigint  permission_id FK
+    bigint  id             PK
+    uuid    external_id    UK
+    bigint  role_id        FK
+    bigint  permission_id  FK
     tstz    created_at
     tstz    updated_at
   }
 
   currencies {
-    bigint  id             PK
-    uuid    external_id    UK
-    varchar code           UK "ISO 4217"
+    bigint  id              PK
+    uuid    external_id     UK
+    varchar code            UK
     varchar name
     varchar symbol
-    int     decimal_places "DEFAULT 2"
+    int     decimal_places
     boolean is_active
     tstz    created_at
     tstz    updated_at
   }
 
   cities {
-    bigint  id           PK
-    uuid    external_id  UK
+    bigint  id            PK
+    uuid    external_id   UK
     varchar country_name
-    varchar country_code "CHECK ^[A-Z]{2}$"
+    varchar country_code
     varchar state_name
-    varchar state_code
     varchar city_name
-    bigint  currency_id  FK
+    bigint  currency_id   FK
     tstz    created_at
     tstz    updated_at
   }
@@ -82,61 +81,86 @@ erDiagram
     uuid    cognito_sub   UK
     varchar email         UK
     bigint  role_id       FK
-    varchar state         "ENUM: active|inactive (no FK)"
-    bigint  person_id     "ref implícita a persons"
+    bigint  parent_id     FK "jerarquía opcional"
+    varchar state         "ENUM user_state"
+    bigint  person_id     FK
     tstz    last_login_at
     tstz    created_at
     tstz    updated_at
   }
 
   persons {
-    bigint  id                  PK
-    uuid    external_id         UK
+    bigint  id           PK
+    uuid    external_id  UK
     varchar country_code
-    varchar first_name          "PII AES-256"
-    varchar last_name           "PII AES-256"
+    varchar first_name
+    varchar last_name
     varchar doc_type
-    varchar doc_number          UK "PII AES-256"
-    date    doc_issue_date
-    date    birth_date          "PII"
-    varchar gender
-    varchar phone               "PII"
-    text    residential_address "PII"
-    text    business_address
-    bigint  city_id             FK
+    varchar doc_number   UK
+    bigint  city_id      FK
+    varchar state        "ENUM person record"
     tstz    created_at
     tstz    updated_at
   }
 
+  global_params {
+    bigint  id          PK
+    uuid    external_id UK
+    varchar code        "UQ con valid_from"
+    jsonb   value
+    date    valid_from
+    bigint  created_by  FK "users"
+    tstz    created_at
+  }
+
+  audit_logs {
+    bigint  id          PK
+    uuid    external_id UK
+    varchar entity_type "ENUM audit_log_entity_type"
+    bigint  entity_id
+    varchar action       "ENUM audit_log_action_type"
+    jsonb   old_value
+    jsonb   new_value
+    bigint  performed_by FK "users"
+    tstz    performed_at
+  }
+
+  upload_files_idempotency {
+    bigint id PK
+    uuid   correlation_id
+    varchar status
+    tstz   created_at
+  }
+
+  partner_create_user_sqs_idempotency {
+    bigint id PK
+    uuid   message_id UK
+    tstz   created_at
+  }
+
   %% ──────────────────────────────────────────────
-  %% SCHEMA: suppliers_schema
+  %% suppliers_schema
   %% ──────────────────────────────────────────────
 
   business_seniority {
     bigint  id          PK
     uuid    external_id UK
-    varchar description "NOT NULL"
-    int     range_start "NOT NULL"
-    int     range_end   "NOT NULL"
+    varchar description
+    int     range_start
+    int     range_end
     tstz    created_at
     tstz    updated_at
   }
 
   businesses {
-    bigint  id                       PK
-    uuid    external_id              UK
-    bigint  person_id                FK "NO user_id — diferencia critica"
-    bigint  business_seniority_id    FK
-    bigint  city_id                  FK
-    varchar entity_type              "CHECK: PN|PJ"
-    varchar business_name
-    text    business_address
-    varchar business_type            "CIIU"
-    varchar relationship_to_business
-    varchar legal_name
-    varchar trade_name
-    varchar tax_id                   UK "PII NIT/RUT"
-    int     year_of_establishment
+    bigint  id                    PK
+    uuid    external_id           UK
+    bigint  person_id             FK
+    bigint  business_seniority_id FK
+    bigint  city_id               FK
+    varchar entity_type
+    varchar tax_id                UK
+    varchar state                 "ENUM business lifecycle"
     tstz    created_at
     tstz    updated_at
   }
@@ -145,46 +169,37 @@ erDiagram
     bigint  id          PK
     uuid    external_id UK
     bigint  person_id   FK
-    boolean is_primary  "DEFAULT true"
+    boolean is_primary
     tstz    created_at
     tstz    updated_at
   }
 
   bank_accounts {
-    bigint  id                 PK
-    uuid    external_id        UK
-    varchar bank_entity        "NOT NULL"
-    varchar account_number     "PII AES-256 en ORM"
-    text    bank_certification
+    bigint  id          PK
+    uuid    external_id UK
+    varchar bank_entity
+    varchar account_number
+    varchar state       "ENUM bank account"
     tstz    created_at
     tstz    updated_at
   }
 
   suppliers {
-    bigint  id                      PK
-    uuid    external_id             UK
-    bigint  business_id             FK "UNIQUE — 1:1"
-    bigint  legal_representative_id FK
-    bigint  bank_account_id         FK "UNIQUE — 1:1"
+    bigint  id                       PK
+    uuid    external_id               UK
+    bigint  business_id               FK "UNIQUE 1:1"
+    bigint  legal_representative_id   FK
+    bigint  bank_account_id           FK "UNIQUE 1:1"
+    varchar state                     "ENUM supplier"
     tstz    created_at
     tstz    updated_at
   }
 
   partners {
-    bigint  id                              PK
-    uuid    external_id                     UK
-    bigint  supplier_id                     FK "UNIQUE — 1:1"
-    varchar acronym
-    text    logo_url
-    text    co_branding_logo_url
-    varchar primary_color
-    varchar secondary_color
-    varchar light_color
-    varchar notification_email
-    text    webhook_url
-    boolean send_sales_rep_voucher          "DEFAULT false"
-    varchar disbursement_notification_email
-    varchar state                           "ENUM: active|inactive|blocked (no FK)"
+    bigint  id          PK
+    uuid    external_id UK
+    bigint  supplier_id FK "UNIQUE 1:1"
+    varchar state       "ENUM partner"
     tstz    created_at
     tstz    updated_at
   }
@@ -194,9 +209,15 @@ erDiagram
     uuid    external_id UK
     bigint  partner_id  FK
     bigint  user_id     FK
-    varchar name        "no mapeado en TypeORM aun"
-    varchar role        "no mapeado en TypeORM aun"
-    bigint  status_id   FK "no mapeado en TypeORM aun"
+    varchar state       "ENUM sales_representative_state"
+    tstz    created_at
+    tstz    updated_at
+  }
+
+  shareholders {
+    bigint  id          PK
+    uuid    external_id UK
+    bigint  business_id FK
     tstz    created_at
     tstz    updated_at
   }
@@ -204,44 +225,35 @@ erDiagram
   purchase_orders {
     bigint   id           PK
     uuid     external_id  UK
-    varchar  user_id      "VARCHAR externo — NO FK bigint"
+    varchar  external_user_id "sin FK bigint"
     bigint   supplier_id  FK
-    decimal  amount       "NUMERIC(18,2) CHECK > 0"
-    text     document_url
+    decimal  amount
     tstz     created_at
     tstz     updated_at
   }
 
   partner_onboarding_sagas {
-    bigint    id                          PK
-    uuid      external_id                UK
-    uuid      correlation_id             "NOT NULL"
-    varchar   status                     "NOT NULL"
-    smallint  current_step               "DEFAULT 0"
-    uuid      credit_facility_external_id
-    uuid      user_external_id
-    uuid      person_external_id
-    uuid      business_external_id
-    uuid      bank_account_external_id
-    uuid      partner_external_id
-    text      error_message
+    bigint    id           PK
+    uuid      external_id  UK
+    uuid      correlation_id
+    varchar   status       "RUNNING|COMPLETED|..."
+    smallint  current_step
     tstz      created_at
     tstz      updated_at
   }
 
   %% ──────────────────────────────────────────────
-  %% SCHEMA: products_schema
+  %% products_schema
   %% ──────────────────────────────────────────────
 
   contract_templates {
-    bigint  id                   PK
-    uuid    external_id          UK
-    varchar template_family_key  "NOT NULL"
-    int     version              "NOT NULL"
-    tstz    effective_from
-    tstz    effective_to
-    varchar zapsign_template_ref
-    bigint  status_id            FK
+    bigint  id          PK
+    uuid    external_id UK
+    varchar name
+    text    description
+    text    template_url "S3"
+    varchar version
+    varchar state       "ENUM ContractTemplateCatalogStatus"
     tstz    created_at
     tstz    updated_at
   }
@@ -249,10 +261,10 @@ erDiagram
   contracts {
     bigint  id                   PK
     uuid    external_id          UK
-    bigint  user_id              FK
-    bigint  contract_template_id FK
-    varchar zapsign_token        UK
-    bigint  status_id            FK
+    bigint  user_id               "bigint nullable"
+    bigint  contract_template_id  FK
+    varchar zapsign_token         UK
+    varchar state                 "ENUM contract_catalog_status"
     text    original_file_url
     text    signed_file_url
     jsonb   form_answers_json
@@ -263,104 +275,227 @@ erDiagram
   credit_facilities {
     bigint   id          PK
     uuid     external_id UK
-    bigint   contract_id FK "OneToOne — contrato que activa facility"
-    varchar  state       "ENUM: active|inactive|... (no FK)"
-    decimal  total_limit "NUMERIC(18,4) — nunca float"
+    bigint   contract_id FK "OneToOne opcional"
+    bigint   business_id  FK
+    varchar  state       "ENUM credit_facility_state"
+    decimal  total_limit
     tstz     created_at
     tstz     updated_at
   }
 
+  client_category_assignments {
+    bigint credit_facility_id FK
+    bigint category_id        FK
+  }
+
   categories {
-    bigint   id                       PK
-    uuid     external_id              UK
-    bigint   credit_facility_id       FK "onDelete CASCADE"
-    bigint   partner_id               FK "onDelete SET NULL"
-    varchar  name                     "NOT NULL"
-    decimal  discount_percentage      "NUMERIC(8,4)"
-    decimal  interest_rate            "NUMERIC(8,4)"
-    decimal  disbursement_fee_percent
-    decimal  minimum_disbursement_fee
-    int      delay_days               "NOT NULL"
-    int      term_days                "NOT NULL"
-    varchar  state                    "ENUM: credit_facility_state (no FK)"
+    bigint   id          PK
+    uuid     external_id UK
+    bigint   partner_id  FK "nullable SET NULL"
+    varchar  name
+    varchar  modality    "ENUM loan_request_modality"
+    varchar  state       "ENUM category"
+    decimal  interest_rate
     tstz     created_at
     tstz     updated_at
   }
 
   credit_applications {
-    bigint   id                    PK
-    uuid     external_id           UK
-    bigint   person_id             FK "NO user_id — diferencia critica"
-    bigint   partner_id            FK
-    bigint   partner_category_id   FK
-    bigint   business_id           FK
-    bigint   contract_id           FK "OneToOne inverso"
-    int      number_of_locations
-    int      number_of_employees
-    varchar  business_seniority    "VARCHAR — deuda tecnica (deberia ser FK)"
-    int      business_flagship_m2
-    boolean  business_has_rent
-    bigint   business_rent_amount  "centavos"
-    bigint   monthly_income        "centavos"
-    bigint   monthly_expenses      "centavos"
-    bigint   requested_credit_line "centavos"
-    boolean  is_current_client     "DEFAULT false"
-    bigint   status_id             FK
+    bigint   id                      PK
+    uuid     external_id             UK
+    bigint   person_id               FK
+    bigint   partner_id              FK
+    bigint   partner_category_id    FK
+    bigint   business_id             FK
+    bigint   sales_representative_id FK
+    varchar  status                  "ENUM credit_application_status nativo PG"
+    bigint   requested_credit_line   "centavos"
     tstz     submission_date
-    tstz     approval_date
-    varchar  rejection_reason
-    decimal  credit_score
-    varchar  credit_decision
-    bigint   approved_credit_line  "centavos"
-    text     analyst_report
-    boolean  privacy_policy_accepted
     tstz     created_at
     tstz     updated_at
   }
 
+  documents {
+    bigint id PK
+    uuid   external_id UK
+    bigint credit_application_id FK
+    varchar verification_status "ENUM"
+    tstz   created_at
+  }
+
+  loan_requests {
+    bigint id PK
+    uuid   external_id UK
+    varchar status "ENUM loan_request_status"
+    tstz   created_at
+  }
+
+  experian_queries {
+    bigint id PK
+    uuid   external_id UK
+    varchar status
+    tstz   created_at
+  }
+
+  sarlaft_checks {
+    bigint id PK
+    uuid   external_id UK
+    varchar status
+    tstz   created_at
+  }
+
+  web_queries {
+    bigint id PK
+    uuid   external_id UK
+    tstz   created_at
+  }
+
+  ai_agent_analyses {
+    bigint id PK
+    uuid   external_id UK
+    tstz   created_at
+  }
+
+  usura_rates {
+    bigint id PK
+    uuid   external_id UK
+    decimal rate
+    date   valid_from
+    tstz   created_at
+  }
 
   %% ──────────────────────────────────────────────
-  %% RELACIONES
+  %% disbursement_schema
   %% ──────────────────────────────────────────────
 
-  %% transversal_schema
-  roles          ||--o{ role_permissions     : "tiene"
-  permissions    ||--o{ role_permissions     : "asignado a"
-  roles          ||--o{ users               : "asignado a"
-  currencies     ||--o{ cities              : "moneda de"
-  cities         ||--o{ persons             : "ciudad de"
+  loans {
+    bigint id          PK
+    uuid   external_id UK
+    tstz   created_at
+    tstz   updated_at
+  }
 
-  %% suppliers_schema ↔ transversal_schema
-  persons        ||--o{ businesses          : "dueño de (person_id)"
-  persons        ||--o{ legal_representatives : "representa como"
-  cities         ||--o{ businesses          : "ubicado en"
-  business_seniority ||--o{ businesses      : "antigüedad"
-  users          ||--o{ sales_representatives : "usuario vinculado"
+  disbursement_batches {
+    bigint id          PK
+    uuid   external_id UK
+    varchar status "ENUM disbursement_batches_status"
+    tstz   created_at
+    tstz   updated_at
+  }
 
-  %% suppliers_schema interno
-  businesses     ||--|| suppliers           : "es supplier de (1:1)"
-  legal_representatives ||--o{ suppliers    : "rep legal de"
-  bank_accounts  ||--|| suppliers           : "cuenta de (1:1)"
-  suppliers      ||--|| partners            : "config de (1:1)"
-  partners       ||--o{ sales_representatives : "tiene"
-  suppliers      ||--o{ purchase_orders     : "recibe"
+  disbursements {
+    bigint id          PK
+    uuid   external_id UK
+    bigint loan_id
+    bigint loan_request_id
+    bigint partner_id
+    bigint supplier_id
+    bigint bank_account_id
+    bigint batch_id FK
+    varchar disbursement_type "ENUM"
+    varchar status          "ENUM disbursement_status"
+    decimal amount
+    tstz   created_at
+    tstz   updated_at
+  }
 
-  %% products_schema ↔ transversal_schema
-  users          ||--o{ contracts           : "firmante"
-  statuses       ||--o{ contracts           : "estado de"
-  statuses       ||--o{ contract_templates  : "estado de"
-  statuses       ||--o{ credit_applications : "estado de"
-  statuses       ||--o{ sales_representatives : "estado de"
+  payments {
+    bigint id          PK
+    uuid   external_id UK
+    tstz   created_at
+    tstz   updated_at
+  }
 
-  %% products_schema ↔ suppliers_schema
-  partners       ||--o{ categories          : "categoría de"
-  partners       ||--o{ credit_applications : "solicitud via"
-  businesses     ||--o{ credit_applications : "negocio solicitante"
-  persons        ||--o{ credit_applications : "solicitante (person_id)"
+  payment_allocations {
+    bigint id PK
+    uuid   external_id UK
+    bigint payment_id FK
+    bigint loan_id    FK
+  }
 
-  %% products_schema interno
-  contract_templates ||--o{ contracts       : "plantilla de"
-  contracts      ||--|| credit_facilities   : "activa (1:1)"
-  credit_facilities ||--o{ categories       : "condiciones de"
-  contracts      ||--o{ credit_applications : "contrato de (inverso)"
-  categories     ||--o{ credit_applications : "categoría aplicada"
+  adjustments {
+    bigint id PK
+    uuid   external_id UK
+    bigint loan_id FK
+    bigint partner_id FK
+    bigint disbursement_batch_id FK
+    varchar status "ENUM adjustments_status"
+    tstz   created_at
+    tstz   updated_at
+  }
+
+  accruals {
+    bigint id PK
+    bigint loan_id FK
+    date   calculation_date
+    decimal balance_principal_overdue
+  }
+
+  %% ──────────────────────────────────────────────
+  %% collections_schema
+  %% ──────────────────────────────────────────────
+
+  collection_fee_rules {
+    bigint id PK
+    uuid   external_id UK
+    int    days_overdue
+    decimal fee_rate
+    date   valid_from
+    bigint created_by FK "users"
+    tstz   created_at
+  }
+
+  %% ──────────────────────────────────────────────
+  %% Relaciones principales
+  %% ──────────────────────────────────────────────
+
+  roles            ||--o{ role_permissions      : ""
+  permissions      ||--o{ role_permissions      : ""
+  roles            ||--o{ users                 : ""
+  currencies       ||--o{ cities                : ""
+  cities           ||--o{ persons               : ""
+  persons          ||--o| users                 : "person_id"
+  users            ||--o{ users                 : "parent_id"
+  users            ||--o{ audit_logs           : "performed_by"
+  users            ||--o{ global_params        : "created_by"
+
+  persons          ||--o{ businesses            : ""
+  cities           ||--o{ businesses            : ""
+  business_seniority ||--o{ businesses          : ""
+  businesses       ||--o{ shareholders          : ""
+
+  persons          ||--o{ legal_representatives : ""
+  businesses       ||--|| suppliers             : ""
+  legal_representatives ||--o{ suppliers        : ""
+  bank_accounts    ||--|| suppliers             : ""
+  suppliers        ||--|| partners              : ""
+  partners         ||--o{ sales_representatives : ""
+  users            ||--|| sales_representatives : "user_id"
+  suppliers        ||--o{ purchase_orders      : ""
+
+  contract_templates ||--o{ contracts           : ""
+  contracts        ||--o| credit_facilities     : "contract_id"
+  businesses       ||--o{ credit_facilities     : ""
+  credit_facilities ||--o{ client_category_assignments : ""
+  categories       ||--o{ client_category_assignments : ""
+  partners         ||--o{ categories            : ""
+
+  partners         ||--o{ credit_applications   : ""
+  persons          ||--o{ credit_applications   : ""
+  businesses       ||--o{ credit_applications   : ""
+  categories       ||--o{ credit_applications   : "partner_category_id"
+  sales_representatives ||--o{ credit_applications : ""
+
+  credit_applications ||--o{ documents          : ""
+
+  disbursement_batches ||--o{ disbursements    : ""
+  loans                ||--o{ disbursements     : "loan_id opcional"
+  loans                ||--o{ accruals          : ""
+  loans                ||--o{ adjustments       : ""
+  partners             ||--o{ adjustments       : ""
+  disbursement_batches ||--o{ adjustments       : ""
+
+  payments             ||--o{ payment_allocations : ""
+  loans                ||--o{ payment_allocations : ""
+
+  users                ||--o{ collection_fee_rules : "created_by"

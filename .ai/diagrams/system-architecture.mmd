@@ -1,34 +1,75 @@
-%% Sistema - Arquitectura de alto nivel
-%% Ejemplo Mermaid: ajustar según el diseño real
+%% Sistema Platam Pay v2 — arquitectura alineada a monorepo
+%% Fuente: apps/*, libs/*, database/src/data-source.ts
+%% Actualizado: 2026-04-13
 
 flowchart TB
-    subgraph Clients
-        Web[Web App]
-        WhatsApp[WhatsApp / Bot]
+    subgraph Clients["Clientes"]
+        Web["Web / portales / integraciones B2B"]
     end
 
-    subgraph "apps/"
-        API[api - Backend]
-        Worker[worker - Jobs]
+    subgraph Apps["apps/ — microservicios NestJS"]
+        TransversalMS["transversal-ms"]
+        SuppliersMS["suppliers-ms"]
+        ProductsMS["products-ms"]
+        ContractsMS["contracts-ms"]
+        NotificationsMS["notifications-ms"]
     end
 
-    subgraph "packages/"
-        Shared[shared]
-        DB[(database)]
-        Integrations[integration-clients]
+    subgraph Libs["libs/ — datos y transversal técnico"]
+        Shared["@platam/shared — dominio, enums, SQS base"]
+        TransversalData["transversal-data — transversal_schema"]
+        SuppliersData["suppliers-data — suppliers_schema"]
+        ProductsData["products-data — products_schema"]
+        DisbursementData["disbursement-data — disbursement_schema"]
+        CollectionsData["collections-data — collections_schema"]
     end
 
-    subgraph External
-        Payvalida[Payvalida]
-        Twilio[Twilio]
+    subgraph DatabasePkg["database/ — @platam/database"]
+        DataSource["data-source.ts — ALL_DATA_ENTITIES"]
+        Migrations["migrations/*.ts — TypeORM"]
     end
 
-    Web --> API
-    WhatsApp --> API
-    API --> Shared
-    API --> DB
-    API --> Integrations
-    Worker --> DB
-    Worker --> Integrations
-    Integrations --> Payvalida
-    Integrations --> Twilio
+    subgraph Infra["Infraestructura típica"]
+        PG[("PostgreSQL — 5 schemas")]
+        SQS["Amazon SQS"]
+        Cognito["Amazon Cognito"]
+        ObjStore["Almacenamiento objetos p.ej. S3"]
+    end
+
+    Web --> TransversalMS
+    Web --> SuppliersMS
+    Web --> ProductsMS
+    Web --> ContractsMS
+
+    TransversalMS --> Shared
+    TransversalMS --> TransversalData
+    SuppliersMS --> Shared
+    SuppliersMS --> SuppliersData
+    SuppliersMS --> TransversalData
+    ProductsMS --> Shared
+    ProductsMS --> ProductsData
+    ProductsMS --> SuppliersData
+    ProductsMS --> TransversalData
+    ContractsMS --> Shared
+    ContractsMS --> ProductsData
+    ContractsMS --> TransversalData
+    NotificationsMS --> Shared
+
+    TransversalData --> DataSource
+    SuppliersData --> DataSource
+    ProductsData --> DataSource
+    DisbursementData --> DataSource
+    CollectionsData --> DataSource
+
+    DataSource --> Migrations
+    Migrations --> PG
+
+    TransversalMS --> SQS
+    SuppliersMS --> SQS
+    ProductsMS --> SQS
+    ContractsMS --> SQS
+    NotificationsMS --> SQS
+
+    TransversalMS --> Cognito
+    TransversalMS --> ObjStore
+    ContractsMS --> ObjStore

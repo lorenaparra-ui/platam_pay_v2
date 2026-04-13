@@ -1,23 +1,49 @@
-%% Flujos de usuario principales
-%% Completar con flujos reales: onboarding, solicitud de préstamo, cobranza, etc.
+%% Flujos de negocio de alto nivel (alineado a MS + dominios en libs/)
+%% Actualizado: 2026-04-13
 
-flowchart LR
-    subgraph Onboarding
-        A1[Registro] --> A2[KYC]
-        A2 --> A3[Aprobación]
-        A3 --> A4[Activación]
+flowchart TB
+    subgraph Transversal["transversal-ms + transversal-data"]
+        T1["Usuarios / roles / permisos"]
+        T2["Personas / ciudades / divisas"]
+        T3["Catálogos de estado transversal"]
+        T4["Auditoría / parámetros globales"]
     end
 
-    subgraph Loan
-        B1[Solicitud] --> B2[Evaluación]
-        B2 --> B3[Desembolso]
-        B3 --> B4[Cuotas]
+    subgraph Suppliers["suppliers-ms + suppliers-data"]
+        S1["Negocios / proveedores / socios"]
+        S2["Cuentas bancarias / órdenes de compra"]
+        S3["Onboarding partner — saga"]
+        S4["Asesores comerciales"]
     end
 
-    subgraph Collections
-        C1[Vencimiento] --> C2[Recordatorio]
-        C2 --> C3[Pago / Mora]
+    subgraph Products["products-ms + products-data"]
+        P1["Solicitudes de crédito — credit_applications"]
+        P2["Facilidades / categorías — assignments"]
+        P3["Contratos / plantillas / documentos"]
+        P4["Consultas Experian / SARLAFT / web / IA"]
+        P5["Solicitudes de desembolso — loan_requests"]
     end
 
-    Onboarding --> Loan
-    Loan --> Collections
+    subgraph Contracts["contracts-ms"]
+        C1["Firma electrónica — integración plantillas"]
+    end
+
+    subgraph DisbursementColl["disbursement-data + collections-data"]
+        D1["Lotes y desembolsos"]
+        D2["Préstamos — loans mínimo hoy"]
+        D3["Pagos y aplicaciones"]
+        D4["Reglas de fee de cobranza"]
+    end
+
+    T2 --> S1
+    S1 --> S3
+    S3 --> P2
+    T1 --> S4
+    S4 --> P1
+    P1 --> P3
+    P3 --> C1
+    C1 --> P2
+    P5 --> D1
+    D1 --> D2
+    D2 --> D3
+    D3 --> D4

@@ -1,42 +1,55 @@
-@startuml loan-approval-sequence
+@startuml credit-application-evaluation-sequence
 !theme plain
-title Flujo de aprobación de préstamo (secuencia)
+title Evaluación de solicitud de crédito (secuencia — dominio actual)
 
-actor "Cliente" as Client
-participant "Web / WhatsApp" as Channel
-participant "API" as API
-participant "LoanService" as LoanSvc
-participant "RiskEngine" as Risk
-participant "Database" as DB
-participant "Payvalida" as Payvalida
-participant "Notifier" as Notifier
+actor "Cliente / asesor" as Actor
+participant "Canal HTTP" as Channel
+participant "products-ms" as ProductsMS
+participant "suppliers-ms\n(partner / categoría)" as SuppliersMS
+participant "transversal-ms\n(persona / usuario)" as TransversalMS
+participant "Motor de riesgo /\nreglas (interno o worker)" as Risk
+database "PostgreSQL\n(products_schema + …)" as DB
+participant "Proveedores externos\n(Experian / SARLAFT / …)" as External
+participant "notifications-ms" as Notify
 
-== Solicitud ==
-Client -> Channel: Crear solicitud de préstamo (monto, producto)
-Channel -> API: POST /api/loan-requests
-API -> LoanSvc: createRequest(userId, amount, productType)
-LoanSvc -> DB: Guardar LoanRequest (status: PENDING)
-LoanSvc --> API: LoanRequest creado
-API --> Channel: 201 Created
+== Creación / actualización de solicitud ==
+Actor -> Channel: Enviar datos de credit_application
+Channel -> ProductsMS: API solicitud de crédito
+ProductsMS -> DB: Persistir credit_applications\n(status IN_PROGRESS / …)
+ProductsMS -> SuppliersMS: Validar partner / categoría / negocio
+SuppliersMS --> ProductsMS: Contexto proveedor
+ProductsMS -> TransversalMS: Validar persona / usuario si aplica
+TransversalMS --> ProductsMS: OK
+ProductsMS --> Channel: Respuesta (id / estado)
 
-== Evaluación (worker o síncrono) ==
-API -> Risk: evaluateRequest(loanRequestId)
-Risk -> DB: Obtener historial del usuario
-Risk -> Payvalida: Consultar scoring / validación
-Payvalida --> Risk: Resultado validación
-Risk -> Risk: Aplicar reglas de negocio
-alt Aprobado
-  Risk -> DB: Actualizar LoanRequest (APPROVED)
-  Risk -> LoanSvc: createLoan(loanRequestId)
-  LoanSvc -> DB: Crear Loan + Installments
-  LoanSvc -> Notifier: notifyApproval(client, loan)
-  Notifier -> Client: Email / WhatsApp: "Préstamo aprobado"
-else Rechazado
-  Risk -> DB: Actualizar LoanRequest (REJECTED), guardar motivo
-  Risk -> Notifier: notifyRejection(client, reason)
-  Notifier -> Client: "Solicitud no aprobada"
+== Pipeline de verificación (asíncrono o por pasos) ==
+ProductsMS -> External: Consultas listas (Experian / SARLAFT / web)
+External --> ProductsMS: Resultados
+ProductsMS -> DB: experian_queries / sarlaft_checks /\nweb_queries / ai_agent_analyses
+alt Requiere más datos
+  ProductsMS -> Notify: Evento al cliente / asesor
+  Notify -> Actor: Notificación
 end
-Risk --> API: Resultado evaluación
-API --> Channel: (async o webhook)
+
+== Decisión ==
+ProductsMS -> Risk: evaluate(application_id)
+Risk -> DB: Leer solicitud + históricos relevantes
+Risk -> Risk: Reglas de negocio + políticas
+alt Autorizado
+  Risk -> DB: status → AUTHORIZED\n(approved_credit_line, fechas)
+  Risk -> Notify: notify_authorized
+else Rechazado / cerrado
+  Risk -> DB: status → REJECTED | CLOSED |\nCANCELLED + motivo si aplica
+  Risk -> Notify: notify_outcome
+end
+Risk --> ProductsMS: Resultado
+ProductsMS --> Channel: Estado final (sync o callback)
+
+note over ProductsMS, DB
+  Estados de flujo: ver enum
+  **CreditApplicationStatus** en @platam/shared.
+  No existe entidad "LoanRequest" en este diagrama de secuencia
+  salvo que el flujo de negocio la acople después de autorización.
+end note
 
 @enduml
