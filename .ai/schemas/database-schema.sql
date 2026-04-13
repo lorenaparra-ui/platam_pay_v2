@@ -1,6 +1,6 @@
 -- =============================================================================
 -- PLATAM PAY v2 — DDL Estado Real (Sincronizado con TypeORM entities)
--- Versión: 2.0 | Fecha: 2026-04-01
+-- Versión: 2.0 | Fecha: 2026-04-13
 -- Motor: PostgreSQL 15+ | Extensión: pgcrypto
 --
 -- SCHEMAS REALES:
@@ -15,8 +15,8 @@
 --   3. contracts NO tiene application_id; el vínculo es inverso:
 --      credit_applications.contract_id → contracts.id.
 --   4. purchase_orders.user_id es VARCHAR (referencia externa, no FK).
---   5. sales_representatives tiene columnas name/role/status_id en BD
---      que aún no están mapeadas en la entidad TypeORM.
+--   5. sales_representatives: state → ENUM suppliers_schema.sales_representative_state;
+--      is_default boolean NOT NULL DEFAULT false (TypeORM SalesRepresentativeEntity).
 -- =============================================================================
 
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
@@ -385,6 +385,8 @@ COMMENT ON TABLE suppliers_schema.suppliers IS 'Tabla delgada de identificación
 -- ---------------------------------------------------------------------------
 CREATE TYPE suppliers_schema.partner_state AS ENUM ('active', 'inactive', 'blocked');
 
+CREATE TYPE suppliers_schema.sales_representative_state AS ENUM ('active', 'inactive');
+
 -- ---------------------------------------------------------------------------
 -- Partners — configuración visual y operativa (1:1 con suppliers)
 -- ---------------------------------------------------------------------------
@@ -413,25 +415,23 @@ COMMENT ON COLUMN suppliers_schema.partners.state IS 'ENUM: active|inactive|bloc
 
 
 -- ---------------------------------------------------------------------------
--- Representantes de ventas
--- NOTA: name, role, status_id existen en BD pero no están mapeados en TypeORM
+-- Representantes de ventas (libs/suppliers-data: sales-representative.entity.ts)
 -- ---------------------------------------------------------------------------
 CREATE TABLE suppliers_schema.sales_representatives (
   id          BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   external_id UUID   NOT NULL UNIQUE DEFAULT gen_random_uuid(),
   partner_id  BIGINT NOT NULL REFERENCES suppliers_schema.partners(id),
-  user_id     BIGINT REFERENCES transversal_schema.users(id),
-  -- Columnas en BD no mapeadas en entidad TypeORM (pendiente de mapear):
-  name        VARCHAR(255),
-  role        VARCHAR(100),
-  status_id   BIGINT REFERENCES transversal_schema.catalog_status_types(id),
+  user_id     BIGINT NOT NULL REFERENCES transversal_schema.users(id),
+  state       suppliers_schema.sales_representative_state NOT NULL DEFAULT 'active',
+  is_default  BOOLEAN NOT NULL DEFAULT FALSE,
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 CREATE INDEX idx_sales_reps_partner_id ON suppliers_schema.sales_representatives (partner_id);
 CREATE INDEX idx_sales_reps_user_id    ON suppliers_schema.sales_representatives (user_id);
-COMMENT ON TABLE suppliers_schema.sales_representatives IS '⚠ name, role, status_id existen en BD pero no están mapeados en la entidad TypeORM actual.';
+COMMENT ON COLUMN suppliers_schema.sales_representatives.state IS 'ENUM nativo; alineado con @platam/shared SalesRepresentativeRecordState.';
+COMMENT ON COLUMN suppliers_schema.sales_representatives.is_default IS 'Representante predeterminado del partner; default false.';
 
 
 -- ---------------------------------------------------------------------------

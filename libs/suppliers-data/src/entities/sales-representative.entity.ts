@@ -37,4 +37,11 @@ export class SalesRepresentativeEntity extends BaseExternalIdEntity {
 
   @RelationId((sr: SalesRepresentativeEntity) => sr.user)
   userId: number;
+
+  @Column({
+    name: 'is_default',
+    type: 'boolean',
+    default: false,
+  })
+  is_default: boolean;
 }

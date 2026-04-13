@@ -11326,6 +11326,7 @@ let SalesRepresentativeEntity = class SalesRepresentativeEntity extends base_ext
     state;
     user;
     userId;
+    is_default;
 };
 exports.SalesRepresentativeEntity = SalesRepresentativeEntity;
 __decorate([
@@ -11358,6 +11359,14 @@ __decorate([
     (0, typeorm_1.RelationId)((sr) => sr.user),
     __metadata("design:type", Number)
 ], SalesRepresentativeEntity.prototype, "userId", void 0);
+__decorate([
+    (0, typeorm_1.Column)({
+        name: 'is_default',
+        type: 'boolean',
+        default: false,
+    }),
+    __metadata("design:type", Boolean)
+], SalesRepresentativeEntity.prototype, "is_default", void 0);
 exports.SalesRepresentativeEntity = SalesRepresentativeEntity = __decorate([
     (0, typeorm_1.Entity)({ name: 'sales_representatives', schema: 'suppliers_schema' })
 ], SalesRepresentativeEntity);

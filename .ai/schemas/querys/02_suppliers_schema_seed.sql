@@ -4,7 +4,8 @@
 -- Dependencias: 01_transversal_schema_seed.sql (persons, cities)
 -- Tablas: business_seniority, businesses, legal_representatives,
 --         bank_accounts, suppliers, partners, sales_representatives, shareholders
--- NOTA: sales_representatives solo partner_id + user_id (migración 1870000000000).
+-- NOTA: sales_representatives incluye state (ENUM, migración 200) e is_default (216);
+--       el INSERT demo omite columnas con DEFAULT en BD.
 -- =============================================================================
 
 BEGIN;
@@ -141,7 +142,7 @@ ON CONFLICT (supplier_id) DO NOTHING;
 
 
 -- ---------------------------------------------------------------------------
--- 2.7  sales_representatives (solo columnas vigentes post–1870000000000)
+-- 2.7  sales_representatives (columnas mínimas; state / is_default por DEFAULT)
 -- ---------------------------------------------------------------------------
 INSERT INTO suppliers_schema.sales_representatives (partner_id, user_id)
 SELECT t.partner_id, t.user_id
