@@ -52,7 +52,7 @@ El formulario es un wizard de 3 secciones con co-branding del partner.
 |Campo|Tabla|Lógica|
 |---|---|---|
 |`partner_id`|`credit_applications`|Se toma del alias en la URL de la landing|
-|`partner_category_id`|`credit_applications`|Se asigna la categoría default del partner (`partners.default_category_id`). Se puede actualizar antes de la aprobación|
+|`partner_category_ids`|`credit_applications`|Se asigna automáticamente vía backend como array jsonb con la categoría default del partner: `[partners.default_category_id]`. Se puede actualizar antes de la aprobación. ⚠️ Schema pendiente — ver `SCHEMA_PENDIENTE_LORENA.md` ítems 1 y 2|
 
 ---
 
@@ -60,14 +60,14 @@ El formulario es un wizard de 3 secciones con co-branding del partner.
 
 |Label|Campo DB|Tabla|Tipo|Validaciones|
 |---|---|---|---|---|
-|Representante de Ventas|`sales_representative_id`|`credit_applications`|Dropdown dinámico|Opcional. Las opciones se cargan con un **GET** de representantes de ventas por **`partner_id`** (solo asociados al partner con estado `activo`). El valor que envía el usuario es el **`sales_representative_id`** del ítem seleccionado; al persistir se guarda en `credit_applications.sales_representative_id`
+|Representante de Ventas|`sales_rep_id`|`credit_applications`|Dropdown dinámico|Opcional. Trae únicamente los SRs asociados al partner con estado `activo`. Si queda vacío se asigna `partners.default_rep_id`. Hint: _"Selecciona uno o deja en blanco si no sabes"_|
 |Nombres *|`first_name`|`persons`|Texto|Solo letras|
 |Apellidos *|`last_name`|`persons`|Texto|Solo letras|
 |Tipo de documento *|`doc_type`|`persons`|Dropdown|Opciones: Cédula de ciudadanía, Cédula de extranjería|
 |Número de documento *|`doc_number`|`persons`|Numérico|Min: 6 dígitos, Max: 10 dígitos|
 |Fecha de nacimiento *|`birth_date`|`persons`|Fecha|Solo mayores de 18 años|
-|Correo electrónico *|`email`|`users`|Email|Formato válido|
-|Número de celular *|`phone`|`users`|Selector país + numérico|Min/Max: 10 dígitos|
+|Correo electrónico *|`email`|`persons`|Email|Formato válido|
+|Número de celular *|`phone`|`persons`|Selector país + numérico|Min/Max: 10 dígitos|
 
 ---
 
@@ -123,25 +123,27 @@ email        → del formulario
 phone        → del formulario
 ```
 
+> **Nota:** Los campos `email` y `phone` se almacenan en `persons` (no en `users`). El registro en `users` se crea posteriormente cuando la solicitud es aprobada.
+
 ### 2. Crear el registro en `businesses`
 
 ```
-person_id                  → ID del usuario recién creado
+person_id                → ID de la persona recién creada
 business_name            → del formulario
 relationship_to_business → del formulario
 city_id                  → del formulario
 business_address         → del formulario
 business_type            → del formulario
-country_code             → se infiere del país del partner
 ```
 
-### 5. Crear el registro en `credit_applications`
+### 3. Crear el registro en `credit_applications`
 
 ```
-person_id                → ID del usuario recién creado
+person_id                → ID de la persona recién creada
+business_id              → ID del negocio recién creado
 partner_id               → resuelto desde la landing
-partner_category_id      → default_category_id del partner
-sales_representative_id  → `sales_representative_id` elegido en el dropdown (GET por `partner_id`) o `partners.
+partner_category_ids     → jsonb array con default_category_id del partner: [partners.default_category_id]
+sales_rep_id             → seleccionado en formulario o default_rep_id del partner
 business_seniority       → del formulario
 number_of_employees      → del formulario
 number_of_locations      → del formulario
@@ -158,7 +160,7 @@ requested_credit_line    → del formulario
 privacy_policy_accepted  → true
 privacy_policy_date      → timestamp del envío
 submission_date          → timestamp del envío
-status                → enum('in_progress')
+status                   → CreditApplicationStatus.IN_PROGRESS ('in_progress')
 ```
 
 ---
@@ -179,13 +181,19 @@ Tras el envío exitoso, se muestra en pantalla:
 ## Criterios de Aceptación
 
 - [ ] El formulario carga con el co-branding correcto del partner (logo, colores) según el alias en la URL
-- [ ] El dropdown de Sales Reps obtiene la lista vía **GET** de representantes de ventas por `partner_id` y solo muestra activos; al enviar se persiste el **`sales_representative_id`** seleccionado en `credit_applications.sales_representative_id`
+- [ ] El dropdown de Sales Reps solo muestra representantes activos asociados al partner correspondiente
+- [ ] Si el cliente no selecciona SR, se asigna automáticamente el `default_rep_id` del partner
 - [ ] No se permite ingresar fecha de nacimiento de menores de 18 años
 - [ ] Los campos condicionales `business_rent_amount`, `monthly_purchases` y `current_purchases` se muestran u ocultan correctamente según las respuestas previas
 - [ ] El botón Enviar está deshabilitado si `privacy_policy_accepted` no está marcado
-- [ ] Al enviar se crean correctamente los registros en `users`, `persons`, `businesses` y `credit_applications`
-- [ ] El `status_id` de la solicitud queda en `en_proceso`
+- [ ] Al enviar se crean correctamente los registros en `persons`, `businesses` y `credit_applications`
+- [ ] El registro en `users` NO se crea en este paso (se crea al aprobar la solicitud)
+- [ ] Los campos `email` y `phone` se guardan en `persons`
+- [ ] El campo `status` de la solicitud queda en `in_progress` (`CreditApplicationStatus.IN_PROGRESS`)
+- [ ] El campo `partner_category_ids` se crea como jsonb array con `[partners.default_category_id]`
 - [ ] `submission_date` y `privacy_policy_date` se registran con el timestamp correcto del envío
 - [ ] Se muestra el mensaje de confirmación tras el envío exitoso
+
+---
 
 ---

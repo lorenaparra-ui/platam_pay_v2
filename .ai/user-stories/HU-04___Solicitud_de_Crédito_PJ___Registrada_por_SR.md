@@ -3,7 +3,7 @@
 **Épica:** epic-01-onboarding-underwriting  
 **Tipo de cliente:** Persona Jurídica (PJ)  
 **Canal:** Sales Rep (el SR llena el formulario en nombre del cliente)  
-**Última actualización:** Abril 2026  
+**Última actualización:** Febrero 2026  
 **Estado:** En revisión
 
 ---
@@ -11,7 +11,6 @@
 ## Contexto — Cómo llega el SR a este formulario
 
 Desde la landing de representantes de ventas del partner:
-
 ```
 https://platampay.com/partner/{{alias_partner}}
 ```
@@ -19,7 +18,9 @@ El SR hace clic en el botón de solicitud para Empresa. La landing
 y el formulario tienen co-branding del partner (logo, colores 
 definidos en la tabla `partners`).
 
-> El `partner_id` y el valor de **`sales_representative_id`** en `credit_applications` se resuelven automáticamente desde la sesión autenticada del SR: el **`sales_representative_id`** de la sesión es el que se persiste en `credit_applications.sales_representative_id`. No son campos visibles en el formulario.
+> El `partner_id` y el `sales_rep_id` se resuelven automáticamente 
+> desde la sesión autenticada del SR. No son campos visibles en el 
+> formulario.
 
 **Dependencia:** Esta historia requiere que el flujo de autenticación 
 y portal de Sales Reps esté completo antes de poder desarrollarse.
@@ -47,7 +48,7 @@ categorías de negocio.
 | Campo | Tabla | Lógica |
 |---|---|---|
 | `partner_id` | `credit_applications` | Se toma del alias en la URL de la landing |
-| `sales_representative_id` | `credit_applications` | Se completa con el **`sales_representative_id`** de la sesión autenticada del SR (mismo valor persistido en esta columna) |
+| `sales_rep_id` | `credit_applications` | Se toma de la sesión autenticada del SR |
 
 ---
 
@@ -55,12 +56,12 @@ categorías de negocio.
 
 | Label | Campo DB | Tabla | Tipo | Validaciones |
 |---|---|---|---|---|
-| Categoría de negocio | `partner_category_id` | `application_categories` | Dropdown multiselect | Trae las categorías activas del partner. El SR puede seleccionar una o más. Si queda vacío se asigna `partners.default_category_id` |
+| Categoría de negocio | `partner_category_ids` | `credit_applications` | Dropdown multiselect | Trae las categorías activas del partner. El SR puede seleccionar una o más. Los IDs seleccionados se guardan como jsonb array. Si queda vacío se asigna `[partners.default_category_id]`. ⚠️ Schema pendiente — ver `SCHEMA_PENDIENTE_LORENA.md` ítems 1 y 2 |
 | Razón Social * | `legal_name` | `businesses` | Texto | — |
 | NIT * | `tax_id` | `businesses` | Numérico | Sin dígito de verificación |
 | Ciudad * | `city_id` | `businesses` | Searchable dropdown | Ciudades y municipios del país del partner |
 | Dirección principal de la empresa * | `business_address` | `businesses` | Texto | — |
-| Correo electrónico de contacto * | `email` | `users` | Email | Formato válido |
+| Correo electrónico de contacto * | `email` | `persons` | Email | Formato válido |
 | Año de constitución * | `year_of_establishment` | `businesses` | Numérico | Año válido, no futuro |
 
 ---
@@ -73,7 +74,7 @@ categorías de negocio.
 | Apellidos * | `last_name` | `persons` | Texto | Solo letras |
 | Tipo de documento * | `doc_type` | `persons` | Dropdown | Opciones: Cédula de ciudadanía, Cédula de extranjería |
 | Número de documento * | `doc_number` | `persons` | Numérico | Min: 6 dígitos, Max: 10 dígitos |
-| Número de celular * | `phone` | `users` | Selector país + numérico | Min/Max: 10 dígitos |
+| Número de celular * | `phone` | `persons` | Selector país + numérico | Min/Max: 10 dígitos |
 | Dirección del representante legal * | `residential_address` | `persons` | Texto | — |
 
 > El representante legal queda registrado en `persons` y vinculado 
@@ -176,43 +177,39 @@ accionistas con el botón **"Agregar accionista"**.
 
 Al hacer clic en **Enviar**, el sistema debe:
 
-### 1. Crear el registro en `users`
+### 1. Crear el registro en `persons` (representante legal)
+
 ```
-email        → del formulario (correo de contacto de la empresa)
-phone        → del formulario (celular del representante legal)
-status_id    → get_status_id('users', 'pending')
+first_name             → del formulario
+last_name              → del formulario
+doc_type               → del formulario
+doc_number             → del formulario
+residential_address    → del formulario
+email                  → del formulario (correo de contacto de la empresa)
+phone                  → del formulario (celular del representante legal)
 ```
+
+> **Nota:** Los campos `email` y `phone` se almacenan en `persons` (no en `users`). El registro en `users` se crea posteriormente cuando la solicitud es aprobada.
 
 ### 2. Crear el registro en `businesses`
 ```
-user_id                → ID del usuario recién creado
+person_id              → ID de la persona recién creada (representante legal)
 legal_name             → del formulario (Razón Social)
 tax_id                 → del formulario (NIT)
 city_id                → del formulario
 business_address       → del formulario
 business_type          → del formulario
 year_of_establishment  → del formulario
-country_code           → se infiere del país del partner
 ```
 
-### 3. Crear el registro en `persons` (representante legal)
-```
-user_id                → ID del usuario recién creado
-first_name             → del formulario
-last_name              → del formulario
-doc_type               → del formulario
-doc_number             → del formulario
-residential_address    → del formulario
-```
-
-### 4. Crear el registro en `legal_representatives`
+### 3. Crear el registro en `legal_representatives`
 ```
 business_id            → ID del negocio recién creado
 person_id              → ID de la persona recién creada
 is_primary             → true
 ```
 
-### 5. Crear registros de accionistas
+### 4. Crear registros de accionistas
 Por cada accionista en el formulario:
 
 **Accionista Persona Natural:**
@@ -253,12 +250,15 @@ shareholders:
   ownership_percentage → del formulario
 ```
 
-### 6. Crear el registro en `credit_applications`
+> **Nota de Schema:** La tabla `shareholders` actualmente tiene `company_id`, que debe renombrarse a `business_id` para consistencia. Adicionalmente se requiere agregar columna `shareholder_business_id` nullable para soportar accionistas tipo empresa.
+
+### 5. Crear el registro en `credit_applications`
 ```
-user_id                  → ID del usuario recién creado
+person_id                → ID de la persona recién creada (representante legal)
+business_id              → ID del negocio recién creado
 partner_id               → resuelto desde la sesión del SR
-partner_category_id      → default_category_id del partner
-sales_representative_id             → `sales_representative_id` de la sesión autenticada del SR
+partner_category_ids     → jsonb array con IDs de categorías seleccionadas o [default_category_id] si vacío
+sales_rep_id             → resuelto desde la sesión del SR
 business_seniority       → del formulario
 number_of_employees      → del formulario
 number_of_locations      → del formulario
@@ -274,27 +274,19 @@ current_purchases        → del formulario (si aplica)
 requested_credit_line    → del formulario
 privacy_policy_accepted  → false (pendiente autorización del cliente)
 submission_date          → timestamp del envío
-status_id                → get_status_id('credit_applications', 'pendiente_autorizacion')
+status                   → CreditApplicationStatus.PENDING_AUTHORIZATION ('pending_authorization')
 ```
 
-### 7. Crear registros en `application_categories`
-```
-application_id           → ID de la solicitud recién creada
-category_id              → cada categoría seleccionada por el SR
-```
-> Si el SR no seleccionó categorías, se crea un registro con 
-> `default_category_id` del partner.
-
-### 8. Crear registros en `documents` (si aplica)
+### 6. Crear registros en `documents` (si aplica)
 ```
 -- Por cada archivo subido (solo si requested_credit_line > $10.000.000):
-application_id         → ID de la solicitud recién creada
+credit_application_id  → ID de la solicitud recién creada
 document_type          → 'estados_financieros'
 document_url           → URL del archivo subido a S3
-verification_status_id → get_status_id('documents', 'pending')
+verification_status    → DocumentVerificationStatus.PENDING ('pending')
 ```
 
-### 9. Enviar notificaciones al representante legal
+### 8. Enviar notificaciones al representante legal
 Tras crear los registros, el sistema dispara automáticamente:
 - **WhatsApp** al número registrado
 - **Correo electrónico** a la dirección registrada
@@ -323,11 +315,12 @@ Tras el envío exitoso, se muestra en pantalla:
 
 - [ ] El formulario carga con el co-branding correcto del partner
       según el alias en la URL
-- [ ] El `partner_id` y `sales_representative_id` se resuelven automáticamente
-      desde la sesión autenticada del SR (`sales_representative_id` = **`sales_representative_id`** de la sesión), sin campos visibles
+- [ ] El `partner_id` y `sales_rep_id` se resuelven automáticamente
+      desde la sesión autenticada del SR, sin campos visibles
 - [ ] El dropdown de categorías muestra únicamente las categorías
       activas del partner y permite selección múltiple
-- [ ] Si no se selecciona categoría se asigna `default_category_id`
+- [ ] Si no se selecciona categoría se asigna `[default_category_id]`
+      como jsonb array en `partner_category_ids`
 - [ ] Los campos condicionales `business_rent_amount`,
       `monthly_purchases` y `current_purchases` se muestran u
       ocultan correctamente
@@ -345,21 +338,17 @@ Tras el envío exitoso, se muestra en pantalla:
 - [ ] El sub-bloque de beneficiarios finales solo acepta personas
       naturales (no permite NIT anidado)
 - [ ] El formulario no incluye checkbox de políticas de privacidad
-- [ ] Al enviar se crean correctamente los registros en `users`,
-      `businesses`, `persons`, `legal_representatives`,
-      `shareholders`, `credit_applications` y
-      `application_categories`
+- [ ] Al enviar se crean correctamente los registros en `persons`,
+      `businesses`, `legal_representatives`,
+      `shareholders` y `credit_applications`
+- [ ] El campo `partner_category_ids` se guarda como jsonb array con los IDs seleccionados
 - [ ] Si aplica, se crean los registros en `documents` con los
       archivos subidos a S3
-- [ ] El usuario queda con `status_id = pending`
 - [ ] `privacy_policy_accepted` queda en `false`
-- [ ] El `status_id` de la solicitud queda en `pendiente_autorizacion`
+- [ ] El campo `status` de la solicitud queda en `pending_authorization` (`CreditApplicationStatus.PENDING_AUTHORIZATION`)
 - [ ] Se envían automáticamente WhatsApp y correo al representante
       legal solicitando autorización
 - [ ] Se muestra el mensaje de confirmación al SR tras el envío exitoso
 
 ---
 
-## Nota de Schema — Cambios Pendientes
-> ⚠️ Esta historia comparte los mismos pendientes de schema que 
-> HU-03. Ver nota de schema en HU-03.

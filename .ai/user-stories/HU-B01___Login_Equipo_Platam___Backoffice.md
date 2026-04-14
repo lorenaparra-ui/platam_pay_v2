@@ -1,7 +1,3 @@
-
-AI Overview
-Backoffice documentation outlines user stories for Admin/Analyst access, covering Partner, Sales Rep, and Category management, with a Feb 2026 update status.
-
 # HU-B01 — Login del Equipo Platam (Backoffice)
 
 **Épica:** epic-02-backoffice-admin  

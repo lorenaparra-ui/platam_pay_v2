@@ -10,12 +10,12 @@
 
 ## Contexto
 
-Cuando un SR registra a un cliente (HU-02 o HU-04), la solicitud queda en estado `pendiente_autorizacion`. El underwriting no puede iniciarse sin que el cliente autorice explícitamente:
+Cuando un SR registra a un cliente (HU-02 o HU-04), la solicitud queda en estado `pending_authorization`. El underwriting no puede iniciarse sin que el cliente autorice explícitamente:
 
 1. La consulta en centrales de riesgo (Experian / DATACRÉDITO)
 2. La política de protección de datos de Platam
 
-Esta historia cubre el flujo completo: notificación inicial → recordatorios automáticos → autorización → cambio de estado a `en_proceso`.
+Esta historia cubre el flujo completo: notificación inicial → recordatorios automáticos → autorización → cambio de estado a `in_progress`.
 
 > El `partner_id` de la solicitud determina el co-branding del correo y la landing de autorización.
 
@@ -43,12 +43,12 @@ Webhook recibe application external_id + confirmación →
 Sistema actualiza solicitud:
   privacy_policy_accepted = true
   privacy_policy_date     = timestamp
-  status_id               = en_proceso →
+  status                  = 'in_progress' →
 Backend dispara procesos: Experian, RUES (PJ), SARLAFT →
 Sistema notifica al Analista que la solicitud avanzó
 ```
 
-> Si el cliente no autoriza tras el recordatorio 2, la solicitud permanece en `pendiente_autorizacion`. No se envían más mensajes automáticos.
+> Si el cliente no autoriza tras el recordatorio 2, la solicitud permanece en `pending_authorization`. No se envían más mensajes automáticos.
 
 ---
 
@@ -60,7 +60,7 @@ La URL de autorización usa el `external_id` (UUID) de la solicitud — no se re
 https://platampay.com/auth/{{credit_applications.external_id}}
 ```
 
-La landing valida que la solicitud exista y no esté ya autorizada. No hay expiración — el enlace es válido mientras la solicitud esté en `pendiente_autorizacion`.
+La landing valida que la solicitud exista y no esté ya autorizada. No hay expiración — el enlace es válido mientras la solicitud esté en `pending_authorization`.
 
 ---
 
@@ -217,7 +217,7 @@ Proveedor: **Resend** (`api.resend.com`)
 |---|---|
 | `from` | `Platam <noresponder@mail.platam.co>` |
 | `reply_to` | `info@platam.co` |
-| `to` | `users.email` del cliente |
+| `to` | `persons.email` del cliente |
 | `Authorization` | API key en variable de entorno — no hardcodear |
 
 ---
@@ -392,9 +392,9 @@ URL: `https://platampay.com/auth/{{external_id}}` — co-branding del partner.
 
 | Estado | Condición | Mensaje |
 |---|---|---|
-| Pendiente | Solicitud en `pendiente_autorizacion` | Texto de autorización + botón "Autorizar Consulta Crediticia" |
+| Pendiente | Solicitud en `pending_authorization` | Texto de autorización + botón "Autorizar Consulta Crediticia" |
 | Confirmación | Tras autorizar | **¡Autorización recibida!** Tu solicitud de línea de crédito está en camino. Nuestro equipo especializado iniciará el estudio crediticio de inmediato y te contactaremos pronto con los resultados. Gracias por confiar en nosotros. |
-| Ya autorizado | Solicitud ya en `en_proceso` o posterior | *Tu autorización ya fue registrada. Pronto recibirás novedades.* |
+| Ya autorizado | Solicitud ya en `in_progress` o posterior | *Tu autorización ya fue registrada. Pronto recibirás novedades.* |
 | No encontrado | UUID no existe | *Este enlace no es válido. Contacta a tu asesor.* |
 
 ---
@@ -405,14 +405,14 @@ URL: `https://platampay.com/auth/{{external_id}}` — co-branding del partner.
 credit_applications:
   privacy_policy_accepted  → true
   privacy_policy_date      → timestamp del momento de autorización
-  status_id                → get_status_id('credit_applications', 'en_proceso')
+  status                   → CreditApplicationStatus.IN_PROGRESS ('in_progress')
 ```
 
 ---
 
-## Procesos que se inician tras `en_proceso`
+## Procesos que se inician tras `in_progress`
 
-Al cambiar a `en_proceso` el backend dispara automáticamente:
+Al cambiar a `in_progress` el backend dispara automáticamente:
 
 - Consulta Experian (buró de crédito)
 - KYB / RUES (solo PJ)
@@ -432,9 +432,9 @@ Al cambiar a `en_proceso` el backend dispara automáticamente:
 - [ ] Si no hay autorización a las 48h se envía automáticamente el recordatorio 2 (WhatsApp + correo)
 - [ ] Los recordatorios se cancelan si el cliente autoriza antes del horario programado
 - [ ] No se envían más recordatorios automáticos tras el recordatorio 2
-- [ ] Al autorizar por cualquier canal se actualiza `privacy_policy_accepted = true`, `privacy_policy_date` con timestamp exacto y `status_id = en_proceso`
+- [ ] Al autorizar por cualquier canal se actualiza `privacy_policy_accepted = true`, `privacy_policy_date` con timestamp exacto y `status = 'in_progress'` (`CreditApplicationStatus.IN_PROGRESS`)
 - [ ] La landing muestra confirmación tras autorizar exitosamente
-- [ ] La landing muestra "ya autorizado" si la solicitud ya pasó de `pendiente_autorizacion`
+- [ ] La landing muestra "ya autorizado" si la solicitud ya pasó de `pending_authorization`
 - [ ] La landing muestra "no válido" si el UUID no existe
-- [ ] Tras cambiar a `en_proceso` el backend dispara los procesos de consulta (Experian, RUES si PJ, SARLAFT)
-- [ ] La solicitud no puede pasar a `en_proceso` sin `privacy_policy_accepted = true`
+- [ ] Tras cambiar a `in_progress` el backend dispara los procesos de consulta (Experian, RUES si PJ, SARLAFT)
+- [ ] La solicitud no puede pasar a `in_progress` sin `privacy_policy_accepted = true`
