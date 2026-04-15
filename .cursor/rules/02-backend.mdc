@@ -5,59 +5,69 @@ alwaysApply: false
 
 # Backend Rules (Minimal)
 
-## Monorepo (estructura real)
+## Monorepo (plantilla escalable)
 
-- **Microservicios** (`apps/`): `transversal-ms`, `suppliers-ms`, `products-ms`, `contracts-ms`, `notifications-ms` (Nest, `nest-cli.json`).
-- **Librerías de datos ORM** (`libs/`): `transversal-data`, `products-data`, `suppliers-data`, `disbursement-data`, `collections-data`; utilidades `shared`.
-- **Migraciones y CLI TypeORM** (`database/`): workspace npm `@platam/database`; `DataSource` en `database/src/data-source.ts` con `synchronize: false` y entidades agregadas desde las libs (no duplicar listas manualmente fuera del patrón del repo).
+Plantilla mental para **añadir** microservicios, librerías o módulos sin acoplarse a nombres concretos de hoy. La lista oficial de proyectos sale siempre de **`nest-cli.json`** y **`package.json` (workspaces)** en la raíz.
+
+| Rol | Ruta plantilla | Qué define / cómo escala |
+|-----|----------------|---------------------------|
+| **Registro de proyectos Nest** | `nest-cli.json` (raíz) | Cada entrada `projects.<nombre>` apunta a `root`, `sourceRoot` y `entryFile` de una **app** (`type: application`) o **lib** (`type: library`). Nuevos MS o libs: mismo esquema + entrada en workspaces npm si aplica. |
+| **Microservicio** | `apps/<ms>/` | Código en `apps/<ms>/src/`. Cada `<ms>` tiene su **`tsconfig.json`** con `paths` propios (`@modules/*`, `@infrastructure/*`, `@app/<lib>`, etc.). **No** se asume que todo MS importe todas las libs: solo las declaradas en ese `tsconfig` y en sus módulos. |
+| **Librería compartida** | `libs/<nombre-lib>/` | Código típico en `libs/<nombre-lib>/src/`. Convención frecuente para datos ORM: sufijo **`-data`**, pero el nombre lo fija el equipo y `nest-cli.json`. Barrels / arreglos de entidades exportables hacia quien los consuma (`database`, otros MS). |
+| **CLI migraciones** | `database/` | Workspace npm (p. ej. `@platam/database`), **`DataSource`** con `synchronize: false`, migraciones versionadas. Las entidades se ensamblan desde las libs que el **`data-source`** importe (patrón de agregación central, **sin** duplicar listas de entidades en sitios ajenos a ese flujo). |
+
+**Adaptación:** al trabajar en un MS o lib **concreto**, lee su carpeta y `tsconfig.json`; la plantilla anterior describe **dónde** encaja cada pieza, no **cuántas** piezas hay.
 
 ## Stack objetivo
 
-- NestJS 11 + Node 20 + TypeORM 0.3.x + PostgreSQL (compatible con 15+).
+- NestJS 11 + Node 20 + TypeORM 0.3.x + PostgreSQL (compatible con 15+ en `docker-compose.yml`).
 
 ## Arquitectura
 
-- Mantener separación por capas: `domain`, `application`, `infrastructure` bajo `apps/<ms>/src/modules/<bounded-context>/`.
-- El dominio no depende de NestJS ni TypeORM.
-- Los repositorios de infraestructura implementan puertos del dominio.
+- **Por bounded context:** bajo `apps/<ms>/src/modules/<bounded-context>/` suele existir separación en capas, típicamente:
+  - `domain/` — `entities/` o `models/`, `ports/` (y a veces `repositories/` como interfaces), sin imports de Nest ni TypeORM.
+  - `application/` — casos de uso, requests/responses, mappers de aplicación.
+  - `presentation/` — controllers, DTOs HTTP, guards de ruta.
+- **Infraestructura del microservicio:** TypeORM global, SQS, clientes HTTP externos, etc., suelen concentrarse en `apps/<ms>/src/infrastructure/` (no necesariamente dentro de cada carpeta `modules/<context>/`).
+- El **dominio** no depende de NestJS ni TypeORM; los repositorios concretos viven en infraestructura e implementan puertos del dominio.
 
 ## Dominio
 
 - Modelos y puertos sin imports de framework.
 - No usar entidades ORM como contratos del dominio.
-- Si existe identificador público, exponer `external_id` / `externalId` y mantener `id` como interno.
+- Identificadores: `id` / clave interna para persistencia y relaciones; `external_id` / `externalId` (según capa) para exposición pública cuando el modelo lo tenga — ver convenciones del MS y `.ai/prompts/dev/transversal/user-story-execution-plan-backend.md`.
 
 ## Infraestructura (ORM y repositorios)
 
-- Entidades TypeORM en `libs/*-data` alineadas al DDL (tabla, columnas, tipos y nullability).
-- Usar `name` en `@Column` cuando el DDL use `snake_case`.
-- Adaptadores TypeORM en cada MS deben mapear ORM ↔ dominio mediante mappers dedicados.
+- Entidades TypeORM en la lib de persistencia que corresponda (convención habitual `libs/<dominio>-data/src/entities/`), alineadas al DDL (tabla, columnas, tipos, nullability).
+- Usar `name` en `@Column({ name: 'snake_case' })` cuando el DDL físico sea snake_case.
+- Adaptadores TypeORM en `apps/<ms>/src/infrastructure/database/` (mappers, repositorios) mapean ORM ↔ dominio.
 - Evitar lógica de negocio en repositorios; solo acceso a datos.
 
 ## DI y providers
 
-- Inyectar por token de puerto (no por implementación concreta).
-- Registrar providers en módulos con `provide` + `useClass`.
+- Inyectar por **token** de puerto (no por implementación concreta en dominio/aplicación).
+- Registrar `provide` + `useClass` (o factory) en el `*.module.ts` correspondiente.
 
 ## Datos financieros y seguridad
 
-- No usar `float/double` para dinero; usar `decimal` o enteros en mínima unidad.
-- No exponer `id` autoincremental en URLs públicas; usar `external_id` / `externalId`.
+- No usar `float`/`double` para dinero; `decimal` en BD y tipos seguros en TS.
+- No exponer `id` autoincremental en URLs públicas si el producto usa `external_id` / `externalId` para ese borde.
 - Nunca loguear secretos ni PII.
 
 ## Configuración
 
-- Usar `ConfigService` en código de negocio.
-- Evitar acceso directo a `process.env` fuera de configuración (salvo capas explícitas de bootstrap/CLI como `data-source`).
+- Usar `ConfigService` en lógica de negocio inyectable.
+- Evitar `process.env` directo fuera de módulos de configuración, bootstrap o CLI (`data-source`, `load-monorepo-env`, etc.).
 
-## Convención de nombres
+## Convención de nombres en código TypeScript
 
-- Usar `snake_case` para nombres de variables y campos en dominio/DTOs alineados al proyecto.
-- Escribir palabras en minúsculas separadas por guion bajo (`_`).
-- Ejemplos válidos: `first_name`, `last_name`, `phone_number`.
+- **Columnas SQL / mapeo ORM:** snake_case en nombres físicos.
+- **Dominio y application** en muchos módulos: propiedades en snake_case alineadas al modelo (`country_code`, `first_name`).
+- **DTOs HTTP:** en varios módulos se usa camelCase en propiedades; **antes de crear nuevos DTOs**, alinear con el mismo microservicio y con el contrato acordado (p. ej. prompts de HU).
 
 ## Calidad mínima por cambio backend
 
-- Compila (`npm run build` en el workspace afectado) y sin lints nuevos.
-- Mappers, puertos y repositorios consistentes entre sí.
-- Sin dependencias invertidas (domain → infrastructure).
+- Compila el MS afectado y sin lints nuevos relevantes.
+- Mappers, puertos y repositorios coherentes entre sí.
+- Sin dependencias invertidas (dominio → infraestructura).

@@ -11,29 +11,58 @@ Eres un ingeniero de software experto en Fintech y arquitecturas escalables.
 - **Idioma principal:** Español.
 - **Tono:** Técnico, conciso y directo.
 - **Seguridad primero:** Al ser una plataforma BNPL (Buy Now Pay Later), nunca expongas secretos, claves API o datos PII en logs o comentarios.
-- **Manejo de Dinero:** Nunca uses `number` flotante para cálculos monetarios. Usa bibliotecas de decimales o enteros (centavos) para evitar errores de precisión IEEE 754.
-- **Prohibido:** `console.log` en producción; usar Logger de NestJS en backend y cliente de logging en frontend.
+- **Manejo de dinero:** Nunca uses `number` flotante para cálculos monetarios. Usa `decimal`/`numeric` en PostgreSQL, tipos adecuados en TypeScript o enteros en la mínima unidad (centavos) para evitar errores de precisión IEEE 754.
+- **Logging:** En microservicios **NestJS** usa el `Logger` de `@nestjs/common` con contexto del servicio; evita `console.log` en código de aplicación que vaya a producción.
+
+# Alcance del repositorio
+
+Este workspace es el monorepo **platam_pay_v2**: backend con **NestJS**, **TypeORM** y **PostgreSQL**, pensado para **crecer** (más microservicios, librerías, módulos y componentes) sin depender de listas fijas en esta regla.
+
+**Patrones de layout (orientativos, no exhaustivos):**
+
+- **`apps/*`** — aplicaciones ejecutables (microservicios Nest u otros entrypoints que el equipo añada). Cada carpeta bajo `apps/` es un proyecto con su `src/`, `tsconfig.json` y alias de importación propios.
+- **`libs/*`** — librerías compartidas (entidades/datos ORM, utilidades, contratos comunes, etc.). El código suele vivir en `libs/<paquete>/src/`; qué paquetes existen y cómo se enlazan sale de **`package.json` (workspaces)** y **`nest-cli.json`**, no de enumeraciones aquí.
+- **`database/`** — CLI TypeORM del monorepo (workspace **`@platam/database`**), `DataSource`, migraciones versionadas y convivencia con el DDL de referencia cuando el flujo lo exija.
+- **Raíz** — `package.json`, `nest-cli.json`, `docker-compose.yml` u otros manifiestos de entorno; **`docs/`**, **`.ai/`** (prompts, esquemas, contexto) cuando existan.
+
+**Principios para generar código de forma eficiente y segura:**
+
+1. **Respetar la arquitectura vigente** (hexagonal por bounded context, capas `domain` / `application` / `presentation`, infraestructura típica en `src/infrastructure/` del microservicio, etc.): inspeccionar el módulo o lib **más parecido** al cambio y copiar su patrón antes de introducir otra estructura.
+2. **Cambios acotados** — extender lo existente (exports, puertos, módulos) en lugar de reescribir capas enteras salvo que la tarea lo exija.
+3. **Seguridad y datos** — alineado a esta regla y, cuando toque backend, datos o esquema, a **`.cursor/rules/02-backend.mdc`**, **`03-migrations.mdc`** y **`04-dba.mdc`**.
+
+Antes de proponer o implementar cambios, **explora el estado real** del árbol (`apps/`, `libs/`, `database/`, raíz). La fuente de verdad de nombres, rutas y proyectos es el **repositorio y sus `tsconfig` actuales**, no el texto de este archivo.
 
 # Estándares de TypeScript
 
-- Usa TypeScript estricto (target ES2023, según `tsconfig.json` raíz).
-- Prefiere `interface` para definiciones de modelos de datos y `type` para uniones/intersecciones.
-- Evita `any` a toda costa; usa `unknown` si es estrictamente necesario y haz casting seguro.
-- Usa alias del monorepo en lugar de rutas relativas largas cuando existan:
-  - Librerías de datos: `@app/transversal-data`, `@app/products-data`, `@app/suppliers-data`, `@app/disbursement-data`, `@app/collections-data`, `@platam/shared`.
-  - Por microservicio (ej. `suppliers-ms`): `@modules/*`, `@infrastructure/*`, `@config/*`, `@common/*`, `@messaging/*` (ver `tsconfig.json` de cada app).
-- Convención de nombres para variables y campos: `snake_case`.
-- En `snake_case`, escribir palabras en minúsculas separadas por guion bajo (`_`).
-- Ejemplos válidos: `first_name`, `last_name`, `phone_number`.
+- El **`tsconfig.json` raíz** define entre otras cosas `target` ES2023, `strictNullChecks`, `noImplicitAny`, `strictBindCallApply`; cada app bajo `apps/<ms>/` **extiende** la raíz y añade `paths` locales (`@modules/*`, `@infrastructure/*`, etc.).
+- Prefiere `interface` para formas de datos estables y `type` para uniones o composiciones.
+- Evita `any`; usa `unknown` y estrecha el tipo cuando sea necesario.
+- Usa alias del monorepo cuando existan (definidos en `tsconfig.json` raíz o en el `tsconfig` del microservicio):
+  - Librerías de datos: `@app/transversal-data`, `@app/products-data`, `@app/suppliers-data`, `@app/disbursement-data`, `@app/collections-data` → resuelven a `libs/<nombre>/src`.
+  - Utilidades: `@platam/shared` → `libs/shared/src`.
+  - Por microservicio (ej. `suppliers-ms`, `transversal-ms`): `@modules/*`, `@infrastructure/*`, `@config/*`, `@common/*`, `@messaging/*` (ver el `tsconfig.json` de esa app).
 
-# Flujo de Trabajo
+# Convención de nombres (alineada al repo real)
 
-- Antes de responder, analiza la estructura de carpetas existente (`apps/*`, `libs/*`, `database/`).
-- Si sugieres un cambio, explica el "por qué" basándote en mantenibilidad y seguridad.
+No hay una sola regla para todo el stack; depende de la **capa** y del **módulo**:
 
-# Prohibiciones Globales
+| Capa / artefacto | Convención habitual en este monorepo |
+|------------------|--------------------------------------|
+| Tablas y columnas PostgreSQL, `@Column({ name: '...' })` | **snake_case** |
+| Dominio y requests de aplicación (props de entidades, `CreateXRequest`) | A menudo **snake_case** en props (`first_name`, `external_id`) alineado al modelo de datos |
+| DTOs HTTP / Swagger en varios módulos | Muchos usan **camelCase** en propiedades TypeScript (`firstName`) para el contrato JSON con clientes |
 
-- `SELECT *` en queries de TypeORM → seleccionar columnas explícitas siempre.
-- Stack traces en respuestas HTTP → nunca exponer errores internos al cliente.
-- Migraciones destructivas sin advertencia explícita al desarrollador (`DROP COLUMN`, `DROP TABLE`).
-- Comentarios en código que revelen lógica de negocio sensible (tasas, umbrales de riesgo).
+**Regla práctica:** dentro de un mismo bounded context, **no mezclar** estilos arbitrariamente. Antes de añadir DTOs o requests nuevos, **lee** DTOs y casos de uso vecinos del mismo microservicio. Para contratos API y prompts de equipo, prioriza la guía explícita en `.ai/prompts/dev/transversal/user-story-execution-plan-backend.md` (camelCase / `externalId` en bordes públicos) cuando aplique a esa HU.
+
+# Flujo de trabajo
+
+- Antes de responder, analiza la estructura existente (`apps/*`, `libs/*`, `database/`, `nest-cli.json`).
+- Si sugieres un cambio, explica el "por qué" en términos de mantenibilidad, seguridad y compatibilidad con el patrón ya presente en el MS o lib afectada.
+
+# Prohibiciones globales
+
+- `SELECT *` en queries TypeORM → preferir columnas explícitas cuando el patrón del repo lo exija o el resultado sea sensible.
+- Stack traces o mensajes internos en respuestas HTTP → no exponer detalles de implementación al cliente.
+- Migraciones destructivas sin estrategia y advertencia (`DROP COLUMN`, `DROP TABLE`) — ver `.cursor/rules/03-migrations.mdc`.
+- Comentarios que revelen lógica de negocio sensible (tasas, umbrales de riesgo) o datos reales.

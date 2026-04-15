@@ -7,15 +7,21 @@ alwaysApply: false
 
 ## 1. Fuente de verdad y ubicación
 
-- Esquema documental / DDL de referencia: `.ai/schemas/database-schema.sql` y DBML `.ai/schemas/schema_ppay_v*.dbml`.
+- Esquema documental / DDL de referencia: **`.ai/schemas/database-schema.sql`** y DBML **`.ai/schemas/schema_ppay_v2.0.dbml`** (u otra versión `schema_ppay_v*.dbml` si el equipo la promueve).
+- Scripts auxiliares de datos o incrementales (cuando existan): `.ai/schemas/querys/`, `.ai/schemas/incremental/` — no sustituyen al flujo formal de migraciones TypeORM salvo que el proceso del repo lo indique.
 - **Código de migraciones:** `database/src/migrations/*.ts`.
-- **CLI:** workspace `@platam/database` (`database/package.json`), `DataSource` en `database/src/data-source.ts` con `synchronize: false`.
-- Desde la raíz del monorepo:
+- **CLI:** workspace `@platam/database` (`database/package.json`), `DataSource` en `database/src/data-source.ts` con `synchronize: false`; carga de entorno vía `database/src/load-monorepo-env` (importado desde `data-source.ts`).
+- Desde la **raíz** del monorepo:
   - `npm run migration:show`
   - `npm run migration:run`
   - `npm run migration:revert`
-- Generar migración (ejemplo en comentarios de `data-source.ts`):  
-  `npm run migration:generate -w @platam/database -- src/migrations/<timestamp>-Descripcion`
+- **Generar** migración (patrón documentado en comentarios de `data-source.ts`; el nombre descriptivo va tras `src/migrations/`; TypeORM antepone timestamp según su versión):
+
+```bash
+npm run migration:generate -w @platam/database -- src/migrations/DescripcionEnPascalCase
+```
+
+(Alternativa: `cd database` y `npm run migration:generate -- src/migrations/DescripcionEnPascalCase`.)
 
 ## 2. Configuración de producción: prohibido `synchronize: true`
 
@@ -43,4 +49,4 @@ En producción, **nunca** habilites sincronización automática del ORM. Toda al
 
 ## 6. Entidades y migraciones
 
-- Las entidades usadas por la CLI están centralizadas vía imports desde `libs/*-data` en `data-source.ts`; al añadir tablas nuevas, mantener coherencia entre **DDL**, **entidades** y **migración** en el mismo cambio o fase expand/contract explícita.
+- Las entidades usadas por la CLI se agregan vía `ALL_DATA_ENTITIES` en `data-source.ts`, ensamblado desde exports de `libs/*-data` — al añadir tablas nuevas, mantener coherencia entre **DDL**, **entidades** y **migración** en el mismo cambio o fase expand/contract explícita.
