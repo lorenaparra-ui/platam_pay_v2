@@ -40,6 +40,12 @@ export class UserEntity extends BaseExternalIdEntity {
   @RelationId((u: UserEntity) => u.parent)
   parent_id: number | null;
 
+  /**
+   * Path materializado `id/id/.../` (triggers en BD). Consultas prefijo: `LIKE path || '%'`.
+   */
+  @Column({ name: 'hierarchy_path', type: 'text' })
+  hierarchyPath: string;
+
   @OneToMany(() => UserEntity, (user) => user.parent)
   children: UserEntity[];
 
@@ -55,6 +61,9 @@ export class UserEntity extends BaseExternalIdEntity {
   @OneToOne(() => PersonEntity, { nullable: false })
   @JoinColumn({ name: 'person_id', referencedColumnName: 'id' })
   person: PersonEntity;
+
+  @RelationId((u: UserEntity) => u.person)
+  personId: number | null;
 
   @Column({ name: 'last_login_at', type: 'timestamptz', nullable: true })
   lastLoginAt: Date | null;

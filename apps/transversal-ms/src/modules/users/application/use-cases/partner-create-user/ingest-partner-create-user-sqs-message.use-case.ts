@@ -1,5 +1,4 @@
 import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { randomUUID } from 'crypto';
 import { plainToInstance } from 'class-transformer';
 import { validateSync } from 'class-validator';
 import { QueryFailedError } from 'typeorm';
@@ -95,12 +94,10 @@ export class IngestPartnerCreateUserSqsMessageUseCase
         );
       }
 
-      const cognito_sub = randomUUID();
       let user_external_id: string;
       try {
         const created_user = await this.create_user.execute(
           new CreateUserRequest(
-            cognito_sub,
             email_trimmed,
             'active',
             role_ref.external_id,

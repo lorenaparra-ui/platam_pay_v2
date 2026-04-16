@@ -25,58 +25,7 @@ services:
       timeout: 5s
       retries: 5
 
-  # ------------------------------------------------
-  # LocalStack — simula AWS (SQS + S3) en local
-  # ------------------------------------------------
-  localstack:
-    image: localstack/localstack:3.5
-    container_name: platam_localstack
-    restart: unless-stopped
-    ports:
-      - "4566:4566"
-    environment:
-      SERVICES: sqs,s3
-      AWS_DEFAULT_REGION: us-east-1
-      EDGE_PORT: "4566"
-      DEBUG: "0"
-      # Sin esto, LocalStack 3 devuelve URLs tipo sqs.us-east-1.localhost.localstack.cloud y no coinciden con /000000000000/...
-      SQS_ENDPOINT_STRATEGY: "off"
-    volumes:
-      - ./.docker/localstack/ready.d:/etc/localstack/init/ready.d:ro
-    networks:
-      - backend-network
-    healthcheck:
-      test: ["CMD", "curl", "-sf", "http://localhost:4566/_localstack/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 8
-      start_period: 30s
-
-  # Crea la cola aunque el script ready.d falle (p. ej. CRLF en Windows sobre volúmenes bind).
-  localstack-bootstrap:
-    image: amazon/aws-cli:2.17.56
-    container_name: platam_localstack_bootstrap
-    depends_on:
-      localstack:
-        condition: service_healthy
-    environment:
-      AWS_ACCESS_KEY_ID: test
-      AWS_SECRET_ACCESS_KEY: test
-      AWS_DEFAULT_REGION: us-east-1
-    entrypoint: ["/bin/sh", "-c"]
-    command:
-      - |
-        set -eu
-        ENDPOINT=http://localstack:4566
-        for name in user-events-queue transversal-upload-files transversal-inbound transversal-outbound notifications-inbound; do
-          aws --endpoint-url="$$ENDPOINT" sqs create-queue --queue-name "$$name" || true
-          aws --endpoint-url="$$ENDPOINT" sqs get-queue-url --queue-name "$$name"
-        done
-        aws --endpoint-url="$$ENDPOINT" sqs list-queues
-    networks:
-      - backend-network
-    restart: "no"
-
+  
   # ------------------------------------------------
   # Microservicio: Suppliers (NestJS + TypeORM + SQS)
   # ------------------------------------------------
@@ -107,7 +56,7 @@ services:
       # Debe coincidir con TRANSVERSAL_SQS_OUTBOUND_QUEUE_URL (archivos subidos vuelven por aquí).
       TRANSVERSAL_SQS_INBOUND_QUEUE_URL: ${TRANSVERSAL_SQS_OUTBOUND_QUEUE_URL}
       TRANSVERSAL_SQS_UPLOAD_FILES_QUEUE_URL: ${TRANSVERSAL_SQS_UPLOAD_FILES_QUEUE_URL:-}
-      AWS_SQS_ENDPOINT: ${AWS_SQS_ENDPOINT:-http://localstack:4566}
+      AWS_SQS_ENDPOINT: ${AWS_SQS_ENDPOINT:-}
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
     ports:
@@ -188,10 +137,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      localstack:
-        condition: service_healthy
-      localstack-bootstrap:
-        condition: service_completed_successfully
     env_file:
       - ./.env.docker
     environment:
@@ -204,7 +149,7 @@ services:
       TYPEORM_PORT: 5432
       PRODUCTS_MS_PORT: 8080
       AWS_REGION: ${AWS_REGION:-us-east-1}
-      AWS_SQS_ENDPOINT: http://localstack:4566
+      AWS_SQS_ENDPOINT: ${AWS_SQS_ENDPOINT:-}
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-test}
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-test}
       PRODUCTS_SQS_OUTBOUND_QUEUE_URL: ${PRODUCTS_SQS_OUTBOUND_QUEUE_URL:-}
@@ -239,10 +184,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      localstack:
-        condition: service_healthy
-      localstack-bootstrap:
-        condition: service_completed_successfully
     env_file:
       - ./.env.docker
     environment:
@@ -255,7 +196,7 @@ services:
       TYPEORM_PORT: 5432
       CONTRACTS_MS_PORT: 8080
       AWS_REGION: ${AWS_REGION:-us-east-1}
-      AWS_SQS_ENDPOINT: http://localstack:4566
+      AWS_SQS_ENDPOINT: ${AWS_SQS_ENDPOINT:-}
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-test}
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-test}
       CONTRACTS_SQS_OUTBOUND_QUEUE_URL: ${CONTRACTS_SQS_OUTBOUND_QUEUE_URL:-}

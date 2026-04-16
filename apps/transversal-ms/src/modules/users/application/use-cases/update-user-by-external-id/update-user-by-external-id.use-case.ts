@@ -7,6 +7,7 @@ import { UpdateUserProps } from '@modules/users/domain/models/user.models';
 import { build_user_public_fields } from '@modules/users/application/mapping/user-public-fields.builder';
 import { UpdateUserByExternalIdRequest } from './update-user-by-external-id.request';
 import { UpdateUserByExternalIdResponse } from './update-user-by-external-id.response';
+import { normalize_cognito_sub } from '@common/utils/normalize-cognito-sub';
 
 @Injectable()
 export class UpdateUserByExternalIdUseCase {
@@ -23,7 +24,7 @@ export class UpdateUserByExternalIdUseCase {
     const patch: UpdateUserProps = {};
 
     if (req.cognito_sub !== undefined) {
-      patch.cognito_sub = req.cognito_sub;
+      patch.cognito_sub = normalize_cognito_sub(req.cognito_sub);
     }
     if (req.email !== undefined) {
       patch.email = req.email;

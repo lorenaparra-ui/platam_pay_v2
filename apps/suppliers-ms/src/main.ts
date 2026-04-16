@@ -1,4 +1,5 @@
 import 'reflect-metadata';
+import './types/express-augmentation';
 import './config/dotenv.config';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
@@ -8,7 +9,8 @@ import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.setGlobalPrefix('api');
+  app.enableCors({ origin: '*' });
+  //app.setGlobalPrefix('api');
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -23,6 +25,16 @@ async function bootstrap() {
     .setDescription('HTTP y mensajería SQS del microservicio Suppliers')
     .setVersion('1.0')
     .addServer('/')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        description:
+          'Access token de Amazon Cognito (token_use=access). Emisor: https://cognito-idp.{region}.amazonaws.com/{userPoolId}',
+      },
+      'cognito-access-token',
+    )
     .build();
   const swagger_document = SwaggerModule.createDocument(app, swagger_config);
   SwaggerModule.setup('docs', app, swagger_document, {

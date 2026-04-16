@@ -7,6 +7,8 @@ import type {
 export interface PersonRepository {
   find_by_external_id(external_id: string): Promise<Person | null>;
 
+  find_by_internal_id(internal_id: number): Promise<Person | null>;
+
   find_by_doc_number(doc_number: string): Promise<Person | null>;
 
   find_all(): Promise<Person[]>;

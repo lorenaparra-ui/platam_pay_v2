@@ -13,6 +13,7 @@ import {
   Patch,
   Post,
   UploadedFiles,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -20,6 +21,7 @@ import { new_uuid } from '@platam/shared';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import {
   ApiAcceptedResponse,
+  ApiBearerAuth,
   ApiBody,
   ApiConsumes,
   ApiExtraModels,
@@ -27,9 +29,15 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
+import { Roles } from '@platam/shared';
+import { JwtAuthGuard } from '@modules/auth/infrastructure/guards/jwt-auth.guard';
+import { RolesGuard } from '@modules/auth/infrastructure/guards/roles.guard';
+import { RequireRoles } from '@modules/auth/presentation/decorators/require-roles.decorator';
 import { plainToInstance } from 'class-transformer';
 import { validateSync } from 'class-validator';
 import { CreatePartnerOrchestratorUseCase } from '@modules/partners/application/use-cases/create-partner-orchestrator/create-partner-orchestrator.use-case';
+import { ListPartnersUseCase } from '@modules/partners/application/use-cases/list-partners/list-partners.use-case';
+import { ListPartnersItemResponse } from '@modules/partners/application/use-cases/list-partners/list-partners.response';
 import { UpdatePartnerByExternalIdUseCase } from '@modules/partners/application/use-cases/update-partner-by-external-id/update-partner-by-external-id.use-case';
 import type { PartnerOnboardingUploadedFile } from '@modules/partners/application/ports/partner-onboarding-files.port';
 import {
@@ -68,13 +76,18 @@ type SuppliersMsConfig = {
 
 
 @ApiTags('partners')
+@ApiBearerAuth('cognito-access-token')
 @ApiExtraModels(
   CreatePartnerPayloadDto,
   UpdatePartnerPayloadDto,
+  ListPartnersItemResponse,
 )
 @Controller('partners')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@RequireRoles(Roles.BACK_OFFICE_ADMIN, Roles.BACK_OFFICE_ANALYST)
 export class PartnersController {
   constructor(
+    private readonly list_partners: ListPartnersUseCase,
     private readonly create_partner_orchestrator: CreatePartnerOrchestratorUseCase,
     private readonly update_partner: UpdatePartnerByExternalIdUseCase,
     private readonly config_service: ConfigService,
@@ -83,6 +96,24 @@ export class PartnersController {
     @Inject(PARTNER_ONBOARDING_SAGA_REPOSITORY)
     private readonly saga_repository: PartnerOnboardingSagaRepository,
   ) {}
+
+  /**
+   * Lista todos los partners con campos públicos (orden por id ascendente).
+   */
+  @Get()
+  @ApiOperation({
+    summary: 'Listar todos los partners',
+    description:
+      'Retorna cada partner con `supplier_external_id` resuelto y el resto de campos públicos.',
+  })
+  @ApiOkResponse({
+    description: 'Lista de partners',
+    type: ListPartnersItemResponse,
+    isArray: true,
+  })
+  async list_all(): Promise<ListPartnersItemResponse[]> {
+    return this.list_partners.execute();
+  }
 
   /**
    * Inicia la saga de alta de partner de forma asíncrona.

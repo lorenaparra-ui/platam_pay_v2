@@ -7,6 +7,7 @@ import { PartnersModule } from '@modules/partners/partners.module';
 import { SuppliersModule } from '@modules/suppliers/suppliers.module';
 import { BankAccountsModule } from '@modules/bank-accounts/bank-accounts.module';
 import { SalesRepresentativesModule } from '@modules/sales-representatives/sales-representatives.module';
+import { AuthModule } from '@modules/auth/auth.module';
 import appConfig from './config/app.config';
 import { sqs_config } from './config/sqs.config';
 import { appController } from './app.controller';
@@ -19,6 +20,7 @@ import { appController } from './app.controller';
       envFilePath: MONOREPO_ENV_PATH,
     }),
     InfrastructureModule,
+    AuthModule,
     BusinessesModule,
     PartnersModule,
     SuppliersModule,

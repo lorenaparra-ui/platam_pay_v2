@@ -165,19 +165,23 @@ CREATE TABLE transversal_schema.users (
   -- NOTA: person_id referencia implícita (FK no declarada en DDL actual)
   person_id     BIGINT,
   parent_id     BIGINT  REFERENCES transversal_schema.users(id) ON DELETE SET NULL ON UPDATE CASCADE,
+  hierarchy_path TEXT   NOT NULL,
   last_login_at TIMESTAMPTZ,
   created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
-  CONSTRAINT ck_users_parent_not_self CHECK (parent_id IS NULL OR parent_id <> id)
+  CONSTRAINT ck_users_parent_not_self CHECK (parent_id IS NULL OR parent_id <> id),
+  CONSTRAINT ck_users_hierarchy_path_format CHECK (hierarchy_path ~ '^([0-9]+/)+$'::text)
 );
 
 CREATE INDEX idx_users_role_id     ON transversal_schema.users (role_id);
 CREATE INDEX idx_users_cognito_sub ON transversal_schema.users (cognito_sub);
 CREATE INDEX idx_users_parent_id   ON transversal_schema.users (parent_id);
+CREATE INDEX idx_users_hierarchy_path_prefix ON transversal_schema.users (hierarchy_path text_pattern_ops);
 
 COMMENT ON COLUMN transversal_schema.users.state     IS 'ENUM: active|inactive. No usa FK a statuses.';
 COMMENT ON COLUMN transversal_schema.users.person_id IS 'Referencia a transversal_schema.persons.id. FK no declarada formalmente en DDL actual.';
 COMMENT ON COLUMN transversal_schema.users.parent_id IS 'Usuario jerárquico superior (FK a users.id).';
+COMMENT ON COLUMN transversal_schema.users.hierarchy_path IS 'Path materializado id/id/.../; LIKE prefijo + text_pattern_ops; triggers en INSERT/UPDATE parent_id.';
 
 
 -- ---------------------------------------------------------------------------

@@ -10,26 +10,6 @@ import {
 } from '@modules/persons/domain/models/person.models';
 import { PersonMapper } from '@infrastructure/database/mappers/person.mapper';
 
-const PERSON_SELECT = {
-  id: true,
-  externalId: true,
-  countryCode: true,
-  firstName: true,
-  lastName: true,
-  docType: true,
-  docNumber: true,
-  docIssueDate: true,
-  birthDate: true,
-  gender: true,
-  phone: true,
-  residentialAddress: true,
-  businessAddress: true,
-  cityId: true,
-  bankAccountId: true,
-  createdAt: true,
-  updatedAt: true,
-} as const;
-
 @Injectable()
 export class TypeormPersonRepository implements PersonRepository {
   constructor(
@@ -40,7 +20,13 @@ export class TypeormPersonRepository implements PersonRepository {
   async find_by_external_id(external_id: string): Promise<Person | null> {
     const row = await this.repo.findOne({
       where: { externalId: external_id },
-      select: PERSON_SELECT,
+    });
+    return row ? PersonMapper.to_domain(row) : null;
+  }
+
+  async find_by_internal_id(internal_id: number): Promise<Person | null> {
+    const row = await this.repo.findOne({
+      where: { id: internal_id },
     });
     return row ? PersonMapper.to_domain(row) : null;
   }
@@ -48,14 +34,12 @@ export class TypeormPersonRepository implements PersonRepository {
   async find_by_doc_number(doc_number: string): Promise<Person | null> {
     const row = await this.repo.findOne({
       where: { docNumber: doc_number },
-      select: PERSON_SELECT,
     });
     return row ? PersonMapper.to_domain(row) : null;
   }
 
   async find_all(): Promise<Person[]> {
     const rows = await this.repo.find({
-      select: PERSON_SELECT,
       order: { id: 'ASC' },
     });
     return rows.map((r) => PersonMapper.to_domain(r));

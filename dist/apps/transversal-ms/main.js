@@ -23,6 +23,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.appController = void 0;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
 const swagger_1 = __webpack_require__(/*! @nestjs/swagger */ "@nestjs/swagger");
+const throttler_1 = __webpack_require__(/*! @nestjs/throttler */ "@nestjs/throttler");
 const health_response_dto_1 = __webpack_require__(/*! @common/dto/health-response.dto */ "./apps/transversal-ms/src/common/dto/health-response.dto.ts");
 let appController = class appController {
     health() {
@@ -40,6 +41,7 @@ __decorate([
 ], appController.prototype, "health", null);
 exports.appController = appController = __decorate([
     (0, swagger_1.ApiTags)('health'),
+    (0, throttler_1.SkipThrottle)(),
     (0, common_1.Controller)('health')
 ], appController);
 
@@ -66,14 +68,20 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.AppModule = void 0;
 const dotenv_config_1 = __webpack_require__(/*! ./config/dotenv.config */ "./apps/transversal-ms/src/config/dotenv.config.ts");
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const core_1 = __webpack_require__(/*! @nestjs/core */ "@nestjs/core");
 const config_1 = __webpack_require__(/*! @nestjs/config */ "@nestjs/config");
+const throttler_1 = __webpack_require__(/*! @nestjs/throttler */ "@nestjs/throttler");
 const infrastructure_module_1 = __webpack_require__(/*! @infrastructure/infrastructure.module */ "./apps/transversal-ms/src/infrastructure/infrastructure.module.ts");
 const persons_module_1 = __webpack_require__(/*! @modules/persons/persons.module */ "./apps/transversal-ms/src/modules/persons/persons.module.ts");
 const users_module_1 = __webpack_require__(/*! @modules/users/users.module */ "./apps/transversal-ms/src/modules/users/users.module.ts");
 const app_config_1 = __importDefault(__webpack_require__(/*! ./config/app.config */ "./apps/transversal-ms/src/config/app.config.ts"));
 const sqs_config_1 = __webpack_require__(/*! ./config/sqs.config */ "./apps/transversal-ms/src/config/sqs.config.ts");
+const security_config_1 = __importDefault(__webpack_require__(/*! ./config/security.config */ "./apps/transversal-ms/src/config/security.config.ts"));
 const app_controller_1 = __webpack_require__(/*! ./app.controller */ "./apps/transversal-ms/src/app.controller.ts");
 const transversal_module_1 = __webpack_require__(/*! @modules/transversal/transversal.module */ "./apps/transversal-ms/src/modules/transversal/transversal.module.ts");
+const auth_module_1 = __webpack_require__(/*! @modules/auth/auth.module */ "./apps/transversal-ms/src/modules/auth/auth.module.ts");
+const all_exceptions_filter_1 = __webpack_require__(/*! @common/filters/all-exceptions.filter */ "./apps/transversal-ms/src/common/filters/all-exceptions.filter.ts");
+const transversal_throttler_guard_1 = __webpack_require__(/*! @common/guards/transversal-throttler.guard */ "./apps/transversal-ms/src/common/guards/transversal-throttler.guard.ts");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -82,15 +90,32 @@ exports.AppModule = AppModule = __decorate([
         imports: [
             config_1.ConfigModule.forRoot({
                 isGlobal: true,
-                load: [app_config_1.default, sqs_config_1.sqs_config],
+                load: [app_config_1.default, sqs_config_1.sqs_config, security_config_1.default],
                 envFilePath: dotenv_config_1.MONOREPO_ENV_PATH,
             }),
+            throttler_1.ThrottlerModule.forRootAsync({
+                imports: [config_1.ConfigModule],
+                inject: [config_1.ConfigService],
+                useFactory: (config) => ({
+                    throttlers: [
+                        {
+                            ttl: config.get('security.http_throttle.ttl_ms') ?? 60_000,
+                            limit: config.get('security.http_throttle.limit') ?? 120,
+                        },
+                    ],
+                }),
+            }),
             infrastructure_module_1.InfrastructureModule,
+            auth_module_1.AuthModule,
             transversal_module_1.TransversalModule,
             persons_module_1.PersonsModule,
             users_module_1.UsersModule,
         ],
         controllers: [app_controller_1.appController],
+        providers: [
+            { provide: core_1.APP_GUARD, useClass: transversal_throttler_guard_1.TransversalThrottlerGuard },
+            { provide: core_1.APP_FILTER, useClass: all_exceptions_filter_1.AllExceptionsFilter },
+        ],
     })
 ], AppModule);
 
@@ -129,6 +154,156 @@ __decorate([
     (0, swagger_1.ApiProperty)({ example: 'transversal-ms' }),
     __metadata("design:type", String)
 ], HealthResponseDto.prototype, "service", void 0);
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/common/filters/all-exceptions.filter.ts"
+/*!*************************************************************************!*\
+  !*** ./apps/transversal-ms/src/common/filters/all-exceptions.filter.ts ***!
+  \*************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var AllExceptionsFilter_1;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.AllExceptionsFilter = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+let AllExceptionsFilter = AllExceptionsFilter_1 = class AllExceptionsFilter {
+    logger = new common_1.Logger(AllExceptionsFilter_1.name);
+    catch(exception, host) {
+        const ctx = host.switchToHttp();
+        const response = ctx.getResponse();
+        const request = ctx.getRequest();
+        if (exception instanceof common_1.HttpException) {
+            const status = exception.getStatus();
+            const raw = exception.getResponse();
+            const message = this.client_message(status, raw);
+            if (status >= common_1.HttpStatus.INTERNAL_SERVER_ERROR) {
+                this.logger.error(`HTTP ${String(status)} ${request.method} ${this.safe_path(request)}`);
+            }
+            response.status(status).json({
+                status_code: status,
+                message,
+            });
+            return;
+        }
+        this.logger.error(`Unhandled ${request.method} ${this.safe_path(request)} (${exception instanceof Error ? exception.name : 'unknown'})`);
+        response.status(common_1.HttpStatus.INTERNAL_SERVER_ERROR).json({
+            status_code: common_1.HttpStatus.INTERNAL_SERVER_ERROR,
+            message: 'Error interno del servidor',
+        });
+    }
+    safe_path(request) {
+        return (request.originalUrl ?? request.url ?? '').split('?')[0];
+    }
+    client_message(status, raw) {
+        if (status >= common_1.HttpStatus.INTERNAL_SERVER_ERROR) {
+            return 'Error interno del servidor';
+        }
+        if (status === common_1.HttpStatus.TOO_MANY_REQUESTS) {
+            return 'Demasiadas solicitudes';
+        }
+        if (typeof raw === 'string') {
+            return raw;
+        }
+        const body = raw;
+        if (Array.isArray(body.message)) {
+            return body.message[0] ?? 'Error';
+        }
+        if (typeof body.message === 'string') {
+            return body.message;
+        }
+        return 'Error';
+    }
+};
+exports.AllExceptionsFilter = AllExceptionsFilter;
+exports.AllExceptionsFilter = AllExceptionsFilter = AllExceptionsFilter_1 = __decorate([
+    (0, common_1.Catch)()
+], AllExceptionsFilter);
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/common/guards/transversal-throttler.guard.ts"
+/*!******************************************************************************!*\
+  !*** ./apps/transversal-ms/src/common/guards/transversal-throttler.guard.ts ***!
+  \******************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.TransversalThrottlerGuard = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const throttler_1 = __webpack_require__(/*! @nestjs/throttler */ "@nestjs/throttler");
+let TransversalThrottlerGuard = class TransversalThrottlerGuard extends throttler_1.ThrottlerGuard {
+    async shouldSkip(context) {
+        if (await super.shouldSkip(context)) {
+            return true;
+        }
+        const { req } = this.getRequestResponse(context);
+        const path = String(req.originalUrl ?? req.url ?? '').split('?')[0];
+        return path.startsWith('/docs');
+    }
+};
+exports.TransversalThrottlerGuard = TransversalThrottlerGuard;
+exports.TransversalThrottlerGuard = TransversalThrottlerGuard = __decorate([
+    (0, common_1.Injectable)()
+], TransversalThrottlerGuard);
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/common/middleware/strip-untrusted-identity-headers.middleware.ts"
+/*!**************************************************************************************************!*\
+  !*** ./apps/transversal-ms/src/common/middleware/strip-untrusted-identity-headers.middleware.ts ***!
+  \**************************************************************************************************/
+(__unused_webpack_module, exports) {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.strip_untrusted_identity_headers = strip_untrusted_identity_headers;
+const UNTRUSTED_IDENTITY_HEADERS = [
+    'x-internal-user-id',
+    'x-user-internal-id',
+    'x-db-id',
+    'x-impersonate-user-id',
+    'x-act-as-user-id',
+];
+function strip_untrusted_identity_headers(req, _res, next) {
+    for (const h of UNTRUSTED_IDENTITY_HEADERS) {
+        delete req.headers[h];
+    }
+    next();
+}
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/common/utils/normalize-cognito-sub.ts"
+/*!***********************************************************************!*\
+  !*** ./apps/transversal-ms/src/common/utils/normalize-cognito-sub.ts ***!
+  \***********************************************************************/
+(__unused_webpack_module, exports) {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.normalize_cognito_sub = normalize_cognito_sub;
+function normalize_cognito_sub(raw) {
+    return raw.trim().toLowerCase();
+}
 
 
 /***/ },
@@ -259,6 +434,30 @@ exports.MONOREPO_ENV_PATH = path.join(monorepoRoot, '.env');
 if (fs.existsSync(exports.MONOREPO_ENV_PATH)) {
     dotenv.config({ path: exports.MONOREPO_ENV_PATH });
 }
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/config/security.config.ts"
+/*!***********************************************************!*\
+  !*** ./apps/transversal-ms/src/config/security.config.ts ***!
+  \***********************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const config_1 = __webpack_require__(/*! @nestjs/config */ "@nestjs/config");
+exports["default"] = (0, config_1.registerAs)('security', () => {
+    const trust_raw = process.env.TRUST_PROXY_HOPS ?? '0';
+    const trust_proxy_hops = Number.parseInt(trust_raw, 10);
+    return {
+        trust_proxy_hops: Number.isFinite(trust_proxy_hops) ? Math.max(0, trust_proxy_hops) : 0,
+        http_throttle: {
+            ttl_ms: Number.parseInt(process.env.HTTP_THROTTLE_TTL_MS ?? '60000', 10) || 60_000,
+            limit: Number.parseInt(process.env.HTTP_THROTTLE_LIMIT ?? '120', 10) || 120,
+        },
+    };
+});
 
 
 /***/ },
@@ -447,6 +646,171 @@ const TypeormConfig = {
     migrationsTableName: "typeorm_migrations",
 };
 exports["default"] = TypeormConfig;
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/infrastructure/cognito/cognito-user-provisioning.adapter.ts"
+/*!*********************************************************************************************!*\
+  !*** ./apps/transversal-ms/src/infrastructure/cognito/cognito-user-provisioning.adapter.ts ***!
+  \*********************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var CognitoUserProvisioningAdapter_1;
+var _a;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.CognitoUserProvisioningAdapter = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const config_1 = __webpack_require__(/*! @nestjs/config */ "@nestjs/config");
+const client_cognito_identity_provider_1 = __webpack_require__(/*! @aws-sdk/client-cognito-identity-provider */ "@aws-sdk/client-cognito-identity-provider");
+const crypto_1 = __webpack_require__(/*! crypto */ "crypto");
+const shared_1 = __webpack_require__(/*! @platam/shared */ "./libs/shared/src/index.ts");
+const normalize_cognito_sub_1 = __webpack_require__(/*! @common/utils/normalize-cognito-sub */ "./apps/transversal-ms/src/common/utils/normalize-cognito-sub.ts");
+const COGNITO_ROLE_GROUP_NAMES = new Set(Object.values(shared_1.Roles));
+let CognitoUserProvisioningAdapter = CognitoUserProvisioningAdapter_1 = class CognitoUserProvisioningAdapter {
+    config_service;
+    logger = new common_1.Logger(CognitoUserProvisioningAdapter_1.name);
+    client;
+    constructor(config_service) {
+        this.config_service = config_service;
+        const region = this.config_service.getOrThrow('config.cognito.region');
+        this.client = new client_cognito_identity_provider_1.CognitoIdentityProviderClient({ region });
+    }
+    async ensure_user(params) {
+        const pool_id = this.config_service.get('config.cognito.userPoolId')?.trim() ?? '';
+        if (pool_id.length === 0) {
+            throw new Error('COGNITO_USER_POOL_ID (config.cognito.userPoolId) es obligatorio para crear usuarios en Cognito.');
+        }
+        const email = params.email.trim().toLowerCase();
+        const user_attributes = [
+            { Name: 'email', Value: email },
+            { Name: 'email_verified', Value: 'true' },
+        ];
+        if (params.role_code !== null && params.role_code.trim().length > 0) {
+            user_attributes.push({ Name: 'custom:role', Value: params.role_code.trim() });
+        }
+        try {
+            const out = await this.client.send(new client_cognito_identity_provider_1.AdminCreateUserCommand({
+                UserPoolId: pool_id,
+                Username: email,
+                UserAttributes: user_attributes,
+                TemporaryPassword: this.generate_temporary_password(),
+                MessageAction: 'SUPPRESS',
+            }));
+            const sub = this.sub_from_user(out.User);
+            if (sub === null) {
+                throw new Error('Cognito AdminCreateUser no devolvió atributo sub');
+            }
+            await this.sync_identity_role_with_cognito_groups(pool_id, email, params.role_code);
+            return { sub: (0, normalize_cognito_sub_1.normalize_cognito_sub)(sub), username: email, created_new: true };
+        }
+        catch (err) {
+            if (!this.is_username_exists(err)) {
+                throw err;
+            }
+            const got = await this.client.send(new client_cognito_identity_provider_1.AdminGetUserCommand({ UserPoolId: pool_id, Username: email }));
+            const sub = this.sub_from_attributes(got.UserAttributes);
+            if (sub === null) {
+                throw new Error('Cognito AdminGetUser no devolvió atributo sub');
+            }
+            const username = got.Username?.trim() ?? email;
+            await this.sync_identity_role_with_cognito_groups(pool_id, username, params.role_code);
+            return { sub: (0, normalize_cognito_sub_1.normalize_cognito_sub)(sub), username, created_new: false };
+        }
+    }
+    async sync_identity_role_with_cognito_groups(pool_id, username, role_code) {
+        const target = role_code !== null && role_code.trim().length > 0 ? role_code.trim() : null;
+        const listed = await this.client.send(new client_cognito_identity_provider_1.AdminListGroupsForUserCommand({
+            UserPoolId: pool_id,
+            Username: username,
+        }));
+        const current_role_groups = listed.Groups?.map((g) => g.GroupName).filter((n) => !!n?.trim()) ?? [];
+        for (const group_name of current_role_groups) {
+            if (!COGNITO_ROLE_GROUP_NAMES.has(group_name)) {
+                continue;
+            }
+            if (target !== null && group_name === target) {
+                continue;
+            }
+            await this.client.send(new client_cognito_identity_provider_1.AdminRemoveUserFromGroupCommand({
+                UserPoolId: pool_id,
+                Username: username,
+                GroupName: group_name,
+            }));
+        }
+        if (target !== null && COGNITO_ROLE_GROUP_NAMES.has(target)) {
+            await this.client.send(new client_cognito_identity_provider_1.AdminAddUserToGroupCommand({
+                UserPoolId: pool_id,
+                Username: username,
+                GroupName: target,
+            }));
+        }
+        else if (target !== null && !COGNITO_ROLE_GROUP_NAMES.has(target)) {
+            this.logger.warn(`cognito_group_sync_skipped_unknown_role group=${target} username=${username}`);
+        }
+    }
+    async set_custom_db_id(username, db_user_id) {
+        const pool_id = this.config_service.get('config.cognito.userPoolId')?.trim() ?? '';
+        if (pool_id.length === 0) {
+            return;
+        }
+        await this.client.send(new client_cognito_identity_provider_1.AdminUpdateUserAttributesCommand({
+            UserPoolId: pool_id,
+            Username: username,
+            UserAttributes: [{ Name: 'custom:db_id', Value: String(db_user_id) }],
+        }));
+    }
+    async try_delete_user(username) {
+        const pool_id = this.config_service.get('config.cognito.userPoolId')?.trim() ?? '';
+        if (pool_id.length === 0) {
+            return;
+        }
+        try {
+            await this.client.send(new client_cognito_identity_provider_1.AdminDeleteUserCommand({ UserPoolId: pool_id, Username: username }));
+        }
+        catch (err) {
+            const text = err instanceof Error ? err.message : String(err);
+            this.logger.warn(`cognito_try_delete_user_failed username=${username} ${text}`);
+        }
+    }
+    sub_from_user(user) {
+        return this.sub_from_attributes(user?.Attributes);
+    }
+    sub_from_attributes(attrs) {
+        const raw = attrs?.find((a) => a.Name === 'sub')?.Value?.trim();
+        return raw !== undefined && raw.length > 0 ? raw : null;
+    }
+    is_username_exists(err) {
+        return (typeof err === 'object' &&
+            err !== null &&
+            'name' in err &&
+            err.name === 'UsernameExistsException');
+    }
+    generate_temporary_password() {
+        const upper = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+        const lower = 'abcdefghijkmnopqrstuvwxyz';
+        const digits = '23456789';
+        const special = '!@#$%^&*';
+        const pick = (set) => set[(0, crypto_1.randomBytes)(1)[0] % set.length];
+        const body = (0, crypto_1.randomBytes)(12).toString('base64url').slice(0, 14);
+        return `${pick(upper)}${pick(lower)}${pick(digits)}${pick(special)}${body}`;
+    }
+};
+exports.CognitoUserProvisioningAdapter = CognitoUserProvisioningAdapter;
+exports.CognitoUserProvisioningAdapter = CognitoUserProvisioningAdapter = CognitoUserProvisioningAdapter_1 = __decorate([
+    (0, common_1.Injectable)(),
+    __metadata("design:paramtypes", [typeof (_a = typeof config_1.ConfigService !== "undefined" && config_1.ConfigService) === "function" ? _a : Object])
+], CognitoUserProvisioningAdapter);
 
 
 /***/ },
@@ -704,20 +1068,77 @@ exports.StatusMapper = StatusMapper;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.UserMapper = void 0;
+const normalize_cognito_sub_1 = __webpack_require__(/*! @common/utils/normalize-cognito-sub */ "./apps/transversal-ms/src/common/utils/normalize-cognito-sub.ts");
 const user_models_1 = __webpack_require__(/*! @modules/users/domain/models/user.models */ "./apps/transversal-ms/src/modules/users/domain/models/user.models.ts");
 class UserMapper {
     static to_domain(row) {
-        return new user_models_1.User(row.id, row.externalId, row.cognitoSub, row.email, row.roleId ?? null, row.state, row.lastLoginAt ?? null, row.createdAt, row.updatedAt);
+        return new user_models_1.User(row.id, row.externalId, (0, normalize_cognito_sub_1.normalize_cognito_sub)(row.cognitoSub), row.email, row.roleId ?? null, row.state, row.parent_id ?? null, row.hierarchyPath, row.personId ?? null, row.lastLoginAt ?? null, row.createdAt, row.updatedAt);
     }
     static from_raw_row(row) {
-        return new user_models_1.User(Number(row['id']), String(row['external_id']), String(row['cognito_sub']), String(row['email']), row['role_id'] === null || row['role_id'] === undefined
+        const parent_raw = row['parent_id'];
+        const person_raw = row['person_id'];
+        const hierarchy_path = row['hierarchy_path'];
+        return new user_models_1.User(Number(row['id']), String(row['external_id']), (0, normalize_cognito_sub_1.normalize_cognito_sub)(String(row['cognito_sub'])), String(row['email']), row['role_id'] === null || row['role_id'] === undefined
             ? null
-            : Number(row['role_id']), row['state'] ?? 'active', row['last_login_at'] === null || row['last_login_at'] === undefined
+            : Number(row['role_id']), row['state'] ?? 'active', parent_raw === null || parent_raw === undefined
+            ? null
+            : Number(parent_raw), typeof hierarchy_path === 'string' ? hierarchy_path : String(hierarchy_path ?? ''), person_raw === null || person_raw === undefined
+            ? null
+            : Number(person_raw), row['last_login_at'] === null || row['last_login_at'] === undefined
             ? null
             : new Date(String(row['last_login_at'])), new Date(String(row['created_at'])), new Date(String(row['updated_at'])));
     }
 }
 exports.UserMapper = UserMapper;
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/infrastructure/database/readers/typeorm-permission-codes-by-role.reader.ts"
+/*!************************************************************************************************************!*\
+  !*** ./apps/transversal-ms/src/infrastructure/database/readers/typeorm-permission-codes-by-role.reader.ts ***!
+  \************************************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+var _a;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.TypeormPermissionCodesByRoleReader = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const typeorm_1 = __webpack_require__(/*! @nestjs/typeorm */ "@nestjs/typeorm");
+const typeorm_2 = __webpack_require__(/*! typeorm */ "typeorm");
+let TypeormPermissionCodesByRoleReader = class TypeormPermissionCodesByRoleReader {
+    data_source;
+    constructor(data_source) {
+        this.data_source = data_source;
+    }
+    async list_codes_for_role_internal_id(role_internal_id) {
+        const rows = (await this.data_source.query(`SELECT p.code AS code
+       FROM transversal_schema.permissions p
+       INNER JOIN transversal_schema.role_permissions rp ON rp.permission_id = p.id
+       WHERE rp.role_id = $1
+       ORDER BY p.code ASC`, [role_internal_id]));
+        return rows.map((r) => r.code);
+    }
+};
+exports.TypeormPermissionCodesByRoleReader = TypeormPermissionCodesByRoleReader;
+exports.TypeormPermissionCodesByRoleReader = TypeormPermissionCodesByRoleReader = __decorate([
+    (0, common_1.Injectable)(),
+    __param(0, (0, typeorm_1.InjectDataSource)()),
+    __metadata("design:paramtypes", [typeof (_a = typeof typeorm_2.DataSource !== "undefined" && typeorm_2.DataSource) === "function" ? _a : Object])
+], TypeormPermissionCodesByRoleReader);
 
 
 /***/ },
@@ -981,25 +1402,6 @@ const typeorm_1 = __webpack_require__(/*! @nestjs/typeorm */ "@nestjs/typeorm");
 const typeorm_2 = __webpack_require__(/*! typeorm */ "typeorm");
 const transversal_data_1 = __webpack_require__(/*! @app/transversal-data */ "./libs/transversal-data/src/index.ts");
 const person_mapper_1 = __webpack_require__(/*! @infrastructure/database/mappers/person.mapper */ "./apps/transversal-ms/src/infrastructure/database/mappers/person.mapper.ts");
-const PERSON_SELECT = {
-    id: true,
-    externalId: true,
-    countryCode: true,
-    firstName: true,
-    lastName: true,
-    docType: true,
-    docNumber: true,
-    docIssueDate: true,
-    birthDate: true,
-    gender: true,
-    phone: true,
-    residentialAddress: true,
-    businessAddress: true,
-    cityId: true,
-    bankAccountId: true,
-    createdAt: true,
-    updatedAt: true,
-};
 let TypeormPersonRepository = class TypeormPersonRepository {
     repo;
     constructor(repo) {
@@ -1008,20 +1410,23 @@ let TypeormPersonRepository = class TypeormPersonRepository {
     async find_by_external_id(external_id) {
         const row = await this.repo.findOne({
             where: { externalId: external_id },
-            select: PERSON_SELECT,
+        });
+        return row ? person_mapper_1.PersonMapper.to_domain(row) : null;
+    }
+    async find_by_internal_id(internal_id) {
+        const row = await this.repo.findOne({
+            where: { id: internal_id },
         });
         return row ? person_mapper_1.PersonMapper.to_domain(row) : null;
     }
     async find_by_doc_number(doc_number) {
         const row = await this.repo.findOne({
             where: { docNumber: doc_number },
-            select: PERSON_SELECT,
         });
         return row ? person_mapper_1.PersonMapper.to_domain(row) : null;
     }
     async find_all() {
         const rows = await this.repo.find({
-            select: PERSON_SELECT,
             order: { id: 'ASC' },
         });
         return rows.map((r) => person_mapper_1.PersonMapper.to_domain(r));
@@ -1494,19 +1899,13 @@ const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
 const typeorm_1 = __webpack_require__(/*! @nestjs/typeorm */ "@nestjs/typeorm");
 const typeorm_2 = __webpack_require__(/*! typeorm */ "typeorm");
 const transversal_data_1 = __webpack_require__(/*! @app/transversal-data */ "./libs/transversal-data/src/index.ts");
+const shared_1 = __webpack_require__(/*! @platam/shared */ "./libs/shared/src/index.ts");
 const user_mapper_1 = __webpack_require__(/*! @infrastructure/database/mappers/user.mapper */ "./apps/transversal-ms/src/infrastructure/database/mappers/user.mapper.ts");
-const USER_SELECT = {
-    id: true,
-    externalId: true,
-    cognitoSub: true,
-    email: true,
-    roleId: true,
-    state: true,
-    personId: true,
-    lastLoginAt: true,
-    createdAt: true,
-    updatedAt: true,
-};
+const normalize_cognito_sub_1 = __webpack_require__(/*! @common/utils/normalize-cognito-sub */ "./apps/transversal-ms/src/common/utils/normalize-cognito-sub.ts");
+const BACK_OFFICE_UNRESTRICTED = new Set([
+    shared_1.Roles.BACK_OFFICE_ADMIN,
+    shared_1.Roles.BACK_OFFICE_ANALYST,
+]);
 let TypeormUserRepository = class TypeormUserRepository {
     repo;
     constructor(repo) {
@@ -1515,14 +1914,19 @@ let TypeormUserRepository = class TypeormUserRepository {
     async find_by_external_id(external_id) {
         const row = await this.repo.findOne({
             where: { externalId: external_id },
-            select: USER_SELECT,
         });
         return row ? user_mapper_1.UserMapper.to_domain(row) : null;
     }
     async find_by_email(email) {
         const row = await this.repo.findOne({
             where: { email: email.trim().toLowerCase() },
-            select: USER_SELECT,
+        });
+        return row ? user_mapper_1.UserMapper.to_domain(row) : null;
+    }
+    async find_by_cognito_sub(cognito_sub) {
+        const normalized = (0, normalize_cognito_sub_1.normalize_cognito_sub)(cognito_sub);
+        const row = await this.repo.findOne({
+            where: { cognitoSub: normalized },
         });
         return row ? user_mapper_1.UserMapper.to_domain(row) : null;
     }
@@ -1542,7 +1946,6 @@ let TypeormUserRepository = class TypeormUserRepository {
     }
     async find_all() {
         const rows = await this.repo.find({
-            select: USER_SELECT,
             order: { id: 'ASC' },
         });
         return rows.map((r) => user_mapper_1.UserMapper.to_domain(r));
@@ -1553,23 +1956,50 @@ let TypeormUserRepository = class TypeormUserRepository {
         }
         const rows = await this.repo.find({
             where: { id: (0, typeorm_2.In)([...internal_ids]) },
-            select: USER_SELECT,
             order: { id: 'ASC' },
         });
         return rows.map((r) => user_mapper_1.UserMapper.to_domain(r));
     }
+    async find_descendant_internal_ids_under(internal_id) {
+        const rows = (await this.repo.query(`SELECT u.id
+       FROM transversal_schema.users u
+       INNER JOIN transversal_schema.users a ON a.id = $1
+       WHERE u.id <> a.id
+         AND u.hierarchy_path LIKE a.hierarchy_path || '%'
+       ORDER BY u.id ASC`, [internal_id]));
+        return rows.map((r) => Number(r.id));
+    }
+    async find_subtree_internal_ids_under(internal_id) {
+        const rows = (await this.repo.query(`SELECT u.id
+       FROM transversal_schema.users u
+       INNER JOIN transversal_schema.users a ON a.id = $1
+       WHERE u.hierarchy_path LIKE a.hierarchy_path || '%'
+       ORDER BY u.id ASC`, [internal_id]));
+        return rows.map((r) => Number(r.id));
+    }
+    async resolve_visible_internal_user_ids_for_role(actor_internal_id, role_code) {
+        if (BACK_OFFICE_UNRESTRICTED.has(role_code)) {
+            return { kind: 'unrestricted' };
+        }
+        const ids = await this.find_subtree_internal_ids_under(actor_internal_id);
+        return { kind: 'subset', internal_user_ids: ids };
+    }
     async create(props) {
+        const parent_id = props.parent_id === undefined ? null : props.parent_id;
+        const person_id = props.person_id === undefined ? null : props.person_id;
         const rows = await this.repo.query(`INSERT INTO transversal_schema.users (
-        external_id, cognito_sub, email, role_id, state, last_login_at
+        external_id, cognito_sub, email, role_id, state, last_login_at, parent_id, person_id
       ) VALUES (
-        gen_random_uuid(), $1, $2, $3, $4::"transversal_schema"."user_state", $5
+        gen_random_uuid(), $1, $2, $3, $4::"transversal_schema"."user_state", $5, $6, $7
       )
-      RETURNING id, external_id, created_at, updated_at, cognito_sub, email, role_id, state, last_login_at`, [
-            props.cognito_sub,
+      RETURNING id, external_id, created_at, updated_at, cognito_sub, email, role_id, state, last_login_at, parent_id, person_id, hierarchy_path`, [
+            (0, normalize_cognito_sub_1.normalize_cognito_sub)(props.cognito_sub),
             props.email,
             props.role_id,
             props.state,
             props.last_login_at,
+            parent_id,
+            person_id,
         ]);
         return user_mapper_1.UserMapper.from_raw_row(rows[0]);
     }
@@ -1590,7 +2020,7 @@ let TypeormUserRepository = class TypeormUserRepository {
             i += 1;
         };
         if (patch.cognito_sub !== undefined) {
-            add('cognito_sub', patch.cognito_sub);
+            add('cognito_sub', (0, normalize_cognito_sub_1.normalize_cognito_sub)(patch.cognito_sub));
         }
         if (patch.email !== undefined) {
             add('email', patch.email);
@@ -1603,6 +2033,12 @@ let TypeormUserRepository = class TypeormUserRepository {
         }
         if (patch.last_login_at !== undefined) {
             add('last_login_at', patch.last_login_at);
+        }
+        if (patch.parent_id !== undefined) {
+            add('parent_id', patch.parent_id);
+        }
+        if (patch.person_id !== undefined) {
+            add('person_id', patch.person_id);
         }
         if (columns.length === 0) {
             return this.find_by_external_id(external_id);
@@ -2564,6 +3000,1596 @@ exports.StorageModule = StorageModule = __decorate([
         exports: [transversal_tokens_1.STORAGE_PORT, transversal_tokens_1.REMOTE_FILE_FETCH_PORT],
     })
 ], StorageModule);
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/main.ts"
+/*!*****************************************!*\
+  !*** ./apps/transversal-ms/src/main.ts ***!
+  \*****************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+__webpack_require__(/*! reflect-metadata */ "reflect-metadata");
+__webpack_require__(/*! ./types/express-augmentation */ "./apps/transversal-ms/src/types/express-augmentation.ts");
+__webpack_require__(/*! ./config/dotenv.config */ "./apps/transversal-ms/src/config/dotenv.config.ts");
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const core_1 = __webpack_require__(/*! @nestjs/core */ "@nestjs/core");
+const config_1 = __webpack_require__(/*! @nestjs/config */ "@nestjs/config");
+const swagger_1 = __webpack_require__(/*! @nestjs/swagger */ "@nestjs/swagger");
+const helmet_1 = __importDefault(__webpack_require__(/*! helmet */ "helmet"));
+const app_module_1 = __webpack_require__(/*! ./app.module */ "./apps/transversal-ms/src/app.module.ts");
+const strip_untrusted_identity_headers_middleware_1 = __webpack_require__(/*! @common/middleware/strip-untrusted-identity-headers.middleware */ "./apps/transversal-ms/src/common/middleware/strip-untrusted-identity-headers.middleware.ts");
+async function bootstrap() {
+    const app = await core_1.NestFactory.create(app_module_1.AppModule);
+    app.use(strip_untrusted_identity_headers_middleware_1.strip_untrusted_identity_headers);
+    app.use((0, helmet_1.default)({
+        contentSecurityPolicy: false,
+        crossOriginResourcePolicy: { policy: 'cross-origin' },
+    }));
+    app.enableCors({ origin: '*' });
+    app.useGlobalPipes(new common_1.ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transform: true,
+        transformOptions: { enableImplicitConversion: true },
+    }));
+    const swagger_config = new swagger_1.DocumentBuilder()
+        .setTitle('Transversal MS')
+        .setDescription('HTTP y mensajería SQS del microservicio Transversal')
+        .setVersion('1.0')
+        .addServer('/')
+        .addBearerAuth({
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        description: 'Access token de Amazon Cognito (token_use=access). Emisor: https://cognito-idp.{region}.amazonaws.com/{userPoolId}',
+    }, 'cognito-access-token')
+        .build();
+    const swagger_document = swagger_1.SwaggerModule.createDocument(app, swagger_config);
+    swagger_1.SwaggerModule.setup('docs', app, swagger_document, {
+        jsonDocumentUrl: 'docs/json',
+    });
+    const config_service = app.get(config_1.ConfigService);
+    const port = Number(config_service.get('config.port') ?? 8080);
+    const trust_hops = config_service.get('security.trust_proxy_hops') ?? 0;
+    if (Number.isFinite(trust_hops) && trust_hops > 0) {
+        app.set('trust proxy', trust_hops);
+    }
+    await app.listen(port);
+    const logger = new common_1.Logger('Bootstrap');
+    logger.log(`Transversal MS (HTTP + SQS) escuchando en puerto ${port}`);
+    logger.log(`Swagger UI: http://localhost:${port}/docs`);
+}
+void bootstrap();
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/modules/auth/application/dto/auth-login-response.dto.ts"
+/*!*****************************************************************************************!*\
+  !*** ./apps/transversal-ms/src/modules/auth/application/dto/auth-login-response.dto.ts ***!
+  \*****************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var _a;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.AuthLoginResponseDto = void 0;
+const swagger_1 = __webpack_require__(/*! @nestjs/swagger */ "@nestjs/swagger");
+const auth_tokens_response_dto_1 = __webpack_require__(/*! @modules/auth/application/dto/auth-tokens-response.dto */ "./apps/transversal-ms/src/modules/auth/application/dto/auth-tokens-response.dto.ts");
+class AuthLoginResponseDto {
+    status;
+    challengeName;
+    session;
+    tokens;
+}
+exports.AuthLoginResponseDto = AuthLoginResponseDto;
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        enum: [
+            'MFA_REQUIRED',
+            'MFA_SETUP_REQUIRED',
+            'PASSWORD_CHANGE_REQUIRED',
+            'AUTHENTICATED',
+        ],
+    }),
+    __metadata("design:type", String)
+], AuthLoginResponseDto.prototype, "status", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        nullable: true,
+        enum: ['SOFTWARE_TOKEN_MFA', 'MFA_SETUP', 'NEW_PASSWORD_REQUIRED'],
+    }),
+    __metadata("design:type", Object)
+], AuthLoginResponseDto.prototype, "challengeName", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ nullable: true }),
+    __metadata("design:type", Object)
+], AuthLoginResponseDto.prototype, "session", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ type: () => auth_tokens_response_dto_1.AuthTokensResponseDto, nullable: true }),
+    __metadata("design:type", Object)
+], AuthLoginResponseDto.prototype, "tokens", void 0);
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/modules/auth/application/dto/auth-payload.transforms.ts"
+/*!*****************************************************************************************!*\
+  !*** ./apps/transversal-ms/src/modules/auth/application/dto/auth-payload.transforms.ts ***!
+  \*****************************************************************************************/
+(__unused_webpack_module, exports) {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.trim_string_value = trim_string_value;
+exports.normalize_auth_email = normalize_auth_email;
+exports.digits_only_totp = digits_only_totp;
+function trim_string_value({ value }) {
+    return typeof value === 'string' ? value.trim() : value;
+}
+function normalize_auth_email({ value }) {
+    return typeof value === 'string' ? value.trim().toLowerCase() : value;
+}
+function digits_only_totp({ value }) {
+    if (value === null || value === undefined) {
+        return value;
+    }
+    return String(value).trim().replace(/\D/g, '');
+}
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/modules/auth/application/dto/auth-tokens-response.dto.ts"
+/*!******************************************************************************************!*\
+  !*** ./apps/transversal-ms/src/modules/auth/application/dto/auth-tokens-response.dto.ts ***!
+  \******************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.AuthTokensResponseDto = void 0;
+const swagger_1 = __webpack_require__(/*! @nestjs/swagger */ "@nestjs/swagger");
+class AuthTokensResponseDto {
+    accessToken;
+    idToken;
+    refreshToken;
+    expiresIn;
+    tokenType;
+}
+exports.AuthTokensResponseDto = AuthTokensResponseDto;
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    __metadata("design:type", String)
+], AuthTokensResponseDto.prototype, "accessToken", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    __metadata("design:type", String)
+], AuthTokensResponseDto.prototype, "idToken", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ nullable: true }),
+    __metadata("design:type", Object)
+], AuthTokensResponseDto.prototype, "refreshToken", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    __metadata("design:type", Number)
+], AuthTokensResponseDto.prototype, "expiresIn", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: 'Bearer' }),
+    __metadata("design:type", String)
+], AuthTokensResponseDto.prototype, "tokenType", void 0);
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/modules/auth/application/dto/login-request.dto.ts"
+/*!***********************************************************************************!*\
+  !*** ./apps/transversal-ms/src/modules/auth/application/dto/login-request.dto.ts ***!
+  \***********************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.LoginRequestDto = void 0;
+const swagger_1 = __webpack_require__(/*! @nestjs/swagger */ "@nestjs/swagger");
+const class_transformer_1 = __webpack_require__(/*! class-transformer */ "class-transformer");
+const class_validator_1 = __webpack_require__(/*! class-validator */ "class-validator");
+const auth_payload_transforms_1 = __webpack_require__(/*! @modules/auth/application/dto/auth-payload.transforms */ "./apps/transversal-ms/src/modules/auth/application/dto/auth-payload.transforms.ts");
+class LoginRequestDto {
+    email;
+    password;
+}
+exports.LoginRequestDto = LoginRequestDto;
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: 'usuario@ejemplo.com' }),
+    (0, class_transformer_1.Transform)(auth_payload_transforms_1.normalize_auth_email),
+    (0, class_validator_1.IsEmail)(),
+    __metadata("design:type", String)
+], LoginRequestDto.prototype, "email", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ format: 'password', minLength: 1 }),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MinLength)(1),
+    __metadata("design:type", String)
+], LoginRequestDto.prototype, "password", void 0);
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/modules/auth/application/dto/setup-mfa-request.dto.ts"
+/*!***************************************************************************************!*\
+  !*** ./apps/transversal-ms/src/modules/auth/application/dto/setup-mfa-request.dto.ts ***!
+  \***************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SetupMfaRequestDto = void 0;
+const swagger_1 = __webpack_require__(/*! @nestjs/swagger */ "@nestjs/swagger");
+const class_transformer_1 = __webpack_require__(/*! class-transformer */ "class-transformer");
+const class_validator_1 = __webpack_require__(/*! class-validator */ "class-validator");
+const auth_payload_transforms_1 = __webpack_require__(/*! @modules/auth/application/dto/auth-payload.transforms */ "./apps/transversal-ms/src/modules/auth/application/dto/auth-payload.transforms.ts");
+class SetupMfaRequestDto {
+    session;
+}
+exports.SetupMfaRequestDto = SetupMfaRequestDto;
+__decorate([
+    (0, swagger_1.ApiProperty)({ description: 'Sesión devuelta por /auth/login con MFA_SETUP_REQUIRED' }),
+    (0, class_transformer_1.Transform)(auth_payload_transforms_1.trim_string_value),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MinLength)(1),
+    __metadata("design:type", String)
+], SetupMfaRequestDto.prototype, "session", void 0);
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/modules/auth/application/dto/setup-mfa-response.dto.ts"
+/*!****************************************************************************************!*\
+  !*** ./apps/transversal-ms/src/modules/auth/application/dto/setup-mfa-response.dto.ts ***!
+  \****************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SetupMfaResponseDto = void 0;
+const swagger_1 = __webpack_require__(/*! @nestjs/swagger */ "@nestjs/swagger");
+class SetupMfaResponseDto {
+    secretCodeUrl;
+    session;
+}
+exports.SetupMfaResponseDto = SetupMfaResponseDto;
+__decorate([
+    (0, swagger_1.ApiProperty)({ description: 'URL otpauth:// para configurar Google Authenticator' }),
+    __metadata("design:type", String)
+], SetupMfaResponseDto.prototype, "secretCodeUrl", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ description: 'Sesión actualizada para /auth/mfa/verify' }),
+    __metadata("design:type", String)
+], SetupMfaResponseDto.prototype, "session", void 0);
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/modules/auth/application/dto/tokens-response.dto.ts"
+/*!*************************************************************************************!*\
+  !*** ./apps/transversal-ms/src/modules/auth/application/dto/tokens-response.dto.ts ***!
+  \*************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.TokensResponseDto = void 0;
+const swagger_1 = __webpack_require__(/*! @nestjs/swagger */ "@nestjs/swagger");
+class TokensResponseDto {
+    accessToken;
+    idToken;
+    refreshToken;
+    expiresIn;
+    tokenType;
+}
+exports.TokensResponseDto = TokensResponseDto;
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    __metadata("design:type", String)
+], TokensResponseDto.prototype, "accessToken", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    __metadata("design:type", String)
+], TokensResponseDto.prototype, "idToken", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ nullable: true }),
+    __metadata("design:type", Object)
+], TokensResponseDto.prototype, "refreshToken", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    __metadata("design:type", Number)
+], TokensResponseDto.prototype, "expiresIn", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: 'Bearer' }),
+    __metadata("design:type", String)
+], TokensResponseDto.prototype, "tokenType", void 0);
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/modules/auth/application/dto/verify-mfa-setup-request.dto.ts"
+/*!**********************************************************************************************!*\
+  !*** ./apps/transversal-ms/src/modules/auth/application/dto/verify-mfa-setup-request.dto.ts ***!
+  \**********************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.VerifyMfaSetupRequestDto = void 0;
+const swagger_1 = __webpack_require__(/*! @nestjs/swagger */ "@nestjs/swagger");
+const class_transformer_1 = __webpack_require__(/*! class-transformer */ "class-transformer");
+const class_validator_1 = __webpack_require__(/*! class-validator */ "class-validator");
+const auth_payload_transforms_1 = __webpack_require__(/*! @modules/auth/application/dto/auth-payload.transforms */ "./apps/transversal-ms/src/modules/auth/application/dto/auth-payload.transforms.ts");
+class VerifyMfaSetupRequestDto {
+    email;
+    session;
+    totpCode;
+}
+exports.VerifyMfaSetupRequestDto = VerifyMfaSetupRequestDto;
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: 'usuario@ejemplo.com' }),
+    (0, class_transformer_1.Transform)(auth_payload_transforms_1.normalize_auth_email),
+    (0, class_validator_1.IsEmail)(),
+    __metadata("design:type", String)
+], VerifyMfaSetupRequestDto.prototype, "email", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    (0, class_transformer_1.Transform)(auth_payload_transforms_1.trim_string_value),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MinLength)(1),
+    __metadata("design:type", String)
+], VerifyMfaSetupRequestDto.prototype, "session", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: '123456', minLength: 6, maxLength: 6 }),
+    (0, class_transformer_1.Transform)(auth_payload_transforms_1.digits_only_totp),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.Length)(6, 6),
+    __metadata("design:type", String)
+], VerifyMfaSetupRequestDto.prototype, "totpCode", void 0);
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/modules/auth/application/dto/verify-totp-request.dto.ts"
+/*!*****************************************************************************************!*\
+  !*** ./apps/transversal-ms/src/modules/auth/application/dto/verify-totp-request.dto.ts ***!
+  \*****************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.VerifyTotpRequestDto = void 0;
+const swagger_1 = __webpack_require__(/*! @nestjs/swagger */ "@nestjs/swagger");
+const class_transformer_1 = __webpack_require__(/*! class-transformer */ "class-transformer");
+const class_validator_1 = __webpack_require__(/*! class-validator */ "class-validator");
+const auth_payload_transforms_1 = __webpack_require__(/*! @modules/auth/application/dto/auth-payload.transforms */ "./apps/transversal-ms/src/modules/auth/application/dto/auth-payload.transforms.ts");
+class VerifyTotpRequestDto {
+    email;
+    session;
+    totpCode;
+}
+exports.VerifyTotpRequestDto = VerifyTotpRequestDto;
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: 'usuario@ejemplo.com' }),
+    (0, class_transformer_1.Transform)(auth_payload_transforms_1.normalize_auth_email),
+    (0, class_validator_1.IsEmail)(),
+    __metadata("design:type", String)
+], VerifyTotpRequestDto.prototype, "email", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ description: 'Sesión devuelta por Cognito en el login con MFA' }),
+    (0, class_transformer_1.Transform)(auth_payload_transforms_1.trim_string_value),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MinLength)(1),
+    __metadata("design:type", String)
+], VerifyTotpRequestDto.prototype, "session", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: '123456', minLength: 6, maxLength: 6 }),
+    (0, class_transformer_1.Transform)(auth_payload_transforms_1.digits_only_totp),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.Length)(6, 6),
+    __metadata("design:type", String)
+], VerifyTotpRequestDto.prototype, "totpCode", void 0);
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/modules/auth/application/use-cases/login-with-password.use-case.ts"
+/*!****************************************************************************************************!*\
+  !*** ./apps/transversal-ms/src/modules/auth/application/use-cases/login-with-password.use-case.ts ***!
+  \****************************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.LoginWithPasswordUseCase = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const auth_provider_port_1 = __webpack_require__(/*! @modules/auth/domain/ports/auth-provider.port */ "./apps/transversal-ms/src/modules/auth/domain/ports/auth-provider.port.ts");
+let LoginWithPasswordUseCase = class LoginWithPasswordUseCase {
+    auth_provider;
+    constructor(auth_provider) {
+        this.auth_provider = auth_provider;
+    }
+    execute(email, password) {
+        return this.auth_provider.loginWithPassword({ email, password });
+    }
+};
+exports.LoginWithPasswordUseCase = LoginWithPasswordUseCase;
+exports.LoginWithPasswordUseCase = LoginWithPasswordUseCase = __decorate([
+    (0, common_1.Injectable)(),
+    __param(0, (0, common_1.Inject)(auth_provider_port_1.AUTH_PROVIDER)),
+    __metadata("design:paramtypes", [Object])
+], LoginWithPasswordUseCase);
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/modules/auth/application/use-cases/setup-mfa.use-case.ts"
+/*!******************************************************************************************!*\
+  !*** ./apps/transversal-ms/src/modules/auth/application/use-cases/setup-mfa.use-case.ts ***!
+  \******************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SetupMfaUseCase = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const auth_provider_port_1 = __webpack_require__(/*! @modules/auth/domain/ports/auth-provider.port */ "./apps/transversal-ms/src/modules/auth/domain/ports/auth-provider.port.ts");
+let SetupMfaUseCase = class SetupMfaUseCase {
+    auth_provider;
+    constructor(auth_provider) {
+        this.auth_provider = auth_provider;
+    }
+    execute(session) {
+        return this.auth_provider.setupMfa({ session });
+    }
+};
+exports.SetupMfaUseCase = SetupMfaUseCase;
+exports.SetupMfaUseCase = SetupMfaUseCase = __decorate([
+    (0, common_1.Injectable)(),
+    __param(0, (0, common_1.Inject)(auth_provider_port_1.AUTH_PROVIDER)),
+    __metadata("design:paramtypes", [Object])
+], SetupMfaUseCase);
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/modules/auth/application/use-cases/verify-mfa-setup.use-case.ts"
+/*!*************************************************************************************************!*\
+  !*** ./apps/transversal-ms/src/modules/auth/application/use-cases/verify-mfa-setup.use-case.ts ***!
+  \*************************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.VerifyMfaSetupUseCase = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const auth_provider_port_1 = __webpack_require__(/*! @modules/auth/domain/ports/auth-provider.port */ "./apps/transversal-ms/src/modules/auth/domain/ports/auth-provider.port.ts");
+let VerifyMfaSetupUseCase = class VerifyMfaSetupUseCase {
+    auth_provider;
+    constructor(auth_provider) {
+        this.auth_provider = auth_provider;
+    }
+    execute(email, session, totpCode) {
+        return this.auth_provider.verifyMfaSetup({ email, session, totpCode });
+    }
+};
+exports.VerifyMfaSetupUseCase = VerifyMfaSetupUseCase;
+exports.VerifyMfaSetupUseCase = VerifyMfaSetupUseCase = __decorate([
+    (0, common_1.Injectable)(),
+    __param(0, (0, common_1.Inject)(auth_provider_port_1.AUTH_PROVIDER)),
+    __metadata("design:paramtypes", [Object])
+], VerifyMfaSetupUseCase);
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/modules/auth/application/use-cases/verify-totp.use-case.ts"
+/*!********************************************************************************************!*\
+  !*** ./apps/transversal-ms/src/modules/auth/application/use-cases/verify-totp.use-case.ts ***!
+  \********************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.VerifyTotpUseCase = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const auth_provider_port_1 = __webpack_require__(/*! @modules/auth/domain/ports/auth-provider.port */ "./apps/transversal-ms/src/modules/auth/domain/ports/auth-provider.port.ts");
+let VerifyTotpUseCase = class VerifyTotpUseCase {
+    auth_provider;
+    constructor(auth_provider) {
+        this.auth_provider = auth_provider;
+    }
+    execute(email, session, totpCode) {
+        return this.auth_provider.verifyTotp({ email, session, totpCode });
+    }
+};
+exports.VerifyTotpUseCase = VerifyTotpUseCase;
+exports.VerifyTotpUseCase = VerifyTotpUseCase = __decorate([
+    (0, common_1.Injectable)(),
+    __param(0, (0, common_1.Inject)(auth_provider_port_1.AUTH_PROVIDER)),
+    __metadata("design:paramtypes", [Object])
+], VerifyTotpUseCase);
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/modules/auth/auth.module.ts"
+/*!*************************************************************!*\
+  !*** ./apps/transversal-ms/src/modules/auth/auth.module.ts ***!
+  \*************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.AuthModule = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const passport_1 = __webpack_require__(/*! @nestjs/passport */ "@nestjs/passport");
+const cognito_jwt_strategy_1 = __webpack_require__(/*! ./infrastructure/strategies/cognito-jwt.strategy */ "./apps/transversal-ms/src/modules/auth/infrastructure/strategies/cognito-jwt.strategy.ts");
+const jwt_auth_guard_1 = __webpack_require__(/*! ./infrastructure/guards/jwt-auth.guard */ "./apps/transversal-ms/src/modules/auth/infrastructure/guards/jwt-auth.guard.ts");
+const roles_guard_1 = __webpack_require__(/*! ./infrastructure/guards/roles.guard */ "./apps/transversal-ms/src/modules/auth/infrastructure/guards/roles.guard.ts");
+const scope_guard_1 = __webpack_require__(/*! ./infrastructure/guards/scope.guard */ "./apps/transversal-ms/src/modules/auth/infrastructure/guards/scope.guard.ts");
+const auth_controller_1 = __webpack_require__(/*! ./presentation/auth.controller */ "./apps/transversal-ms/src/modules/auth/presentation/auth.controller.ts");
+const auth_provider_port_1 = __webpack_require__(/*! @modules/auth/domain/ports/auth-provider.port */ "./apps/transversal-ms/src/modules/auth/domain/ports/auth-provider.port.ts");
+const cognito_auth_provider_1 = __webpack_require__(/*! @modules/auth/infrastructure/cognito/cognito-auth.provider */ "./apps/transversal-ms/src/modules/auth/infrastructure/cognito/cognito-auth.provider.ts");
+const login_with_password_use_case_1 = __webpack_require__(/*! @modules/auth/application/use-cases/login-with-password.use-case */ "./apps/transversal-ms/src/modules/auth/application/use-cases/login-with-password.use-case.ts");
+const verify_totp_use_case_1 = __webpack_require__(/*! @modules/auth/application/use-cases/verify-totp.use-case */ "./apps/transversal-ms/src/modules/auth/application/use-cases/verify-totp.use-case.ts");
+const setup_mfa_use_case_1 = __webpack_require__(/*! @modules/auth/application/use-cases/setup-mfa.use-case */ "./apps/transversal-ms/src/modules/auth/application/use-cases/setup-mfa.use-case.ts");
+const verify_mfa_setup_use_case_1 = __webpack_require__(/*! @modules/auth/application/use-cases/verify-mfa-setup.use-case */ "./apps/transversal-ms/src/modules/auth/application/use-cases/verify-mfa-setup.use-case.ts");
+const typeorm_permission_codes_by_role_reader_1 = __webpack_require__(/*! @infrastructure/database/readers/typeorm-permission-codes-by-role.reader */ "./apps/transversal-ms/src/infrastructure/database/readers/typeorm-permission-codes-by-role.reader.ts");
+const auth_tokens_1 = __webpack_require__(/*! @modules/auth/auth.tokens */ "./apps/transversal-ms/src/modules/auth/auth.tokens.ts");
+let AuthModule = class AuthModule {
+};
+exports.AuthModule = AuthModule;
+exports.AuthModule = AuthModule = __decorate([
+    (0, common_1.Global)(),
+    (0, common_1.Module)({
+        imports: [passport_1.PassportModule.register({ defaultStrategy: 'jwt' })],
+        controllers: [auth_controller_1.AuthController],
+        providers: [
+            cognito_jwt_strategy_1.CognitoJwtStrategy,
+            jwt_auth_guard_1.JwtAuthGuard,
+            roles_guard_1.RolesGuard,
+            scope_guard_1.ScopeGuard,
+            typeorm_permission_codes_by_role_reader_1.TypeormPermissionCodesByRoleReader,
+            {
+                provide: auth_tokens_1.PERMISSION_CODES_BY_ROLE_READER,
+                useExisting: typeorm_permission_codes_by_role_reader_1.TypeormPermissionCodesByRoleReader,
+            },
+            {
+                provide: auth_provider_port_1.AUTH_PROVIDER,
+                useClass: cognito_auth_provider_1.CognitoAuthProvider,
+            },
+            login_with_password_use_case_1.LoginWithPasswordUseCase,
+            verify_totp_use_case_1.VerifyTotpUseCase,
+            setup_mfa_use_case_1.SetupMfaUseCase,
+            verify_mfa_setup_use_case_1.VerifyMfaSetupUseCase,
+        ],
+        exports: [
+            passport_1.PassportModule,
+            jwt_auth_guard_1.JwtAuthGuard,
+            roles_guard_1.RolesGuard,
+            scope_guard_1.ScopeGuard,
+            auth_tokens_1.PERMISSION_CODES_BY_ROLE_READER,
+        ],
+    })
+], AuthModule);
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/modules/auth/auth.tokens.ts"
+/*!*************************************************************!*\
+  !*** ./apps/transversal-ms/src/modules/auth/auth.tokens.ts ***!
+  \*************************************************************/
+(__unused_webpack_module, exports) {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.PERMISSION_CODES_BY_ROLE_READER = void 0;
+exports.PERMISSION_CODES_BY_ROLE_READER = Symbol('PERMISSION_CODES_BY_ROLE_READER');
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/modules/auth/domain/models/auth-error.model.ts"
+/*!********************************************************************************!*\
+  !*** ./apps/transversal-ms/src/modules/auth/domain/models/auth-error.model.ts ***!
+  \********************************************************************************/
+(__unused_webpack_module, exports) {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.AuthDomainError = void 0;
+class AuthDomainError extends Error {
+    code;
+    constructor(code, message) {
+        super(message);
+        this.name = 'AuthDomainError';
+        this.code = code;
+    }
+}
+exports.AuthDomainError = AuthDomainError;
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/modules/auth/domain/ports/auth-provider.port.ts"
+/*!*********************************************************************************!*\
+  !*** ./apps/transversal-ms/src/modules/auth/domain/ports/auth-provider.port.ts ***!
+  \*********************************************************************************/
+(__unused_webpack_module, exports) {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.AUTH_PROVIDER = void 0;
+exports.AUTH_PROVIDER = 'AUTH_PROVIDER';
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/modules/auth/infrastructure/cognito/cognito-auth.provider.ts"
+/*!**********************************************************************************************!*\
+  !*** ./apps/transversal-ms/src/modules/auth/infrastructure/cognito/cognito-auth.provider.ts ***!
+  \**********************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var CognitoAuthProvider_1;
+var _a;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.CognitoAuthProvider = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const config_1 = __webpack_require__(/*! @nestjs/config */ "@nestjs/config");
+const client_cognito_identity_provider_1 = __webpack_require__(/*! @aws-sdk/client-cognito-identity-provider */ "@aws-sdk/client-cognito-identity-provider");
+const crypto_1 = __webpack_require__(/*! crypto */ "crypto");
+const auth_error_model_1 = __webpack_require__(/*! @modules/auth/domain/models/auth-error.model */ "./apps/transversal-ms/src/modules/auth/domain/models/auth-error.model.ts");
+let CognitoAuthProvider = CognitoAuthProvider_1 = class CognitoAuthProvider {
+    config_service;
+    logger = new common_1.Logger(CognitoAuthProvider_1.name);
+    cognito_client;
+    client_id;
+    client_secret;
+    constructor(config_service) {
+        this.config_service = config_service;
+        const region = this.config_service.getOrThrow('config.cognito.region');
+        const client_id = this.config_service.get('config.cognito.clientId')?.trim() ?? '';
+        const client_secret = this.config_service.get('config.cognito.clientSecret')?.trim();
+        if (client_id.length === 0) {
+            throw new Error('Missing Cognito app client id configuration');
+        }
+        this.client_id = client_id;
+        this.client_secret =
+            client_secret !== undefined && client_secret.length > 0 ? client_secret : null;
+        this.cognito_client = new client_cognito_identity_provider_1.CognitoIdentityProviderClient({ region });
+    }
+    async loginWithPassword(payload) {
+        try {
+            const username = payload.email.trim().toLowerCase();
+            const auth_parameters = {
+                USERNAME: username,
+                PASSWORD: payload.password,
+            };
+            const secret_hash = this.build_secret_hash(username);
+            if (secret_hash !== null) {
+                auth_parameters.SECRET_HASH = secret_hash;
+            }
+            const response = await this.cognito_client.send(new client_cognito_identity_provider_1.InitiateAuthCommand({
+                AuthFlow: 'USER_PASSWORD_AUTH',
+                ClientId: this.client_id,
+                AuthParameters: auth_parameters,
+            }));
+            if (response.ChallengeName !== undefined && response.Session !== undefined) {
+                if (response.ChallengeName === 'SOFTWARE_TOKEN_MFA') {
+                    return {
+                        status: 'MFA_REQUIRED',
+                        challengeName: 'SOFTWARE_TOKEN_MFA',
+                        session: response.Session,
+                        tokens: null,
+                    };
+                }
+                if (response.ChallengeName === 'MFA_SETUP') {
+                    return {
+                        status: 'MFA_SETUP_REQUIRED',
+                        challengeName: 'MFA_SETUP',
+                        session: response.Session,
+                        tokens: null,
+                    };
+                }
+                if (response.ChallengeName === 'NEW_PASSWORD_REQUIRED') {
+                    return {
+                        status: 'PASSWORD_CHANGE_REQUIRED',
+                        challengeName: 'NEW_PASSWORD_REQUIRED',
+                        session: response.Session,
+                        tokens: null,
+                    };
+                }
+            }
+            if (response.AuthenticationResult !== undefined) {
+                return {
+                    status: 'AUTHENTICATED',
+                    challengeName: null,
+                    session: null,
+                    tokens: this.map_authentication_result(response.AuthenticationResult),
+                };
+            }
+            throw new auth_error_model_1.AuthDomainError('UNEXPECTED_AUTH_ERROR', 'Unexpected Cognito login response');
+        }
+        catch (error) {
+            this.map_and_throw_auth_error(error, 'login');
+        }
+    }
+    async verifyTotp(payload) {
+        try {
+            const username = payload.email.trim().toLowerCase();
+            const session = payload.session.trim();
+            const totp_code = String(payload.totpCode).trim().replace(/\D/g, '');
+            if (totp_code.length !== 6) {
+                throw new auth_error_model_1.AuthDomainError('INVALID_TOTP', 'Invalid TOTP code');
+            }
+            const challenge_responses = {
+                USERNAME: username,
+                SOFTWARE_TOKEN_MFA_CODE: totp_code,
+            };
+            const secret_hash = this.build_secret_hash(username);
+            if (secret_hash !== null) {
+                challenge_responses.SECRET_HASH = secret_hash;
+            }
+            const response = await this.cognito_client.send(new client_cognito_identity_provider_1.RespondToAuthChallengeCommand({
+                ClientId: this.client_id,
+                ChallengeName: 'SOFTWARE_TOKEN_MFA',
+                Session: session,
+                ChallengeResponses: challenge_responses,
+            }));
+            if (response.AuthenticationResult === undefined) {
+                throw new auth_error_model_1.AuthDomainError('UNEXPECTED_AUTH_ERROR', 'Unexpected Cognito challenge response');
+            }
+            return this.map_authentication_result(response.AuthenticationResult);
+        }
+        catch (error) {
+            this.map_and_throw_auth_error(error, 'totp');
+        }
+    }
+    async setupMfa(payload) {
+        try {
+            const session = payload.session.trim();
+            const response = await this.cognito_client.send(new client_cognito_identity_provider_1.AssociateSoftwareTokenCommand({
+                Session: session,
+            }));
+            if (response.SecretCode === undefined ||
+                response.SecretCode.length === 0 ||
+                response.Session === undefined ||
+                response.Session.length === 0) {
+                throw new auth_error_model_1.AuthDomainError('UNEXPECTED_AUTH_ERROR', 'Missing Cognito MFA setup information');
+            }
+            const issuer = this.config_service.get('config.mfa.issuer')?.trim() || 'Platam Pay';
+            const secret_code_url = this.build_totp_provisioning_url(response.SecretCode, issuer);
+            return {
+                secretCodeUrl: secret_code_url,
+                session: response.Session,
+            };
+        }
+        catch (error) {
+            this.map_and_throw_auth_error(error, 'setup');
+        }
+    }
+    async verifyMfaSetup(payload) {
+        try {
+            const username = payload.email.trim().toLowerCase();
+            const session = payload.session.trim();
+            const totp_code = String(payload.totpCode).trim().replace(/\D/g, '');
+            if (totp_code.length !== 6) {
+                throw new auth_error_model_1.AuthDomainError('INVALID_TOTP', 'Invalid TOTP code');
+            }
+            const verify_response = await this.cognito_client.send(new client_cognito_identity_provider_1.VerifySoftwareTokenCommand({
+                Session: session,
+                UserCode: totp_code,
+            }));
+            if (verify_response.Status !== 'SUCCESS') {
+                throw new auth_error_model_1.AuthDomainError('INVALID_TOTP', 'Invalid TOTP setup code');
+            }
+            const challenge_responses = {
+                USERNAME: username,
+            };
+            const secret_hash = this.build_secret_hash(username);
+            if (secret_hash !== null) {
+                challenge_responses.SECRET_HASH = secret_hash;
+            }
+            const challenge_session = verify_response.Session ?? session;
+            const response = await this.cognito_client.send(new client_cognito_identity_provider_1.RespondToAuthChallengeCommand({
+                ClientId: this.client_id,
+                ChallengeName: 'MFA_SETUP',
+                Session: challenge_session,
+                ChallengeResponses: challenge_responses,
+            }));
+            if (response.AuthenticationResult === undefined) {
+                throw new auth_error_model_1.AuthDomainError('UNEXPECTED_AUTH_ERROR', 'Unexpected Cognito MFA setup verification response');
+            }
+            return this.map_authentication_result(response.AuthenticationResult);
+        }
+        catch (error) {
+            this.map_and_throw_auth_error(error, 'mfa_setup');
+        }
+    }
+    map_authentication_result(result) {
+        if (result.AccessToken === undefined ||
+            result.AccessToken.length === 0 ||
+            result.IdToken === undefined ||
+            result.IdToken.length === 0) {
+            throw new auth_error_model_1.AuthDomainError('UNEXPECTED_AUTH_ERROR', 'Missing required Cognito tokens');
+        }
+        return {
+            accessToken: result.AccessToken,
+            idToken: result.IdToken,
+            refreshToken: result.RefreshToken ?? null,
+            expiresIn: result.ExpiresIn ?? 0,
+            tokenType: result.TokenType ?? 'Bearer',
+        };
+    }
+    build_secret_hash(username) {
+        if (this.client_secret === null) {
+            return null;
+        }
+        return (0, crypto_1.createHmac)('sha256', this.client_secret)
+            .update(`${username}${this.client_id}`)
+            .digest('base64');
+    }
+    build_totp_provisioning_url(secret_code, issuer) {
+        const encoded_issuer = encodeURIComponent(issuer);
+        const label = encoded_issuer;
+        return `otpauth://totp/${label}?secret=${secret_code}&issuer=${encoded_issuer}`;
+    }
+    map_and_throw_auth_error(error, context) {
+        if (error instanceof auth_error_model_1.AuthDomainError) {
+            throw error;
+        }
+        const error_name = typeof error === 'object' &&
+            error !== null &&
+            'name' in error &&
+            typeof error.name === 'string'
+            ? error.name
+            : 'UnknownError';
+        const error_message = typeof error === 'object' &&
+            error !== null &&
+            'message' in error &&
+            typeof error.message === 'string'
+            ? error.message.toLowerCase()
+            : '';
+        if (['UserLockedOutException', 'TooManyFailedAttemptsException', 'LimitExceededException'].includes(error_name)) {
+            throw new auth_error_model_1.AuthDomainError('ACCOUNT_LOCKED', 'Account locked');
+        }
+        if (context === 'login') {
+            if ([
+                'NotAuthorizedException',
+                'UserNotFoundException',
+                'UserNotConfirmedException',
+                'PasswordResetRequiredException',
+            ].includes(error_name)) {
+                throw new auth_error_model_1.AuthDomainError('INVALID_CREDENTIALS', 'Invalid credentials');
+            }
+        }
+        if (context === 'totp') {
+            if (['CodeMismatchException'].includes(error_name)) {
+                throw new auth_error_model_1.AuthDomainError('INVALID_TOTP', 'Invalid TOTP code');
+            }
+            if (['ExpiredCodeException'].includes(error_name) ||
+                (error_name === 'NotAuthorizedException' && error_message.includes('session'))) {
+                throw new auth_error_model_1.AuthDomainError('SESSION_EXPIRED', 'Expired session');
+            }
+            if (error_name === 'NotAuthorizedException') {
+                throw new auth_error_model_1.AuthDomainError('INVALID_TOTP', 'Invalid TOTP code');
+            }
+        }
+        if (context === 'setup') {
+            if (['ExpiredCodeException'].includes(error_name) ||
+                (error_name === 'NotAuthorizedException' && error_message.includes('session'))) {
+                throw new auth_error_model_1.AuthDomainError('SESSION_EXPIRED', 'Expired session');
+            }
+        }
+        if (context === 'mfa_setup') {
+            if (['CodeMismatchException', 'EnableSoftwareTokenMFAException'].includes(error_name)) {
+                throw new auth_error_model_1.AuthDomainError('INVALID_TOTP', 'Invalid TOTP code');
+            }
+            if (['ExpiredCodeException'].includes(error_name) ||
+                (error_name === 'NotAuthorizedException' && error_message.includes('session'))) {
+                throw new auth_error_model_1.AuthDomainError('SESSION_EXPIRED', 'Expired session');
+            }
+        }
+        this.logger.warn(`cognito_unmapped_error context=${context} name=${error_name} -> UNEXPECTED_AUTH_ERROR`);
+        throw new auth_error_model_1.AuthDomainError('UNEXPECTED_AUTH_ERROR', 'Unexpected authentication error');
+    }
+};
+exports.CognitoAuthProvider = CognitoAuthProvider;
+exports.CognitoAuthProvider = CognitoAuthProvider = CognitoAuthProvider_1 = __decorate([
+    (0, common_1.Injectable)(),
+    __metadata("design:paramtypes", [typeof (_a = typeof config_1.ConfigService !== "undefined" && config_1.ConfigService) === "function" ? _a : Object])
+], CognitoAuthProvider);
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/modules/auth/infrastructure/guards/jwt-auth.guard.ts"
+/*!**************************************************************************************!*\
+  !*** ./apps/transversal-ms/src/modules/auth/infrastructure/guards/jwt-auth.guard.ts ***!
+  \**************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.JwtAuthGuard = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const passport_1 = __webpack_require__(/*! @nestjs/passport */ "@nestjs/passport");
+let JwtAuthGuard = class JwtAuthGuard extends (0, passport_1.AuthGuard)('jwt') {
+    handleRequest(err, user, _info, _context, _status) {
+        if (err) {
+            throw err;
+        }
+        if (user === false || user === null || user === undefined) {
+            throw new common_1.UnauthorizedException();
+        }
+        return user;
+    }
+};
+exports.JwtAuthGuard = JwtAuthGuard;
+exports.JwtAuthGuard = JwtAuthGuard = __decorate([
+    (0, common_1.Injectable)()
+], JwtAuthGuard);
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/modules/auth/infrastructure/guards/roles.guard.ts"
+/*!***********************************************************************************!*\
+  !*** ./apps/transversal-ms/src/modules/auth/infrastructure/guards/roles.guard.ts ***!
+  \***********************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var _a;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.RolesGuard = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const core_1 = __webpack_require__(/*! @nestjs/core */ "@nestjs/core");
+const auth_metadata_constants_1 = __webpack_require__(/*! @modules/auth/presentation/constants/auth-metadata.constants */ "./apps/transversal-ms/src/modules/auth/presentation/constants/auth-metadata.constants.ts");
+let RolesGuard = class RolesGuard {
+    reflector;
+    constructor(reflector) {
+        this.reflector = reflector;
+    }
+    canActivate(context) {
+        const required = this.reflector.getAllAndOverride(auth_metadata_constants_1.REQUIRE_ROLES_KEY, [context.getHandler(), context.getClass()]);
+        if (required === undefined || required.length === 0) {
+            return true;
+        }
+        const request = context.switchToHttp().getRequest();
+        const user = request.user;
+        if (user === undefined) {
+            throw new common_1.UnauthorizedException();
+        }
+        if (!required.includes(user.roleCode)) {
+            throw new common_1.ForbiddenException();
+        }
+        return true;
+    }
+};
+exports.RolesGuard = RolesGuard;
+exports.RolesGuard = RolesGuard = __decorate([
+    (0, common_1.Injectable)(),
+    __metadata("design:paramtypes", [typeof (_a = typeof core_1.Reflector !== "undefined" && core_1.Reflector) === "function" ? _a : Object])
+], RolesGuard);
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/modules/auth/infrastructure/guards/scope.guard.ts"
+/*!***********************************************************************************!*\
+  !*** ./apps/transversal-ms/src/modules/auth/infrastructure/guards/scope.guard.ts ***!
+  \***********************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ScopeGuard = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const users_tokens_1 = __webpack_require__(/*! @modules/users/users.tokens */ "./apps/transversal-ms/src/modules/users/users.tokens.ts");
+let ScopeGuard = class ScopeGuard {
+    user_repository;
+    constructor(user_repository) {
+        this.user_repository = user_repository;
+    }
+    async canActivate(context) {
+        const request = context.switchToHttp().getRequest();
+        const user = request.user;
+        if (user === undefined) {
+            throw new common_1.UnauthorizedException();
+        }
+        const scope = await this.user_repository.resolve_visible_internal_user_ids_for_role(user.internalUserId, user.roleCode);
+        request.user_visibility_scope = scope;
+        return true;
+    }
+};
+exports.ScopeGuard = ScopeGuard;
+exports.ScopeGuard = ScopeGuard = __decorate([
+    (0, common_1.Injectable)(),
+    __param(0, (0, common_1.Inject)(users_tokens_1.USER_REPOSITORY)),
+    __metadata("design:paramtypes", [Object])
+], ScopeGuard);
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/modules/auth/infrastructure/strategies/cognito-jwt.strategy.ts"
+/*!************************************************************************************************!*\
+  !*** ./apps/transversal-ms/src/modules/auth/infrastructure/strategies/cognito-jwt.strategy.ts ***!
+  \************************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+var CognitoJwtStrategy_1;
+var _a;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.CognitoJwtStrategy = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const config_1 = __webpack_require__(/*! @nestjs/config */ "@nestjs/config");
+const passport_1 = __webpack_require__(/*! @nestjs/passport */ "@nestjs/passport");
+const jwks_rsa_1 = __webpack_require__(/*! jwks-rsa */ "jwks-rsa");
+const passport_jwt_1 = __webpack_require__(/*! passport-jwt */ "passport-jwt");
+const users_tokens_1 = __webpack_require__(/*! @modules/users/users.tokens */ "./apps/transversal-ms/src/modules/users/users.tokens.ts");
+const transversal_tokens_1 = __webpack_require__(/*! @modules/transversal/transversal.tokens */ "./apps/transversal-ms/src/modules/transversal/transversal.tokens.ts");
+const normalize_cognito_sub_1 = __webpack_require__(/*! @common/utils/normalize-cognito-sub */ "./apps/transversal-ms/src/common/utils/normalize-cognito-sub.ts");
+let CognitoJwtStrategy = CognitoJwtStrategy_1 = class CognitoJwtStrategy extends (0, passport_1.PassportStrategy)(passport_jwt_1.Strategy, 'jwt') {
+    config_service;
+    user_repository;
+    role_repository;
+    logger = new common_1.Logger(CognitoJwtStrategy_1.name);
+    constructor(config_service, user_repository, role_repository) {
+        const region = config_service.getOrThrow('config.cognito.region');
+        const user_pool_id = config_service.get('config.cognito.userPoolId')?.trim();
+        if (!user_pool_id) {
+            throw new Error('COGNITO_USER_POOL_ID es obligatorio para autenticación JWT (config.cognito.userPoolId).');
+        }
+        const issuer = `https://cognito-idp.${region}.amazonaws.com/${user_pool_id}`;
+        const jwks_uri = `${issuer}/.well-known/jwks.json`;
+        super({
+            jwtFromRequest: passport_jwt_1.ExtractJwt.fromAuthHeaderAsBearerToken(),
+            ignoreExpiration: false,
+            algorithms: ['RS256'],
+            issuer,
+            secretOrKeyProvider: (0, jwks_rsa_1.passportJwtSecret)({
+                cache: true,
+                rateLimit: true,
+                jwksRequestsPerMinute: 10,
+                jwksUri: jwks_uri,
+            }),
+        });
+        this.config_service = config_service;
+        this.user_repository = user_repository;
+        this.role_repository = role_repository;
+    }
+    async validate(payload) {
+        if (payload.token_use !== 'access') {
+            this.reject('invalid_token_use');
+        }
+        const expected_client_id = this.config_service
+            .get('config.cognito.clientId')
+            ?.trim();
+        if (expected_client_id &&
+            payload.client_id !== undefined &&
+            payload.client_id !== expected_client_id) {
+            this.reject('client_id_mismatch');
+        }
+        const token_sub = (0, normalize_cognito_sub_1.normalize_cognito_sub)(payload.sub ?? '');
+        if (token_sub.length === 0) {
+            this.reject('missing_sub');
+        }
+        const user = await this.user_repository.find_by_email(payload.username ?? '');
+        if (user === null || user.state !== 'active') {
+            this.reject('user_not_found_or_inactive');
+        }
+        if ((0, normalize_cognito_sub_1.normalize_cognito_sub)(user.cognito_sub) !== token_sub) {
+            this.reject('cognito_sub_mismatch');
+        }
+        if (typeof payload.username === 'string' && payload.username.trim() !== '') {
+            const claim_email = payload.username.trim().toLowerCase();
+            if (claim_email !== user.email.trim().toLowerCase()) {
+                this.reject('email_claim_mismatch');
+            }
+        }
+        if (user.role_id === null) {
+            this.reject('user_missing_role');
+        }
+        const role = await this.role_repository.find_by_internal_id(user.role_id);
+        if (role === null) {
+            this.reject('role_not_found');
+        }
+        return {
+            internalUserId: user.internal_id,
+            cognitoSub: token_sub,
+            email: user.email,
+            roleCode: role.name,
+            parentId: user.parent_id,
+            hierarchyPath: user.hierarchy_path,
+        };
+    }
+    reject(reason) {
+        this.logger.warn(`cognito_jwt_validate_rejected code=${reason}`);
+        throw new common_1.UnauthorizedException();
+    }
+};
+exports.CognitoJwtStrategy = CognitoJwtStrategy;
+exports.CognitoJwtStrategy = CognitoJwtStrategy = CognitoJwtStrategy_1 = __decorate([
+    (0, common_1.Injectable)(),
+    __param(1, (0, common_1.Inject)(users_tokens_1.USER_REPOSITORY)),
+    __param(2, (0, common_1.Inject)(transversal_tokens_1.ROLE_REPOSITORY)),
+    __metadata("design:paramtypes", [typeof (_a = typeof config_1.ConfigService !== "undefined" && config_1.ConfigService) === "function" ? _a : Object, Object, Object])
+], CognitoJwtStrategy);
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/modules/auth/presentation/auth.controller.ts"
+/*!******************************************************************************!*\
+  !*** ./apps/transversal-ms/src/modules/auth/presentation/auth.controller.ts ***!
+  \******************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.AuthController = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const swagger_1 = __webpack_require__(/*! @nestjs/swagger */ "@nestjs/swagger");
+const throttler_1 = __webpack_require__(/*! @nestjs/throttler */ "@nestjs/throttler");
+const login_request_dto_1 = __webpack_require__(/*! @modules/auth/application/dto/login-request.dto */ "./apps/transversal-ms/src/modules/auth/application/dto/login-request.dto.ts");
+const auth_login_response_dto_1 = __webpack_require__(/*! @modules/auth/application/dto/auth-login-response.dto */ "./apps/transversal-ms/src/modules/auth/application/dto/auth-login-response.dto.ts");
+const verify_totp_request_dto_1 = __webpack_require__(/*! @modules/auth/application/dto/verify-totp-request.dto */ "./apps/transversal-ms/src/modules/auth/application/dto/verify-totp-request.dto.ts");
+const tokens_response_dto_1 = __webpack_require__(/*! @modules/auth/application/dto/tokens-response.dto */ "./apps/transversal-ms/src/modules/auth/application/dto/tokens-response.dto.ts");
+const setup_mfa_request_dto_1 = __webpack_require__(/*! @modules/auth/application/dto/setup-mfa-request.dto */ "./apps/transversal-ms/src/modules/auth/application/dto/setup-mfa-request.dto.ts");
+const setup_mfa_response_dto_1 = __webpack_require__(/*! @modules/auth/application/dto/setup-mfa-response.dto */ "./apps/transversal-ms/src/modules/auth/application/dto/setup-mfa-response.dto.ts");
+const verify_mfa_setup_request_dto_1 = __webpack_require__(/*! @modules/auth/application/dto/verify-mfa-setup-request.dto */ "./apps/transversal-ms/src/modules/auth/application/dto/verify-mfa-setup-request.dto.ts");
+const auth_tokens_response_dto_1 = __webpack_require__(/*! @modules/auth/application/dto/auth-tokens-response.dto */ "./apps/transversal-ms/src/modules/auth/application/dto/auth-tokens-response.dto.ts");
+const login_with_password_use_case_1 = __webpack_require__(/*! @modules/auth/application/use-cases/login-with-password.use-case */ "./apps/transversal-ms/src/modules/auth/application/use-cases/login-with-password.use-case.ts");
+const verify_totp_use_case_1 = __webpack_require__(/*! @modules/auth/application/use-cases/verify-totp.use-case */ "./apps/transversal-ms/src/modules/auth/application/use-cases/verify-totp.use-case.ts");
+const setup_mfa_use_case_1 = __webpack_require__(/*! @modules/auth/application/use-cases/setup-mfa.use-case */ "./apps/transversal-ms/src/modules/auth/application/use-cases/setup-mfa.use-case.ts");
+const verify_mfa_setup_use_case_1 = __webpack_require__(/*! @modules/auth/application/use-cases/verify-mfa-setup.use-case */ "./apps/transversal-ms/src/modules/auth/application/use-cases/verify-mfa-setup.use-case.ts");
+const auth_error_model_1 = __webpack_require__(/*! @modules/auth/domain/models/auth-error.model */ "./apps/transversal-ms/src/modules/auth/domain/models/auth-error.model.ts");
+function to_auth_tokens_response_dto(tokens) {
+    const dto = new auth_tokens_response_dto_1.AuthTokensResponseDto();
+    dto.accessToken = tokens.accessToken;
+    dto.idToken = tokens.idToken;
+    dto.refreshToken = tokens.refreshToken;
+    dto.expiresIn = tokens.expiresIn;
+    dto.tokenType = tokens.tokenType;
+    return dto;
+}
+function to_auth_login_response_dto(result) {
+    const dto = new auth_login_response_dto_1.AuthLoginResponseDto();
+    dto.status = result.status;
+    dto.challengeName = result.challengeName;
+    dto.session = result.session;
+    dto.tokens = result.tokens !== null ? to_auth_tokens_response_dto(result.tokens) : null;
+    return dto;
+}
+function to_tokens_response_dto(tokens) {
+    const dto = new tokens_response_dto_1.TokensResponseDto();
+    dto.accessToken = tokens.accessToken;
+    dto.idToken = tokens.idToken;
+    dto.refreshToken = tokens.refreshToken;
+    dto.expiresIn = tokens.expiresIn;
+    dto.tokenType = tokens.tokenType;
+    return dto;
+}
+function to_setup_mfa_response_dto(secret_code_url, session) {
+    const dto = new setup_mfa_response_dto_1.SetupMfaResponseDto();
+    dto.secretCodeUrl = secret_code_url;
+    dto.session = session;
+    return dto;
+}
+let AuthController = class AuthController {
+    login_with_password;
+    verify_totp;
+    setup_mfa;
+    verify_mfa_setup;
+    constructor(login_with_password, verify_totp, setup_mfa, verify_mfa_setup) {
+        this.login_with_password = login_with_password;
+        this.verify_totp = verify_totp;
+        this.setup_mfa = setup_mfa;
+        this.verify_mfa_setup = verify_mfa_setup;
+    }
+    async login(body) {
+        try {
+            const result = await this.login_with_password.execute(body.email, body.password);
+            return to_auth_login_response_dto(result);
+        }
+        catch (error) {
+            return this.throw_http_error(error);
+        }
+    }
+    async verify_totp_handler(body) {
+        try {
+            const tokens = await this.verify_totp.execute(body.email, body.session, body.totpCode);
+            return to_tokens_response_dto(tokens);
+        }
+        catch (error) {
+            return this.throw_http_error(error);
+        }
+    }
+    async setup_mfa_handler(body) {
+        try {
+            const setup = await this.setup_mfa.execute(body.session);
+            return to_setup_mfa_response_dto(setup.secretCodeUrl, setup.session);
+        }
+        catch (error) {
+            return this.throw_http_error(error);
+        }
+    }
+    async verify_mfa_setup_handler(body) {
+        try {
+            const tokens = await this.verify_mfa_setup.execute(body.email, body.session, body.totpCode);
+            return to_tokens_response_dto(tokens);
+        }
+        catch (error) {
+            return this.throw_http_error(error);
+        }
+    }
+    throw_http_error(error) {
+        if (error instanceof auth_error_model_1.AuthDomainError) {
+            if (error.code === 'INVALID_CREDENTIALS') {
+                throw new common_1.UnauthorizedException('Credenciales incorrectas');
+            }
+            if (error.code === 'ACCOUNT_LOCKED') {
+                throw new common_1.ForbiddenException('Tu cuenta ha sido bloqueada. Contacta al equipo de desarrollo');
+            }
+            if (error.code === 'INVALID_TOTP') {
+                throw new common_1.UnauthorizedException('Código incorrecto. Verifica Google Authenticator e intenta de nuevo');
+            }
+            if (error.code === 'SESSION_EXPIRED') {
+                throw new common_1.UnauthorizedException('Tu sesión ha expirado');
+            }
+            if (error.code === 'UNEXPECTED_AUTH_ERROR') {
+                throw new common_1.ConflictException('Se requiere completar setup MFA o cambio de contraseña en Cognito');
+            }
+        }
+        throw new common_1.InternalServerErrorException('No fue posible completar la autenticación');
+    }
+};
+exports.AuthController = AuthController;
+__decorate([
+    (0, common_1.Post)('login'),
+    (0, throttler_1.SkipThrottle)(),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Autentica email y contraseña en Cognito',
+        description: 'Inicia sesión con email y contraseña. Si Cognito exige un challenge, retorna estado y session para continuar el flujo.',
+    }),
+    (0, swagger_1.ApiBody)({ type: login_request_dto_1.LoginRequestDto }),
+    (0, common_1.HttpCode)(200),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'Autenticación iniciada o completada',
+        type: auth_login_response_dto_1.AuthLoginResponseDto,
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 400,
+        description: 'Payload inválido (formato de email, longitud de contraseña)',
+    }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Credenciales incorrectas' }),
+    (0, swagger_1.ApiResponse)({ status: 403, description: 'Cuenta bloqueada' }),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [typeof (_e = typeof login_request_dto_1.LoginRequestDto !== "undefined" && login_request_dto_1.LoginRequestDto) === "function" ? _e : Object]),
+    __metadata("design:returntype", typeof (_f = typeof Promise !== "undefined" && Promise) === "function" ? _f : Object)
+], AuthController.prototype, "login", null);
+__decorate([
+    (0, common_1.Post)('login/totp'),
+    (0, throttler_1.SkipThrottle)(),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Valida código TOTP de Google Authenticator',
+        description: 'Responde el challenge SOFTWARE_TOKEN_MFA de Cognito y retorna tokens JWT.',
+    }),
+    (0, swagger_1.ApiBody)({ type: verify_totp_request_dto_1.VerifyTotpRequestDto }),
+    (0, common_1.HttpCode)(200),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'Autenticación completada',
+        type: tokens_response_dto_1.TokensResponseDto,
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 400,
+        description: 'Payload inválido (código TOTP o sesión con formato incorrecto)',
+    }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Código TOTP incorrecto o sesión expirada' }),
+    (0, swagger_1.ApiResponse)({ status: 403, description: 'Cuenta bloqueada' }),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [typeof (_g = typeof verify_totp_request_dto_1.VerifyTotpRequestDto !== "undefined" && verify_totp_request_dto_1.VerifyTotpRequestDto) === "function" ? _g : Object]),
+    __metadata("design:returntype", typeof (_h = typeof Promise !== "undefined" && Promise) === "function" ? _h : Object)
+], AuthController.prototype, "verify_totp_handler", null);
+__decorate([
+    (0, common_1.Post)('mfa/setup'),
+    (0, throttler_1.SkipThrottle)(),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Inicia configuración MFA TOTP para challenge MFA_SETUP',
+        description: 'Recibe la session de /auth/login (MFA_SETUP_REQUIRED), solicita SecretCode a Cognito y retorna session actualizada.',
+    }),
+    (0, swagger_1.ApiBody)({ type: setup_mfa_request_dto_1.SetupMfaRequestDto }),
+    (0, common_1.HttpCode)(200),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'SecretCode de MFA generado',
+        type: setup_mfa_response_dto_1.SetupMfaResponseDto,
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 400,
+        description: 'Payload inválido (session con formato incorrecto)',
+    }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Sesión expirada' }),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [typeof (_j = typeof setup_mfa_request_dto_1.SetupMfaRequestDto !== "undefined" && setup_mfa_request_dto_1.SetupMfaRequestDto) === "function" ? _j : Object]),
+    __metadata("design:returntype", typeof (_k = typeof Promise !== "undefined" && Promise) === "function" ? _k : Object)
+], AuthController.prototype, "setup_mfa_handler", null);
+__decorate([
+    (0, common_1.Post)('mfa/verify'),
+    (0, throttler_1.SkipThrottle)(),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Finaliza configuración MFA y completa autenticación',
+        description: 'Valida código TOTP para completar MFA_SETUP en Cognito y retornar tokens JWT.',
+    }),
+    (0, swagger_1.ApiBody)({ type: verify_mfa_setup_request_dto_1.VerifyMfaSetupRequestDto }),
+    (0, common_1.HttpCode)(200),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'MFA configurado y autenticación completada',
+        type: tokens_response_dto_1.TokensResponseDto,
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 400,
+        description: 'Payload inválido (código TOTP o session con formato incorrecto)',
+    }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Código TOTP incorrecto o sesión expirada' }),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [typeof (_l = typeof verify_mfa_setup_request_dto_1.VerifyMfaSetupRequestDto !== "undefined" && verify_mfa_setup_request_dto_1.VerifyMfaSetupRequestDto) === "function" ? _l : Object]),
+    __metadata("design:returntype", typeof (_m = typeof Promise !== "undefined" && Promise) === "function" ? _m : Object)
+], AuthController.prototype, "verify_mfa_setup_handler", null);
+exports.AuthController = AuthController = __decorate([
+    (0, swagger_1.ApiTags)('auth'),
+    (0, common_1.Controller)('auth'),
+    __metadata("design:paramtypes", [typeof (_a = typeof login_with_password_use_case_1.LoginWithPasswordUseCase !== "undefined" && login_with_password_use_case_1.LoginWithPasswordUseCase) === "function" ? _a : Object, typeof (_b = typeof verify_totp_use_case_1.VerifyTotpUseCase !== "undefined" && verify_totp_use_case_1.VerifyTotpUseCase) === "function" ? _b : Object, typeof (_c = typeof setup_mfa_use_case_1.SetupMfaUseCase !== "undefined" && setup_mfa_use_case_1.SetupMfaUseCase) === "function" ? _c : Object, typeof (_d = typeof verify_mfa_setup_use_case_1.VerifyMfaSetupUseCase !== "undefined" && verify_mfa_setup_use_case_1.VerifyMfaSetupUseCase) === "function" ? _d : Object])
+], AuthController);
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/modules/auth/presentation/constants/auth-metadata.constants.ts"
+/*!************************************************************************************************!*\
+  !*** ./apps/transversal-ms/src/modules/auth/presentation/constants/auth-metadata.constants.ts ***!
+  \************************************************************************************************/
+(__unused_webpack_module, exports) {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.REQUIRE_ROLES_KEY = void 0;
+exports.REQUIRE_ROLES_KEY = 'require_roles';
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/modules/auth/presentation/decorators/current-user.decorator.ts"
+/*!************************************************************************************************!*\
+  !*** ./apps/transversal-ms/src/modules/auth/presentation/decorators/current-user.decorator.ts ***!
+  \************************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.CurrentUser = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+exports.CurrentUser = (0, common_1.createParamDecorator)((_data, ctx) => {
+    const user = ctx.switchToHttp().getRequest().user;
+    if (user === undefined) {
+        throw new common_1.UnauthorizedException();
+    }
+    return user;
+});
 
 
 /***/ },
@@ -6500,6 +8526,90 @@ exports.CURRENCY_READ_PORT = Symbol('CURRENCY_READ_PORT');
 
 /***/ },
 
+/***/ "./apps/transversal-ms/src/modules/users/application/dto/user-me-response.dto.ts"
+/*!***************************************************************************************!*\
+  !*** ./apps/transversal-ms/src/modules/users/application/dto/user-me-response.dto.ts ***!
+  \***************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.UserMeResponseDto = exports.UserMeProfileDto = exports.UserMeHierarchyDto = void 0;
+const swagger_1 = __webpack_require__(/*! @nestjs/swagger */ "@nestjs/swagger");
+class UserMeHierarchyDto {
+    parentId;
+    partnerId;
+}
+exports.UserMeHierarchyDto = UserMeHierarchyDto;
+__decorate([
+    (0, swagger_1.ApiProperty)({ nullable: true, example: '20' }),
+    __metadata("design:type", Object)
+], UserMeHierarchyDto.prototype, "parentId", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        nullable: true,
+        example: null,
+        description: 'Reservado cuando exista vínculo explícito usuario–partner en BD.',
+    }),
+    __metadata("design:type", Object)
+], UserMeHierarchyDto.prototype, "partnerId", void 0);
+class UserMeProfileDto {
+    externalId;
+    email;
+    fullName;
+    role;
+    hierarchy;
+}
+exports.UserMeProfileDto = UserMeProfileDto;
+__decorate([
+    (0, swagger_1.ApiProperty)({ format: 'uuid' }),
+    __metadata("design:type", String)
+], UserMeProfileDto.prototype, "externalId", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ format: 'email' }),
+    __metadata("design:type", String)
+], UserMeProfileDto.prototype, "email", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: 'Juan Pérez' }),
+    __metadata("design:type", String)
+], UserMeProfileDto.prototype, "fullName", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        description: 'Código de rol de catálogo (alineado con Cognito / `Roles`).',
+        example: 'PARTNER_OPERATIONS',
+    }),
+    __metadata("design:type", String)
+], UserMeProfileDto.prototype, "role", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ type: () => UserMeHierarchyDto }),
+    __metadata("design:type", UserMeHierarchyDto)
+], UserMeProfileDto.prototype, "hierarchy", void 0);
+class UserMeResponseDto {
+    user;
+    permissions;
+}
+exports.UserMeResponseDto = UserMeResponseDto;
+__decorate([
+    (0, swagger_1.ApiProperty)({ type: () => UserMeProfileDto }),
+    __metadata("design:type", UserMeProfileDto)
+], UserMeResponseDto.prototype, "user", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ type: [String], example: ['CLIENT_VIEW', 'ORDER_CREATE'] }),
+    __metadata("design:type", Array)
+], UserMeResponseDto.prototype, "permissions", void 0);
+
+
+/***/ },
+
 /***/ "./apps/transversal-ms/src/modules/users/application/mapping/user-public-fields.builder.ts"
 /*!*************************************************************************************************!*\
   !*** ./apps/transversal-ms/src/modules/users/application/mapping/user-public-fields.builder.ts ***!
@@ -6541,17 +8651,17 @@ async function build_user_public_fields(row, role_repo) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CreateUserRequest = void 0;
 class CreateUserRequest {
-    cognito_sub;
     email;
     state;
     role_external_id;
     last_login_at;
-    constructor(cognito_sub, email, state, role_external_id, last_login_at) {
-        this.cognito_sub = cognito_sub;
+    cognito_sub;
+    constructor(email, state, role_external_id, last_login_at, cognito_sub = null) {
         this.email = email;
         this.state = state;
         this.role_external_id = role_external_id;
         this.last_login_at = last_login_at;
+        this.cognito_sub = cognito_sub;
     }
 }
 exports.CreateUserRequest = CreateUserRequest;
@@ -6614,31 +8724,60 @@ const transversal_tokens_1 = __webpack_require__(/*! @modules/transversal/transv
 const user_ports_1 = __webpack_require__(/*! @modules/users/domain/ports/user.ports */ "./apps/transversal-ms/src/modules/users/domain/ports/user.ports.ts");
 const user_public_fields_builder_1 = __webpack_require__(/*! @modules/users/application/mapping/user-public-fields.builder */ "./apps/transversal-ms/src/modules/users/application/mapping/user-public-fields.builder.ts");
 const create_user_response_1 = __webpack_require__(/*! ./create-user.response */ "./apps/transversal-ms/src/modules/users/application/use-cases/create-user/create-user.response.ts");
+const normalize_cognito_sub_1 = __webpack_require__(/*! @common/utils/normalize-cognito-sub */ "./apps/transversal-ms/src/common/utils/normalize-cognito-sub.ts");
 let CreateUserUseCase = class CreateUserUseCase {
     user_repository;
     role_repository;
-    constructor(user_repository, role_repository) {
+    cognito_user_provisioning;
+    constructor(user_repository, role_repository, cognito_user_provisioning) {
         this.user_repository = user_repository;
         this.role_repository = role_repository;
+        this.cognito_user_provisioning = cognito_user_provisioning;
     }
     async execute(req) {
         let role_id = null;
+        let role_code = null;
         if (req.role_external_id !== null) {
             const role = await this.role_repository.find_by_external_id(req.role_external_id);
             if (role === null) {
                 throw new common_1.NotFoundException('role not found');
             }
             role_id = role.id;
+            role_code = role.name;
         }
-        const created = await this.user_repository.create({
-            cognito_sub: req.cognito_sub,
-            email: req.email,
-            role_id,
-            state: req.state,
-            last_login_at: req.last_login_at,
-        });
-        const fields = await (0, user_public_fields_builder_1.build_user_public_fields)(created, this.role_repository);
-        return new create_user_response_1.CreateUserResponse(fields);
+        const manual_sub = req.cognito_sub?.trim() ?? '';
+        let cognito_sub = manual_sub.length > 0 ? (0, normalize_cognito_sub_1.normalize_cognito_sub)(manual_sub) : null;
+        let cognito_username = null;
+        let rollback_delete_cognito = false;
+        try {
+            if (cognito_sub === null) {
+                const ensured = await this.cognito_user_provisioning.ensure_user({
+                    email: req.email,
+                    role_code,
+                });
+                cognito_sub = ensured.sub;
+                cognito_username = ensured.username;
+                rollback_delete_cognito = ensured.created_new;
+            }
+            const created = await this.user_repository.create({
+                cognito_sub,
+                email: req.email.trim().toLowerCase(),
+                role_id,
+                state: req.state,
+                last_login_at: req.last_login_at,
+            });
+            if (cognito_username !== null) {
+                await this.cognito_user_provisioning.set_custom_db_id(cognito_username, created.internal_id);
+            }
+            const fields = await (0, user_public_fields_builder_1.build_user_public_fields)(created, this.role_repository);
+            return new create_user_response_1.CreateUserResponse(fields);
+        }
+        catch (err) {
+            if (rollback_delete_cognito && cognito_username !== null) {
+                await this.cognito_user_provisioning.try_delete_user(cognito_username);
+            }
+            throw err;
+        }
     }
 };
 exports.CreateUserUseCase = CreateUserUseCase;
@@ -6646,7 +8785,8 @@ exports.CreateUserUseCase = CreateUserUseCase = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, common_1.Inject)(users_tokens_1.USER_REPOSITORY)),
     __param(1, (0, common_1.Inject)(transversal_tokens_1.ROLE_REPOSITORY)),
-    __metadata("design:paramtypes", [typeof (_a = typeof user_ports_1.UserRepository !== "undefined" && user_ports_1.UserRepository) === "function" ? _a : Object, Object])
+    __param(2, (0, common_1.Inject)(users_tokens_1.COGNITO_USER_PROVISIONING_PORT)),
+    __metadata("design:paramtypes", [typeof (_a = typeof user_ports_1.UserRepository !== "undefined" && user_ports_1.UserRepository) === "function" ? _a : Object, Object, Object])
 ], CreateUserUseCase);
 
 
@@ -6781,6 +8921,102 @@ exports.GetUserByExternalIdUseCase = GetUserByExternalIdUseCase = __decorate([
 
 /***/ },
 
+/***/ "./apps/transversal-ms/src/modules/users/application/use-cases/get-user-me/get-user-me.result.ts"
+/*!*******************************************************************************************************!*\
+  !*** ./apps/transversal-ms/src/modules/users/application/use-cases/get-user-me/get-user-me.result.ts ***!
+  \*******************************************************************************************************/
+(__unused_webpack_module, exports) {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.GetUserMeResult = void 0;
+class GetUserMeResult {
+    user;
+    permissions;
+    constructor(user, permissions) {
+        this.user = user;
+        this.permissions = permissions;
+    }
+}
+exports.GetUserMeResult = GetUserMeResult;
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/modules/users/application/use-cases/get-user-me/get-user-me.use-case.ts"
+/*!*********************************************************************************************************!*\
+  !*** ./apps/transversal-ms/src/modules/users/application/use-cases/get-user-me/get-user-me.use-case.ts ***!
+  \*********************************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.GetUserMeUseCase = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const auth_tokens_1 = __webpack_require__(/*! @modules/auth/auth.tokens */ "./apps/transversal-ms/src/modules/auth/auth.tokens.ts");
+const persons_tokens_1 = __webpack_require__(/*! @modules/persons/persons.tokens */ "./apps/transversal-ms/src/modules/persons/persons.tokens.ts");
+const users_tokens_1 = __webpack_require__(/*! @modules/users/users.tokens */ "./apps/transversal-ms/src/modules/users/users.tokens.ts");
+const get_user_me_result_1 = __webpack_require__(/*! ./get-user-me.result */ "./apps/transversal-ms/src/modules/users/application/use-cases/get-user-me/get-user-me.result.ts");
+let GetUserMeUseCase = class GetUserMeUseCase {
+    user_repository;
+    person_repository;
+    permission_codes_reader;
+    constructor(user_repository, person_repository, permission_codes_reader) {
+        this.user_repository = user_repository;
+        this.person_repository = person_repository;
+        this.permission_codes_reader = permission_codes_reader;
+    }
+    async execute(ctx) {
+        const user = await this.user_repository.find_by_cognito_sub(ctx.cognitoSub);
+        if (user === null) {
+            throw new common_1.NotFoundException('user not found');
+        }
+        let full_name = '';
+        if (user.person_id !== null) {
+            const person = await this.person_repository.find_by_internal_id(user.person_id);
+            if (person !== null) {
+                full_name = `${person.first_name} ${person.last_name}`.trim();
+            }
+        }
+        const permissions = user.role_id !== null
+            ? await this.permission_codes_reader.list_codes_for_role_internal_id(user.role_id)
+            : [];
+        return new get_user_me_result_1.GetUserMeResult({
+            externalId: user.external_id,
+            email: user.email,
+            fullName: full_name,
+            role: ctx.roleCode,
+            hierarchy: {
+                parentId: user.parent_id !== null ? String(user.parent_id) : null,
+                partnerId: null,
+            },
+        }, permissions);
+    }
+};
+exports.GetUserMeUseCase = GetUserMeUseCase;
+exports.GetUserMeUseCase = GetUserMeUseCase = __decorate([
+    (0, common_1.Injectable)(),
+    __param(0, (0, common_1.Inject)(users_tokens_1.USER_REPOSITORY)),
+    __param(1, (0, common_1.Inject)(persons_tokens_1.PERSON_REPOSITORY)),
+    __param(2, (0, common_1.Inject)(auth_tokens_1.PERMISSION_CODES_BY_ROLE_READER)),
+    __metadata("design:paramtypes", [Object, Object, Object])
+], GetUserMeUseCase);
+
+
+/***/ },
+
 /***/ "./apps/transversal-ms/src/modules/users/application/use-cases/list-users/list-users.response.ts"
 /*!*******************************************************************************************************!*\
   !*** ./apps/transversal-ms/src/modules/users/application/use-cases/list-users/list-users.response.ts ***!
@@ -6888,7 +9124,6 @@ var _a, _b;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.IngestPartnerCreateUserSqsMessageUseCase = void 0;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
-const crypto_1 = __webpack_require__(/*! crypto */ "crypto");
 const class_transformer_1 = __webpack_require__(/*! class-transformer */ "class-transformer");
 const class_validator_1 = __webpack_require__(/*! class-validator */ "class-validator");
 const typeorm_1 = __webpack_require__(/*! typeorm */ "typeorm");
@@ -6950,10 +9185,9 @@ let IngestPartnerCreateUserSqsMessageUseCase = IngestPartnerCreateUserSqsMessage
             if (role_ref === null) {
                 throw new create_partner_user_sqs_validation_error_1.CreatePartnerUserSqsValidationError(`role ${shared_1.Roles.PARTNER_OPERATIONS} not found in catalog`);
             }
-            const cognito_sub = (0, crypto_1.randomUUID)();
             let user_external_id;
             try {
-                const created_user = await this.create_user.execute(new create_user_request_1.CreateUserRequest(cognito_sub, email_trimmed, 'active', role_ref.external_id, null));
+                const created_user = await this.create_user.execute(new create_user_request_1.CreateUserRequest(email_trimmed, 'active', role_ref.external_id, null));
                 user_external_id = created_user.external_id;
             }
             catch (err) {
@@ -7077,6 +9311,7 @@ const transversal_tokens_1 = __webpack_require__(/*! @modules/transversal/transv
 const user_ports_1 = __webpack_require__(/*! @modules/users/domain/ports/user.ports */ "./apps/transversal-ms/src/modules/users/domain/ports/user.ports.ts");
 const user_public_fields_builder_1 = __webpack_require__(/*! @modules/users/application/mapping/user-public-fields.builder */ "./apps/transversal-ms/src/modules/users/application/mapping/user-public-fields.builder.ts");
 const update_user_by_external_id_response_1 = __webpack_require__(/*! ./update-user-by-external-id.response */ "./apps/transversal-ms/src/modules/users/application/use-cases/update-user-by-external-id/update-user-by-external-id.response.ts");
+const normalize_cognito_sub_1 = __webpack_require__(/*! @common/utils/normalize-cognito-sub */ "./apps/transversal-ms/src/common/utils/normalize-cognito-sub.ts");
 let UpdateUserByExternalIdUseCase = class UpdateUserByExternalIdUseCase {
     user_repository;
     role_repository;
@@ -7087,7 +9322,7 @@ let UpdateUserByExternalIdUseCase = class UpdateUserByExternalIdUseCase {
     async execute(req) {
         const patch = {};
         if (req.cognito_sub !== undefined) {
-            patch.cognito_sub = req.cognito_sub;
+            patch.cognito_sub = (0, normalize_cognito_sub_1.normalize_cognito_sub)(req.cognito_sub);
         }
         if (req.email !== undefined) {
             patch.email = req.email;
@@ -7145,16 +9380,22 @@ class User {
     email;
     role_id;
     state;
+    parent_id;
+    hierarchy_path;
+    person_id;
     last_login_at;
     created_at;
     updated_at;
-    constructor(internal_id, external_id, cognito_sub, email, role_id, state, last_login_at, created_at, updated_at) {
+    constructor(internal_id, external_id, cognito_sub, email, role_id, state, parent_id, hierarchy_path, person_id, last_login_at, created_at, updated_at) {
         this.internal_id = internal_id;
         this.external_id = external_id;
         this.cognito_sub = cognito_sub;
         this.email = email;
         this.role_id = role_id;
         this.state = state;
+        this.parent_id = parent_id;
+        this.hierarchy_path = hierarchy_path;
+        this.person_id = person_id;
         this.last_login_at = last_login_at;
         this.created_at = created_at;
         this.updated_at = updated_at;
@@ -7189,6 +9430,85 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 
 /***/ },
 
+/***/ "./apps/transversal-ms/src/modules/users/presentation/users.controller.ts"
+/*!********************************************************************************!*\
+  !*** ./apps/transversal-ms/src/modules/users/presentation/users.controller.ts ***!
+  \********************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+var _a, _b;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.UsersController = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const swagger_1 = __webpack_require__(/*! @nestjs/swagger */ "@nestjs/swagger");
+const jwt_auth_guard_1 = __webpack_require__(/*! @modules/auth/infrastructure/guards/jwt-auth.guard */ "./apps/transversal-ms/src/modules/auth/infrastructure/guards/jwt-auth.guard.ts");
+const current_user_decorator_1 = __webpack_require__(/*! @modules/auth/presentation/decorators/current-user.decorator */ "./apps/transversal-ms/src/modules/auth/presentation/decorators/current-user.decorator.ts");
+const get_user_me_use_case_1 = __webpack_require__(/*! @modules/users/application/use-cases/get-user-me/get-user-me.use-case */ "./apps/transversal-ms/src/modules/users/application/use-cases/get-user-me/get-user-me.use-case.ts");
+const user_me_response_dto_1 = __webpack_require__(/*! @modules/users/application/dto/user-me-response.dto */ "./apps/transversal-ms/src/modules/users/application/dto/user-me-response.dto.ts");
+function to_user_me_response_dto(result) {
+    const hierarchy = new user_me_response_dto_1.UserMeHierarchyDto();
+    hierarchy.parentId = result.user.hierarchy.parentId;
+    hierarchy.partnerId = result.user.hierarchy.partnerId;
+    const user = new user_me_response_dto_1.UserMeProfileDto();
+    user.externalId = result.user.externalId;
+    user.email = result.user.email;
+    user.fullName = result.user.fullName;
+    user.role = result.user.role;
+    user.hierarchy = hierarchy;
+    const dto = new user_me_response_dto_1.UserMeResponseDto();
+    dto.user = user;
+    dto.permissions = [...result.permissions];
+    return dto;
+}
+let UsersController = class UsersController {
+    get_user_me;
+    constructor(get_user_me) {
+        this.get_user_me = get_user_me;
+    }
+    async get_me(ctx) {
+        const result = await this.get_user_me.execute(ctx);
+        return to_user_me_response_dto(result);
+    }
+};
+exports.UsersController = UsersController;
+__decorate([
+    (0, common_1.Get)('me'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)('cognito-access-token'),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Perfil y permisos del usuario autenticado',
+        description: 'Requiere access token de Cognito. Devuelve datos de negocio (`users`, `persons`) y códigos de permiso del rol.',
+    }),
+    (0, swagger_1.ApiResponse)({ status: 200, type: user_me_response_dto_1.UserMeResponseDto }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Token inválido o ausente' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Usuario no encontrado en BD' }),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", typeof (_b = typeof Promise !== "undefined" && Promise) === "function" ? _b : Object)
+], UsersController.prototype, "get_me", null);
+exports.UsersController = UsersController = __decorate([
+    (0, swagger_1.ApiTags)('users'),
+    (0, common_1.Controller)('users'),
+    __metadata("design:paramtypes", [typeof (_a = typeof get_user_me_use_case_1.GetUserMeUseCase !== "undefined" && get_user_me_use_case_1.GetUserMeUseCase) === "function" ? _a : Object])
+], UsersController);
+
+
+/***/ },
+
 /***/ "./apps/transversal-ms/src/modules/users/users.module.ts"
 /*!***************************************************************!*\
   !*** ./apps/transversal-ms/src/modules/users/users.module.ts ***!
@@ -7205,22 +9525,33 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.UsersModule = void 0;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const cognito_user_provisioning_adapter_1 = __webpack_require__(/*! @infrastructure/cognito/cognito-user-provisioning.adapter */ "./apps/transversal-ms/src/infrastructure/cognito/cognito-user-provisioning.adapter.ts");
 const create_user_use_case_1 = __webpack_require__(/*! ./application/use-cases/create-user/create-user.use-case */ "./apps/transversal-ms/src/modules/users/application/use-cases/create-user/create-user.use-case.ts");
 const get_user_by_external_id_use_case_1 = __webpack_require__(/*! ./application/use-cases/get-user-by-external-id/get-user-by-external-id.use-case */ "./apps/transversal-ms/src/modules/users/application/use-cases/get-user-by-external-id/get-user-by-external-id.use-case.ts");
 const list_users_use_case_1 = __webpack_require__(/*! ./application/use-cases/list-users/list-users.use-case */ "./apps/transversal-ms/src/modules/users/application/use-cases/list-users/list-users.use-case.ts");
 const update_user_by_external_id_use_case_1 = __webpack_require__(/*! ./application/use-cases/update-user-by-external-id/update-user-by-external-id.use-case */ "./apps/transversal-ms/src/modules/users/application/use-cases/update-user-by-external-id/update-user-by-external-id.use-case.ts");
 const delete_user_by_external_id_use_case_1 = __webpack_require__(/*! ./application/use-cases/delete-user-by-external-id/delete-user-by-external-id.use-case */ "./apps/transversal-ms/src/modules/users/application/use-cases/delete-user-by-external-id/delete-user-by-external-id.use-case.ts");
+const get_user_me_use_case_1 = __webpack_require__(/*! ./application/use-cases/get-user-me/get-user-me.use-case */ "./apps/transversal-ms/src/modules/users/application/use-cases/get-user-me/get-user-me.use-case.ts");
+const users_controller_1 = __webpack_require__(/*! ./presentation/users.controller */ "./apps/transversal-ms/src/modules/users/presentation/users.controller.ts");
+const users_tokens_1 = __webpack_require__(/*! ./users.tokens */ "./apps/transversal-ms/src/modules/users/users.tokens.ts");
 let UsersModule = class UsersModule {
 };
 exports.UsersModule = UsersModule;
 exports.UsersModule = UsersModule = __decorate([
     (0, common_1.Module)({
+        controllers: [users_controller_1.UsersController],
         providers: [
+            cognito_user_provisioning_adapter_1.CognitoUserProvisioningAdapter,
+            {
+                provide: users_tokens_1.COGNITO_USER_PROVISIONING_PORT,
+                useExisting: cognito_user_provisioning_adapter_1.CognitoUserProvisioningAdapter,
+            },
             create_user_use_case_1.CreateUserUseCase,
             get_user_by_external_id_use_case_1.GetUserByExternalIdUseCase,
             list_users_use_case_1.ListUsersUseCase,
             update_user_by_external_id_use_case_1.UpdateUserByExternalIdUseCase,
             delete_user_by_external_id_use_case_1.DeleteUserByExternalIdUseCase,
+            get_user_me_use_case_1.GetUserMeUseCase,
         ],
         exports: [
             create_user_use_case_1.CreateUserUseCase,
@@ -7243,8 +9574,21 @@ exports.UsersModule = UsersModule = __decorate([
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.USER_REPOSITORY = void 0;
+exports.COGNITO_USER_PROVISIONING_PORT = exports.USER_REPOSITORY = void 0;
 exports.USER_REPOSITORY = Symbol('USER_REPOSITORY');
+exports.COGNITO_USER_PROVISIONING_PORT = Symbol('COGNITO_USER_PROVISIONING_PORT');
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/types/express-augmentation.ts"
+/*!***************************************************************!*\
+  !*** ./apps/transversal-ms/src/types/express-augmentation.ts ***!
+  \***************************************************************/
+(__unused_webpack_module, exports) {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
 
 
 /***/ },
@@ -9188,9 +11532,11 @@ let UserEntity = class UserEntity extends base_external_id_entity_1.BaseExternal
     roleId;
     parent;
     parent_id;
+    hierarchyPath;
     children;
     state;
     person;
+    personId;
     lastLoginAt;
 };
 exports.UserEntity = UserEntity;
@@ -9224,6 +11570,10 @@ __decorate([
     __metadata("design:type", Object)
 ], UserEntity.prototype, "parent_id", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ name: 'hierarchy_path', type: 'text' }),
+    __metadata("design:type", String)
+], UserEntity.prototype, "hierarchyPath", void 0);
+__decorate([
     (0, typeorm_1.OneToMany)(() => UserEntity, (user) => user.parent),
     __metadata("design:type", Array)
 ], UserEntity.prototype, "children", void 0);
@@ -9242,6 +11592,10 @@ __decorate([
     (0, typeorm_1.JoinColumn)({ name: 'person_id', referencedColumnName: 'id' }),
     __metadata("design:type", typeof (_c = typeof person_entity_1.PersonEntity !== "undefined" && person_entity_1.PersonEntity) === "function" ? _c : Object)
 ], UserEntity.prototype, "person", void 0);
+__decorate([
+    (0, typeorm_1.RelationId)((u) => u.person),
+    __metadata("design:type", Object)
+], UserEntity.prototype, "personId", void 0);
 __decorate([
     (0, typeorm_1.Column)({ name: 'last_login_at', type: 'timestamptz', nullable: true }),
     __metadata("design:type", Object)
@@ -9397,6 +11751,16 @@ exports.TransversalDataService = TransversalDataService = __decorate([
 
 /***/ },
 
+/***/ "@aws-sdk/client-cognito-identity-provider"
+/*!************************************************************!*\
+  !*** external "@aws-sdk/client-cognito-identity-provider" ***!
+  \************************************************************/
+(module) {
+
+module.exports = require("@aws-sdk/client-cognito-identity-provider");
+
+/***/ },
+
 /***/ "@aws-sdk/client-s3"
 /*!*************************************!*\
   !*** external "@aws-sdk/client-s3" ***!
@@ -9457,6 +11821,16 @@ module.exports = require("@nestjs/core");
 
 /***/ },
 
+/***/ "@nestjs/passport"
+/*!***********************************!*\
+  !*** external "@nestjs/passport" ***!
+  \***********************************/
+(module) {
+
+module.exports = require("@nestjs/passport");
+
+/***/ },
+
 /***/ "@nestjs/swagger"
 /*!**********************************!*\
   !*** external "@nestjs/swagger" ***!
@@ -9464,6 +11838,16 @@ module.exports = require("@nestjs/core");
 (module) {
 
 module.exports = require("@nestjs/swagger");
+
+/***/ },
+
+/***/ "@nestjs/throttler"
+/*!************************************!*\
+  !*** external "@nestjs/throttler" ***!
+  \************************************/
+(module) {
+
+module.exports = require("@nestjs/throttler");
 
 /***/ },
 
@@ -9524,6 +11908,36 @@ module.exports = require("dotenv");
 (module) {
 
 module.exports = require("fs");
+
+/***/ },
+
+/***/ "helmet"
+/*!*************************!*\
+  !*** external "helmet" ***!
+  \*************************/
+(module) {
+
+module.exports = require("helmet");
+
+/***/ },
+
+/***/ "jwks-rsa"
+/*!***************************!*\
+  !*** external "jwks-rsa" ***!
+  \***************************/
+(module) {
+
+module.exports = require("jwks-rsa");
+
+/***/ },
+
+/***/ "passport-jwt"
+/*!*******************************!*\
+  !*** external "passport-jwt" ***!
+  \*******************************/
+(module) {
+
+module.exports = require("passport-jwt");
 
 /***/ },
 
@@ -9590,51 +12004,11 @@ module.exports = require("typeorm");
 /******/ 	}
 /******/ 	
 /************************************************************************/
-var __webpack_exports__ = {};
-// This entry needs to be wrapped in an IIFE because it needs to be isolated against other modules in the chunk.
-(() => {
-var exports = __webpack_exports__;
-/*!*****************************************!*\
-  !*** ./apps/transversal-ms/src/main.ts ***!
-  \*****************************************/
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-__webpack_require__(/*! reflect-metadata */ "reflect-metadata");
-__webpack_require__(/*! ./config/dotenv.config */ "./apps/transversal-ms/src/config/dotenv.config.ts");
-const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
-const core_1 = __webpack_require__(/*! @nestjs/core */ "@nestjs/core");
-const config_1 = __webpack_require__(/*! @nestjs/config */ "@nestjs/config");
-const swagger_1 = __webpack_require__(/*! @nestjs/swagger */ "@nestjs/swagger");
-const app_module_1 = __webpack_require__(/*! ./app.module */ "./apps/transversal-ms/src/app.module.ts");
-async function bootstrap() {
-    const app = await core_1.NestFactory.create(app_module_1.AppModule);
-    app.setGlobalPrefix('api');
-    app.useGlobalPipes(new common_1.ValidationPipe({
-        whitelist: true,
-        forbidNonWhitelisted: true,
-        transform: true,
-        transformOptions: { enableImplicitConversion: true },
-    }));
-    const swagger_config = new swagger_1.DocumentBuilder()
-        .setTitle('Transversal MS')
-        .setDescription('HTTP y mensajería SQS del microservicio Transversal')
-        .setVersion('1.0')
-        .addServer('/')
-        .build();
-    const swagger_document = swagger_1.SwaggerModule.createDocument(app, swagger_config);
-    swagger_1.SwaggerModule.setup('docs', app, swagger_document, {
-        jsonDocumentUrl: 'docs/json',
-    });
-    const config_service = app.get(config_1.ConfigService);
-    const port = Number(config_service.get('config.port') ?? 8080);
-    await app.listen(port);
-    const logger = new common_1.Logger('Bootstrap');
-    logger.log(`Transversal MS (HTTP + SQS) escuchando en puerto ${port}`);
-    logger.log(`Swagger UI: http://localhost:${port}/docs`);
-}
-void bootstrap();
-
-})();
-
+/******/ 	
+/******/ 	// startup
+/******/ 	// Load entry module and return exports
+/******/ 	// This entry module is referenced by other modules so it can't be inlined
+/******/ 	var __webpack_exports__ = __webpack_require__("./apps/transversal-ms/src/main.ts");
+/******/ 	
 /******/ })()
 ;
