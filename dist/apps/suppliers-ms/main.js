@@ -1026,8 +1026,17 @@ class SalesRepresentativeMapper {
         const user_id = row.userId === null || row.userId === undefined
             ? null
             : Number(row.userId);
+        const user_full_name = SalesRepresentativeMapper.user_full_name_from_row(row);
         const loaded_user = SalesRepresentativeMapper.loaded_user_from_row(row);
-        return new sales_representative_entity_1.SalesRepresentative(Number(row.id), row.externalId, Number(row.partnerId), user_id, row.createdAt, row.updatedAt, loaded_user);
+        return new sales_representative_entity_1.SalesRepresentative(Number(row.id), row.externalId, Number(row.partnerId), user_id, row.createdAt, row.updatedAt, user_full_name, loaded_user);
+    }
+    static user_full_name_from_row(row) {
+        const p = row.user?.person;
+        if (!p) {
+            return null;
+        }
+        const s = `${p.firstName} ${p.lastName}`.trim();
+        return s.length > 0 ? s : null;
     }
     static loaded_user_from_row(row) {
         const u = row.user;
@@ -1048,7 +1057,7 @@ class SalesRepresentativeMapper {
     }
     static from_raw_row(row) {
         const user_raw = row['user_id'];
-        return new sales_representative_entity_1.SalesRepresentative(Number(row['id']), String(row['external_id']), Number(row['partner_id']), user_raw === null || user_raw === undefined ? null : Number(user_raw), new Date(String(row['created_at'])), new Date(String(row['updated_at'])));
+        return new sales_representative_entity_1.SalesRepresentative(Number(row['id']), String(row['external_id']), Number(row['partner_id']), user_raw === null || user_raw === undefined ? null : Number(user_raw), new Date(String(row['created_at'])), new Date(String(row['updated_at'])), null);
     }
 }
 exports.SalesRepresentativeMapper = SalesRepresentativeMapper;
@@ -8361,6 +8370,7 @@ async function build_sales_representative_public_fields(rep, lookup) {
         external_id: rep.external_id,
         partner_external_id,
         user_external_id,
+        user_full_name: rep.user_full_name,
         user_display_name: lu?.display_name ?? null,
         user_role_name: lu?.role_name ?? null,
         user_state: lu?.state ?? null,
@@ -8408,6 +8418,7 @@ class CreateSalesRepresentativeResponse {
     external_id;
     partner_external_id;
     user_external_id;
+    user_full_name;
     user_display_name;
     user_role_name;
     user_state;
@@ -8601,6 +8612,7 @@ class GetSalesRepresentativeByExternalIdResponse {
     external_id;
     partner_external_id;
     user_external_id;
+    user_full_name;
     user_display_name;
     user_role_name;
     user_state;
@@ -8799,6 +8811,7 @@ class UpdateSalesRepresentativeByExternalIdResponse {
     external_id;
     partner_external_id;
     user_external_id;
+    user_full_name;
     user_display_name;
     user_role_name;
     user_state;
@@ -8905,14 +8918,16 @@ class SalesRepresentative {
     user_id;
     created_at;
     updated_at;
+    user_full_name;
     loaded_user;
-    constructor(internal_id, external_id, partner_id, user_id, created_at, updated_at, loaded_user) {
+    constructor(internal_id, external_id, partner_id, user_id, created_at, updated_at, user_full_name, loaded_user) {
         this.internal_id = internal_id;
         this.external_id = external_id;
         this.partner_id = partner_id;
         this.user_id = user_id;
         this.created_at = created_at;
         this.updated_at = updated_at;
+        this.user_full_name = user_full_name;
         this.loaded_user = loaded_user;
     }
 }
@@ -9071,6 +9086,7 @@ class SalesRepresentativeResponseDto {
     external_id;
     partner_external_id;
     user_external_id;
+    user_full_name;
     user_display_name;
     user_role_name;
     user_state;
@@ -9094,6 +9110,13 @@ __decorate([
     (0, swagger_1.ApiProperty)({ format: 'uuid', nullable: true }),
     __metadata("design:type", Object)
 ], SalesRepresentativeResponseDto.prototype, "user_external_id", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        nullable: true,
+        description: 'Nombre completo desde persona (first_name + last_name) del usuario vinculado',
+    }),
+    __metadata("design:type", Object)
+], SalesRepresentativeResponseDto.prototype, "user_full_name", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({ nullable: true, description: 'Nombre para mostrar (persona o email)' }),
     __metadata("design:type", Object)

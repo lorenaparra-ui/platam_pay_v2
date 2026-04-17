@@ -6,6 +6,7 @@ export class CreateSalesRepresentativeResponse implements SalesRepresentativePub
   external_id: string;
   partner_external_id: string;
   user_external_id: string | null;
+  user_full_name: string | null;
   user_display_name: string | null;
   user_role_name: string | null;
   user_state: UserState | null;

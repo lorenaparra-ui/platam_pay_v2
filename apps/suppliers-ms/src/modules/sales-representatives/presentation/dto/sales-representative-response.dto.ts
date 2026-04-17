@@ -14,6 +14,12 @@ export class SalesRepresentativeResponseDto {
   @ApiProperty({ format: 'uuid', nullable: true })
   user_external_id: string | null;
 
+  @ApiProperty({
+    nullable: true,
+    description: 'Nombre completo desde persona (first_name + last_name) del usuario vinculado',
+  })
+  user_full_name: string | null;
+
   @ApiProperty({ nullable: true, description: 'Nombre para mostrar (persona o email)' })
   user_display_name: string | null;
 

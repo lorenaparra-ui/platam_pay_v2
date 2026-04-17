@@ -7,6 +7,8 @@ export interface SalesRepresentativePublicFields {
   external_id: string;
   partner_external_id: string;
   user_external_id: string | null;
+  /** Nombre y apellido de `person` del usuario (sin email). */
+  user_full_name: string | null;
   user_display_name: string | null;
   user_role_name: string | null;
   user_state: UserState | null;
@@ -37,6 +39,7 @@ export async function build_sales_representative_public_fields(
     external_id: rep.external_id,
     partner_external_id,
     user_external_id,
+    user_full_name: rep.user_full_name,
     user_display_name: lu?.display_name ?? null,
     user_role_name: lu?.role_name ?? null,
     user_state: lu?.state ?? null,
