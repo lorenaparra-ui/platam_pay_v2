@@ -1,6 +1,6 @@
 # Glosario Fintech
 
-<!-- Términos del dominio usados en el proyecto. -->
+<!-- Términos del dominio usados en el proyecto. Fuente canónica: mantener aquí las definiciones; `.cursor/rules/00-context.mdc` solo enlaza a este archivo. -->
 
 | Término | Definición |
 |---------|------------|
