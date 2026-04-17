@@ -12,8 +12,8 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Query,
   UploadedFiles,
-  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -30,14 +30,13 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { Roles } from '@platam/shared';
-import { JwtAuthGuard } from '@modules/auth/infrastructure/guards/jwt-auth.guard';
-import { RolesGuard } from '@modules/auth/infrastructure/guards/roles.guard';
+
 import { RequireRoles } from '@modules/auth/presentation/decorators/require-roles.decorator';
 import { plainToInstance } from 'class-transformer';
 import { validateSync } from 'class-validator';
 import { CreatePartnerOrchestratorUseCase } from '@modules/partners/application/use-cases/create-partner-orchestrator/create-partner-orchestrator.use-case';
-import { ListPartnersUseCase } from '@modules/partners/application/use-cases/list-partners/list-partners.use-case';
-import { ListPartnersItemResponse } from '@modules/partners/application/use-cases/list-partners/list-partners.response';
+import { GetPartnerByExternalIdUseCase } from '@modules/partners/application/use-cases/get-partner-by-external-id/get-partner-by-external-id.use-case';
+import { GetPartnerByExternalIdRequest } from '@modules/partners/application/use-cases/get-partner-by-external-id/get-partner-by-external-id.request';
 import { UpdatePartnerByExternalIdUseCase } from '@modules/partners/application/use-cases/update-partner-by-external-id/update-partner-by-external-id.use-case';
 import type { PartnerOnboardingUploadedFile } from '@modules/partners/application/ports/partner-onboarding-files.port';
 import {
@@ -50,16 +49,15 @@ import {
 } from '@modules/partners/application/ports/partner-onboarding-saga.repository.port';
 import { CreatePartnerPayloadDto } from './dto/create-partner-payload.dto';
 import { CreatePartnerOrchestratorResponseDto } from './dto/create-partner-orchestrator-response.dto';
+import { GetPartnerQueryDto } from './dto/get-partner-query.dto';
+import { PartnerPublicCamelResponseDto } from './dto/partner-public-camel-response.dto';
 import { UpdatePartnerPayloadDto } from './dto/update-partner-payload.dto';
 import { map_create_partner_payload_to_command } from './mappers/create-partner-payload.mapper';
 import {
   map_update_partner_payload_to_request,
   type UpdatePartnerUrlMerge,
 } from './mappers/update-partner-payload.mapper';
-import {
-  assert_update_partner_payload_supported,
-  update_payload_has_partner_changes,
-} from './guards/update-partner-payload-supported.guard';
+
 import type { UploadedMultipartFile } from './types/multer-file.type';
 
 type PartnerMultipartFiles = {
@@ -80,14 +78,14 @@ type SuppliersMsConfig = {
 @ApiExtraModels(
   CreatePartnerPayloadDto,
   UpdatePartnerPayloadDto,
-  ListPartnersItemResponse,
+  GetPartnerQueryDto,
+  PartnerPublicCamelResponseDto,
 )
 @Controller('partners')
-@UseGuards(JwtAuthGuard, RolesGuard)
 @RequireRoles(Roles.BACK_OFFICE_ADMIN, Roles.BACK_OFFICE_ANALYST)
 export class PartnersController {
   constructor(
-    private readonly list_partners: ListPartnersUseCase,
+    private readonly get_partner: GetPartnerByExternalIdUseCase,
     private readonly create_partner_orchestrator: CreatePartnerOrchestratorUseCase,
     private readonly update_partner: UpdatePartnerByExternalIdUseCase,
     private readonly config_service: ConfigService,
@@ -98,21 +96,25 @@ export class PartnersController {
   ) {}
 
   /**
-   * Lista todos los partners con campos públicos (orden por id ascendente).
+   * Obtiene un partner por `externalId` (query). Respuesta en camelCase.
    */
   @Get()
   @ApiOperation({
-    summary: 'Listar todos los partners',
+    summary: 'Obtener partner por externalId',
     description:
-      'Retorna cada partner con `supplier_external_id` resuelto y el resto de campos públicos.',
+      'Query obligatorio `externalId` (UUID v4). Retorna campos públicos con nombres en camelCase.',
   })
   @ApiOkResponse({
-    description: 'Lista de partners',
-    type: ListPartnersItemResponse,
-    isArray: true,
+    description: 'Partner encontrado',
+    type: PartnerPublicCamelResponseDto,
   })
-  async list_all(): Promise<ListPartnersItemResponse[]> {
-    return this.list_partners.execute();
+  async get_by_external_id_query(
+    @Query() query: GetPartnerQueryDto,
+  ): Promise<PartnerPublicCamelResponseDto> {
+    const res = await this.get_partner.execute(
+      new GetPartnerByExternalIdRequest(query.externalId),
+    );
+    return PartnerPublicCamelResponseDto.from(res);
   }
 
   /**
@@ -278,7 +280,7 @@ export class PartnersController {
       throw new BadRequestException(message);
     }
 
-    assert_update_partner_payload_supported(dto);
+   
 
     const uploaded = this.to_uploaded_meta(files);
 
@@ -291,13 +293,9 @@ export class PartnersController {
 
     const has_logo_file = this.multipart_has_binary(uploaded.logo);
     const has_cob_file = this.multipart_has_binary(uploaded.co_branding);
-    const partner_dirty = update_payload_has_partner_changes(dto);
 
-    if (!partner_dirty && !has_logo_file && !has_cob_file) {
-      throw new BadRequestException(
-        'Sin cambios: indique campos en partner, logo o coBranding (JSON o archivo)',
-      );
-    }
+
+    
 
     let logo_merge: string | null | undefined = dto.partner?.logoUrl;
     let co_branding_merge: string | null | undefined = dto.partner?.coBrandingLogoUrl;

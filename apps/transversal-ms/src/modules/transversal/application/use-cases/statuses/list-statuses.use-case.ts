@@ -22,11 +22,14 @@ export class ListStatusesUseCase {
 
   async execute(query: ListStatusesParams): Promise<ListStatusesResult> {
     const { items, total } = await this.status_repository.list(query);
+    const unpaged = query.page === undefined && query.limit === undefined;
+    const page = unpaged ? 1 : (query.page ?? 1);
+    const limit = unpaged ? total : (query.limit ?? 20);
     return {
       items,
       total,
-      page: query.page,
-      limit: query.limit,
+      page,
+      limit,
     };
   }
 }

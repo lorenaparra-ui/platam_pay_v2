@@ -28,7 +28,7 @@ export class TypeormSalesRepresentativeRepository
 
   async find_by_external_id(external_id: string): Promise<SalesRepresentative | null> {
     const row = await this.with_user_graph_qb()
-      .where('sr.externalId = :external_id', { external_id })
+      .where('sr.external_id = :external_id', { external_id })
       .getOne();
     return row ? SalesRepresentativeMapper.to_domain(row) : null;
   }
@@ -36,7 +36,7 @@ export class TypeormSalesRepresentativeRepository
   async find_all(partner_id_filter?: number): Promise<SalesRepresentative[]> {
     const qb = this.with_user_graph_qb().orderBy('sr.id', 'ASC');
     if (partner_id_filter !== undefined) {
-      qb.andWhere('sr.partnerId = :partner_id', {
+      qb.andWhere('sr.partner_id = :partner_id', {
         partner_id: partner_id_filter,
       });
     }

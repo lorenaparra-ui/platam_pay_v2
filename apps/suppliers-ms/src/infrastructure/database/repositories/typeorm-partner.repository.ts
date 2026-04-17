@@ -39,6 +39,7 @@ export class TypeormPartnerRepository implements PartnerRepository {
   async find_by_external_id(external_id: string): Promise<Partner | null> {
     const row = await this.repo.findOne({
       where: { externalId: external_id },
+      relations: ['supplier'],
       select: PARTNER_SELECT,
     });
     return row ? PartnerMapper.to_domain(row) : null;

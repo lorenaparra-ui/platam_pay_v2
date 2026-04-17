@@ -1,13 +1,16 @@
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import {
+  IsInt,
   IsOptional,
   IsString,
   IsUUID,
   Length,
   Matches,
+  Max,
   MaxLength,
+  Min,
 } from 'class-validator';
-import { PaginationQueryDto } from './pagination-query.dto';
 
 export class CityResponseDto {
   @ApiProperty({
@@ -15,34 +18,34 @@ export class CityResponseDto {
       'Identificador público de la ciudad (UUID). El id bigint interno no se expone.',
     format: 'uuid',
   })
-  external_id!: string;
+  externalId!: string;
 
   @ApiProperty()
-  country_name!: string;
+  countryName!: string;
 
   @ApiProperty({ description: 'ISO 3166-1 alpha-2' })
-  country_code!: string;
+  countryCode!: string;
 
   @ApiProperty()
-  state_name!: string;
+  stateName!: string;
 
   @ApiPropertyOptional({ nullable: true })
-  state_code!: string | null;
+  stateCode!: string | null;
 
   @ApiProperty()
-  city_name!: string;
+  cityName!: string;
 
   @ApiProperty({
     description: 'UUID de la moneda en transversal_schema.currencies.',
     format: 'uuid',
   })
-  currency_external_id!: string;
+  currencyExternalId!: string;
 
   @ApiProperty()
-  created_at!: Date;
+  createdAt!: Date;
 
   @ApiProperty()
-  updated_at!: Date;
+  updatedAt!: Date;
 }
 
 export class PaginatedCitiesResponseDto {
@@ -63,55 +66,93 @@ export class CreateCityBodyDto {
   @ApiProperty()
   @IsString()
   @MaxLength(120)
-  country_name!: string;
+  countryName!: string;
 
   @ApiProperty()
   @IsString()
   @Length(2, 2)
   @Matches(/^[A-Z]{2}$/)
-  country_code!: string;
+  countryCode!: string;
 
   @ApiProperty()
   @IsString()
   @MaxLength(120)
-  state_name!: string;
+  stateName!: string;
 
   @ApiPropertyOptional({ nullable: true })
   @IsOptional()
   @IsString()
   @Length(2, 3)
   @Matches(/^[A-Z0-9]{2,3}$/)
-  state_code?: string | null;
+  stateCode?: string | null;
 
   @ApiProperty()
   @IsString()
   @MaxLength(120)
-  city_name!: string;
+  cityName!: string;
 
   @ApiProperty({ format: 'uuid' })
   @IsUUID('4')
-  currency_external_id!: string;
+  currencyExternalId!: string;
 }
 
 export class UpdateCityBodyDto extends PartialType(CreateCityBodyDto) {}
 
-export class ListCitiesQueryDto extends PaginationQueryDto {
+export class ListCountriesQueryDto {
+  @ApiPropertyOptional({
+    description:
+      'Filtra países cuyo nombre contiene esta subcadena (insensible a mayúsculas).',
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(120)
+  countryNameContains?: string;
+}
+
+export class CountryCatalogItemDto {
+  @ApiProperty()
+  countryName!: string;
+
+  @ApiProperty({ description: 'ISO 3166-1 alpha-2' })
+  countryCode!: string;
+}
+
+export class ListCitiesQueryDto {
+  @ApiPropertyOptional({
+    description:
+      'Si no se envían `page` ni `limit`, se devuelven todas las ciudades que cumplan los filtros.',
+    minimum: 1,
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  page?: number;
+
+  @ApiPropertyOptional({ minimum: 1, maximum: 100 })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(100)
+  limit?: number;
+
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
   @Length(2, 2)
   @Matches(/^[A-Z]{2}$/)
-  country_code?: string;
+  countryCode?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
   @MaxLength(120)
-  state_name?: string;
+  stateName?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
   @MaxLength(120)
-  city_name_contains?: string;
+  cityNameContains?: string;
 }

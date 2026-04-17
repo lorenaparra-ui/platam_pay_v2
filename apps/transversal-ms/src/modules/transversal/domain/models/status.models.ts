@@ -28,8 +28,9 @@ export interface UpdateStatusProps {
 }
 
 export interface ListStatusesParams {
-  page: number;
-  limit: number;
+  /** Si ambos faltan, se devuelven todas las filas que cumplan filtros. */
+  page?: number;
+  limit?: number;
   entity_type?: string;
   code_contains?: string;
   display_name_contains?: string;

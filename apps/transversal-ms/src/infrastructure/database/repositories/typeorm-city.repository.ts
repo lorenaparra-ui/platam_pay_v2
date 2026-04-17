@@ -5,9 +5,11 @@ import { CityEntity } from '@app/transversal-data';
 import type { CityRepository } from '@modules/transversal/domain/ports/catalog/city.repository.port';
 import type {
   City,
+  CountryCatalogEntry,
   CreateCityProps,
-  UpdateCityProps,
   ListCitiesParams,
+  ListDistinctCountriesParams,
+  UpdateCityProps,
 } from '@modules/transversal/domain/models/city.models';
 import { CityMapper } from '@infrastructure/database/mappers/city.mapper';
 
@@ -87,18 +89,52 @@ export class TypeormCityRepository implements CityRepository {
 
     const list_values: unknown[] = [];
     const { clause: list_clause, next_idx } = this.build_where(params, list_values);
-    const limit = params.limit;
-    const offset = (params.page - 1) * limit;
-    list_values.push(limit, offset);
-    const rows = (await this.repo.query(
-      `SELECT ${CITY_ROW_SQL} FROM ${CITY_FROM} ${list_clause}
-       ORDER BY c.id ASC LIMIT $${next_idx} OFFSET $${next_idx + 1}`,
-      list_values,
-    )) as Record<string, unknown>[];
+    const unpaged = params.page === undefined && params.limit === undefined;
+    let rows: Record<string, unknown>[];
+    if (unpaged) {
+      rows = (await this.repo.query(
+        `SELECT ${CITY_ROW_SQL} FROM ${CITY_FROM} ${list_clause}
+         ORDER BY c.id ASC`,
+        list_values,
+      )) as Record<string, unknown>[];
+    } else {
+      const page = params.page ?? 1;
+      const limit = params.limit ?? 20;
+      const offset = (page - 1) * limit;
+      list_values.push(limit, offset);
+      rows = (await this.repo.query(
+        `SELECT ${CITY_ROW_SQL} FROM ${CITY_FROM} ${list_clause}
+         ORDER BY c.id ASC LIMIT $${next_idx} OFFSET $${next_idx + 1}`,
+        list_values,
+      )) as Record<string, unknown>[];
+    }
     return {
       items: rows.map((r) => CityMapper.from_raw_row(r)),
       total,
     };
+  }
+
+  async list_distinct_countries(
+    params: ListDistinctCountriesParams,
+  ): Promise<CountryCatalogEntry[]> {
+    const values: unknown[] = [];
+    let where = '';
+    const q = params.country_name_contains?.trim();
+    if (q) {
+      where = `WHERE LOWER(c.country_name) LIKE LOWER($1)`;
+      values.push(`%${q}%`);
+    }
+    const rows = (await this.repo.query(
+      `SELECT DISTINCT c.country_name, c.country_code
+       FROM transversal_schema.cities c
+       ${where}
+       ORDER BY c.country_name ASC, c.country_code ASC`,
+      values,
+    )) as Array<{ country_name: string; country_code: string }>;
+    return rows.map((r) => ({
+      country_name: r.country_name,
+      country_code: r.country_code,
+    }));
   }
 
   async create(props: CreateCityProps): Promise<City> {

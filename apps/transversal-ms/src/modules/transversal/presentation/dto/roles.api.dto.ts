@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
-import { IsEnum, IsOptional, IsString, MaxLength } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsEnum, IsInt, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
 import { Roles } from '@platam/shared';
-import { PaginationQueryDto } from './pagination-query.dto';
 
 export class RoleResponseDto {
   @ApiProperty({
@@ -9,7 +9,7 @@ export class RoleResponseDto {
       'Identificador público (UUID). Se usa en API; el id numérico interno no se expone.',
     format: 'uuid',
   })
-  external_id!: string;
+  externalId!: string;
 
   @ApiProperty({ enum: Roles })
   name!: Roles;
@@ -18,10 +18,10 @@ export class RoleResponseDto {
   description!: string | null;
 
   @ApiProperty()
-  created_at!: Date;
+  createdAt!: Date;
 
   @ApiProperty()
-  updated_at!: Date;
+  updatedAt!: Date;
 }
 
 export class PaginatedRolesResponseDto {
@@ -51,10 +51,25 @@ export class CreateRoleBodyDto {
 
 export class UpdateRoleBodyDto extends PartialType(CreateRoleBodyDto) {}
 
-export class ListRolesQueryDto extends PaginationQueryDto {
+export class ListRolesQueryDto {
+  @ApiPropertyOptional({ default: 1, minimum: 1 })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  page: number = 1;
+
+  @ApiPropertyOptional({ default: 20, minimum: 1, maximum: 100 })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(100)
+  limit: number = 20;
+
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
   @MaxLength(80)
-  name_contains?: string;
+  nameContains?: string;
 }

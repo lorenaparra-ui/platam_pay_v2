@@ -1,8 +1,10 @@
 import type {
   City,
+  CountryCatalogEntry,
   CreateCityProps,
-  UpdateCityProps,
   ListCitiesParams,
+  ListDistinctCountriesParams,
+  UpdateCityProps,
 } from '../../../domain/models/city.models';
 
 export interface CityRepository {
@@ -11,6 +13,10 @@ export interface CityRepository {
   find_by_internal_id(internal_id: number): Promise<City | null>;
 
   list(params: ListCitiesParams): Promise<{ items: City[]; total: number }>;
+
+  list_distinct_countries(
+    params: ListDistinctCountriesParams,
+  ): Promise<CountryCatalogEntry[]>;
 
   create(props: CreateCityProps): Promise<City>;
 

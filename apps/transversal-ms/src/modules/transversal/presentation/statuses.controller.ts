@@ -9,14 +9,17 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import {
+  ApiBearerAuth,
   ApiCreatedResponse,
   ApiNoContentResponse,
   ApiOkResponse,
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
+import { JwtAuthGuard } from '@modules/auth/infrastructure/guards/jwt-auth.guard';
 import { CreateStatusUseCase } from '@modules/transversal/application/use-cases/statuses/create-status.use-case';
 import { GetStatusByExternalIdUseCase } from '@modules/transversal/application/use-cases/statuses/get-status-by-external-id.use-case';
 import { ListStatusesUseCase } from '@modules/transversal/application/use-cases/statuses/list-statuses.use-case';
@@ -48,11 +51,11 @@ export class StatusesController {
   @ApiCreatedResponse({ type: StatusResponseDto })
   async create(@Body() body: CreateStatusBodyDto): Promise<StatusResponseDto> {
     const row = await this.create_status.execute({
-      entity_type: body.entity_type,
+      entity_type: body.entityType,
       code: body.code,
-      display_name: body.display_name,
+      display_name: body.displayName,
       description: body.description ?? null,
-      is_active: body.is_active ?? true,
+      is_active: body.isActive ?? true,
     });
     return to_status_response_dto(row);
   }
@@ -66,10 +69,36 @@ export class StatusesController {
     const result = await this.list_statuses.execute({
       page: query.page,
       limit: query.limit,
-      entity_type: query.entity_type,
-      code_contains: query.code_contains,
-      display_name_contains: query.display_name_contains,
-      is_active: query.is_active,
+      entity_type: query.entityType,
+      code_contains: query.codeContains,
+      display_name_contains: query.displayNameContains,
+      is_active: query.isActive,
+    });
+    return {
+      items: result.items.map((s) => to_status_response_dto(s)),
+      total: result.total,
+      page: result.page,
+      limit: result.limit,
+    };
+  }
+
+  @Get('active')
+  @ApiOperation({
+    summary: 'Listar solo estados activos',
+    description:
+      'Equivalente al listado paginado con is_active fijado en true. Los filtros opcionales (entity_type, búsqueda por código/nombre) se aplican igual.',
+  })
+  @ApiOkResponse({ type: PaginatedStatusesResponseDto })
+  async list_active(
+    @Query() query: ListStatusesQueryDto,
+  ): Promise<PaginatedStatusesResponseDto> {
+    const result = await this.list_statuses.execute({
+      page: query.page,
+      limit: query.limit,
+      entity_type: query.entityType,
+      code_contains: query.codeContains,
+      display_name_contains: query.displayNameContains,
+      is_active: true,
     });
     return {
       items: result.items.map((s) => to_status_response_dto(s)),
@@ -99,20 +128,20 @@ export class StatusesController {
     @Body() body: UpdateStatusBodyDto,
   ): Promise<StatusResponseDto> {
     const payload: UpdateStatusPayload = {};
-    if (body.entity_type !== undefined) {
-      payload.entity_type = body.entity_type;
+    if (body.entityType !== undefined) {
+      payload.entity_type = body.entityType;
     }
     if (body.code !== undefined) {
       payload.code = body.code;
     }
-    if (body.display_name !== undefined) {
-      payload.display_name = body.display_name;
+    if (body.displayName !== undefined) {
+      payload.display_name = body.displayName;
     }
     if (body.description !== undefined) {
       payload.description = body.description;
     }
-    if (body.is_active !== undefined) {
-      payload.is_active = body.is_active;
+    if (body.isActive !== undefined) {
+      payload.is_active = body.isActive;
     }
     const row = await this.update_status.execute(external_id, payload);
     return to_status_response_dto(row);

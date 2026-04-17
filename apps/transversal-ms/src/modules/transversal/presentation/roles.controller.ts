@@ -63,7 +63,7 @@ export class RolesController {
     const result = await this.list_roles.execute({
       page: query.page,
       limit: query.limit,
-      name_contains: query.name_contains,
+      name_contains: query.nameContains,
     });
     return {
       items: result.items.map((r) => to_role_response_dto(r)),

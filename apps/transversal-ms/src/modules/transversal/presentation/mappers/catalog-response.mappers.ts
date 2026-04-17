@@ -7,37 +7,37 @@ import type { StatusResponseDto } from '../dto/statuses.api.dto';
 
 export function to_role_response_dto(role: Role): RoleResponseDto {
   return {
-    external_id: role.external_id,
+    externalId: role.external_id,
     name: role.name,
     description: role.description,
-    created_at: role.created_at,
-    updated_at: role.updated_at,
+    createdAt: role.created_at,
+    updatedAt: role.updated_at,
   };
 }
 
 export function to_city_response_dto(city: City): CityResponseDto {
   return {
-    external_id: city.external_id,
-    country_name: city.country_name,
-    country_code: city.country_code,
-    state_name: city.state_name,
-    state_code: city.state_code,
-    city_name: city.city_name,
-    currency_external_id: city.currency_external_id,
-    created_at: city.created_at,
-    updated_at: city.updated_at,
+    externalId: city.external_id,
+    countryName: city.country_name,
+    countryCode: city.country_code,
+    stateName: city.state_name,
+    stateCode: city.state_code,
+    cityName: city.city_name,
+    currencyExternalId: city.currency_external_id,
+    createdAt: city.created_at,
+    updatedAt: city.updated_at,
   };
 }
 
 export function to_status_response_dto(row: CatalogStatus): StatusResponseDto {
   return {
-    external_id: row.external_id,
-    entity_type: row.entity_type,
+    externalId: row.external_id,
+    entityType: row.entity_type,
     code: row.code,
-    display_name: row.display_name,
+    displayName: row.display_name,
     description: row.description,
-    is_active: row.is_active,
-    created_at: row.created_at,
-    updated_at: row.updated_at,
+    isActive: row.is_active,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
   };
 }

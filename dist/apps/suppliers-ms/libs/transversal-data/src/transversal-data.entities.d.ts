@@ -1,0 +1,13 @@
+import { CityEntity } from './entities/city.entity';
+import { CurrencyEntity } from './entities/currency.entity';
+import { PermissionEntity } from './entities/permission.entity';
+import { PersonEntity } from './entities/person.entity';
+import { RoleEntity } from './entities/role.entity';
+import { RolePermissionEntity } from './entities/role-permission.entity';
+import { StatusEntity } from './entities/catalog-status-types.entity';
+import { PartnerCreateUserSqsIdempotencyEntity } from './entities/partner-create-user-sqs-idempotency.entity';
+import { UploadFilesIdempotencyEntity } from './entities/upload-files-idempotency.entity';
+import { AuditLogEntity } from './entities/audit-log.entity';
+import { GlobalParamEntity } from './entities/global-param.entity';
+import { UserEntity } from './entities/user.entity';
+export declare const TRANSVERSAL_DATA_ENTITIES: readonly [typeof CityEntity, typeof CurrencyEntity, typeof PermissionEntity, typeof PersonEntity, typeof RoleEntity, typeof RolePermissionEntity, typeof StatusEntity, typeof UploadFilesIdempotencyEntity, typeof PartnerCreateUserSqsIdempotencyEntity, typeof UserEntity, typeof GlobalParamEntity, typeof AuditLogEntity];

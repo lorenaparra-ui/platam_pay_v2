@@ -1224,15 +1224,41 @@ let TypeormCityRepository = class TypeormCityRepository {
         const total = count_rows[0]?.n ?? 0;
         const list_values = [];
         const { clause: list_clause, next_idx } = this.build_where(params, list_values);
-        const limit = params.limit;
-        const offset = (params.page - 1) * limit;
-        list_values.push(limit, offset);
-        const rows = (await this.repo.query(`SELECT ${CITY_ROW_SQL} FROM ${CITY_FROM} ${list_clause}
-       ORDER BY c.id ASC LIMIT $${next_idx} OFFSET $${next_idx + 1}`, list_values));
+        const unpaged = params.page === undefined && params.limit === undefined;
+        let rows;
+        if (unpaged) {
+            rows = (await this.repo.query(`SELECT ${CITY_ROW_SQL} FROM ${CITY_FROM} ${list_clause}
+         ORDER BY c.id ASC`, list_values));
+        }
+        else {
+            const page = params.page ?? 1;
+            const limit = params.limit ?? 20;
+            const offset = (page - 1) * limit;
+            list_values.push(limit, offset);
+            rows = (await this.repo.query(`SELECT ${CITY_ROW_SQL} FROM ${CITY_FROM} ${list_clause}
+         ORDER BY c.id ASC LIMIT $${next_idx} OFFSET $${next_idx + 1}`, list_values));
+        }
         return {
             items: rows.map((r) => city_mapper_1.CityMapper.from_raw_row(r)),
             total,
         };
+    }
+    async list_distinct_countries(params) {
+        const values = [];
+        let where = '';
+        const q = params.country_name_contains?.trim();
+        if (q) {
+            where = `WHERE LOWER(c.country_name) LIKE LOWER($1)`;
+            values.push(`%${q}%`);
+        }
+        const rows = (await this.repo.query(`SELECT DISTINCT c.country_name, c.country_code
+       FROM transversal_schema.cities c
+       ${where}
+       ORDER BY c.country_name ASC, c.country_code ASC`, values));
+        return rows.map((r) => ({
+            country_name: r.country_name,
+            country_code: r.country_code,
+        }));
     }
     async create(props) {
         const rows = (await this.repo.query(`INSERT INTO transversal_schema.cities (
@@ -1774,12 +1800,14 @@ let TypeormStatusRepository = class TypeormStatusRepository {
             qb.andWhere('s.isActive = :ia', { ia: params.is_active });
         }
         const total = await qb.clone().getCount();
-        const skip = (params.page - 1) * params.limit;
-        const rows = await qb
-            .orderBy('s.id', 'ASC')
-            .skip(skip)
-            .take(params.limit)
-            .getMany();
+        const unpaged = params.page === undefined && params.limit === undefined;
+        const qb_page = qb.orderBy('s.id', 'ASC');
+        if (!unpaged) {
+            const page = params.page ?? 1;
+            const limit = params.limit ?? 20;
+            qb_page.skip((page - 1) * limit).take(limit);
+        }
+        const rows = await qb_page.getMany();
         return {
             items: rows.map((x) => status_mapper_1.StatusMapper.to_domain(x)),
             total,
@@ -6502,11 +6530,14 @@ let ListCitiesUseCase = class ListCitiesUseCase {
     }
     async execute(query) {
         const { items, total } = await this.city_repository.list(query);
+        const unpaged = query.page === undefined && query.limit === undefined;
+        const page = unpaged ? 1 : (query.page ?? 1);
+        const limit = unpaged ? total : (query.limit ?? 20);
         return {
             items,
             total,
-            page: query.page,
-            limit: query.limit,
+            page,
+            limit,
         };
     }
 };
@@ -6516,6 +6547,48 @@ exports.ListCitiesUseCase = ListCitiesUseCase = __decorate([
     __param(0, (0, common_1.Inject)(transversal_tokens_1.CITY_REPOSITORY)),
     __metadata("design:paramtypes", [Object])
 ], ListCitiesUseCase);
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/modules/transversal/application/use-cases/cities/list-distinct-countries.use-case.ts"
+/*!**********************************************************************************************************************!*\
+  !*** ./apps/transversal-ms/src/modules/transversal/application/use-cases/cities/list-distinct-countries.use-case.ts ***!
+  \**********************************************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ListDistinctCountriesUseCase = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const transversal_tokens_1 = __webpack_require__(/*! @modules/transversal/transversal.tokens */ "./apps/transversal-ms/src/modules/transversal/transversal.tokens.ts");
+let ListDistinctCountriesUseCase = class ListDistinctCountriesUseCase {
+    city_repository;
+    constructor(city_repository) {
+        this.city_repository = city_repository;
+    }
+    async execute(params) {
+        return this.city_repository.list_distinct_countries(params);
+    }
+};
+exports.ListDistinctCountriesUseCase = ListDistinctCountriesUseCase;
+exports.ListDistinctCountriesUseCase = ListDistinctCountriesUseCase = __decorate([
+    (0, common_1.Injectable)(),
+    __param(0, (0, common_1.Inject)(transversal_tokens_1.CITY_REPOSITORY)),
+    __metadata("design:paramtypes", [Object])
+], ListDistinctCountriesUseCase);
 
 
 /***/ },
@@ -7056,11 +7129,14 @@ let ListStatusesUseCase = class ListStatusesUseCase {
     }
     async execute(query) {
         const { items, total } = await this.status_repository.list(query);
+        const unpaged = query.page === undefined && query.limit === undefined;
+        const page = unpaged ? 1 : (query.page ?? 1);
+        const limit = unpaged ? total : (query.limit ?? 20);
         return {
             items,
             total,
-            page: query.page,
-            limit: query.limit,
+            page,
+            limit,
         };
     }
 };
@@ -7419,7 +7495,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
+var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CitiesController = void 0;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
@@ -7427,6 +7503,7 @@ const swagger_1 = __webpack_require__(/*! @nestjs/swagger */ "@nestjs/swagger");
 const create_city_use_case_1 = __webpack_require__(/*! @modules/transversal/application/use-cases/cities/create-city.use-case */ "./apps/transversal-ms/src/modules/transversal/application/use-cases/cities/create-city.use-case.ts");
 const get_city_by_external_id_use_case_1 = __webpack_require__(/*! @modules/transversal/application/use-cases/cities/get-city-by-external-id.use-case */ "./apps/transversal-ms/src/modules/transversal/application/use-cases/cities/get-city-by-external-id.use-case.ts");
 const list_cities_use_case_1 = __webpack_require__(/*! @modules/transversal/application/use-cases/cities/list-cities.use-case */ "./apps/transversal-ms/src/modules/transversal/application/use-cases/cities/list-cities.use-case.ts");
+const list_distinct_countries_use_case_1 = __webpack_require__(/*! @modules/transversal/application/use-cases/cities/list-distinct-countries.use-case */ "./apps/transversal-ms/src/modules/transversal/application/use-cases/cities/list-distinct-countries.use-case.ts");
 const update_city_by_external_id_use_case_1 = __webpack_require__(/*! @modules/transversal/application/use-cases/cities/update-city-by-external-id.use-case */ "./apps/transversal-ms/src/modules/transversal/application/use-cases/cities/update-city-by-external-id.use-case.ts");
 const delete_city_by_external_id_use_case_1 = __webpack_require__(/*! @modules/transversal/application/use-cases/cities/delete-city-by-external-id.use-case */ "./apps/transversal-ms/src/modules/transversal/application/use-cases/cities/delete-city-by-external-id.use-case.ts");
 const cities_api_dto_1 = __webpack_require__(/*! ./dto/cities.api.dto */ "./apps/transversal-ms/src/modules/transversal/presentation/dto/cities.api.dto.ts");
@@ -7435,23 +7512,25 @@ let CitiesController = class CitiesController {
     create_city;
     get_city;
     list_cities;
+    list_countries;
     update_city;
     delete_city;
-    constructor(create_city, get_city, list_cities, update_city, delete_city) {
+    constructor(create_city, get_city, list_cities, list_countries, update_city, delete_city) {
         this.create_city = create_city;
         this.get_city = get_city;
         this.list_cities = list_cities;
+        this.list_countries = list_countries;
         this.update_city = update_city;
         this.delete_city = delete_city;
     }
     async create(body) {
         const city = await this.create_city.execute({
-            country_name: body.country_name,
-            country_code: body.country_code,
-            state_name: body.state_name,
-            state_code: body.state_code ?? null,
-            city_name: body.city_name,
-            currency_external_id: body.currency_external_id,
+            country_name: body.countryName,
+            country_code: body.countryCode,
+            state_name: body.stateName,
+            state_code: body.stateCode ?? null,
+            city_name: body.cityName,
+            currency_external_id: body.currencyExternalId,
         });
         return (0, catalog_response_mappers_1.to_city_response_dto)(city);
     }
@@ -7459,9 +7538,9 @@ let CitiesController = class CitiesController {
         const result = await this.list_cities.execute({
             page: query.page,
             limit: query.limit,
-            country_code: query.country_code,
-            state_name: query.state_name,
-            city_name_contains: query.city_name_contains,
+            country_code: query.countryCode,
+            state_name: query.stateName,
+            city_name_contains: query.cityNameContains,
         });
         return {
             items: result.items.map((c) => (0, catalog_response_mappers_1.to_city_response_dto)(c)),
@@ -7470,29 +7549,38 @@ let CitiesController = class CitiesController {
             limit: result.limit,
         };
     }
+    async list_countries_endpoint(query) {
+        const rows = await this.list_countries.execute({
+            country_name_contains: query.countryNameContains,
+        });
+        return rows.map((r) => ({
+            countryName: r.country_name,
+            countryCode: r.country_code,
+        }));
+    }
     async get(external_id) {
         const city = await this.get_city.execute(external_id);
         return (0, catalog_response_mappers_1.to_city_response_dto)(city);
     }
     async update(external_id, body) {
         const payload = {};
-        if (body.country_name !== undefined) {
-            payload.country_name = body.country_name;
+        if (body.countryName !== undefined) {
+            payload.country_name = body.countryName;
         }
-        if (body.country_code !== undefined) {
-            payload.country_code = body.country_code;
+        if (body.countryCode !== undefined) {
+            payload.country_code = body.countryCode;
         }
-        if (body.state_name !== undefined) {
-            payload.state_name = body.state_name;
+        if (body.stateName !== undefined) {
+            payload.state_name = body.stateName;
         }
-        if (body.state_code !== undefined) {
-            payload.state_code = body.state_code;
+        if (body.stateCode !== undefined) {
+            payload.state_code = body.stateCode;
         }
-        if (body.city_name !== undefined) {
-            payload.city_name = body.city_name;
+        if (body.cityName !== undefined) {
+            payload.city_name = body.cityName;
         }
-        if (body.currency_external_id !== undefined) {
-            payload.currency_external_id = body.currency_external_id;
+        if (body.currencyExternalId !== undefined) {
+            payload.currency_external_id = body.currencyExternalId;
         }
         const city = await this.update_city.execute(external_id, payload);
         return (0, catalog_response_mappers_1.to_city_response_dto)(city);
@@ -7508,8 +7596,8 @@ __decorate([
     (0, swagger_1.ApiCreatedResponse)({ type: cities_api_dto_1.CityResponseDto }),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_f = typeof cities_api_dto_1.CreateCityBodyDto !== "undefined" && cities_api_dto_1.CreateCityBodyDto) === "function" ? _f : Object]),
-    __metadata("design:returntype", typeof (_g = typeof Promise !== "undefined" && Promise) === "function" ? _g : Object)
+    __metadata("design:paramtypes", [typeof (_g = typeof cities_api_dto_1.CreateCityBodyDto !== "undefined" && cities_api_dto_1.CreateCityBodyDto) === "function" ? _g : Object]),
+    __metadata("design:returntype", typeof (_h = typeof Promise !== "undefined" && Promise) === "function" ? _h : Object)
 ], CitiesController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
@@ -7517,9 +7605,21 @@ __decorate([
     (0, swagger_1.ApiOkResponse)({ type: cities_api_dto_1.PaginatedCitiesResponseDto }),
     __param(0, (0, common_1.Query)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_h = typeof cities_api_dto_1.ListCitiesQueryDto !== "undefined" && cities_api_dto_1.ListCitiesQueryDto) === "function" ? _h : Object]),
-    __metadata("design:returntype", typeof (_j = typeof Promise !== "undefined" && Promise) === "function" ? _j : Object)
+    __metadata("design:paramtypes", [typeof (_j = typeof cities_api_dto_1.ListCitiesQueryDto !== "undefined" && cities_api_dto_1.ListCitiesQueryDto) === "function" ? _j : Object]),
+    __metadata("design:returntype", typeof (_k = typeof Promise !== "undefined" && Promise) === "function" ? _k : Object)
 ], CitiesController.prototype, "list", null);
+__decorate([
+    (0, common_1.Get)('countries'),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Listar países del catálogo (sin repetir nombre)',
+        description: 'Deriva países únicos (`country_name` + `country_code`) desde `transversal_schema.cities`. Opcionalmente filtra por subcadena del nombre del país.',
+    }),
+    (0, swagger_1.ApiOkResponse)({ type: [cities_api_dto_1.CountryCatalogItemDto] }),
+    __param(0, (0, common_1.Query)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [typeof (_l = typeof cities_api_dto_1.ListCountriesQueryDto !== "undefined" && cities_api_dto_1.ListCountriesQueryDto) === "function" ? _l : Object]),
+    __metadata("design:returntype", typeof (_m = typeof Promise !== "undefined" && Promise) === "function" ? _m : Object)
+], CitiesController.prototype, "list_countries_endpoint", null);
 __decorate([
     (0, common_1.Get)(':external_id'),
     (0, swagger_1.ApiOperation)({ summary: 'Obtener ciudad por external_id (UUID)' }),
@@ -7527,7 +7627,7 @@ __decorate([
     __param(0, (0, common_1.Param)('external_id', new common_1.ParseUUIDPipe({ version: '4' }))),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", typeof (_k = typeof Promise !== "undefined" && Promise) === "function" ? _k : Object)
+    __metadata("design:returntype", typeof (_o = typeof Promise !== "undefined" && Promise) === "function" ? _o : Object)
 ], CitiesController.prototype, "get", null);
 __decorate([
     (0, common_1.Patch)(':external_id'),
@@ -7536,8 +7636,8 @@ __decorate([
     __param(0, (0, common_1.Param)('external_id', new common_1.ParseUUIDPipe({ version: '4' }))),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, typeof (_l = typeof cities_api_dto_1.UpdateCityBodyDto !== "undefined" && cities_api_dto_1.UpdateCityBodyDto) === "function" ? _l : Object]),
-    __metadata("design:returntype", typeof (_m = typeof Promise !== "undefined" && Promise) === "function" ? _m : Object)
+    __metadata("design:paramtypes", [String, typeof (_p = typeof cities_api_dto_1.UpdateCityBodyDto !== "undefined" && cities_api_dto_1.UpdateCityBodyDto) === "function" ? _p : Object]),
+    __metadata("design:returntype", typeof (_q = typeof Promise !== "undefined" && Promise) === "function" ? _q : Object)
 ], CitiesController.prototype, "update", null);
 __decorate([
     (0, common_1.Delete)(':external_id'),
@@ -7549,12 +7649,12 @@ __decorate([
     __param(0, (0, common_1.Param)('external_id', new common_1.ParseUUIDPipe({ version: '4' }))),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", typeof (_o = typeof Promise !== "undefined" && Promise) === "function" ? _o : Object)
+    __metadata("design:returntype", typeof (_r = typeof Promise !== "undefined" && Promise) === "function" ? _r : Object)
 ], CitiesController.prototype, "remove", null);
 exports.CitiesController = CitiesController = __decorate([
     (0, swagger_1.ApiTags)('cities'),
     (0, common_1.Controller)('v1/cities'),
-    __metadata("design:paramtypes", [typeof (_a = typeof create_city_use_case_1.CreateCityUseCase !== "undefined" && create_city_use_case_1.CreateCityUseCase) === "function" ? _a : Object, typeof (_b = typeof get_city_by_external_id_use_case_1.GetCityByExternalIdUseCase !== "undefined" && get_city_by_external_id_use_case_1.GetCityByExternalIdUseCase) === "function" ? _b : Object, typeof (_c = typeof list_cities_use_case_1.ListCitiesUseCase !== "undefined" && list_cities_use_case_1.ListCitiesUseCase) === "function" ? _c : Object, typeof (_d = typeof update_city_by_external_id_use_case_1.UpdateCityByExternalIdUseCase !== "undefined" && update_city_by_external_id_use_case_1.UpdateCityByExternalIdUseCase) === "function" ? _d : Object, typeof (_e = typeof delete_city_by_external_id_use_case_1.DeleteCityByExternalIdUseCase !== "undefined" && delete_city_by_external_id_use_case_1.DeleteCityByExternalIdUseCase) === "function" ? _e : Object])
+    __metadata("design:paramtypes", [typeof (_a = typeof create_city_use_case_1.CreateCityUseCase !== "undefined" && create_city_use_case_1.CreateCityUseCase) === "function" ? _a : Object, typeof (_b = typeof get_city_by_external_id_use_case_1.GetCityByExternalIdUseCase !== "undefined" && get_city_by_external_id_use_case_1.GetCityByExternalIdUseCase) === "function" ? _b : Object, typeof (_c = typeof list_cities_use_case_1.ListCitiesUseCase !== "undefined" && list_cities_use_case_1.ListCitiesUseCase) === "function" ? _c : Object, typeof (_d = typeof list_distinct_countries_use_case_1.ListDistinctCountriesUseCase !== "undefined" && list_distinct_countries_use_case_1.ListDistinctCountriesUseCase) === "function" ? _d : Object, typeof (_e = typeof update_city_by_external_id_use_case_1.UpdateCityByExternalIdUseCase !== "undefined" && update_city_by_external_id_use_case_1.UpdateCityByExternalIdUseCase) === "function" ? _e : Object, typeof (_f = typeof delete_city_by_external_id_use_case_1.DeleteCityByExternalIdUseCase !== "undefined" && delete_city_by_external_id_use_case_1.DeleteCityByExternalIdUseCase) === "function" ? _f : Object])
 ], CitiesController);
 
 
@@ -7578,20 +7678,20 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 var _a, _b;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.ListCitiesQueryDto = exports.UpdateCityBodyDto = exports.CreateCityBodyDto = exports.PaginatedCitiesResponseDto = exports.CityResponseDto = void 0;
+exports.ListCitiesQueryDto = exports.CountryCatalogItemDto = exports.ListCountriesQueryDto = exports.UpdateCityBodyDto = exports.CreateCityBodyDto = exports.PaginatedCitiesResponseDto = exports.CityResponseDto = void 0;
 const swagger_1 = __webpack_require__(/*! @nestjs/swagger */ "@nestjs/swagger");
+const class_transformer_1 = __webpack_require__(/*! class-transformer */ "class-transformer");
 const class_validator_1 = __webpack_require__(/*! class-validator */ "class-validator");
-const pagination_query_dto_1 = __webpack_require__(/*! ./pagination-query.dto */ "./apps/transversal-ms/src/modules/transversal/presentation/dto/pagination-query.dto.ts");
 class CityResponseDto {
-    external_id;
-    country_name;
-    country_code;
-    state_name;
-    state_code;
-    city_name;
-    currency_external_id;
-    created_at;
-    updated_at;
+    externalId;
+    countryName;
+    countryCode;
+    stateName;
+    stateCode;
+    cityName;
+    currencyExternalId;
+    createdAt;
+    updatedAt;
 }
 exports.CityResponseDto = CityResponseDto;
 __decorate([
@@ -7600,42 +7700,42 @@ __decorate([
         format: 'uuid',
     }),
     __metadata("design:type", String)
-], CityResponseDto.prototype, "external_id", void 0);
+], CityResponseDto.prototype, "externalId", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)(),
     __metadata("design:type", String)
-], CityResponseDto.prototype, "country_name", void 0);
+], CityResponseDto.prototype, "countryName", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({ description: 'ISO 3166-1 alpha-2' }),
     __metadata("design:type", String)
-], CityResponseDto.prototype, "country_code", void 0);
+], CityResponseDto.prototype, "countryCode", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)(),
     __metadata("design:type", String)
-], CityResponseDto.prototype, "state_name", void 0);
+], CityResponseDto.prototype, "stateName", void 0);
 __decorate([
     (0, swagger_1.ApiPropertyOptional)({ nullable: true }),
     __metadata("design:type", Object)
-], CityResponseDto.prototype, "state_code", void 0);
+], CityResponseDto.prototype, "stateCode", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)(),
     __metadata("design:type", String)
-], CityResponseDto.prototype, "city_name", void 0);
+], CityResponseDto.prototype, "cityName", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({
         description: 'UUID de la moneda en transversal_schema.currencies.',
         format: 'uuid',
     }),
     __metadata("design:type", String)
-], CityResponseDto.prototype, "currency_external_id", void 0);
+], CityResponseDto.prototype, "currencyExternalId", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)(),
     __metadata("design:type", typeof (_a = typeof Date !== "undefined" && Date) === "function" ? _a : Object)
-], CityResponseDto.prototype, "created_at", void 0);
+], CityResponseDto.prototype, "createdAt", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)(),
     __metadata("design:type", typeof (_b = typeof Date !== "undefined" && Date) === "function" ? _b : Object)
-], CityResponseDto.prototype, "updated_at", void 0);
+], CityResponseDto.prototype, "updatedAt", void 0);
 class PaginatedCitiesResponseDto {
     items;
     total;
@@ -7660,12 +7760,12 @@ __decorate([
     __metadata("design:type", Number)
 ], PaginatedCitiesResponseDto.prototype, "limit", void 0);
 class CreateCityBodyDto {
-    country_name;
-    country_code;
-    state_name;
-    state_code;
-    city_name;
-    currency_external_id;
+    countryName;
+    countryCode;
+    stateName;
+    stateCode;
+    cityName;
+    currencyExternalId;
 }
 exports.CreateCityBodyDto = CreateCityBodyDto;
 __decorate([
@@ -7673,20 +7773,20 @@ __decorate([
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.MaxLength)(120),
     __metadata("design:type", String)
-], CreateCityBodyDto.prototype, "country_name", void 0);
+], CreateCityBodyDto.prototype, "countryName", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)(),
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.Length)(2, 2),
     (0, class_validator_1.Matches)(/^[A-Z]{2}$/),
     __metadata("design:type", String)
-], CreateCityBodyDto.prototype, "country_code", void 0);
+], CreateCityBodyDto.prototype, "countryCode", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)(),
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.MaxLength)(120),
     __metadata("design:type", String)
-], CreateCityBodyDto.prototype, "state_name", void 0);
+], CreateCityBodyDto.prototype, "stateName", void 0);
 __decorate([
     (0, swagger_1.ApiPropertyOptional)({ nullable: true }),
     (0, class_validator_1.IsOptional)(),
@@ -7694,27 +7794,75 @@ __decorate([
     (0, class_validator_1.Length)(2, 3),
     (0, class_validator_1.Matches)(/^[A-Z0-9]{2,3}$/),
     __metadata("design:type", Object)
-], CreateCityBodyDto.prototype, "state_code", void 0);
+], CreateCityBodyDto.prototype, "stateCode", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)(),
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.MaxLength)(120),
     __metadata("design:type", String)
-], CreateCityBodyDto.prototype, "city_name", void 0);
+], CreateCityBodyDto.prototype, "cityName", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({ format: 'uuid' }),
     (0, class_validator_1.IsUUID)('4'),
     __metadata("design:type", String)
-], CreateCityBodyDto.prototype, "currency_external_id", void 0);
+], CreateCityBodyDto.prototype, "currencyExternalId", void 0);
 class UpdateCityBodyDto extends (0, swagger_1.PartialType)(CreateCityBodyDto) {
 }
 exports.UpdateCityBodyDto = UpdateCityBodyDto;
-class ListCitiesQueryDto extends pagination_query_dto_1.PaginationQueryDto {
-    country_code;
-    state_name;
-    city_name_contains;
+class ListCountriesQueryDto {
+    countryNameContains;
+}
+exports.ListCountriesQueryDto = ListCountriesQueryDto;
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        description: 'Filtra países cuyo nombre contiene esta subcadena (insensible a mayúsculas).',
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MaxLength)(120),
+    __metadata("design:type", String)
+], ListCountriesQueryDto.prototype, "countryNameContains", void 0);
+class CountryCatalogItemDto {
+    countryName;
+    countryCode;
+}
+exports.CountryCatalogItemDto = CountryCatalogItemDto;
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    __metadata("design:type", String)
+], CountryCatalogItemDto.prototype, "countryName", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ description: 'ISO 3166-1 alpha-2' }),
+    __metadata("design:type", String)
+], CountryCatalogItemDto.prototype, "countryCode", void 0);
+class ListCitiesQueryDto {
+    page;
+    limit;
+    countryCode;
+    stateName;
+    cityNameContains;
 }
 exports.ListCitiesQueryDto = ListCitiesQueryDto;
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        description: 'Si no se envían `page` ni `limit`, se devuelven todas las ciudades que cumplan los filtros.',
+        minimum: 1,
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_transformer_1.Type)(() => Number),
+    (0, class_validator_1.IsInt)(),
+    (0, class_validator_1.Min)(1),
+    __metadata("design:type", Number)
+], ListCitiesQueryDto.prototype, "page", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ minimum: 1, maximum: 100 }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_transformer_1.Type)(() => Number),
+    (0, class_validator_1.IsInt)(),
+    (0, class_validator_1.Min)(1),
+    (0, class_validator_1.Max)(100),
+    __metadata("design:type", Number)
+], ListCitiesQueryDto.prototype, "limit", void 0);
 __decorate([
     (0, swagger_1.ApiPropertyOptional)(),
     (0, class_validator_1.IsOptional)(),
@@ -7722,68 +7870,21 @@ __decorate([
     (0, class_validator_1.Length)(2, 2),
     (0, class_validator_1.Matches)(/^[A-Z]{2}$/),
     __metadata("design:type", String)
-], ListCitiesQueryDto.prototype, "country_code", void 0);
+], ListCitiesQueryDto.prototype, "countryCode", void 0);
 __decorate([
     (0, swagger_1.ApiPropertyOptional)(),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.MaxLength)(120),
     __metadata("design:type", String)
-], ListCitiesQueryDto.prototype, "state_name", void 0);
+], ListCitiesQueryDto.prototype, "stateName", void 0);
 __decorate([
     (0, swagger_1.ApiPropertyOptional)(),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.MaxLength)(120),
     __metadata("design:type", String)
-], ListCitiesQueryDto.prototype, "city_name_contains", void 0);
-
-
-/***/ },
-
-/***/ "./apps/transversal-ms/src/modules/transversal/presentation/dto/pagination-query.dto.ts"
-/*!**********************************************************************************************!*\
-  !*** ./apps/transversal-ms/src/modules/transversal/presentation/dto/pagination-query.dto.ts ***!
-  \**********************************************************************************************/
-(__unused_webpack_module, exports, __webpack_require__) {
-
-
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.PaginationQueryDto = void 0;
-const swagger_1 = __webpack_require__(/*! @nestjs/swagger */ "@nestjs/swagger");
-const class_transformer_1 = __webpack_require__(/*! class-transformer */ "class-transformer");
-const class_validator_1 = __webpack_require__(/*! class-validator */ "class-validator");
-class PaginationQueryDto {
-    page = 1;
-    limit = 20;
-}
-exports.PaginationQueryDto = PaginationQueryDto;
-__decorate([
-    (0, swagger_1.ApiPropertyOptional)({ default: 1, minimum: 1 }),
-    (0, class_validator_1.IsOptional)(),
-    (0, class_transformer_1.Type)(() => Number),
-    (0, class_validator_1.IsInt)(),
-    (0, class_validator_1.Min)(1),
-    __metadata("design:type", Number)
-], PaginationQueryDto.prototype, "page", void 0);
-__decorate([
-    (0, swagger_1.ApiPropertyOptional)({ default: 20, minimum: 1, maximum: 100 }),
-    (0, class_validator_1.IsOptional)(),
-    (0, class_transformer_1.Type)(() => Number),
-    (0, class_validator_1.IsInt)(),
-    (0, class_validator_1.Min)(1),
-    (0, class_validator_1.Max)(100),
-    __metadata("design:type", Number)
-], PaginationQueryDto.prototype, "limit", void 0);
+], ListCitiesQueryDto.prototype, "cityNameContains", void 0);
 
 
 /***/ },
@@ -7808,15 +7909,15 @@ var _a, _b, _c, _d;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ListRolesQueryDto = exports.UpdateRoleBodyDto = exports.CreateRoleBodyDto = exports.PaginatedRolesResponseDto = exports.RoleResponseDto = void 0;
 const swagger_1 = __webpack_require__(/*! @nestjs/swagger */ "@nestjs/swagger");
+const class_transformer_1 = __webpack_require__(/*! class-transformer */ "class-transformer");
 const class_validator_1 = __webpack_require__(/*! class-validator */ "class-validator");
 const shared_1 = __webpack_require__(/*! @platam/shared */ "./libs/shared/src/index.ts");
-const pagination_query_dto_1 = __webpack_require__(/*! ./pagination-query.dto */ "./apps/transversal-ms/src/modules/transversal/presentation/dto/pagination-query.dto.ts");
 class RoleResponseDto {
-    external_id;
+    externalId;
     name;
     description;
-    created_at;
-    updated_at;
+    createdAt;
+    updatedAt;
 }
 exports.RoleResponseDto = RoleResponseDto;
 __decorate([
@@ -7825,7 +7926,7 @@ __decorate([
         format: 'uuid',
     }),
     __metadata("design:type", String)
-], RoleResponseDto.prototype, "external_id", void 0);
+], RoleResponseDto.prototype, "externalId", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({ enum: shared_1.Roles }),
     __metadata("design:type", typeof (_a = typeof shared_1.Roles !== "undefined" && shared_1.Roles) === "function" ? _a : Object)
@@ -7837,11 +7938,11 @@ __decorate([
 __decorate([
     (0, swagger_1.ApiProperty)(),
     __metadata("design:type", typeof (_b = typeof Date !== "undefined" && Date) === "function" ? _b : Object)
-], RoleResponseDto.prototype, "created_at", void 0);
+], RoleResponseDto.prototype, "createdAt", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)(),
     __metadata("design:type", typeof (_c = typeof Date !== "undefined" && Date) === "function" ? _c : Object)
-], RoleResponseDto.prototype, "updated_at", void 0);
+], RoleResponseDto.prototype, "updatedAt", void 0);
 class PaginatedRolesResponseDto {
     items;
     total;
@@ -7884,17 +7985,36 @@ __decorate([
 class UpdateRoleBodyDto extends (0, swagger_1.PartialType)(CreateRoleBodyDto) {
 }
 exports.UpdateRoleBodyDto = UpdateRoleBodyDto;
-class ListRolesQueryDto extends pagination_query_dto_1.PaginationQueryDto {
-    name_contains;
+class ListRolesQueryDto {
+    page = 1;
+    limit = 20;
+    nameContains;
 }
 exports.ListRolesQueryDto = ListRolesQueryDto;
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ default: 1, minimum: 1 }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_transformer_1.Type)(() => Number),
+    (0, class_validator_1.IsInt)(),
+    (0, class_validator_1.Min)(1),
+    __metadata("design:type", Number)
+], ListRolesQueryDto.prototype, "page", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ default: 20, minimum: 1, maximum: 100 }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_transformer_1.Type)(() => Number),
+    (0, class_validator_1.IsInt)(),
+    (0, class_validator_1.Min)(1),
+    (0, class_validator_1.Max)(100),
+    __metadata("design:type", Number)
+], ListRolesQueryDto.prototype, "limit", void 0);
 __decorate([
     (0, swagger_1.ApiPropertyOptional)(),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.MaxLength)(80),
     __metadata("design:type", String)
-], ListRolesQueryDto.prototype, "name_contains", void 0);
+], ListRolesQueryDto.prototype, "nameContains", void 0);
 
 
 /***/ },
@@ -7921,26 +8041,25 @@ exports.ListStatusesQueryDto = exports.UpdateStatusBodyDto = exports.CreateStatu
 const swagger_1 = __webpack_require__(/*! @nestjs/swagger */ "@nestjs/swagger");
 const class_transformer_1 = __webpack_require__(/*! class-transformer */ "class-transformer");
 const class_validator_1 = __webpack_require__(/*! class-validator */ "class-validator");
-const pagination_query_dto_1 = __webpack_require__(/*! ./pagination-query.dto */ "./apps/transversal-ms/src/modules/transversal/presentation/dto/pagination-query.dto.ts");
 class StatusResponseDto {
-    external_id;
-    entity_type;
+    externalId;
+    entityType;
     code;
-    display_name;
+    displayName;
     description;
-    is_active;
-    created_at;
-    updated_at;
+    isActive;
+    createdAt;
+    updatedAt;
 }
 exports.StatusResponseDto = StatusResponseDto;
 __decorate([
     (0, swagger_1.ApiProperty)({ format: 'uuid' }),
     __metadata("design:type", String)
-], StatusResponseDto.prototype, "external_id", void 0);
+], StatusResponseDto.prototype, "externalId", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)(),
     __metadata("design:type", String)
-], StatusResponseDto.prototype, "entity_type", void 0);
+], StatusResponseDto.prototype, "entityType", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)(),
     __metadata("design:type", String)
@@ -7948,7 +8067,7 @@ __decorate([
 __decorate([
     (0, swagger_1.ApiProperty)(),
     __metadata("design:type", String)
-], StatusResponseDto.prototype, "display_name", void 0);
+], StatusResponseDto.prototype, "displayName", void 0);
 __decorate([
     (0, swagger_1.ApiPropertyOptional)({ nullable: true }),
     __metadata("design:type", Object)
@@ -7956,15 +8075,15 @@ __decorate([
 __decorate([
     (0, swagger_1.ApiProperty)(),
     __metadata("design:type", Boolean)
-], StatusResponseDto.prototype, "is_active", void 0);
+], StatusResponseDto.prototype, "isActive", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)(),
     __metadata("design:type", typeof (_a = typeof Date !== "undefined" && Date) === "function" ? _a : Object)
-], StatusResponseDto.prototype, "created_at", void 0);
+], StatusResponseDto.prototype, "createdAt", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)(),
     __metadata("design:type", typeof (_b = typeof Date !== "undefined" && Date) === "function" ? _b : Object)
-], StatusResponseDto.prototype, "updated_at", void 0);
+], StatusResponseDto.prototype, "updatedAt", void 0);
 class PaginatedStatusesResponseDto {
     items;
     total;
@@ -7989,11 +8108,11 @@ __decorate([
     __metadata("design:type", Number)
 ], PaginatedStatusesResponseDto.prototype, "limit", void 0);
 class CreateStatusBodyDto {
-    entity_type;
+    entityType;
     code;
-    display_name;
+    displayName;
     description;
-    is_active;
+    isActive;
 }
 exports.CreateStatusBodyDto = CreateStatusBodyDto;
 __decorate([
@@ -8001,7 +8120,7 @@ __decorate([
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.MaxLength)(100),
     __metadata("design:type", String)
-], CreateStatusBodyDto.prototype, "entity_type", void 0);
+], CreateStatusBodyDto.prototype, "entityType", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)(),
     (0, class_validator_1.IsString)(),
@@ -8013,7 +8132,7 @@ __decorate([
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.MaxLength)(100),
     __metadata("design:type", String)
-], CreateStatusBodyDto.prototype, "display_name", void 0);
+], CreateStatusBodyDto.prototype, "displayName", void 0);
 __decorate([
     (0, swagger_1.ApiPropertyOptional)({ nullable: true }),
     (0, class_validator_1.IsOptional)(),
@@ -8025,38 +8144,60 @@ __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsBoolean)(),
     __metadata("design:type", Boolean)
-], CreateStatusBodyDto.prototype, "is_active", void 0);
+], CreateStatusBodyDto.prototype, "isActive", void 0);
 class UpdateStatusBodyDto extends (0, swagger_1.PartialType)(CreateStatusBodyDto) {
 }
 exports.UpdateStatusBodyDto = UpdateStatusBodyDto;
-class ListStatusesQueryDto extends pagination_query_dto_1.PaginationQueryDto {
-    entity_type;
-    code_contains;
-    display_name_contains;
-    is_active;
+class ListStatusesQueryDto {
+    page;
+    limit;
+    entityType;
+    codeContains;
+    displayNameContains;
+    isActive;
 }
 exports.ListStatusesQueryDto = ListStatusesQueryDto;
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        description: 'Si no se envían `page` ni `limit`, se devuelven todos los estados que cumplan los filtros.',
+        minimum: 1,
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_transformer_1.Type)(() => Number),
+    (0, class_validator_1.IsInt)(),
+    (0, class_validator_1.Min)(1),
+    __metadata("design:type", Number)
+], ListStatusesQueryDto.prototype, "page", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ minimum: 1, maximum: 100 }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_transformer_1.Type)(() => Number),
+    (0, class_validator_1.IsInt)(),
+    (0, class_validator_1.Min)(1),
+    (0, class_validator_1.Max)(100),
+    __metadata("design:type", Number)
+], ListStatusesQueryDto.prototype, "limit", void 0);
 __decorate([
     (0, swagger_1.ApiPropertyOptional)(),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.MaxLength)(100),
     __metadata("design:type", String)
-], ListStatusesQueryDto.prototype, "entity_type", void 0);
+], ListStatusesQueryDto.prototype, "entityType", void 0);
 __decorate([
     (0, swagger_1.ApiPropertyOptional)(),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.MaxLength)(50),
     __metadata("design:type", String)
-], ListStatusesQueryDto.prototype, "code_contains", void 0);
+], ListStatusesQueryDto.prototype, "codeContains", void 0);
 __decorate([
     (0, swagger_1.ApiPropertyOptional)(),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.MaxLength)(100),
     __metadata("design:type", String)
-], ListStatusesQueryDto.prototype, "display_name_contains", void 0);
+], ListStatusesQueryDto.prototype, "displayNameContains", void 0);
 __decorate([
     (0, swagger_1.ApiPropertyOptional)(),
     (0, class_validator_1.IsOptional)(),
@@ -8074,7 +8215,7 @@ __decorate([
     }),
     (0, class_validator_1.IsBoolean)(),
     __metadata("design:type", Boolean)
-], ListStatusesQueryDto.prototype, "is_active", void 0);
+], ListStatusesQueryDto.prototype, "isActive", void 0);
 
 
 /***/ },
@@ -8092,36 +8233,36 @@ exports.to_city_response_dto = to_city_response_dto;
 exports.to_status_response_dto = to_status_response_dto;
 function to_role_response_dto(role) {
     return {
-        external_id: role.external_id,
+        externalId: role.external_id,
         name: role.name,
         description: role.description,
-        created_at: role.created_at,
-        updated_at: role.updated_at,
+        createdAt: role.created_at,
+        updatedAt: role.updated_at,
     };
 }
 function to_city_response_dto(city) {
     return {
-        external_id: city.external_id,
-        country_name: city.country_name,
-        country_code: city.country_code,
-        state_name: city.state_name,
-        state_code: city.state_code,
-        city_name: city.city_name,
-        currency_external_id: city.currency_external_id,
-        created_at: city.created_at,
-        updated_at: city.updated_at,
+        externalId: city.external_id,
+        countryName: city.country_name,
+        countryCode: city.country_code,
+        stateName: city.state_name,
+        stateCode: city.state_code,
+        cityName: city.city_name,
+        currencyExternalId: city.currency_external_id,
+        createdAt: city.created_at,
+        updatedAt: city.updated_at,
     };
 }
 function to_status_response_dto(row) {
     return {
-        external_id: row.external_id,
-        entity_type: row.entity_type,
+        externalId: row.external_id,
+        entityType: row.entity_type,
         code: row.code,
-        display_name: row.display_name,
+        displayName: row.display_name,
         description: row.description,
-        is_active: row.is_active,
-        created_at: row.created_at,
-        updated_at: row.updated_at,
+        isActive: row.is_active,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
     };
 }
 
@@ -8183,7 +8324,7 @@ let RolesController = class RolesController {
         const result = await this.list_roles.execute({
             page: query.page,
             limit: query.limit,
-            name_contains: query.name_contains,
+            name_contains: query.nameContains,
         });
         return {
             items: result.items.map((r) => (0, catalog_response_mappers_1.to_role_response_dto)(r)),
@@ -8287,7 +8428,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
+var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.StatusesController = void 0;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
@@ -8314,11 +8455,11 @@ let StatusesController = class StatusesController {
     }
     async create(body) {
         const row = await this.create_status.execute({
-            entity_type: body.entity_type,
+            entity_type: body.entityType,
             code: body.code,
-            display_name: body.display_name,
+            display_name: body.displayName,
             description: body.description ?? null,
-            is_active: body.is_active ?? true,
+            is_active: body.isActive ?? true,
         });
         return (0, catalog_response_mappers_1.to_status_response_dto)(row);
     }
@@ -8326,10 +8467,26 @@ let StatusesController = class StatusesController {
         const result = await this.list_statuses.execute({
             page: query.page,
             limit: query.limit,
-            entity_type: query.entity_type,
-            code_contains: query.code_contains,
-            display_name_contains: query.display_name_contains,
-            is_active: query.is_active,
+            entity_type: query.entityType,
+            code_contains: query.codeContains,
+            display_name_contains: query.displayNameContains,
+            is_active: query.isActive,
+        });
+        return {
+            items: result.items.map((s) => (0, catalog_response_mappers_1.to_status_response_dto)(s)),
+            total: result.total,
+            page: result.page,
+            limit: result.limit,
+        };
+    }
+    async list_active(query) {
+        const result = await this.list_statuses.execute({
+            page: query.page,
+            limit: query.limit,
+            entity_type: query.entityType,
+            code_contains: query.codeContains,
+            display_name_contains: query.displayNameContains,
+            is_active: true,
         });
         return {
             items: result.items.map((s) => (0, catalog_response_mappers_1.to_status_response_dto)(s)),
@@ -8344,20 +8501,20 @@ let StatusesController = class StatusesController {
     }
     async update(external_id, body) {
         const payload = {};
-        if (body.entity_type !== undefined) {
-            payload.entity_type = body.entity_type;
+        if (body.entityType !== undefined) {
+            payload.entity_type = body.entityType;
         }
         if (body.code !== undefined) {
             payload.code = body.code;
         }
-        if (body.display_name !== undefined) {
-            payload.display_name = body.display_name;
+        if (body.displayName !== undefined) {
+            payload.display_name = body.displayName;
         }
         if (body.description !== undefined) {
             payload.description = body.description;
         }
-        if (body.is_active !== undefined) {
-            payload.is_active = body.is_active;
+        if (body.isActive !== undefined) {
+            payload.is_active = body.isActive;
         }
         const row = await this.update_status.execute(external_id, payload);
         return (0, catalog_response_mappers_1.to_status_response_dto)(row);
@@ -8386,13 +8543,25 @@ __decorate([
     __metadata("design:returntype", typeof (_j = typeof Promise !== "undefined" && Promise) === "function" ? _j : Object)
 ], StatusesController.prototype, "list", null);
 __decorate([
+    (0, common_1.Get)('active'),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Listar solo estados activos',
+        description: 'Equivalente al listado paginado con is_active fijado en true. Los filtros opcionales (entity_type, búsqueda por código/nombre) se aplican igual.',
+    }),
+    (0, swagger_1.ApiOkResponse)({ type: statuses_api_dto_1.PaginatedStatusesResponseDto }),
+    __param(0, (0, common_1.Query)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [typeof (_k = typeof statuses_api_dto_1.ListStatusesQueryDto !== "undefined" && statuses_api_dto_1.ListStatusesQueryDto) === "function" ? _k : Object]),
+    __metadata("design:returntype", typeof (_l = typeof Promise !== "undefined" && Promise) === "function" ? _l : Object)
+], StatusesController.prototype, "list_active", null);
+__decorate([
     (0, common_1.Get)(':external_id'),
     (0, swagger_1.ApiOperation)({ summary: 'Obtener estado por external_id (UUID)' }),
     (0, swagger_1.ApiOkResponse)({ type: statuses_api_dto_1.StatusResponseDto }),
     __param(0, (0, common_1.Param)('external_id', new common_1.ParseUUIDPipe({ version: '4' }))),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", typeof (_k = typeof Promise !== "undefined" && Promise) === "function" ? _k : Object)
+    __metadata("design:returntype", typeof (_m = typeof Promise !== "undefined" && Promise) === "function" ? _m : Object)
 ], StatusesController.prototype, "get", null);
 __decorate([
     (0, common_1.Patch)(':external_id'),
@@ -8401,8 +8570,8 @@ __decorate([
     __param(0, (0, common_1.Param)('external_id', new common_1.ParseUUIDPipe({ version: '4' }))),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, typeof (_l = typeof statuses_api_dto_1.UpdateStatusBodyDto !== "undefined" && statuses_api_dto_1.UpdateStatusBodyDto) === "function" ? _l : Object]),
-    __metadata("design:returntype", typeof (_m = typeof Promise !== "undefined" && Promise) === "function" ? _m : Object)
+    __metadata("design:paramtypes", [String, typeof (_o = typeof statuses_api_dto_1.UpdateStatusBodyDto !== "undefined" && statuses_api_dto_1.UpdateStatusBodyDto) === "function" ? _o : Object]),
+    __metadata("design:returntype", typeof (_p = typeof Promise !== "undefined" && Promise) === "function" ? _p : Object)
 ], StatusesController.prototype, "update", null);
 __decorate([
     (0, common_1.Delete)(':external_id'),
@@ -8414,7 +8583,7 @@ __decorate([
     __param(0, (0, common_1.Param)('external_id', new common_1.ParseUUIDPipe({ version: '4' }))),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", typeof (_o = typeof Promise !== "undefined" && Promise) === "function" ? _o : Object)
+    __metadata("design:returntype", typeof (_q = typeof Promise !== "undefined" && Promise) === "function" ? _q : Object)
 ], StatusesController.prototype, "remove", null);
 exports.StatusesController = StatusesController = __decorate([
     (0, swagger_1.ApiTags)('statuses'),
@@ -8459,6 +8628,7 @@ const delete_role_by_external_id_use_case_1 = __webpack_require__(/*! ./applicat
 const create_city_use_case_1 = __webpack_require__(/*! ./application/use-cases/cities/create-city.use-case */ "./apps/transversal-ms/src/modules/transversal/application/use-cases/cities/create-city.use-case.ts");
 const get_city_by_external_id_use_case_1 = __webpack_require__(/*! ./application/use-cases/cities/get-city-by-external-id.use-case */ "./apps/transversal-ms/src/modules/transversal/application/use-cases/cities/get-city-by-external-id.use-case.ts");
 const list_cities_use_case_1 = __webpack_require__(/*! ./application/use-cases/cities/list-cities.use-case */ "./apps/transversal-ms/src/modules/transversal/application/use-cases/cities/list-cities.use-case.ts");
+const list_distinct_countries_use_case_1 = __webpack_require__(/*! ./application/use-cases/cities/list-distinct-countries.use-case */ "./apps/transversal-ms/src/modules/transversal/application/use-cases/cities/list-distinct-countries.use-case.ts");
 const update_city_by_external_id_use_case_1 = __webpack_require__(/*! ./application/use-cases/cities/update-city-by-external-id.use-case */ "./apps/transversal-ms/src/modules/transversal/application/use-cases/cities/update-city-by-external-id.use-case.ts");
 const delete_city_by_external_id_use_case_1 = __webpack_require__(/*! ./application/use-cases/cities/delete-city-by-external-id.use-case */ "./apps/transversal-ms/src/modules/transversal/application/use-cases/cities/delete-city-by-external-id.use-case.ts");
 const create_status_use_case_1 = __webpack_require__(/*! ./application/use-cases/statuses/create-status.use-case */ "./apps/transversal-ms/src/modules/transversal/application/use-cases/statuses/create-status.use-case.ts");
@@ -8485,6 +8655,7 @@ exports.TransversalModule = TransversalModule = __decorate([
             create_city_use_case_1.CreateCityUseCase,
             get_city_by_external_id_use_case_1.GetCityByExternalIdUseCase,
             list_cities_use_case_1.ListCitiesUseCase,
+            list_distinct_countries_use_case_1.ListDistinctCountriesUseCase,
             update_city_by_external_id_use_case_1.UpdateCityByExternalIdUseCase,
             delete_city_by_external_id_use_case_1.DeleteCityByExternalIdUseCase,
             create_status_use_case_1.CreateStatusUseCase,

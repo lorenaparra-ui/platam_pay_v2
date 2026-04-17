@@ -1,37 +1,39 @@
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
-import { Transform } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
   IsBoolean,
+  IsInt,
   IsOptional,
   IsString,
+  Max,
   MaxLength,
+  Min,
 } from 'class-validator';
-import { PaginationQueryDto } from './pagination-query.dto';
 
 export class StatusResponseDto {
   @ApiProperty({ format: 'uuid' })
-  external_id!: string;
+  externalId!: string;
 
   @ApiProperty()
-  entity_type!: string;
+  entityType!: string;
 
   @ApiProperty()
   code!: string;
 
   @ApiProperty()
-  display_name!: string;
+  displayName!: string;
 
   @ApiPropertyOptional({ nullable: true })
   description!: string | null;
 
   @ApiProperty()
-  is_active!: boolean;
+  isActive!: boolean;
 
   @ApiProperty()
-  created_at!: Date;
+  createdAt!: Date;
 
   @ApiProperty()
-  updated_at!: Date;
+  updatedAt!: Date;
 }
 
 export class PaginatedStatusesResponseDto {
@@ -52,7 +54,7 @@ export class CreateStatusBodyDto {
   @ApiProperty()
   @IsString()
   @MaxLength(100)
-  entity_type!: string;
+  entityType!: string;
 
   @ApiProperty()
   @IsString()
@@ -62,7 +64,7 @@ export class CreateStatusBodyDto {
   @ApiProperty()
   @IsString()
   @MaxLength(100)
-  display_name!: string;
+  displayName!: string;
 
   @ApiPropertyOptional({ nullable: true })
   @IsOptional()
@@ -72,29 +74,48 @@ export class CreateStatusBodyDto {
   @ApiPropertyOptional({ default: true })
   @IsOptional()
   @IsBoolean()
-  is_active?: boolean;
+  isActive?: boolean;
 }
 
 export class UpdateStatusBodyDto extends PartialType(CreateStatusBodyDto) {}
 
-export class ListStatusesQueryDto extends PaginationQueryDto {
+export class ListStatusesQueryDto {
+  @ApiPropertyOptional({
+    description:
+      'Si no se envían `page` ni `limit`, se devuelven todos los estados que cumplan los filtros.',
+    minimum: 1,
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  page?: number;
+
+  @ApiPropertyOptional({ minimum: 1, maximum: 100 })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(100)
+  limit?: number;
+
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
   @MaxLength(100)
-  entity_type?: string;
+  entityType?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
   @MaxLength(50)
-  code_contains?: string;
+  codeContains?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
   @MaxLength(100)
-  display_name_contains?: string;
+  displayNameContains?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
@@ -111,5 +132,5 @@ export class ListStatusesQueryDto extends PaginationQueryDto {
     return undefined;
   })
   @IsBoolean()
-  is_active?: boolean;
+  isActive?: boolean;
 }

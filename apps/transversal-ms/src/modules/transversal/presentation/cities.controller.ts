@@ -9,24 +9,30 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import {
+  ApiBearerAuth,
   ApiCreatedResponse,
   ApiNoContentResponse,
   ApiOkResponse,
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
+import { JwtAuthGuard } from '@modules/auth/infrastructure/guards/jwt-auth.guard';
 import { CreateCityUseCase } from '@modules/transversal/application/use-cases/cities/create-city.use-case';
 import { GetCityByExternalIdUseCase } from '@modules/transversal/application/use-cases/cities/get-city-by-external-id.use-case';
 import { ListCitiesUseCase } from '@modules/transversal/application/use-cases/cities/list-cities.use-case';
+import { ListDistinctCountriesUseCase } from '@modules/transversal/application/use-cases/cities/list-distinct-countries.use-case';
 import { UpdateCityByExternalIdUseCase } from '@modules/transversal/application/use-cases/cities/update-city-by-external-id.use-case';
 import type { UpdateCityPayload } from '@modules/transversal/application/use-cases/cities/update-city-by-external-id.use-case';
 import { DeleteCityByExternalIdUseCase } from '@modules/transversal/application/use-cases/cities/delete-city-by-external-id.use-case';
 import {
   CityResponseDto,
+  CountryCatalogItemDto,
   CreateCityBodyDto,
   ListCitiesQueryDto,
+  ListCountriesQueryDto,
   PaginatedCitiesResponseDto,
   UpdateCityBodyDto,
 } from './dto/cities.api.dto';
@@ -39,6 +45,7 @@ export class CitiesController {
     private readonly create_city: CreateCityUseCase,
     private readonly get_city: GetCityByExternalIdUseCase,
     private readonly list_cities: ListCitiesUseCase,
+    private readonly list_countries: ListDistinctCountriesUseCase,
     private readonly update_city: UpdateCityByExternalIdUseCase,
     private readonly delete_city: DeleteCityByExternalIdUseCase,
   ) {}
@@ -48,12 +55,12 @@ export class CitiesController {
   @ApiCreatedResponse({ type: CityResponseDto })
   async create(@Body() body: CreateCityBodyDto): Promise<CityResponseDto> {
     const city = await this.create_city.execute({
-      country_name: body.country_name,
-      country_code: body.country_code,
-      state_name: body.state_name,
-      state_code: body.state_code ?? null,
-      city_name: body.city_name,
-      currency_external_id: body.currency_external_id,
+      country_name: body.countryName,
+      country_code: body.countryCode,
+      state_name: body.stateName,
+      state_code: body.stateCode ?? null,
+      city_name: body.cityName,
+      currency_external_id: body.currencyExternalId,
     });
     return to_city_response_dto(city);
   }
@@ -67,9 +74,9 @@ export class CitiesController {
     const result = await this.list_cities.execute({
       page: query.page,
       limit: query.limit,
-      country_code: query.country_code,
-      state_name: query.state_name,
-      city_name_contains: query.city_name_contains,
+      country_code: query.countryCode,
+      state_name: query.stateName,
+      city_name_contains: query.cityNameContains,
     });
     return {
       items: result.items.map((c) => to_city_response_dto(c)),
@@ -77,6 +84,25 @@ export class CitiesController {
       page: result.page,
       limit: result.limit,
     };
+  }
+
+  @Get('countries')
+  @ApiOperation({
+    summary: 'Listar países del catálogo (sin repetir nombre)',
+    description:
+      'Deriva países únicos (`country_name` + `country_code`) desde `transversal_schema.cities`. Opcionalmente filtra por subcadena del nombre del país.',
+  })
+  @ApiOkResponse({ type: [CountryCatalogItemDto] })
+  async list_countries_endpoint(
+    @Query() query: ListCountriesQueryDto,
+  ): Promise<CountryCatalogItemDto[]> {
+    const rows = await this.list_countries.execute({
+      country_name_contains: query.countryNameContains,
+    });
+    return rows.map((r) => ({
+      countryName: r.country_name,
+      countryCode: r.country_code,
+    }));
   }
 
   @Get(':external_id')
@@ -99,23 +125,23 @@ export class CitiesController {
     @Body() body: UpdateCityBodyDto,
   ): Promise<CityResponseDto> {
     const payload: UpdateCityPayload = {};
-    if (body.country_name !== undefined) {
-      payload.country_name = body.country_name;
+    if (body.countryName !== undefined) {
+      payload.country_name = body.countryName;
     }
-    if (body.country_code !== undefined) {
-      payload.country_code = body.country_code;
+    if (body.countryCode !== undefined) {
+      payload.country_code = body.countryCode;
     }
-    if (body.state_name !== undefined) {
-      payload.state_name = body.state_name;
+    if (body.stateName !== undefined) {
+      payload.state_name = body.stateName;
     }
-    if (body.state_code !== undefined) {
-      payload.state_code = body.state_code;
+    if (body.stateCode !== undefined) {
+      payload.state_code = body.stateCode;
     }
-    if (body.city_name !== undefined) {
-      payload.city_name = body.city_name;
+    if (body.cityName !== undefined) {
+      payload.city_name = body.cityName;
     }
-    if (body.currency_external_id !== undefined) {
-      payload.currency_external_id = body.currency_external_id;
+    if (body.currencyExternalId !== undefined) {
+      payload.currency_external_id = body.currencyExternalId;
     }
     const city = await this.update_city.execute(external_id, payload);
     return to_city_response_dto(city);

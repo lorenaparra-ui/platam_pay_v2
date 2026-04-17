@@ -19,11 +19,14 @@ export class ListCitiesUseCase {
 
   async execute(query: ListCitiesParams): Promise<ListCitiesResult> {
     const { items, total } = await this.city_repository.list(query);
+    const unpaged = query.page === undefined && query.limit === undefined;
+    const page = unpaged ? 1 : (query.page ?? 1);
+    const limit = unpaged ? total : (query.limit ?? 20);
     return {
       items,
       total,
-      page: query.page,
-      limit: query.limit,
+      page,
+      limit,
     };
   }
 }

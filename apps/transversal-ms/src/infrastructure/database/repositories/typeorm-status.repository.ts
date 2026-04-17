@@ -93,12 +93,14 @@ export class TypeormStatusRepository implements StatusRepository {
       qb.andWhere('s.isActive = :ia', { ia: params.is_active });
     }
     const total = await qb.clone().getCount();
-    const skip = (params.page - 1) * params.limit;
-    const rows = await qb
-      .orderBy('s.id', 'ASC')
-      .skip(skip)
-      .take(params.limit)
-      .getMany();
+    const unpaged = params.page === undefined && params.limit === undefined;
+    const qb_page = qb.orderBy('s.id', 'ASC');
+    if (!unpaged) {
+      const page = params.page ?? 1;
+      const limit = params.limit ?? 20;
+      qb_page.skip((page - 1) * limit).take(limit);
+    }
+    const rows = await qb_page.getMany();
     return {
       items: rows.map((x) => StatusMapper.to_domain(x)),
       total,
