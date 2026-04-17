@@ -25,17 +25,17 @@ export class CreateSalesRepresentativeUseCase {
 
   async execute(req: CreateSalesRepresentativeRequest): Promise<CreateSalesRepresentativeResponse> {
     const partner_id = await this.lookup.get_partner_internal_id_by_external_id(
-      req.partner_external_id,
+      req.partnerExternalId,
     );
     if (partner_id === null) {
       throw new BadRequestException('partner not found');
     }
 
     let user_id: number | null = null;
-    if (req.user_external_id !== undefined && req.user_external_id !== null) {
-      const trimmed = req.user_external_id.trim();
+    if (req.userExternalId !== undefined && req.userExternalId !== null) {
+      const trimmed = req.userExternalId.trim();
       if (trimmed.length === 0) {
-        throw new BadRequestException('user_external_id invalid');
+        throw new BadRequestException('userExternalId invalid');
       }
       const resolved = await this.lookup.get_user_internal_id_by_external_id(trimmed);
       if (resolved === null) {

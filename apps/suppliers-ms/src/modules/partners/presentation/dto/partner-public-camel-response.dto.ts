@@ -42,12 +42,6 @@ export class PartnerPublicCamelResponseDto {
   @ApiProperty()
   state!: string;
 
-  @ApiProperty({ type: String, format: 'date-time' })
-  createdAt!: Date;
-
-  @ApiProperty({ type: String, format: 'date-time' })
-  updatedAt!: Date;
-
   static from(fields: PartnerPublicFields): PartnerPublicCamelResponseDto {
     const d = new PartnerPublicCamelResponseDto();
     d.externalId = fields.external_id;
@@ -63,8 +57,6 @@ export class PartnerPublicCamelResponseDto {
     d.sendSalesRepVoucher = fields.send_sales_rep_voucher;
     d.disbursementNotificationEmail = fields.disbursement_notification_email;
     d.state = fields.state;
-    d.createdAt = fields.created_at;
-    d.updatedAt = fields.updated_at;
     return d;
   }
 }

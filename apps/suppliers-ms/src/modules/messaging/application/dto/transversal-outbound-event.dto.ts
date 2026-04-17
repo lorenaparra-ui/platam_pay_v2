@@ -1,3 +1,4 @@
+import { Expose } from 'class-transformer';
 import { IsEnum, IsObject, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
 
 export enum TransversalEventType {
@@ -13,19 +14,24 @@ export enum TransversalEventType {
 
 /**
  * Carga útil publicada hacia SQS (serializada a JSON en el caso de uso).
+ * Propiedades TypeScript en camelCase; el JSON en cola sigue usando snake_case.
  */
 export class TransversalOutboundEventDto {
+  @Expose({ name: 'correlation_id' })
   @IsUUID('4')
-  correlation_id!: string;
+  correlationId!: string;
 
+  @Expose({ name: 'event_type' })
   @IsEnum(TransversalEventType)
-  event_type!: TransversalEventType;
+  eventType!: TransversalEventType;
 
+  @Expose()
   @IsObject()
   payload!: Record<string, unknown>;
 
+  @Expose({ name: 'trace_id' })
   @IsOptional()
   @IsString()
   @MaxLength(256)
-  trace_id?: string;
+  traceId?: string;
 }

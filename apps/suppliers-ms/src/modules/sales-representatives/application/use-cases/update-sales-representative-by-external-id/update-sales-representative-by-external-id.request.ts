@@ -1,7 +1,7 @@
 export class UpdateSalesRepresentativeUserByExternalIdRequest {
   constructor(
-    readonly external_id: string,
+    readonly externalId: string,
     /** `undefined` = no operación; `null` = desvincular usuario; string = UUID de usuario */
-    readonly user_external_id: string | null | undefined,
+    readonly userExternalId: string | null | undefined,
   ) {}
 }

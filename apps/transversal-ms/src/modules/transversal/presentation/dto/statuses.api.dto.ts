@@ -28,12 +28,6 @@ export class StatusResponseDto {
 
   @ApiProperty()
   isActive!: boolean;
-
-  @ApiProperty()
-  createdAt!: Date;
-
-  @ApiProperty()
-  updatedAt!: Date;
 }
 
 export class PaginatedStatusesResponseDto {

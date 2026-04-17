@@ -54,15 +54,16 @@ export class SalesRepresentativesController {
   @ApiOperation({
     summary: 'Listar representantes de ventas',
     description:
-      'Lista todos los representantes, o filtra por `partner_external_id` si se envía en query.',
+      'Lista todos los representantes, o filtra por `partnerExternalId` si se envía en query.',
   })
   @ApiOkResponse({ type: [SalesRepresentativeResponseDto] })
   async list(
     @Query() query: ListSalesRepresentativesQueryDto,
   ): Promise<SalesRepresentativeResponseDto[]> {
-    return this.list_sales_representatives.execute(
-      new ListSalesRepresentativesRequest(query.partner_external_id),
+    const rows = await this.list_sales_representatives.execute(
+      new ListSalesRepresentativesRequest(query.partnerExternalId),
     );
+    return rows.map(SalesRepresentativeResponseDto.from);
   }
 
   @Post()
@@ -72,12 +73,10 @@ export class SalesRepresentativesController {
   async create(
     @Body() body: CreateSalesRepresentativeBodyDto,
   ): Promise<SalesRepresentativeResponseDto> {
-    return this.create_sales_representative.execute(
-      new CreateSalesRepresentativeRequest(
-        body.partner_external_id,
-        body.user_external_id,
-      ),
+    const row = await this.create_sales_representative.execute(
+      new CreateSalesRepresentativeRequest(body.partnerExternalId, body.userExternalId),
     );
+    return SalesRepresentativeResponseDto.from(row);
   }
 
   @Get(':external_id')
@@ -86,28 +85,30 @@ export class SalesRepresentativesController {
   async get_one(
     @Param('external_id', new ParseUUIDPipe({ version: '4' })) external_id: string,
   ): Promise<SalesRepresentativeResponseDto> {
-    return this.get_by_external_id.execute(
+    const row = await this.get_by_external_id.execute(
       new GetSalesRepresentativeByExternalIdRequest(external_id),
     );
+    return SalesRepresentativeResponseDto.from(row);
   }
 
   @Patch(':external_id')
   @ApiOperation({
     summary: 'Actualizar vínculo de usuario del representante',
     description:
-      'Envíe `user_external_id` (UUID) o `null` para desvincular. El campo debe incluirse en el cuerpo.',
+      'Envíe `userExternalId` (UUID) o `null` para desvincular. El campo debe incluirse en el cuerpo.',
   })
   @ApiOkResponse({ type: SalesRepresentativeResponseDto })
   async patch(
     @Param('external_id', new ParseUUIDPipe({ version: '4' })) external_id: string,
     @Body() body: PatchSalesRepresentativeBodyDto,
   ): Promise<SalesRepresentativeResponseDto> {
-    return this.update_by_external_id.execute(
+    const row = await this.update_by_external_id.execute(
       new UpdateSalesRepresentativeUserByExternalIdRequest(
         external_id,
-        body.user_external_id,
+        body.userExternalId,
       ),
     );
+    return SalesRepresentativeResponseDto.from(row);
   }
 
   @Delete(':external_id')

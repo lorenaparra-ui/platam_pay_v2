@@ -16,12 +16,6 @@ export class RoleResponseDto {
 
   @ApiPropertyOptional({ nullable: true })
   description!: string | null;
-
-  @ApiProperty()
-  createdAt!: Date;
-
-  @ApiProperty()
-  updatedAt!: Date;
 }
 
 export class PaginatedRolesResponseDto {

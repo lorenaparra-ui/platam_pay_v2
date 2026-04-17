@@ -5,5 +5,5 @@ export class ListSalesRepresentativesQueryDto {
   @ApiPropertyOptional({ format: 'uuid' })
   @IsOptional()
   @IsUUID('4')
-  partner_external_id?: string;
+  partnerExternalId?: string;
 }

@@ -23,7 +23,5 @@ export async function build_contract_public_response(
     original_file_url: contract.original_file_url,
     signed_file_url: contract.signed_file_url,
     form_answers_json: contract.form_answers_json,
-    created_at: contract.created_at.toISOString(),
-    updated_at: contract.updated_at.toISOString(),
   });
 }

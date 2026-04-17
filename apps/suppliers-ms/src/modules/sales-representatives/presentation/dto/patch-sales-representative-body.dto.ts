@@ -9,5 +9,5 @@ export class PatchSalesRepresentativeBodyDto {
   })
   @IsOptional()
   @IsUUID('4')
-  user_external_id?: string | null;
+  userExternalId?: string | null;
 }

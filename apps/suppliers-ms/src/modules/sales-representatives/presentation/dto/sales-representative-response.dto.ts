@@ -1,37 +1,45 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { UserState } from '@platam/shared';
+import type { SalesRepresentativePublicFields } from '@modules/sales-representatives/application/mapping/sales-representative-public-fields.builder';
 
 export class SalesRepresentativeResponseDto {
   @ApiProperty()
-  internal_id: number;
+  internalId!: number;
 
   @ApiProperty({ format: 'uuid' })
-  external_id: string;
+  externalId!: string;
 
   @ApiProperty({ format: 'uuid' })
-  partner_external_id: string;
+  partnerExternalId!: string;
 
   @ApiProperty({ format: 'uuid', nullable: true })
-  user_external_id: string | null;
+  userExternalId!: string | null;
 
   @ApiProperty({
     nullable: true,
     description: 'Nombre completo desde persona (first_name + last_name) del usuario vinculado',
   })
-  user_full_name: string | null;
+  userFullName!: string | null;
 
   @ApiProperty({ nullable: true, description: 'Nombre para mostrar (persona o email)' })
-  user_display_name: string | null;
+  userDisplayName!: string | null;
 
   @ApiProperty({ nullable: true })
-  user_role_name: string | null;
+  userRoleName!: string | null;
 
   @ApiProperty({ enum: UserState, nullable: true })
-  user_state: UserState | null;
+  userState!: UserState | null;
 
-  @ApiProperty()
-  created_at: Date;
-
-  @ApiProperty()
-  updated_at: Date;
+  static from(fields: SalesRepresentativePublicFields): SalesRepresentativeResponseDto {
+    const d = new SalesRepresentativeResponseDto();
+    d.internalId = fields.internal_id;
+    d.externalId = fields.external_id;
+    d.partnerExternalId = fields.partner_external_id;
+    d.userExternalId = fields.user_external_id;
+    d.userFullName = fields.user_full_name;
+    d.userDisplayName = fields.user_display_name;
+    d.userRoleName = fields.user_role_name;
+    d.userState = fields.user_state;
+    return d;
+  }
 }

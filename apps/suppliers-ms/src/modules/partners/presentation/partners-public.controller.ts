@@ -28,7 +28,7 @@ export class PartnersPublicController {
   @ApiOperation({
     summary: 'Listar representantes de ventas del partner (público)',
     description:
-      'Solo disponible si el partner existe y está `active`. Misma forma que GET /sales-representatives?partner_external_id=.',
+      'Solo disponible si el partner existe y está `active`. Misma forma que GET /sales-representatives?partnerExternalId=.',
   })
   @ApiOkResponse({
     description: 'Lista de representantes',
@@ -38,9 +38,10 @@ export class PartnersPublicController {
     @Param('id', new ParseUUIDPipe({ version: '4' })) partner_external_id: string,
   ): Promise<SalesRepresentativeResponseDto[]> {
     await this.assert_active_partner(partner_external_id);
-    return this.list_sales_representatives.execute(
+    const rows = await this.list_sales_representatives.execute(
       new ListSalesRepresentativesRequest(partner_external_id),
     );
+    return rows.map(SalesRepresentativeResponseDto.from);
   }
 
   @Get(':id')

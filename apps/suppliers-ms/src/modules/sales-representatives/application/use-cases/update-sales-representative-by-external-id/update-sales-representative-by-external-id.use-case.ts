@@ -27,17 +27,17 @@ export class UpdateSalesRepresentativeByExternalIdUseCase {
   async execute(
     req: UpdateSalesRepresentativeUserByExternalIdRequest,
   ): Promise<UpdateSalesRepresentativeByExternalIdResponse> {
-    if (req.user_external_id === undefined) {
-      throw new BadRequestException('user_external_id required for patch');
+    if (req.userExternalId === undefined) {
+      throw new BadRequestException('userExternalId required for patch');
     }
 
     let user_internal_id: number | null;
-    if (req.user_external_id === null) {
+    if (req.userExternalId === null) {
       user_internal_id = null;
     } else {
-      const trimmed = req.user_external_id.trim();
+      const trimmed = req.userExternalId.trim();
       if (trimmed.length === 0) {
-        throw new BadRequestException('user_external_id invalid');
+        throw new BadRequestException('userExternalId invalid');
       }
       const resolved = await this.lookup.get_user_internal_id_by_external_id(trimmed);
       if (resolved === null) {
@@ -47,7 +47,7 @@ export class UpdateSalesRepresentativeByExternalIdUseCase {
     }
 
     const updated = await this.sales_representative_repository.update_user_by_external_id(
-      req.external_id,
+      req.externalId,
       user_internal_id,
     );
     if (updated === null) {

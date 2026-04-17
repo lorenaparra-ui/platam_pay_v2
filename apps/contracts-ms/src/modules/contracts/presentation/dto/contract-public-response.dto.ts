@@ -33,12 +33,6 @@ export class ContractPublicResponseDto {
   })
   form_answers_json: Record<string, unknown> | null;
 
-  @ApiProperty()
-  created_at: string;
-
-  @ApiProperty()
-  updated_at: string;
-
   constructor(init: ContractPublicResponseDto) {
     Object.assign(this, init);
   }

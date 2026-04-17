@@ -1,3 +1,4 @@
+import { Expose } from 'class-transformer';
 import { IsEnum, IsObject, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
 import { TransversalEventType } from './transversal-outbound-event.dto';
 
@@ -5,17 +6,21 @@ import { TransversalEventType } from './transversal-outbound-event.dto';
  * Mensaje recibido de la cola de entrada (mismo contrato que el outbound para simetría).
  */
 export class TransversalInboundMessageDto {
+  @Expose({ name: 'correlation_id' })
   @IsUUID('4')
-  correlation_id!: string;
+  correlationId!: string;
 
+  @Expose({ name: 'event_type' })
   @IsEnum(TransversalEventType)
-  event_type!: TransversalEventType;
+  eventType!: TransversalEventType;
 
+  @Expose()
   @IsObject()
   payload!: Record<string, unknown>;
 
+  @Expose({ name: 'trace_id' })
   @IsOptional()
   @IsString()
   @MaxLength(256)
-  trace_id?: string;
+  traceId?: string;
 }

@@ -24,11 +24,11 @@ export class ProcessFilesUploadedInboundUseCase
     this.logger.log(
       JSON.stringify({
         msg: 'files_uploaded_received',
-        correlation_id: dto.correlation_id,
+        correlation_id: dto.correlationId,
         file_count: dto.payload.files.length,
       }),
     );
-    this.awaiter.complete(dto.correlation_id, urls);
+    this.awaiter.complete(dto.correlationId, urls);
   }
 
   private map_payload_to_legacy_urls(

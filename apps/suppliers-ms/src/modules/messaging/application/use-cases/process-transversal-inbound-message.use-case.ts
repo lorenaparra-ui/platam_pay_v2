@@ -13,7 +13,7 @@ export class ProcessTransversalInboundMessageUseCase
    */
   async execute(dto: TransversalInboundMessageDto): Promise<void> {
     this.logger.log(
-      `Mensaje transversal recibido: event_type=${dto.event_type} correlation_id=${dto.correlation_id}`,
+      `Mensaje transversal recibido: event_type=${dto.eventType} correlation_id=${dto.correlationId}`,
     );
   }
 }

@@ -27,10 +27,10 @@ export class ListSalesRepresentativesUseCase {
     req: ListSalesRepresentativesRequest,
   ): Promise<SalesRepresentativePublicFields[]> {
     let partner_id_filter: number | undefined;
-    if (req.partner_external_id !== undefined) {
-      const trimmed = req.partner_external_id.trim();
+    if (req.partnerExternalId !== undefined) {
+      const trimmed = req.partnerExternalId.trim();
       if (trimmed.length === 0) {
-        throw new BadRequestException('partner_external_id invalid');
+        throw new BadRequestException('partnerExternalId invalid');
       }
       const resolved = await this.lookup.get_partner_internal_id_by_external_id(trimmed);
       if (resolved === null) {

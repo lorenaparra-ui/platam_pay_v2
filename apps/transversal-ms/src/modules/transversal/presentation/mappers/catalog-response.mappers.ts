@@ -10,8 +10,6 @@ export function to_role_response_dto(role: Role): RoleResponseDto {
     externalId: role.external_id,
     name: role.name,
     description: role.description,
-    createdAt: role.created_at,
-    updatedAt: role.updated_at,
   };
 }
 
@@ -24,8 +22,6 @@ export function to_city_response_dto(city: City): CityResponseDto {
     stateCode: city.state_code,
     cityName: city.city_name,
     currencyExternalId: city.currency_external_id,
-    createdAt: city.created_at,
-    updatedAt: city.updated_at,
   };
 }
 
@@ -37,7 +33,5 @@ export function to_status_response_dto(row: CatalogStatus): StatusResponseDto {
     displayName: row.display_name,
     description: row.description,
     isActive: row.is_active,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
   };
 }

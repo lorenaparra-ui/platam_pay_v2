@@ -33,9 +33,9 @@ export class FilesUploadedInboundDto {
   @IsIn(['files-uploaded'])
   event!: string;
 
-  @Expose({ name: 'correlationId' })
+  @Expose()
   @IsString()
-  correlation_id!: string;
+  correlationId!: string;
 
   @Expose()
   @IsObject()

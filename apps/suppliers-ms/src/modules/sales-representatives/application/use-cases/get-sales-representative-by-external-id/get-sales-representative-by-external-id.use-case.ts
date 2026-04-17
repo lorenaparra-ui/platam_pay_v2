@@ -27,7 +27,7 @@ export class GetSalesRepresentativeByExternalIdUseCase {
     req: GetSalesRepresentativeByExternalIdRequest,
   ): Promise<GetSalesRepresentativeByExternalIdResponse> {
     const row = await this.sales_representative_repository.find_by_external_id(
-      req.external_id,
+      req.externalId,
     );
     if (row === null) {
       throw new NotFoundException('sales representative not found');

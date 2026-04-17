@@ -12,7 +12,7 @@ export class DeleteSalesRepresentativeByExternalIdUseCase {
 
   async execute(req: DeleteSalesRepresentativeByExternalIdRequest): Promise<void> {
     const ok = await this.sales_representative_repository.delete_by_external_id(
-      req.external_id,
+      req.externalId,
     );
     if (!ok) {
       throw new NotFoundException('sales representative not found');

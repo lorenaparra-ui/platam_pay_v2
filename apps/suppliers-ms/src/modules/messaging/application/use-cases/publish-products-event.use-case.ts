@@ -35,10 +35,10 @@ export class PublishProductsEventUseCase {
 
     const queue_url = this.outbound_queue_url.get_outbound_queue_url();
     const body = JSON.stringify({
-      correlation_id: dto.correlation_id,
-      event_type: dto.event_type,
+      correlation_id: dto.correlationId,
+      event_type: dto.eventType,
       payload: dto.payload,
-      trace_id: dto.trace_id,
+      trace_id: dto.traceId,
     });
 
     await this.message_publisher.publish({ queue_url, body });

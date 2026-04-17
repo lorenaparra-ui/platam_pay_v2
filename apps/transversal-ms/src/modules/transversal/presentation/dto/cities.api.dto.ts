@@ -40,12 +40,6 @@ export class CityResponseDto {
     format: 'uuid',
   })
   currencyExternalId!: string;
-
-  @ApiProperty()
-  createdAt!: Date;
-
-  @ApiProperty()
-  updatedAt!: Date;
 }
 
 export class PaginatedCitiesResponseDto {
