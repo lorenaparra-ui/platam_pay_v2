@@ -1,0 +1,28 @@
+export class RegisterClientCreditApplicationRequest {
+  constructor(
+    readonly phone: string,
+    readonly email: string,
+    readonly docType: string,
+    readonly docNumber: string,
+    readonly firstName: string,
+    readonly lastName: string,
+    readonly businessName: string,
+    readonly businessType: string,
+    readonly isCurrentClient: boolean,
+    readonly requestedCreditLine: number,
+    readonly relationshipToBusiness?: string | null,
+    readonly cityExternalId?: string | null,
+    readonly businessAddress?: string | null,
+    readonly businessSeniority?: string | null,
+    readonly numberOfEmployees?: number | null,
+    readonly numberOfLocations?: number | null,
+    readonly businessFlagshipM2?: number | null,
+    readonly businessHasRent?: boolean | null,
+    readonly businessRentAmount?: number | null,
+    readonly monthlyPurchases?: number | null,
+    readonly currentPurchases?: number | null,
+    readonly totalAssets?: number | null,
+    readonly monthlyIncome?: number | null,
+    readonly monthlyExpenses?: number | null,
+  ) {}
+}

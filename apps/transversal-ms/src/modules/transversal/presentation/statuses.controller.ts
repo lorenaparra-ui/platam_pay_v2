@@ -9,7 +9,6 @@ import {
   Patch,
   Post,
   Query,
-  UseGuards,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -19,7 +18,6 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
-import { JwtAuthGuard } from '@modules/auth/infrastructure/guards/jwt-auth.guard';
 import { CreateStatusUseCase } from '@modules/transversal/application/use-cases/statuses/create-status.use-case';
 import { GetStatusByExternalIdUseCase } from '@modules/transversal/application/use-cases/statuses/get-status-by-external-id.use-case';
 import { ListStatusesUseCase } from '@modules/transversal/application/use-cases/statuses/list-statuses.use-case';

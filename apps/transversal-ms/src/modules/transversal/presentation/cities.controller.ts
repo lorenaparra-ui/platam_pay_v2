@@ -9,7 +9,6 @@ import {
   Patch,
   Post,
   Query,
-  UseGuards,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -19,7 +18,6 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
-import { JwtAuthGuard } from '@modules/auth/infrastructure/guards/jwt-auth.guard';
 import { CreateCityUseCase } from '@modules/transversal/application/use-cases/cities/create-city.use-case';
 import { GetCityByExternalIdUseCase } from '@modules/transversal/application/use-cases/cities/get-city-by-external-id.use-case';
 import { ListCitiesUseCase } from '@modules/transversal/application/use-cases/cities/list-cities.use-case';

@@ -7,9 +7,12 @@ import { GetBusinessByExternalIdUseCase } from './application/use-cases/get-busi
 import { ListBusinessesUseCase } from './application/use-cases/list-businesses/list-businesses.use-case';
 import { UpdateBusinessByExternalIdUseCase } from './application/use-cases/update-business-by-external-id/update-business-by-external-id.use-case';
 import { DeleteBusinessByExternalIdUseCase } from './application/use-cases/delete-business-by-external-id/delete-business-by-external-id.use-case';
+import { ListBusinessSenioritiesUseCase } from './application/use-cases/list-business-seniorities/list-business-seniorities.use-case';
+import { BusinessSeniorityPublicController } from './presentation/controllers/business-seniority-public.controller';
 
 @Module({
   imports: [InfrastructureModule],
+  controllers: [BusinessSeniorityPublicController],
   providers: [
     {
       provide: BUSINESS_REPOSITORY,
@@ -20,6 +23,7 @@ import { DeleteBusinessByExternalIdUseCase } from './application/use-cases/delet
     ListBusinessesUseCase,
     UpdateBusinessByExternalIdUseCase,
     DeleteBusinessByExternalIdUseCase,
+    ListBusinessSenioritiesUseCase,
   ],
   exports: [
     BUSINESS_REPOSITORY,
@@ -28,6 +32,7 @@ import { DeleteBusinessByExternalIdUseCase } from './application/use-cases/delet
     ListBusinessesUseCase,
     UpdateBusinessByExternalIdUseCase,
     DeleteBusinessByExternalIdUseCase,
+    ListBusinessSenioritiesUseCase,
   ],
 })
 export class BusinessesModule {}

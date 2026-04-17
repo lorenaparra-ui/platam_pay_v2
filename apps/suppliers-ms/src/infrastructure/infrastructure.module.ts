@@ -15,6 +15,8 @@ import { TypeormPartnerUserSqsResultPollAdapter } from './database/adapters/type
 import { PartnerSagaCompensationAdapter } from './database/adapters/partner-saga-compensation.adapter';
 import { TypeormLegalRepresentativeRepository } from './database/repositories/typeorm-legal-representative.repository';
 import { TypeormSalesRepresentativeRepository } from './database/repositories/typeorm-sales-representative.repository';
+import { TypeormBusinessSeniorityRepository } from './database/repositories/typeorm-business-seniority.repository';
+import { BUSINESS_SENIORITY_REPOSITORY } from '@modules/businesses/businesses.tokens';
 import { SqsTransversalUserPersonWriterAdapter } from './messaging/sqs/adapters/sqs-transversal-user-person-writer.adapter';
 import { PARTNER_ONBOARDING_SAGA_REPOSITORY } from '@modules/partners/application/ports/partner-onboarding-saga.repository.port';
 import { PRODUCTS_CREDIT_FACILITY_SYNC_PORT } from '@modules/partners/application/ports/products-credit-facility-sync.port';
@@ -30,6 +32,7 @@ import {
 import {
   BankAccountEntity,
   BusinessEntity,
+  BusinessSeniorityEntity,
   LegalRepresentativeEntity,
   PartnerOnboardingSagaEntity,
   PartnerEntity,
@@ -54,6 +57,7 @@ import {
     TypeOrmModule.forFeature([
       BankAccountEntity,
       BusinessEntity,
+      BusinessSeniorityEntity,
       PartnerOnboardingSagaEntity,
       PartnerEntity,
       SupplierEntity,
@@ -70,6 +74,11 @@ import {
   ],
   providers: [
     TypeormBusinessRepository,
+    TypeormBusinessSeniorityRepository,
+    {
+      provide: BUSINESS_SENIORITY_REPOSITORY,
+      useExisting: TypeormBusinessSeniorityRepository,
+    },
     TypeormPartnerRepository,
     TypeormSupplierRepository,
     TypeormBankAccountRepository,
@@ -113,6 +122,8 @@ import {
   ],
   exports: [
     TypeormBusinessRepository,
+    TypeormBusinessSeniorityRepository,
+    BUSINESS_SENIORITY_REPOSITORY,
     TypeormPartnerRepository,
     TypeormSupplierRepository,
     TypeormBankAccountRepository,
