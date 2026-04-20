@@ -37,7 +37,7 @@ export class PublishCreatePersonCommandUseCase {
     const queue_url = this.create_person_queue_url.get_create_person_queue_url();
     if (queue_url === undefined || queue_url.trim().length === 0) {
       throw new ValidationFailedError(
-        'Cola PRODUCTS_SQS_CREATE_PERSON_QUEUE_URL no configurada para alta de persona vía SQS',
+        'Cola create-person no configurada: defina PRODUCTS_SQS_CREATE_PERSON_QUEUE_URL o TRANSVERSAL_SQS_CREATE_PERSON_QUEUE_URL',
       );
     }
 

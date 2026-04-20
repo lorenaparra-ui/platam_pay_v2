@@ -2,7 +2,6 @@ export class Person {
   constructor(
     readonly internal_id: number,
     readonly external_id: string,
-    readonly country_code: string | null,
     readonly first_name: string,
     readonly last_name: string,
     readonly doc_type: string,
@@ -12,7 +11,6 @@ export class Person {
     readonly gender: string | null,
     readonly phone: string | null,
     readonly residential_address: string | null,
-    readonly business_address: string | null,
     readonly city_id: number | null,
     readonly created_at: Date,
     readonly updated_at: Date,
@@ -20,7 +18,6 @@ export class Person {
 }
 
 export interface CreatePersonProps {
-  country_code: string | null;
   first_name: string;
   last_name: string;
   doc_type: string;
@@ -30,7 +27,6 @@ export interface CreatePersonProps {
   gender: string | null;
   phone: string | null;
   residential_address: string | null;
-  business_address: string | null;
   city_id: number | null;
 }
 

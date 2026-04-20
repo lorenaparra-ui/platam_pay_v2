@@ -2,7 +2,6 @@ import { PersonPublicFields } from '@modules/persons/application/mapping/person-
 
 export class CreatePersonResponse implements PersonPublicFields {
   external_id: string;
-  country_code: string | null;
   first_name: string;
   last_name: string;
   doc_type: string;
@@ -12,7 +11,6 @@ export class CreatePersonResponse implements PersonPublicFields {
   gender: string | null;
   phone: string | null;
   residential_address: string | null;
-  business_address: string | null;
   city_external_id: string | null;
   created_at: Date;
   updated_at: Date;
