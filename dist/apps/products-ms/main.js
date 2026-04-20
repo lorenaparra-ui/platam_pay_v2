@@ -139,13 +139,13 @@ const common_1 = __webpack_require__(6);
 const config_1 = __webpack_require__(8);
 const products_data_1 = __webpack_require__(11);
 const infrastructure_module_1 = __webpack_require__(91);
-const auth_module_1 = __webpack_require__(153);
-const categories_module_1 = __webpack_require__(161);
-const credit_facilities_module_1 = __webpack_require__(164);
-const credit_applications_module_1 = __webpack_require__(165);
-const app_config_1 = __importDefault(__webpack_require__(212));
-const sqs_config_1 = __webpack_require__(213);
-const app_controller_1 = __webpack_require__(214);
+const auth_module_1 = __webpack_require__(158);
+const categories_module_1 = __webpack_require__(166);
+const credit_facilities_module_1 = __webpack_require__(169);
+const credit_applications_module_1 = __webpack_require__(170);
+const app_config_1 = __importDefault(__webpack_require__(220));
+const sqs_config_1 = __webpack_require__(221);
+const app_controller_1 = __webpack_require__(222);
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -4784,6 +4784,12 @@ const products_reference_lookup_port_1 = __webpack_require__(110);
 const typeorm_products_reference_lookup_adapter_1 = __webpack_require__(150);
 const typeorm_client_registration_adapter_1 = __webpack_require__(151);
 const stub_credit_application_document_storage_adapter_1 = __webpack_require__(152);
+const transversal_data_1 = __webpack_require__(53);
+const config_transversal_create_person_queue_url_adapter_1 = __webpack_require__(153);
+const transversal_create_person_queue_url_port_1 = __webpack_require__(154);
+const publish_create_person_command_use_case_1 = __webpack_require__(155);
+const typeorm_create_person_sqs_result_poll_adapter_1 = __webpack_require__(156);
+const create_person_sqs_result_reader_port_1 = __webpack_require__(157);
 let InfrastructureModule = class InfrastructureModule {
 };
 exports.InfrastructureModule = InfrastructureModule;
@@ -4795,6 +4801,7 @@ exports.InfrastructureModule = InfrastructureModule = __decorate([
                 imports: [config_1.ConfigModule],
                 useClass: postgres_type_orm_config_service_1.PostgresTypeOrmConfigService,
             }),
+            typeorm_1.TypeOrmModule.forFeature([transversal_data_1.PartnerCreateUserSqsIdempotencyEntity]),
             products_data_1.ProductsDataModule,
             sqs_module_1.SqsModule,
         ],
@@ -4826,6 +4833,17 @@ exports.InfrastructureModule = InfrastructureModule = __decorate([
                 provide: credit_application_document_storage_port_1.CREDIT_APPLICATION_DOCUMENT_STORAGE,
                 useExisting: stub_credit_application_document_storage_adapter_1.StubCreditApplicationDocumentStorageAdapter,
             },
+            config_transversal_create_person_queue_url_adapter_1.ConfigTransversalCreatePersonQueueUrlAdapter,
+            {
+                provide: transversal_create_person_queue_url_port_1.TRANSVERSAL_CREATE_PERSON_QUEUE_URL_PORT,
+                useExisting: config_transversal_create_person_queue_url_adapter_1.ConfigTransversalCreatePersonQueueUrlAdapter,
+            },
+            publish_create_person_command_use_case_1.PublishCreatePersonCommandUseCase,
+            typeorm_create_person_sqs_result_poll_adapter_1.TypeormCreatePersonSqsResultPollAdapter,
+            {
+                provide: create_person_sqs_result_reader_port_1.CREATE_PERSON_SQS_RESULT_READER_PORT,
+                useExisting: typeorm_create_person_sqs_result_poll_adapter_1.TypeormCreatePersonSqsResultPollAdapter,
+            },
         ],
         exports: [
             categories_tokens_1.CATEGORY_REPOSITORY,
@@ -4834,6 +4852,8 @@ exports.InfrastructureModule = InfrastructureModule = __decorate([
             client_registration_port_1.CLIENT_REGISTRATION_PORT,
             credit_application_document_storage_port_1.CREDIT_APPLICATION_DOCUMENT_STORAGE,
             products_reference_lookup_port_1.PRODUCTS_REFERENCE_LOOKUP,
+            publish_create_person_command_use_case_1.PublishCreatePersonCommandUseCase,
+            create_person_sqs_result_reader_port_1.CREATE_PERSON_SQS_RESULT_READER_PORT,
         ],
     })
 ], InfrastructureModule);
@@ -4932,6 +4952,7 @@ exports.SqsModule = SqsModule = __decorate([
                     outbound_queue_url: config_service.getOrThrow('sqs.outbound_queue_url'),
                     inbound_queue_url: config_service.get('sqs.inbound_queue_url'),
                     suppliers_callback_queue_url: config_service.get('sqs.suppliers_callback_queue_url'),
+                    create_person_queue_url: config_service.get('sqs.create_person_queue_url'),
                 }),
                 inject: [config_1.ConfigService],
             },
@@ -6742,13 +6763,37 @@ let TypeormCategoryRepository = class TypeormCategoryRepository {
     constructor(repo) {
         this.repo = repo;
     }
+    async hydrate_credit_facilities_from_assignments(rows) {
+        const missing = rows.filter((r) => (r.creditFacility?.length ?? 0) === 0);
+        if (missing.length === 0) {
+            return;
+        }
+        const ids = missing.map((r) => r.id);
+        const links = await this.repo.query(`SELECT category_id, credit_facility_id
+       FROM products_schema.client_category_assignments
+       WHERE category_id = ANY($1::bigint[])`, [ids]);
+        const by_category = new Map(links.map((l) => [
+            Number(l.category_id),
+            Number(l.credit_facility_id),
+        ]));
+        for (const r of missing) {
+            const cf_id = by_category.get(r.id);
+            if (cf_id !== undefined) {
+                r.creditFacility = [{ id: cf_id }];
+            }
+        }
+    }
     async find_by_external_id(external_id) {
         const row = await this.repo.findOne({
             where: { externalId: external_id },
             select: CATEGORY_SELECT,
             relations: CATEGORY_RELATIONS,
         });
-        return row ? category_mapper_1.CategoryMapper.to_domain(row) : null;
+        if (!row) {
+            return null;
+        }
+        await this.hydrate_credit_facilities_from_assignments([row]);
+        return category_mapper_1.CategoryMapper.to_domain(row);
     }
     async find_all(filter) {
         const where = {};
@@ -6764,6 +6809,7 @@ let TypeormCategoryRepository = class TypeormCategoryRepository {
             relations: CATEGORY_RELATIONS,
             order: { id: 'ASC' },
         });
+        await this.hydrate_credit_facilities_from_assignments(rows);
         return rows.map((r) => category_mapper_1.CategoryMapper.to_domain(r));
     }
     async create(props) {
@@ -7624,6 +7670,20 @@ let TypeormProductsReferenceLookupAdapter = class TypeormProductsReferenceLookup
        LIMIT 1`, [external_id]);
         return rows[0]?.id ?? null;
     }
+    async get_sales_representative_internal_id_by_external_id(external_id, partner_internal_id) {
+        if (partner_internal_id !== null) {
+            const rows = await this.data_source.query(`SELECT sr.id
+         FROM suppliers_schema.sales_representatives sr
+         WHERE sr.external_id = $1::uuid AND sr.partner_id = $2
+         LIMIT 1`, [external_id, partner_internal_id]);
+            return rows[0]?.id ?? null;
+        }
+        const rows = await this.data_source.query(`SELECT id
+       FROM suppliers_schema.sales_representatives
+       WHERE external_id = $1::uuid
+       LIMIT 1`, [external_id]);
+        return rows[0]?.id ?? null;
+    }
 };
 exports.TypeormProductsReferenceLookupAdapter = TypeormProductsReferenceLookupAdapter;
 exports.TypeormProductsReferenceLookupAdapter = TypeormProductsReferenceLookupAdapter = __decorate([
@@ -7669,6 +7729,16 @@ let TypeormClientRegistrationAdapter = class TypeormClientRegistrationAdapter {
     async find_person_by_doc_number(doc_number) {
         const rows = await this.data_source.query(`SELECT id FROM transversal_schema.persons WHERE doc_number = $1 LIMIT 1`, [doc_number]);
         return rows[0]?.id ?? null;
+    }
+    async get_person_internal_id_by_external_id(external_id) {
+        const rows = await this.data_source.query(`SELECT id FROM transversal_schema.persons WHERE external_id = $1::uuid LIMIT 1`, [external_id]);
+        return rows[0]?.id ?? null;
+    }
+    async patch_person_email_and_birth_date(person_id, email, birth_date_iso) {
+        await this.data_source.query(`UPDATE transversal_schema.persons
+       SET email = COALESCE($2, email),
+           birth_date = COALESCE($3::date, birth_date)
+       WHERE id = $1`, [person_id, email, birth_date_iso]);
     }
     async create_person(data) {
         const rows = await this.data_source.query(`INSERT INTO transversal_schema.persons
@@ -7752,15 +7822,187 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ConfigTransversalCreatePersonQueueUrlAdapter = void 0;
+const common_1 = __webpack_require__(6);
+const shared_1 = __webpack_require__(15);
+let ConfigTransversalCreatePersonQueueUrlAdapter = class ConfigTransversalCreatePersonQueueUrlAdapter {
+    queues_config;
+    constructor(queues_config) {
+        this.queues_config = queues_config;
+    }
+    get_create_person_queue_url() {
+        return this.queues_config.create_person_queue_url;
+    }
+};
+exports.ConfigTransversalCreatePersonQueueUrlAdapter = ConfigTransversalCreatePersonQueueUrlAdapter;
+exports.ConfigTransversalCreatePersonQueueUrlAdapter = ConfigTransversalCreatePersonQueueUrlAdapter = __decorate([
+    (0, common_1.Injectable)(),
+    __param(0, (0, common_1.Inject)(shared_1.QUEUES_CONFIG)),
+    __metadata("design:paramtypes", [Object])
+], ConfigTransversalCreatePersonQueueUrlAdapter);
+
+
+/***/ }),
+/* 154 */
+/***/ ((__unused_webpack_module, exports) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.TRANSVERSAL_CREATE_PERSON_QUEUE_URL_PORT = void 0;
+exports.TRANSVERSAL_CREATE_PERSON_QUEUE_URL_PORT = Symbol('TRANSVERSAL_CREATE_PERSON_QUEUE_URL_PORT');
+
+
+/***/ }),
+/* 155 */
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.PublishCreatePersonCommandUseCase = void 0;
+const common_1 = __webpack_require__(6);
+const outbound_message_publisher_port_1 = __webpack_require__(117);
+const transversal_create_person_queue_url_port_1 = __webpack_require__(154);
+const validation_failed_error_1 = __webpack_require__(119);
+let PublishCreatePersonCommandUseCase = class PublishCreatePersonCommandUseCase {
+    message_publisher;
+    create_person_queue_url;
+    constructor(message_publisher, create_person_queue_url) {
+        this.message_publisher = message_publisher;
+        this.create_person_queue_url = create_person_queue_url;
+    }
+    async execute(command) {
+        const queue_url = this.create_person_queue_url.get_create_person_queue_url();
+        if (queue_url === undefined || queue_url.trim().length === 0) {
+            throw new validation_failed_error_1.ValidationFailedError('Cola PRODUCTS_SQS_CREATE_PERSON_QUEUE_URL no configurada para alta de persona vía SQS');
+        }
+        const body = JSON.stringify({
+            event: 'create-person',
+            version: '1.0',
+            correlationId: command.correlation_id,
+            idempotencyKey: command.idempotency_key,
+            payload: {
+                country_code: command.country_code,
+                first_name: command.first_name,
+                last_name: command.last_name,
+                doc_type: command.doc_type,
+                doc_number: command.doc_number,
+                phone: command.phone,
+                city_external_id: command.city_external_id,
+            },
+        });
+        await this.message_publisher.publish({ queue_url, body });
+    }
+};
+exports.PublishCreatePersonCommandUseCase = PublishCreatePersonCommandUseCase;
+exports.PublishCreatePersonCommandUseCase = PublishCreatePersonCommandUseCase = __decorate([
+    (0, common_1.Injectable)(),
+    __param(0, (0, common_1.Inject)(outbound_message_publisher_port_1.OUTBOUND_MESSAGE_PUBLISHER_PORT)),
+    __param(1, (0, common_1.Inject)(transversal_create_person_queue_url_port_1.TRANSVERSAL_CREATE_PERSON_QUEUE_URL_PORT)),
+    __metadata("design:paramtypes", [Object, Object])
+], PublishCreatePersonCommandUseCase);
+
+
+/***/ }),
+/* 156 */
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+var _a, _b;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.TypeormCreatePersonSqsResultPollAdapter = void 0;
+const common_1 = __webpack_require__(6);
+const config_1 = __webpack_require__(8);
+const typeorm_1 = __webpack_require__(70);
+const typeorm_2 = __webpack_require__(14);
+const transversal_data_1 = __webpack_require__(53);
+let TypeormCreatePersonSqsResultPollAdapter = class TypeormCreatePersonSqsResultPollAdapter extends transversal_data_1.TypeormSqsIdempotencyPollBaseAdapter {
+    constructor(repo, config_service) {
+        const po = config_service.get('config.natural_person_onboarding');
+        super(repo, {
+            timeout_ms: po?.sqs_poll_timeout_ms ?? 60_000,
+            interval_ms: po?.sqs_poll_interval_ms ?? 300,
+        });
+    }
+    validate_result(raw) {
+        if (typeof raw !== 'object' || raw === null) {
+            return false;
+        }
+        const r = raw;
+        return (typeof r['user_external_id'] === 'string' &&
+            r['user_external_id'].length > 0 &&
+            typeof r['person_external_id'] === 'string' &&
+            r['person_external_id'].length > 0);
+    }
+};
+exports.TypeormCreatePersonSqsResultPollAdapter = TypeormCreatePersonSqsResultPollAdapter;
+exports.TypeormCreatePersonSqsResultPollAdapter = TypeormCreatePersonSqsResultPollAdapter = __decorate([
+    (0, common_1.Injectable)(),
+    __param(0, (0, typeorm_1.InjectRepository)(transversal_data_1.PartnerCreateUserSqsIdempotencyEntity)),
+    __metadata("design:paramtypes", [typeof (_a = typeof typeorm_2.Repository !== "undefined" && typeorm_2.Repository) === "function" ? _a : Object, typeof (_b = typeof config_1.ConfigService !== "undefined" && config_1.ConfigService) === "function" ? _b : Object])
+], TypeormCreatePersonSqsResultPollAdapter);
+
+
+/***/ }),
+/* 157 */
+/***/ ((__unused_webpack_module, exports) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.CREATE_PERSON_SQS_RESULT_READER_PORT = void 0;
+exports.CREATE_PERSON_SQS_RESULT_READER_PORT = Symbol('CREATE_PERSON_SQS_RESULT_READER_PORT');
+
+
+/***/ }),
+/* 158 */
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.AuthModule = void 0;
 const common_1 = __webpack_require__(6);
-const passport_1 = __webpack_require__(154);
+const passport_1 = __webpack_require__(159);
 const typeorm_1 = __webpack_require__(70);
 const transversal_data_1 = __webpack_require__(53);
-const cognito_jwt_strategy_1 = __webpack_require__(155);
-const jwt_auth_guard_1 = __webpack_require__(158);
-const roles_guard_1 = __webpack_require__(159);
+const cognito_jwt_strategy_1 = __webpack_require__(160);
+const jwt_auth_guard_1 = __webpack_require__(163);
+const roles_guard_1 = __webpack_require__(164);
 let AuthModule = class AuthModule {
 };
 exports.AuthModule = AuthModule;
@@ -7778,13 +8020,13 @@ exports.AuthModule = AuthModule = __decorate([
 
 
 /***/ }),
-/* 154 */
+/* 159 */
 /***/ ((module) => {
 
 module.exports = require("@nestjs/passport");
 
 /***/ }),
-/* 155 */
+/* 160 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -7806,10 +8048,10 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CognitoJwtStrategy = void 0;
 const common_1 = __webpack_require__(6);
 const config_1 = __webpack_require__(8);
-const passport_1 = __webpack_require__(154);
+const passport_1 = __webpack_require__(159);
 const typeorm_1 = __webpack_require__(70);
-const jwks_rsa_1 = __webpack_require__(156);
-const passport_jwt_1 = __webpack_require__(157);
+const jwks_rsa_1 = __webpack_require__(161);
+const passport_jwt_1 = __webpack_require__(162);
 const typeorm_2 = __webpack_require__(14);
 const transversal_data_1 = __webpack_require__(53);
 const shared_1 = __webpack_require__(15);
@@ -7899,19 +8141,19 @@ exports.CognitoJwtStrategy = CognitoJwtStrategy = CognitoJwtStrategy_1 = __decor
 
 
 /***/ }),
-/* 156 */
+/* 161 */
 /***/ ((module) => {
 
 module.exports = require("jwks-rsa");
 
 /***/ }),
-/* 157 */
+/* 162 */
 /***/ ((module) => {
 
 module.exports = require("passport-jwt");
 
 /***/ }),
-/* 158 */
+/* 163 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -7925,7 +8167,7 @@ var JwtAuthGuard_1;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.JwtAuthGuard = void 0;
 const common_1 = __webpack_require__(6);
-const passport_1 = __webpack_require__(154);
+const passport_1 = __webpack_require__(159);
 let JwtAuthGuard = JwtAuthGuard_1 = class JwtAuthGuard extends (0, passport_1.AuthGuard)('jwt') {
     logger = new common_1.Logger(JwtAuthGuard_1.name);
     canActivate(context) {
@@ -7951,7 +8193,7 @@ exports.JwtAuthGuard = JwtAuthGuard = JwtAuthGuard_1 = __decorate([
 
 
 /***/ }),
-/* 159 */
+/* 164 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -7970,7 +8212,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.RolesGuard = void 0;
 const common_1 = __webpack_require__(6);
 const core_1 = __webpack_require__(7);
-const auth_metadata_constants_1 = __webpack_require__(160);
+const auth_metadata_constants_1 = __webpack_require__(165);
 let RolesGuard = RolesGuard_1 = class RolesGuard {
     reflector;
     logger = new common_1.Logger(RolesGuard_1.name);
@@ -8002,7 +8244,7 @@ exports.RolesGuard = RolesGuard = RolesGuard_1 = __decorate([
 
 
 /***/ }),
-/* 160 */
+/* 165 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -8012,7 +8254,7 @@ exports.REQUIRE_ROLES_KEY = 'require_roles';
 
 
 /***/ }),
-/* 161 */
+/* 166 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -8026,7 +8268,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CategoriesModule = void 0;
 const common_1 = __webpack_require__(6);
 const categories_application_module_1 = __webpack_require__(128);
-const categories_public_controller_1 = __webpack_require__(162);
+const categories_public_controller_1 = __webpack_require__(167);
 let CategoriesModule = class CategoriesModule {
 };
 exports.CategoriesModule = CategoriesModule;
@@ -8040,7 +8282,7 @@ exports.CategoriesModule = CategoriesModule = __decorate([
 
 
 /***/ }),
-/* 162 */
+/* 167 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -8063,7 +8305,7 @@ const common_1 = __webpack_require__(6);
 const swagger_1 = __webpack_require__(9);
 const products_reference_lookup_port_1 = __webpack_require__(110);
 const list_categories_by_partner_use_case_1 = __webpack_require__(136);
-const category_response_dto_1 = __webpack_require__(163);
+const category_response_dto_1 = __webpack_require__(168);
 let CategoriesPublicController = class CategoriesPublicController {
     list_categories_by_partner;
     reference_lookup;
@@ -8112,7 +8354,7 @@ exports.CategoriesPublicController = CategoriesPublicController = __decorate([
 
 
 /***/ }),
-/* 163 */
+/* 168 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -8241,7 +8483,7 @@ __decorate([
 
 
 /***/ }),
-/* 164 */
+/* 169 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -8267,7 +8509,7 @@ exports.CreditFacilitiesModule = CreditFacilitiesModule = __decorate([
 
 
 /***/ }),
-/* 165 */
+/* 170 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -8280,11 +8522,11 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CreditApplicationsModule = void 0;
 const common_1 = __webpack_require__(6);
-const platform_express_1 = __webpack_require__(166);
-const multer_1 = __webpack_require__(167);
-const credit_applications_application_module_1 = __webpack_require__(168);
-const credit_applications_public_controller_1 = __webpack_require__(194);
-const credit_applications_private_controller_1 = __webpack_require__(198);
+const platform_express_1 = __webpack_require__(171);
+const multer_1 = __webpack_require__(172);
+const credit_applications_application_module_1 = __webpack_require__(173);
+const credit_applications_public_controller_1 = __webpack_require__(200);
+const credit_applications_private_controller_1 = __webpack_require__(206);
 let CreditApplicationsModule = class CreditApplicationsModule {
 };
 exports.CreditApplicationsModule = CreditApplicationsModule;
@@ -8304,19 +8546,19 @@ exports.CreditApplicationsModule = CreditApplicationsModule = __decorate([
 
 
 /***/ }),
-/* 166 */
+/* 171 */
 /***/ ((module) => {
 
 module.exports = require("@nestjs/platform-express");
 
 /***/ }),
-/* 167 */
+/* 172 */
 /***/ ((module) => {
 
 module.exports = require("multer");
 
 /***/ }),
-/* 168 */
+/* 173 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -8329,18 +8571,19 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CreditApplicationsApplicationModule = void 0;
 const common_1 = __webpack_require__(6);
-const create_credit_application_use_case_1 = __webpack_require__(169);
-const get_credit_application_by_external_id_use_case_1 = __webpack_require__(173);
-const list_credit_applications_use_case_1 = __webpack_require__(175);
-const update_credit_application_by_external_id_use_case_1 = __webpack_require__(177);
-const delete_credit_application_by_external_id_use_case_1 = __webpack_require__(179);
-const register_client_credit_application_use_case_1 = __webpack_require__(180);
-const list_credit_applications_by_partner_use_case_1 = __webpack_require__(182);
-const list_credit_applications_by_sales_rep_use_case_1 = __webpack_require__(184);
-const approve_credit_application_use_case_1 = __webpack_require__(186);
-const reject_credit_application_use_case_1 = __webpack_require__(188);
-const save_credit_application_pre_study_use_case_1 = __webpack_require__(190);
-const upload_credit_application_document_use_case_1 = __webpack_require__(192);
+const create_credit_application_use_case_1 = __webpack_require__(174);
+const get_credit_application_by_external_id_use_case_1 = __webpack_require__(178);
+const list_credit_applications_use_case_1 = __webpack_require__(180);
+const update_credit_application_by_external_id_use_case_1 = __webpack_require__(182);
+const delete_credit_application_by_external_id_use_case_1 = __webpack_require__(184);
+const register_client_credit_application_use_case_1 = __webpack_require__(185);
+const list_credit_applications_by_partner_use_case_1 = __webpack_require__(187);
+const list_credit_applications_by_sales_rep_use_case_1 = __webpack_require__(189);
+const approve_credit_application_use_case_1 = __webpack_require__(191);
+const reject_credit_application_use_case_1 = __webpack_require__(193);
+const save_credit_application_pre_study_use_case_1 = __webpack_require__(195);
+const upload_credit_application_document_use_case_1 = __webpack_require__(197);
+const register_natural_person_credit_application_use_case_1 = __webpack_require__(199);
 const USE_CASES = [
     create_credit_application_use_case_1.CreateCreditApplicationUseCase,
     get_credit_application_by_external_id_use_case_1.GetCreditApplicationByExternalIdUseCase,
@@ -8354,6 +8597,7 @@ const USE_CASES = [
     reject_credit_application_use_case_1.RejectCreditApplicationUseCase,
     save_credit_application_pre_study_use_case_1.SaveCreditApplicationPreStudyUseCase,
     upload_credit_application_document_use_case_1.UploadCreditApplicationDocumentUseCase,
+    register_natural_person_credit_application_use_case_1.RegisterNaturalPersonCreditApplicationUseCase,
 ];
 let CreditApplicationsApplicationModule = class CreditApplicationsApplicationModule {
 };
@@ -8367,7 +8611,7 @@ exports.CreditApplicationsApplicationModule = CreditApplicationsApplicationModul
 
 
 /***/ }),
-/* 169 */
+/* 174 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -8388,9 +8632,9 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CreateCreditApplicationUseCase = void 0;
 const common_1 = __webpack_require__(6);
 const credit_applications_tokens_1 = __webpack_require__(147);
-const credit_application_ports_1 = __webpack_require__(170);
-const credit_application_public_fields_builder_1 = __webpack_require__(171);
-const create_credit_application_response_1 = __webpack_require__(172);
+const credit_application_ports_1 = __webpack_require__(175);
+const credit_application_public_fields_builder_1 = __webpack_require__(176);
+const create_credit_application_response_1 = __webpack_require__(177);
 let CreateCreditApplicationUseCase = class CreateCreditApplicationUseCase {
     credit_application_repository;
     constructor(credit_application_repository) {
@@ -8436,7 +8680,7 @@ exports.CreateCreditApplicationUseCase = CreateCreditApplicationUseCase = __deco
 
 
 /***/ }),
-/* 170 */
+/* 175 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -8444,7 +8688,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 
 
 /***/ }),
-/* 171 */
+/* 176 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -8491,7 +8735,7 @@ function build_credit_application_public_fields(row) {
 
 
 /***/ }),
-/* 172 */
+/* 177 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -8540,7 +8784,7 @@ exports.CreateCreditApplicationResponse = CreateCreditApplicationResponse;
 
 
 /***/ }),
-/* 173 */
+/* 178 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -8561,9 +8805,9 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.GetCreditApplicationByExternalIdUseCase = void 0;
 const common_1 = __webpack_require__(6);
 const credit_applications_tokens_1 = __webpack_require__(147);
-const credit_application_ports_1 = __webpack_require__(170);
-const credit_application_public_fields_builder_1 = __webpack_require__(171);
-const get_credit_application_by_external_id_response_1 = __webpack_require__(174);
+const credit_application_ports_1 = __webpack_require__(175);
+const credit_application_public_fields_builder_1 = __webpack_require__(176);
+const get_credit_application_by_external_id_response_1 = __webpack_require__(179);
 let GetCreditApplicationByExternalIdUseCase = class GetCreditApplicationByExternalIdUseCase {
     credit_application_repository;
     constructor(credit_application_repository) {
@@ -8587,7 +8831,7 @@ exports.GetCreditApplicationByExternalIdUseCase = GetCreditApplicationByExternal
 
 
 /***/ }),
-/* 174 */
+/* 179 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -8636,7 +8880,7 @@ exports.GetCreditApplicationByExternalIdResponse = GetCreditApplicationByExterna
 
 
 /***/ }),
-/* 175 */
+/* 180 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -8657,9 +8901,9 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ListCreditApplicationsUseCase = void 0;
 const common_1 = __webpack_require__(6);
 const credit_applications_tokens_1 = __webpack_require__(147);
-const credit_application_ports_1 = __webpack_require__(170);
-const credit_application_public_fields_builder_1 = __webpack_require__(171);
-const list_credit_applications_response_1 = __webpack_require__(176);
+const credit_application_ports_1 = __webpack_require__(175);
+const credit_application_public_fields_builder_1 = __webpack_require__(176);
+const list_credit_applications_response_1 = __webpack_require__(181);
 let ListCreditApplicationsUseCase = class ListCreditApplicationsUseCase {
     credit_application_repository;
     constructor(credit_application_repository) {
@@ -8679,7 +8923,7 @@ exports.ListCreditApplicationsUseCase = ListCreditApplicationsUseCase = __decora
 
 
 /***/ }),
-/* 176 */
+/* 181 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -8728,7 +8972,7 @@ exports.ListCreditApplicationsItemResponse = ListCreditApplicationsItemResponse;
 
 
 /***/ }),
-/* 177 */
+/* 182 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -8749,9 +8993,9 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.UpdateCreditApplicationByExternalIdUseCase = void 0;
 const common_1 = __webpack_require__(6);
 const credit_applications_tokens_1 = __webpack_require__(147);
-const credit_application_ports_1 = __webpack_require__(170);
-const credit_application_public_fields_builder_1 = __webpack_require__(171);
-const update_credit_application_by_external_id_response_1 = __webpack_require__(178);
+const credit_application_ports_1 = __webpack_require__(175);
+const credit_application_public_fields_builder_1 = __webpack_require__(176);
+const update_credit_application_by_external_id_response_1 = __webpack_require__(183);
 let UpdateCreditApplicationByExternalIdUseCase = class UpdateCreditApplicationByExternalIdUseCase {
     credit_application_repository;
     constructor(credit_application_repository) {
@@ -8838,7 +9082,7 @@ exports.UpdateCreditApplicationByExternalIdUseCase = UpdateCreditApplicationByEx
 
 
 /***/ }),
-/* 178 */
+/* 183 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -8887,7 +9131,7 @@ exports.UpdateCreditApplicationByExternalIdResponse = UpdateCreditApplicationByE
 
 
 /***/ }),
-/* 179 */
+/* 184 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -8908,7 +9152,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.DeleteCreditApplicationByExternalIdUseCase = void 0;
 const common_1 = __webpack_require__(6);
 const credit_applications_tokens_1 = __webpack_require__(147);
-const credit_application_ports_1 = __webpack_require__(170);
+const credit_application_ports_1 = __webpack_require__(175);
 let DeleteCreditApplicationByExternalIdUseCase = class DeleteCreditApplicationByExternalIdUseCase {
     credit_application_repository;
     constructor(credit_application_repository) {
@@ -8930,7 +9174,7 @@ exports.DeleteCreditApplicationByExternalIdUseCase = DeleteCreditApplicationByEx
 
 
 /***/ }),
-/* 180 */
+/* 185 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -8952,10 +9196,10 @@ exports.RegisterClientCreditApplicationUseCase = void 0;
 const common_1 = __webpack_require__(6);
 const shared_1 = __webpack_require__(15);
 const credit_applications_tokens_1 = __webpack_require__(147);
-const credit_application_ports_1 = __webpack_require__(170);
+const credit_application_ports_1 = __webpack_require__(175);
 const client_registration_port_1 = __webpack_require__(148);
-const credit_application_public_fields_builder_1 = __webpack_require__(171);
-const register_client_credit_application_response_1 = __webpack_require__(181);
+const credit_application_public_fields_builder_1 = __webpack_require__(176);
+const register_client_credit_application_response_1 = __webpack_require__(186);
 let RegisterClientCreditApplicationUseCase = class RegisterClientCreditApplicationUseCase {
     credit_application_repository;
     client_registration;
@@ -9029,7 +9273,7 @@ exports.RegisterClientCreditApplicationUseCase = RegisterClientCreditApplication
 
 
 /***/ }),
-/* 181 */
+/* 186 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -9078,7 +9322,7 @@ exports.RegisterClientCreditApplicationResponse = RegisterClientCreditApplicatio
 
 
 /***/ }),
-/* 182 */
+/* 187 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -9099,9 +9343,9 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ListCreditApplicationsByPartnerUseCase = void 0;
 const common_1 = __webpack_require__(6);
 const credit_applications_tokens_1 = __webpack_require__(147);
-const credit_application_ports_1 = __webpack_require__(170);
-const credit_application_public_fields_builder_1 = __webpack_require__(171);
-const list_credit_applications_by_partner_response_1 = __webpack_require__(183);
+const credit_application_ports_1 = __webpack_require__(175);
+const credit_application_public_fields_builder_1 = __webpack_require__(176);
+const list_credit_applications_by_partner_response_1 = __webpack_require__(188);
 let ListCreditApplicationsByPartnerUseCase = class ListCreditApplicationsByPartnerUseCase {
     credit_application_repository;
     constructor(credit_application_repository) {
@@ -9121,7 +9365,7 @@ exports.ListCreditApplicationsByPartnerUseCase = ListCreditApplicationsByPartner
 
 
 /***/ }),
-/* 183 */
+/* 188 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -9170,7 +9414,7 @@ exports.ListCreditApplicationsByPartnerItemResponse = ListCreditApplicationsByPa
 
 
 /***/ }),
-/* 184 */
+/* 189 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -9191,9 +9435,9 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ListCreditApplicationsBySalesRepUseCase = void 0;
 const common_1 = __webpack_require__(6);
 const credit_applications_tokens_1 = __webpack_require__(147);
-const credit_application_ports_1 = __webpack_require__(170);
-const credit_application_public_fields_builder_1 = __webpack_require__(171);
-const list_credit_applications_by_sales_rep_response_1 = __webpack_require__(185);
+const credit_application_ports_1 = __webpack_require__(175);
+const credit_application_public_fields_builder_1 = __webpack_require__(176);
+const list_credit_applications_by_sales_rep_response_1 = __webpack_require__(190);
 let ListCreditApplicationsBySalesRepUseCase = class ListCreditApplicationsBySalesRepUseCase {
     credit_application_repository;
     constructor(credit_application_repository) {
@@ -9213,7 +9457,7 @@ exports.ListCreditApplicationsBySalesRepUseCase = ListCreditApplicationsBySalesR
 
 
 /***/ }),
-/* 185 */
+/* 190 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -9262,7 +9506,7 @@ exports.ListCreditApplicationsBySalesRepItemResponse = ListCreditApplicationsByS
 
 
 /***/ }),
-/* 186 */
+/* 191 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -9284,9 +9528,9 @@ exports.ApproveCreditApplicationUseCase = void 0;
 const common_1 = __webpack_require__(6);
 const shared_1 = __webpack_require__(15);
 const credit_applications_tokens_1 = __webpack_require__(147);
-const credit_application_ports_1 = __webpack_require__(170);
-const credit_application_public_fields_builder_1 = __webpack_require__(171);
-const approve_credit_application_response_1 = __webpack_require__(187);
+const credit_application_ports_1 = __webpack_require__(175);
+const credit_application_public_fields_builder_1 = __webpack_require__(176);
+const approve_credit_application_response_1 = __webpack_require__(192);
 let ApproveCreditApplicationUseCase = class ApproveCreditApplicationUseCase {
     credit_application_repository;
     constructor(credit_application_repository) {
@@ -9314,7 +9558,7 @@ exports.ApproveCreditApplicationUseCase = ApproveCreditApplicationUseCase = __de
 
 
 /***/ }),
-/* 187 */
+/* 192 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -9363,7 +9607,7 @@ exports.ApproveCreditApplicationResponse = ApproveCreditApplicationResponse;
 
 
 /***/ }),
-/* 188 */
+/* 193 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -9385,9 +9629,9 @@ exports.RejectCreditApplicationUseCase = void 0;
 const common_1 = __webpack_require__(6);
 const shared_1 = __webpack_require__(15);
 const credit_applications_tokens_1 = __webpack_require__(147);
-const credit_application_ports_1 = __webpack_require__(170);
-const credit_application_public_fields_builder_1 = __webpack_require__(171);
-const reject_credit_application_response_1 = __webpack_require__(189);
+const credit_application_ports_1 = __webpack_require__(175);
+const credit_application_public_fields_builder_1 = __webpack_require__(176);
+const reject_credit_application_response_1 = __webpack_require__(194);
 let RejectCreditApplicationUseCase = class RejectCreditApplicationUseCase {
     credit_application_repository;
     constructor(credit_application_repository) {
@@ -9413,7 +9657,7 @@ exports.RejectCreditApplicationUseCase = RejectCreditApplicationUseCase = __deco
 
 
 /***/ }),
-/* 189 */
+/* 194 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -9462,7 +9706,7 @@ exports.RejectCreditApplicationResponse = RejectCreditApplicationResponse;
 
 
 /***/ }),
-/* 190 */
+/* 195 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -9484,9 +9728,9 @@ exports.SaveCreditApplicationPreStudyUseCase = void 0;
 const common_1 = __webpack_require__(6);
 const shared_1 = __webpack_require__(15);
 const credit_applications_tokens_1 = __webpack_require__(147);
-const credit_application_ports_1 = __webpack_require__(170);
-const credit_application_public_fields_builder_1 = __webpack_require__(171);
-const save_credit_application_pre_study_response_1 = __webpack_require__(191);
+const credit_application_ports_1 = __webpack_require__(175);
+const credit_application_public_fields_builder_1 = __webpack_require__(176);
+const save_credit_application_pre_study_response_1 = __webpack_require__(196);
 let SaveCreditApplicationPreStudyUseCase = class SaveCreditApplicationPreStudyUseCase {
     credit_application_repository;
     constructor(credit_application_repository) {
@@ -9516,7 +9760,7 @@ exports.SaveCreditApplicationPreStudyUseCase = SaveCreditApplicationPreStudyUseC
 
 
 /***/ }),
-/* 191 */
+/* 196 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -9565,7 +9809,7 @@ exports.SaveCreditApplicationPreStudyResponse = SaveCreditApplicationPreStudyRes
 
 
 /***/ }),
-/* 192 */
+/* 197 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -9586,9 +9830,9 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.UploadCreditApplicationDocumentUseCase = void 0;
 const common_1 = __webpack_require__(6);
 const credit_applications_tokens_1 = __webpack_require__(147);
-const credit_application_ports_1 = __webpack_require__(170);
+const credit_application_ports_1 = __webpack_require__(175);
 const credit_application_document_storage_port_1 = __webpack_require__(149);
-const upload_credit_application_document_response_1 = __webpack_require__(193);
+const upload_credit_application_document_response_1 = __webpack_require__(198);
 let UploadCreditApplicationDocumentUseCase = class UploadCreditApplicationDocumentUseCase {
     credit_application_repository;
     document_storage;
@@ -9621,7 +9865,7 @@ exports.UploadCreditApplicationDocumentUseCase = UploadCreditApplicationDocument
 
 
 /***/ }),
-/* 193 */
+/* 198 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -9639,7 +9883,7 @@ exports.UploadCreditApplicationDocumentResponse = UploadCreditApplicationDocumen
 
 
 /***/ }),
-/* 194 */
+/* 199 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -9655,22 +9899,176 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var _a, _b, _c;
+var _a, _b, _c, _d;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.RegisterNaturalPersonCreditApplicationUseCase = void 0;
+const common_1 = __webpack_require__(6);
+const config_1 = __webpack_require__(8);
+const shared_1 = __webpack_require__(15);
+const credit_applications_tokens_1 = __webpack_require__(147);
+const credit_application_ports_1 = __webpack_require__(175);
+const client_registration_port_1 = __webpack_require__(148);
+const create_person_sqs_result_reader_port_1 = __webpack_require__(157);
+const products_reference_lookup_port_1 = __webpack_require__(110);
+const publish_create_person_command_use_case_1 = __webpack_require__(155);
+const validation_failed_error_1 = __webpack_require__(119);
+const credit_application_public_fields_builder_1 = __webpack_require__(176);
+const register_client_credit_application_response_1 = __webpack_require__(186);
+let RegisterNaturalPersonCreditApplicationUseCase = class RegisterNaturalPersonCreditApplicationUseCase {
+    credit_application_repository;
+    client_registration;
+    products_lookup;
+    create_person_sqs_result;
+    publish_create_person;
+    config_service;
+    constructor(credit_application_repository, client_registration, products_lookup, create_person_sqs_result, publish_create_person, config_service) {
+        this.credit_application_repository = credit_application_repository;
+        this.client_registration = client_registration;
+        this.products_lookup = products_lookup;
+        this.create_person_sqs_result = create_person_sqs_result;
+        this.publish_create_person = publish_create_person;
+        this.config_service = config_service;
+    }
+    async execute(req) {
+        const partner_internal_id = await this.products_lookup.get_partner_internal_id_by_external_id(req.partnerId);
+        if (partner_internal_id === null) {
+            throw new common_1.NotFoundException('partner no encontrado');
+        }
+        const sales_representative_internal_id = await this.products_lookup.get_sales_representative_internal_id_by_external_id(req.salesRepId, partner_internal_id);
+        if (sales_representative_internal_id === null) {
+            throw new common_1.NotFoundException('representante de ventas no encontrado o no pertenece al partner indicado');
+        }
+        let city_id = null;
+        if (req.cityId) {
+            city_id = await this.client_registration.resolve_city_internal_id(req.cityId);
+        }
+        let person_id = await this.client_registration.find_person_by_doc_number(req.docNumber);
+        if (person_id === null) {
+            const correlation_id = (0, shared_1.new_uuid)();
+            const idempotency_key = `${correlation_id}__natural_person_credit_application`;
+            const default_country = (this.config_service.get('config.natural_person_onboarding.default_country_code') ??
+                'CO') ||
+                'CO';
+            try {
+                await this.publish_create_person.execute({
+                    correlation_id,
+                    idempotency_key,
+                    country_code: default_country,
+                    first_name: req.firstName,
+                    last_name: req.lastName,
+                    doc_type: req.docType,
+                    doc_number: req.docNumber,
+                    phone: req.phone,
+                    city_external_id: req.cityId ?? null,
+                });
+            }
+            catch (e) {
+                if (e instanceof validation_failed_error_1.ValidationFailedError) {
+                    throw new common_1.ServiceUnavailableException(e.message);
+                }
+                throw e;
+            }
+            const sqs_result = await this.create_person_sqs_result.wait_for_completed_result(idempotency_key);
+            person_id = await this.client_registration.get_person_internal_id_by_external_id(sqs_result.person_external_id);
+            if (person_id === null) {
+                throw new common_1.ServiceUnavailableException('No se pudo resolver la persona creada vía SQS (person_external_id)');
+            }
+        }
+        const birth_iso = req.birthDate?.trim().length ? req.birthDate.trim() : null;
+        await this.client_registration.patch_person_email_and_birth_date(person_id, req.email, birth_iso);
+        let business_id = await this.client_registration.find_business_by_person_id(person_id);
+        if (business_id === null) {
+            business_id = await this.client_registration.create_business({
+                person_id,
+                entity_type: req.businessType,
+                business_name: req.businessName,
+                business_address: req.businessAddress ?? null,
+                business_type: req.businessType,
+                relationship_to_business: req.relationshipToBusiness ?? null,
+                city_id,
+            });
+        }
+        const business_has_rent = req.businessRentAmount !== undefined && req.businessRentAmount > 0 ? true : null;
+        const created = await this.credit_application_repository.create({
+            person_id,
+            business_id,
+            partner_id: partner_internal_id,
+            partner_category_id: null,
+            sales_representative_id: sales_representative_internal_id,
+            status: shared_1.CreditApplicationStatus.IN_PROGRESS,
+            is_current_client: false,
+            privacy_policy_accepted: req.privacyPolicyAccepted,
+            privacy_policy_date: req.privacyPolicyAccepted ? new Date() : null,
+            submission_date: new Date(),
+            business_seniority: req.businessSeniority ?? null,
+            number_of_employees: req.numberOfEmployees ?? null,
+            number_of_locations: req.numberOfLocations ?? null,
+            business_flagship_m2: req.businessFlagshipM2 ?? null,
+            business_has_rent,
+            business_rent_amount: req.businessRentAmount ?? null,
+            requested_credit_line: req.requestedCreditLine,
+            monthly_purchases: req.monthlyPurchases ?? null,
+            current_purchases: req.currentPurchases ?? null,
+            total_assets: req.totalAssets ?? null,
+            monthly_income: req.monthlyIncome ?? null,
+            monthly_expenses: req.monthlyExpenses ?? null,
+        });
+        return new register_client_credit_application_response_1.RegisterClientCreditApplicationResponse((0, credit_application_public_fields_builder_1.build_credit_application_public_fields)(created));
+    }
+};
+exports.RegisterNaturalPersonCreditApplicationUseCase = RegisterNaturalPersonCreditApplicationUseCase;
+exports.RegisterNaturalPersonCreditApplicationUseCase = RegisterNaturalPersonCreditApplicationUseCase = __decorate([
+    (0, common_1.Injectable)(),
+    __param(0, (0, common_1.Inject)(credit_applications_tokens_1.CREDIT_APPLICATION_REPOSITORY)),
+    __param(1, (0, common_1.Inject)(client_registration_port_1.CLIENT_REGISTRATION_PORT)),
+    __param(2, (0, common_1.Inject)(products_reference_lookup_port_1.PRODUCTS_REFERENCE_LOOKUP)),
+    __param(3, (0, common_1.Inject)(create_person_sqs_result_reader_port_1.CREATE_PERSON_SQS_RESULT_READER_PORT)),
+    __metadata("design:paramtypes", [typeof (_a = typeof credit_application_ports_1.CreditApplicationRepository !== "undefined" && credit_application_ports_1.CreditApplicationRepository) === "function" ? _a : Object, typeof (_b = typeof client_registration_port_1.ClientRegistrationPort !== "undefined" && client_registration_port_1.ClientRegistrationPort) === "function" ? _b : Object, Object, Object, typeof (_c = typeof publish_create_person_command_use_case_1.PublishCreatePersonCommandUseCase !== "undefined" && publish_create_person_command_use_case_1.PublishCreatePersonCommandUseCase) === "function" ? _c : Object, typeof (_d = typeof config_1.ConfigService !== "undefined" && config_1.ConfigService) === "function" ? _d : Object])
+], RegisterNaturalPersonCreditApplicationUseCase);
+
+
+/***/ }),
+/* 200 */
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+var _a, _b, _c, _d, _e, _f;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CreditApplicationsPublicController = void 0;
 const common_1 = __webpack_require__(6);
 const swagger_1 = __webpack_require__(9);
-const register_client_credit_application_use_case_1 = __webpack_require__(180);
-const register_client_credit_application_request_1 = __webpack_require__(195);
-const create_credit_application_dto_1 = __webpack_require__(196);
-const credit_application_response_dto_1 = __webpack_require__(197);
+const register_client_credit_application_use_case_1 = __webpack_require__(185);
+const register_client_credit_application_request_1 = __webpack_require__(201);
+const register_natural_person_credit_application_use_case_1 = __webpack_require__(199);
+const register_natural_person_credit_application_request_1 = __webpack_require__(202);
+const create_credit_application_dto_1 = __webpack_require__(203);
+const create_natural_person_credit_application_dto_1 = __webpack_require__(204);
+const credit_application_response_dto_1 = __webpack_require__(205);
 let CreditApplicationsPublicController = class CreditApplicationsPublicController {
     register_client;
-    constructor(register_client) {
+    register_natural_person;
+    constructor(register_client, register_natural_person) {
         this.register_client = register_client;
+        this.register_natural_person = register_natural_person;
     }
     async create(dto) {
         const result = await this.register_client.execute(new register_client_credit_application_request_1.RegisterClientCreditApplicationRequest(dto.phone, dto.email, dto.docType, dto.docNumber, dto.firstName, dto.lastName, dto.businessName, dto.businessType, dto.isCurrentClient, dto.requestedCreditLine, dto.relationshipToBusiness, dto.cityId, dto.businessAddress, dto.businessSeniority, dto.numberOfEmployees, dto.numberOfLocations, dto.businessFlagshipM2, dto.businessHasRent, dto.businessRentAmount, dto.monthlyPurchases, dto.currentPurchases, dto.totalAssets, dto.monthlyIncome, dto.monthlyExpenses));
+        return credit_application_response_dto_1.CreditApplicationResponseDto.from(result);
+    }
+    async create_natural_person(dto) {
+        const result = await this.register_natural_person.execute(new register_natural_person_credit_application_request_1.RegisterNaturalPersonCreditApplicationRequest(dto.birthDate, dto.businessAddress, dto.businessFlagshipM2, dto.businessName, dto.businessRentAmount, dto.businessSeniority, dto.businessType, dto.cityId, dto.currentPurchases, dto.docNumber, dto.docType, dto.email, dto.firstName, dto.lastName, dto.monthlyExpenses, dto.monthlyIncome, dto.monthlyPurchases, dto.numberOfEmployees, dto.numberOfLocations, dto.partnerId, dto.salesRepId, dto.privacyPolicyAccepted, dto.phone, dto.relationshipToBusiness, dto.requestedCreditLine, dto.totalAssets));
         return credit_application_response_dto_1.CreditApplicationResponseDto.from(result);
     }
 };
@@ -9688,18 +10086,34 @@ __decorate([
     }),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_b = typeof create_credit_application_dto_1.CreateCreditApplicationDto !== "undefined" && create_credit_application_dto_1.CreateCreditApplicationDto) === "function" ? _b : Object]),
-    __metadata("design:returntype", typeof (_c = typeof Promise !== "undefined" && Promise) === "function" ? _c : Object)
+    __metadata("design:paramtypes", [typeof (_c = typeof create_credit_application_dto_1.CreateCreditApplicationDto !== "undefined" && create_credit_application_dto_1.CreateCreditApplicationDto) === "function" ? _c : Object]),
+    __metadata("design:returntype", typeof (_d = typeof Promise !== "undefined" && Promise) === "function" ? _d : Object)
 ], CreditApplicationsPublicController.prototype, "create", null);
+__decorate([
+    (0, common_1.Post)('natural-person'),
+    (0, common_1.HttpCode)(common_1.HttpStatus.CREATED),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Crear solicitud de cupo (persona natural)',
+        description: 'Persona nueva: alta vía SQS en transversal-ms (`persons`). Luego negocio en `suppliers_schema.businesses` y solicitud en `credit_applications` con partner asociado.',
+    }),
+    (0, swagger_1.ApiCreatedResponse)({
+        description: 'Solicitud creada',
+        type: credit_application_response_dto_1.CreditApplicationResponseDto,
+    }),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [typeof (_e = typeof create_natural_person_credit_application_dto_1.CreateNaturalPersonCreditApplicationDto !== "undefined" && create_natural_person_credit_application_dto_1.CreateNaturalPersonCreditApplicationDto) === "function" ? _e : Object]),
+    __metadata("design:returntype", typeof (_f = typeof Promise !== "undefined" && Promise) === "function" ? _f : Object)
+], CreditApplicationsPublicController.prototype, "create_natural_person", null);
 exports.CreditApplicationsPublicController = CreditApplicationsPublicController = __decorate([
     (0, swagger_1.ApiTags)('credit-applications'),
     (0, common_1.Controller)('credit-applications'),
-    __metadata("design:paramtypes", [typeof (_a = typeof register_client_credit_application_use_case_1.RegisterClientCreditApplicationUseCase !== "undefined" && register_client_credit_application_use_case_1.RegisterClientCreditApplicationUseCase) === "function" ? _a : Object])
+    __metadata("design:paramtypes", [typeof (_a = typeof register_client_credit_application_use_case_1.RegisterClientCreditApplicationUseCase !== "undefined" && register_client_credit_application_use_case_1.RegisterClientCreditApplicationUseCase) === "function" ? _a : Object, typeof (_b = typeof register_natural_person_credit_application_use_case_1.RegisterNaturalPersonCreditApplicationUseCase !== "undefined" && register_natural_person_credit_application_use_case_1.RegisterNaturalPersonCreditApplicationUseCase) === "function" ? _b : Object])
 ], CreditApplicationsPublicController);
 
 
 /***/ }),
-/* 195 */
+/* 201 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -9761,7 +10175,73 @@ exports.RegisterClientCreditApplicationRequest = RegisterClientCreditApplication
 
 
 /***/ }),
-/* 196 */
+/* 202 */
+/***/ ((__unused_webpack_module, exports) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.RegisterNaturalPersonCreditApplicationRequest = void 0;
+class RegisterNaturalPersonCreditApplicationRequest {
+    birthDate;
+    businessAddress;
+    businessFlagshipM2;
+    businessName;
+    businessRentAmount;
+    businessSeniority;
+    businessType;
+    cityId;
+    currentPurchases;
+    docNumber;
+    docType;
+    email;
+    firstName;
+    lastName;
+    monthlyExpenses;
+    monthlyIncome;
+    monthlyPurchases;
+    numberOfEmployees;
+    numberOfLocations;
+    partnerId;
+    salesRepId;
+    privacyPolicyAccepted;
+    phone;
+    relationshipToBusiness;
+    requestedCreditLine;
+    totalAssets;
+    constructor(birthDate, businessAddress, businessFlagshipM2, businessName, businessRentAmount, businessSeniority, businessType, cityId, currentPurchases, docNumber, docType, email, firstName, lastName, monthlyExpenses, monthlyIncome, monthlyPurchases, numberOfEmployees, numberOfLocations, partnerId, salesRepId, privacyPolicyAccepted, phone, relationshipToBusiness, requestedCreditLine, totalAssets) {
+        this.birthDate = birthDate;
+        this.businessAddress = businessAddress;
+        this.businessFlagshipM2 = businessFlagshipM2;
+        this.businessName = businessName;
+        this.businessRentAmount = businessRentAmount;
+        this.businessSeniority = businessSeniority;
+        this.businessType = businessType;
+        this.cityId = cityId;
+        this.currentPurchases = currentPurchases;
+        this.docNumber = docNumber;
+        this.docType = docType;
+        this.email = email;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.monthlyExpenses = monthlyExpenses;
+        this.monthlyIncome = monthlyIncome;
+        this.monthlyPurchases = monthlyPurchases;
+        this.numberOfEmployees = numberOfEmployees;
+        this.numberOfLocations = numberOfLocations;
+        this.partnerId = partnerId;
+        this.salesRepId = salesRepId;
+        this.privacyPolicyAccepted = privacyPolicyAccepted;
+        this.phone = phone;
+        this.relationshipToBusiness = relationshipToBusiness;
+        this.requestedCreditLine = requestedCreditLine;
+        this.totalAssets = totalAssets;
+    }
+}
+exports.RegisterNaturalPersonCreditApplicationRequest = RegisterNaturalPersonCreditApplicationRequest;
+
+
+/***/ }),
+/* 203 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -9959,7 +10439,220 @@ __decorate([
 
 
 /***/ }),
-/* 197 */
+/* 204 */
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.CreateNaturalPersonCreditApplicationDto = void 0;
+const swagger_1 = __webpack_require__(9);
+const class_validator_1 = __webpack_require__(38);
+class CreateNaturalPersonCreditApplicationDto {
+    birthDate;
+    businessAddress;
+    businessFlagshipM2;
+    businessName;
+    businessRentAmount;
+    businessSeniority;
+    businessType;
+    cityId;
+    currentPurchases;
+    docNumber;
+    docType;
+    email;
+    firstName;
+    lastName;
+    monthlyExpenses;
+    monthlyIncome;
+    monthlyPurchases;
+    numberOfEmployees;
+    numberOfLocations;
+    partnerId;
+    salesRepId;
+    privacyPolicyAccepted;
+    phone;
+    relationshipToBusiness;
+    requestedCreditLine;
+    totalAssets;
+}
+exports.CreateNaturalPersonCreditApplicationDto = CreateNaturalPersonCreditApplicationDto;
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", Object)
+], CreateNaturalPersonCreditApplicationDto.prototype, "birthDate", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", Object)
+], CreateNaturalPersonCreditApplicationDto.prototype, "businessAddress", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(0),
+    __metadata("design:type", Object)
+], CreateNaturalPersonCreditApplicationDto.prototype, "businessFlagshipM2", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ description: 'Nombre del negocio' }),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", String)
+], CreateNaturalPersonCreditApplicationDto.prototype, "businessName", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'Arriendo mensual (si aplica)' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(0),
+    __metadata("design:type", Number)
+], CreateNaturalPersonCreditApplicationDto.prototype, "businessRentAmount", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", Object)
+], CreateNaturalPersonCreditApplicationDto.prototype, "businessSeniority", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ description: 'Tipo de negocio' }),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", String)
+], CreateNaturalPersonCreditApplicationDto.prototype, "businessType", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ nullable: true, description: 'UUID v4 de la ciudad' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsUUID)('4'),
+    __metadata("design:type", Object)
+], CreateNaturalPersonCreditApplicationDto.prototype, "cityId", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(0),
+    __metadata("design:type", Object)
+], CreateNaturalPersonCreditApplicationDto.prototype, "currentPurchases", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", String)
+], CreateNaturalPersonCreditApplicationDto.prototype, "docNumber", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", String)
+], CreateNaturalPersonCreditApplicationDto.prototype, "docType", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    (0, class_validator_1.IsEmail)(),
+    __metadata("design:type", String)
+], CreateNaturalPersonCreditApplicationDto.prototype, "email", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", String)
+], CreateNaturalPersonCreditApplicationDto.prototype, "firstName", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", String)
+], CreateNaturalPersonCreditApplicationDto.prototype, "lastName", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(0),
+    __metadata("design:type", Object)
+], CreateNaturalPersonCreditApplicationDto.prototype, "monthlyExpenses", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(0),
+    __metadata("design:type", Object)
+], CreateNaturalPersonCreditApplicationDto.prototype, "monthlyIncome", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)(),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(0),
+    __metadata("design:type", Number)
+], CreateNaturalPersonCreditApplicationDto.prototype, "monthlyPurchases", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsInt)(),
+    (0, class_validator_1.Min)(0),
+    __metadata("design:type", Object)
+], CreateNaturalPersonCreditApplicationDto.prototype, "numberOfEmployees", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsInt)(),
+    (0, class_validator_1.Min)(0),
+    __metadata("design:type", Object)
+], CreateNaturalPersonCreditApplicationDto.prototype, "numberOfLocations", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ description: 'Identificador externo del partner (UUID)' }),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", String)
+], CreateNaturalPersonCreditApplicationDto.prototype, "partnerId", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        description: 'Identificador externo (UUID, `sales_representatives.external_id`) del representante de ventas',
+    }),
+    (0, class_validator_1.IsUUID)('4'),
+    __metadata("design:type", String)
+], CreateNaturalPersonCreditApplicationDto.prototype, "salesRepId", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ description: 'Aceptación explícita de la política de privacidad' }),
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], CreateNaturalPersonCreditApplicationDto.prototype, "privacyPolicyAccepted", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", String)
+], CreateNaturalPersonCreditApplicationDto.prototype, "phone", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", Object)
+], CreateNaturalPersonCreditApplicationDto.prototype, "relationshipToBusiness", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ description: 'Cupo solicitado (p. ej. centavos COP)' }),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(0),
+    __metadata("design:type", Number)
+], CreateNaturalPersonCreditApplicationDto.prototype, "requestedCreditLine", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(0),
+    __metadata("design:type", Object)
+], CreateNaturalPersonCreditApplicationDto.prototype, "totalAssets", void 0);
+
+
+/***/ }),
+/* 205 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -10156,7 +10849,7 @@ __decorate([
 
 
 /***/ }),
-/* 198 */
+/* 206 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -10176,34 +10869,34 @@ var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CreditApplicationsPrivateController = void 0;
 const common_1 = __webpack_require__(6);
-const platform_express_1 = __webpack_require__(166);
+const platform_express_1 = __webpack_require__(171);
 const swagger_1 = __webpack_require__(9);
 const shared_1 = __webpack_require__(15);
-const jwt_auth_guard_1 = __webpack_require__(158);
-const roles_guard_1 = __webpack_require__(159);
-const require_roles_decorator_1 = __webpack_require__(199);
-const list_credit_applications_use_case_1 = __webpack_require__(175);
-const list_credit_applications_by_partner_use_case_1 = __webpack_require__(182);
-const list_credit_applications_by_partner_request_1 = __webpack_require__(200);
-const list_credit_applications_by_sales_rep_use_case_1 = __webpack_require__(184);
-const list_credit_applications_by_sales_rep_request_1 = __webpack_require__(201);
-const get_credit_application_by_external_id_use_case_1 = __webpack_require__(173);
-const get_credit_application_by_external_id_request_1 = __webpack_require__(202);
-const update_credit_application_by_external_id_use_case_1 = __webpack_require__(177);
-const update_credit_application_by_external_id_request_1 = __webpack_require__(203);
-const save_credit_application_pre_study_use_case_1 = __webpack_require__(190);
-const save_credit_application_pre_study_request_1 = __webpack_require__(204);
-const upload_credit_application_document_use_case_1 = __webpack_require__(192);
-const upload_credit_application_document_request_1 = __webpack_require__(205);
-const approve_credit_application_use_case_1 = __webpack_require__(186);
-const approve_credit_application_request_1 = __webpack_require__(206);
-const reject_credit_application_use_case_1 = __webpack_require__(188);
-const reject_credit_application_request_1 = __webpack_require__(207);
-const update_credit_application_dto_1 = __webpack_require__(208);
-const approve_credit_application_dto_1 = __webpack_require__(209);
-const reject_credit_application_dto_1 = __webpack_require__(210);
-const save_pre_study_dto_1 = __webpack_require__(211);
-const credit_application_response_dto_1 = __webpack_require__(197);
+const jwt_auth_guard_1 = __webpack_require__(163);
+const roles_guard_1 = __webpack_require__(164);
+const require_roles_decorator_1 = __webpack_require__(207);
+const list_credit_applications_use_case_1 = __webpack_require__(180);
+const list_credit_applications_by_partner_use_case_1 = __webpack_require__(187);
+const list_credit_applications_by_partner_request_1 = __webpack_require__(208);
+const list_credit_applications_by_sales_rep_use_case_1 = __webpack_require__(189);
+const list_credit_applications_by_sales_rep_request_1 = __webpack_require__(209);
+const get_credit_application_by_external_id_use_case_1 = __webpack_require__(178);
+const get_credit_application_by_external_id_request_1 = __webpack_require__(210);
+const update_credit_application_by_external_id_use_case_1 = __webpack_require__(182);
+const update_credit_application_by_external_id_request_1 = __webpack_require__(211);
+const save_credit_application_pre_study_use_case_1 = __webpack_require__(195);
+const save_credit_application_pre_study_request_1 = __webpack_require__(212);
+const upload_credit_application_document_use_case_1 = __webpack_require__(197);
+const upload_credit_application_document_request_1 = __webpack_require__(213);
+const approve_credit_application_use_case_1 = __webpack_require__(191);
+const approve_credit_application_request_1 = __webpack_require__(214);
+const reject_credit_application_use_case_1 = __webpack_require__(193);
+const reject_credit_application_request_1 = __webpack_require__(215);
+const update_credit_application_dto_1 = __webpack_require__(216);
+const approve_credit_application_dto_1 = __webpack_require__(217);
+const reject_credit_application_dto_1 = __webpack_require__(218);
+const save_pre_study_dto_1 = __webpack_require__(219);
+const credit_application_response_dto_1 = __webpack_require__(205);
 let CreditApplicationsPrivateController = class CreditApplicationsPrivateController {
     list_all;
     list_by_partner;
@@ -10377,20 +11070,20 @@ exports.CreditApplicationsPrivateController = CreditApplicationsPrivateControlle
 
 
 /***/ }),
-/* 199 */
+/* 207 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.RequireRoles = void 0;
 const common_1 = __webpack_require__(6);
-const auth_metadata_constants_1 = __webpack_require__(160);
+const auth_metadata_constants_1 = __webpack_require__(165);
 const RequireRoles = (...roles) => (0, common_1.SetMetadata)(auth_metadata_constants_1.REQUIRE_ROLES_KEY, roles);
 exports.RequireRoles = RequireRoles;
 
 
 /***/ }),
-/* 200 */
+/* 208 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -10406,7 +11099,7 @@ exports.ListCreditApplicationsByPartnerRequest = ListCreditApplicationsByPartner
 
 
 /***/ }),
-/* 201 */
+/* 209 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -10422,7 +11115,7 @@ exports.ListCreditApplicationsBySalesRepRequest = ListCreditApplicationsBySalesR
 
 
 /***/ }),
-/* 202 */
+/* 210 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -10438,7 +11131,7 @@ exports.GetCreditApplicationByExternalIdRequest = GetCreditApplicationByExternal
 
 
 /***/ }),
-/* 203 */
+/* 211 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -10516,7 +11209,7 @@ exports.UpdateCreditApplicationByExternalIdRequest = UpdateCreditApplicationByEx
 
 
 /***/ }),
-/* 204 */
+/* 212 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -10542,7 +11235,7 @@ exports.SaveCreditApplicationPreStudyRequest = SaveCreditApplicationPreStudyRequ
 
 
 /***/ }),
-/* 205 */
+/* 213 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -10566,7 +11259,7 @@ exports.UploadCreditApplicationDocumentRequest = UploadCreditApplicationDocument
 
 
 /***/ }),
-/* 206 */
+/* 214 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -10586,7 +11279,7 @@ exports.ApproveCreditApplicationRequest = ApproveCreditApplicationRequest;
 
 
 /***/ }),
-/* 207 */
+/* 215 */
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -10604,7 +11297,7 @@ exports.RejectCreditApplicationRequest = RejectCreditApplicationRequest;
 
 
 /***/ }),
-/* 208 */
+/* 216 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -10779,7 +11472,7 @@ __decorate([
 
 
 /***/ }),
-/* 209 */
+/* 217 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -10817,7 +11510,7 @@ __decorate([
 
 
 /***/ }),
-/* 210 */
+/* 218 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -10848,7 +11541,7 @@ __decorate([
 
 
 /***/ }),
-/* 211 */
+/* 219 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -10906,7 +11599,7 @@ __decorate([
 
 
 /***/ }),
-/* 212 */
+/* 220 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
@@ -10914,6 +11607,11 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const config_1 = __webpack_require__(8);
 exports["default"] = (0, config_1.registerAs)('config', () => {
     return {
+        natural_person_onboarding: {
+            default_country_code: (process.env.NATURAL_PERSON_ONBOARDING_DEFAULT_COUNTRY_CODE ?? 'CO').trim(),
+            sqs_poll_timeout_ms: Number(process.env.NATURAL_PERSON_ONBOARDING_SQS_POLL_TIMEOUT_MS ?? 60000),
+            sqs_poll_interval_ms: Number(process.env.NATURAL_PERSON_ONBOARDING_SQS_POLL_INTERVAL_MS ?? 300),
+        },
         environment: process.env.APP_ENV || 'development',
         port: process.env.PRODUCTS_MS_PORT || 8083,
         cognito: {
@@ -10927,7 +11625,7 @@ exports["default"] = (0, config_1.registerAs)('config', () => {
 
 
 /***/ }),
-/* 213 */
+/* 221 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -10952,6 +11650,7 @@ class ProductsSqsEnv {
     aws_sqs_endpoint;
     products_sqs_outbound_queue_url;
     products_sqs_inbound_queue_url;
+    products_sqs_create_person_queue_url;
     products_sqs_wait_time_seconds = 20;
     products_sqs_max_number_of_messages = 10;
     products_sqs_visibility_timeout_seconds = 30;
@@ -10977,6 +11676,12 @@ __decorate([
     (0, class_validator_1.IsUrl)({ require_tld: false }),
     __metadata("design:type", String)
 ], ProductsSqsEnv.prototype, "products_sqs_inbound_queue_url", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_transformer_1.Transform)(({ value }) => (value === '' || value === undefined ? undefined : value)),
+    (0, class_validator_1.IsUrl)({ require_tld: false }),
+    __metadata("design:type", String)
+], ProductsSqsEnv.prototype, "products_sqs_create_person_queue_url", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_transformer_1.Type)(() => Number),
@@ -11025,6 +11730,7 @@ function get_products_sqs_config_from_env() {
             ? outbound_raw
             : PRODUCTS_SQS_OUTBOUND_QUEUE_URL_DEFAULT,
         products_sqs_inbound_queue_url: process.env.PRODUCTS_SQS_INBOUND_QUEUE_URL,
+        products_sqs_create_person_queue_url: process.env.PRODUCTS_SQS_CREATE_PERSON_QUEUE_URL,
         products_sqs_wait_time_seconds: process.env.PRODUCTS_SQS_WAIT_TIME_SECONDS ?? 20,
         products_sqs_max_number_of_messages: process.env.PRODUCTS_SQS_MAX_NUMBER_OF_MESSAGES ?? 10,
         products_sqs_visibility_timeout_seconds: process.env.PRODUCTS_SQS_VISIBILITY_TIMEOUT_SECONDS ?? 30,
@@ -11035,6 +11741,7 @@ function get_products_sqs_config_from_env() {
         endpoint: env.aws_sqs_endpoint,
         outbound_queue_url: env.products_sqs_outbound_queue_url,
         inbound_queue_url: env.products_sqs_inbound_queue_url,
+        create_person_queue_url: env.products_sqs_create_person_queue_url,
         wait_time_seconds: env.products_sqs_wait_time_seconds,
         max_number_of_messages: env.products_sqs_max_number_of_messages,
         visibility_timeout_seconds: env.products_sqs_visibility_timeout_seconds,
@@ -11045,7 +11752,7 @@ exports.sqs_config = (0, config_1.registerAs)('sqs', () => get_products_sqs_conf
 
 
 /***/ }),
-/* 214 */
+/* 222 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -11063,7 +11770,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.appController = void 0;
 const common_1 = __webpack_require__(6);
 const swagger_1 = __webpack_require__(9);
-const health_response_dto_1 = __webpack_require__(215);
+const health_response_dto_1 = __webpack_require__(223);
 let appController = class appController {
     health() {
         return { status: 'ok', service: 'products-ms' };
@@ -11085,7 +11792,7 @@ exports.appController = appController = __decorate([
 
 
 /***/ }),
-/* 215 */
+/* 223 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 

@@ -1028,7 +1028,7 @@ class SalesRepresentativeMapper {
             : Number(row.userId);
         const user_full_name = SalesRepresentativeMapper.user_full_name_from_row(row);
         const loaded_user = SalesRepresentativeMapper.loaded_user_from_row(row);
-        return new sales_representative_entity_1.SalesRepresentative(Number(row.id), row.externalId, Number(row.partnerId), user_id, row.createdAt, row.updatedAt, user_full_name, loaded_user);
+        return new sales_representative_entity_1.SalesRepresentative(Number(row.id), row.externalId, Number(row.partnerId), user_id, row.createdAt, row.updatedAt, user_full_name, row.is_default, loaded_user);
     }
     static user_full_name_from_row(row) {
         const p = row.user?.person;
@@ -1057,7 +1057,7 @@ class SalesRepresentativeMapper {
     }
     static from_raw_row(row) {
         const user_raw = row['user_id'];
-        return new sales_representative_entity_1.SalesRepresentative(Number(row['id']), String(row['external_id']), Number(row['partner_id']), user_raw === null || user_raw === undefined ? null : Number(user_raw), new Date(String(row['created_at'])), new Date(String(row['updated_at'])), null);
+        return new sales_representative_entity_1.SalesRepresentative(Number(row['id']), String(row['external_id']), Number(row['partner_id']), user_raw === null || user_raw === undefined ? null : Number(user_raw), new Date(String(row['created_at'])), new Date(String(row['updated_at'])), null, row['is_default'] === true);
     }
 }
 exports.SalesRepresentativeMapper = SalesRepresentativeMapper;
@@ -1760,12 +1760,18 @@ let TypeormSalesRepresentativeRepository = class TypeormSalesRepresentativeRepos
             .getOne();
         return row ? sales_representative_mapper_1.SalesRepresentativeMapper.to_domain(row) : null;
     }
-    async find_all(partner_id_filter) {
+    async find_all(partner_id_filter, include_default_representatives = false) {
         const qb = this.with_user_graph_qb().orderBy('sr.id', 'ASC');
+        if (!include_default_representatives) {
+            qb.where('sr.is_default = :is_default', { is_default: false });
+        }
         if (partner_id_filter !== undefined) {
-            qb.andWhere('sr.partner_id = :partner_id', {
-                partner_id: partner_id_filter,
-            });
+            if (include_default_representatives) {
+                qb.where('sr.partner_id = :partner_id', { partner_id: partner_id_filter });
+            }
+            else {
+                qb.andWhere('sr.partner_id = :partner_id', { partner_id: partner_id_filter });
+            }
         }
         const rows = await qb.getMany();
         return rows.map((r) => sales_representative_mapper_1.SalesRepresentativeMapper.to_domain(r));
@@ -1774,7 +1780,7 @@ let TypeormSalesRepresentativeRepository = class TypeormSalesRepresentativeRepos
         const rows = await this.repo.query(`INSERT INTO suppliers_schema.sales_representatives (
         external_id, partner_id, user_id
       ) VALUES (gen_random_uuid(), $1, $2)
-      RETURNING id, external_id, partner_id, user_id, created_at, updated_at`, [props.partner_id, props.user_id]);
+      RETURNING id, external_id, partner_id, user_id, created_at, updated_at, is_default`, [props.partner_id, props.user_id]);
         return sales_representative_mapper_1.SalesRepresentativeMapper.from_raw_row(rows[0]);
     }
     async update_user_by_external_id(external_id, user_id) {
@@ -6965,7 +6971,6 @@ const bank_accounts_module_1 = __webpack_require__(/*! @modules/bank-accounts/ba
 const businesses_module_1 = __webpack_require__(/*! @modules/businesses/businesses.module */ "./apps/suppliers-ms/src/modules/businesses/businesses.module.ts");
 const legal_representatives_module_1 = __webpack_require__(/*! @modules/legal-representatives/legal-representatives.module */ "./apps/suppliers-ms/src/modules/legal-representatives/legal-representatives.module.ts");
 const suppliers_module_1 = __webpack_require__(/*! @modules/suppliers/suppliers.module */ "./apps/suppliers-ms/src/modules/suppliers/suppliers.module.ts");
-const sales_representatives_module_1 = __webpack_require__(/*! @modules/sales-representatives/sales-representatives.module */ "./apps/suppliers-ms/src/modules/sales-representatives/sales-representatives.module.ts");
 const typeorm_partner_repository_1 = __webpack_require__(/*! @infrastructure/database/repositories/typeorm-partner.repository */ "./apps/suppliers-ms/src/infrastructure/database/repositories/typeorm-partner.repository.ts");
 const partners_tokens_1 = __webpack_require__(/*! ./partners.tokens */ "./apps/suppliers-ms/src/modules/partners/partners.tokens.ts");
 const create_partner_use_case_1 = __webpack_require__(/*! ./application/use-cases/create-partner/create-partner.use-case */ "./apps/suppliers-ms/src/modules/partners/application/use-cases/create-partner/create-partner.use-case.ts");
@@ -6988,7 +6993,6 @@ exports.PartnersModule = PartnersModule = __decorate([
             businesses_module_1.BusinessesModule,
             legal_representatives_module_1.LegalRepresentativesModule,
             suppliers_module_1.SuppliersModule,
-            sales_representatives_module_1.SalesRepresentativesModule,
             platform_express_1.MulterModule.register({
                 storage: (0, multer_1.memoryStorage)(),
                 limits: { fileSize: 12 * 1024 * 1024 },
@@ -8223,7 +8227,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var _a, _b, _c, _d;
+var _a, _b;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.PartnersPublicController = void 0;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
@@ -8231,21 +8235,11 @@ const swagger_1 = __webpack_require__(/*! @nestjs/swagger */ "@nestjs/swagger");
 const shared_1 = __webpack_require__(/*! @platam/shared */ "./libs/shared/src/index.ts");
 const get_partner_by_external_id_use_case_1 = __webpack_require__(/*! @modules/partners/application/use-cases/get-partner-by-external-id/get-partner-by-external-id.use-case */ "./apps/suppliers-ms/src/modules/partners/application/use-cases/get-partner-by-external-id/get-partner-by-external-id.use-case.ts");
 const get_partner_by_external_id_request_1 = __webpack_require__(/*! @modules/partners/application/use-cases/get-partner-by-external-id/get-partner-by-external-id.request */ "./apps/suppliers-ms/src/modules/partners/application/use-cases/get-partner-by-external-id/get-partner-by-external-id.request.ts");
-const list_sales_representatives_use_case_1 = __webpack_require__(/*! @modules/sales-representatives/application/use-cases/list-sales-representatives/list-sales-representatives.use-case */ "./apps/suppliers-ms/src/modules/sales-representatives/application/use-cases/list-sales-representatives/list-sales-representatives.use-case.ts");
-const list_sales_representatives_request_1 = __webpack_require__(/*! @modules/sales-representatives/application/use-cases/list-sales-representatives/list-sales-representatives.request */ "./apps/suppliers-ms/src/modules/sales-representatives/application/use-cases/list-sales-representatives/list-sales-representatives.request.ts");
 const partner_public_camel_response_dto_1 = __webpack_require__(/*! ./dto/partner-public-camel-response.dto */ "./apps/suppliers-ms/src/modules/partners/presentation/dto/partner-public-camel-response.dto.ts");
-const sales_representative_response_dto_1 = __webpack_require__(/*! @modules/sales-representatives/presentation/dto/sales-representative-response.dto */ "./apps/suppliers-ms/src/modules/sales-representatives/presentation/dto/sales-representative-response.dto.ts");
 let PartnersPublicController = class PartnersPublicController {
     get_partner;
-    list_sales_representatives;
-    constructor(get_partner, list_sales_representatives) {
+    constructor(get_partner) {
         this.get_partner = get_partner;
-        this.list_sales_representatives = list_sales_representatives;
-    }
-    async list_sales_representatives_by_partner(partner_external_id) {
-        await this.assert_active_partner(partner_external_id);
-        const rows = await this.list_sales_representatives.execute(new list_sales_representatives_request_1.ListSalesRepresentativesRequest(partner_external_id));
-        return rows.map(sales_representative_response_dto_1.SalesRepresentativeResponseDto.from);
     }
     async get_by_external_id(id) {
         const res = await this.get_partner.execute(new get_partner_by_external_id_request_1.GetPartnerByExternalIdRequest(id));
@@ -8254,29 +8248,8 @@ let PartnersPublicController = class PartnersPublicController {
         }
         return partner_public_camel_response_dto_1.PartnerPublicCamelResponseDto.from(res);
     }
-    async assert_active_partner(partner_external_id) {
-        const res = await this.get_partner.execute(new get_partner_by_external_id_request_1.GetPartnerByExternalIdRequest(partner_external_id));
-        if (res.state !== shared_1.PartnerState.ACTIVE) {
-            throw new common_1.NotFoundException('partner not found');
-        }
-    }
 };
 exports.PartnersPublicController = PartnersPublicController;
-__decorate([
-    (0, common_1.Get)(':id/sales-representatives'),
-    (0, swagger_1.ApiOperation)({
-        summary: 'Listar representantes de ventas del partner (público)',
-        description: 'Solo disponible si el partner existe y está `active`. Misma forma que GET /sales-representatives?partnerExternalId=.',
-    }),
-    (0, swagger_1.ApiOkResponse)({
-        description: 'Lista de representantes',
-        type: [sales_representative_response_dto_1.SalesRepresentativeResponseDto],
-    }),
-    __param(0, (0, common_1.Param)('id', new common_1.ParseUUIDPipe({ version: '4' }))),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", typeof (_c = typeof Promise !== "undefined" && Promise) === "function" ? _c : Object)
-], PartnersPublicController.prototype, "list_sales_representatives_by_partner", null);
 __decorate([
     (0, common_1.Get)(':id'),
     (0, swagger_1.ApiOperation)({
@@ -8290,12 +8263,12 @@ __decorate([
     __param(0, (0, common_1.Param)('id', new common_1.ParseUUIDPipe({ version: '4' }))),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", typeof (_d = typeof Promise !== "undefined" && Promise) === "function" ? _d : Object)
+    __metadata("design:returntype", typeof (_b = typeof Promise !== "undefined" && Promise) === "function" ? _b : Object)
 ], PartnersPublicController.prototype, "get_by_external_id", null);
 exports.PartnersPublicController = PartnersPublicController = __decorate([
     (0, swagger_1.ApiTags)('partners'),
     (0, common_1.Controller)('partners'),
-    __metadata("design:paramtypes", [typeof (_a = typeof get_partner_by_external_id_use_case_1.GetPartnerByExternalIdUseCase !== "undefined" && get_partner_by_external_id_use_case_1.GetPartnerByExternalIdUseCase) === "function" ? _a : Object, typeof (_b = typeof list_sales_representatives_use_case_1.ListSalesRepresentativesUseCase !== "undefined" && list_sales_representatives_use_case_1.ListSalesRepresentativesUseCase) === "function" ? _b : Object])
+    __metadata("design:paramtypes", [typeof (_a = typeof get_partner_by_external_id_use_case_1.GetPartnerByExternalIdUseCase !== "undefined" && get_partner_by_external_id_use_case_1.GetPartnerByExternalIdUseCase) === "function" ? _a : Object])
 ], PartnersPublicController);
 
 
@@ -8631,6 +8604,7 @@ async function build_sales_representative_public_fields(rep, lookup) {
         user_state: lu?.state ?? null,
         created_at: rep.created_at,
         updated_at: rep.updated_at,
+        is_default: rep.is_default,
     };
 }
 
@@ -8679,6 +8653,7 @@ class CreateSalesRepresentativeResponse {
     user_state;
     created_at;
     updated_at;
+    is_default;
     constructor(fields) {
         Object.assign(this, fields);
     }
@@ -8873,6 +8848,7 @@ class GetSalesRepresentativeByExternalIdResponse {
     user_state;
     created_at;
     updated_at;
+    is_default;
     constructor(fields) {
         Object.assign(this, fields);
     }
@@ -8951,8 +8927,10 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ListSalesRepresentativesRequest = void 0;
 class ListSalesRepresentativesRequest {
     partnerExternalId;
-    constructor(partnerExternalId) {
+    includeDefaultRepresentatives;
+    constructor(partnerExternalId, includeDefaultRepresentatives) {
         this.partnerExternalId = partnerExternalId;
+        this.includeDefaultRepresentatives = includeDefaultRepresentatives;
     }
 }
 exports.ListSalesRepresentativesRequest = ListSalesRepresentativesRequest;
@@ -9007,7 +8985,7 @@ let ListSalesRepresentativesUseCase = class ListSalesRepresentativesUseCase {
             }
             partner_id_filter = resolved;
         }
-        const rows = await this.sales_representative_repository.find_all(partner_id_filter);
+        const rows = await this.sales_representative_repository.find_all(partner_id_filter, req.includeDefaultRepresentatives === true);
         const out = [];
         for (const row of rows) {
             const fields = await (0, sales_representative_public_fields_builder_1.build_sales_representative_public_fields)(row, this.lookup);
@@ -9072,6 +9050,7 @@ class UpdateSalesRepresentativeByExternalIdResponse {
     user_state;
     created_at;
     updated_at;
+    is_default;
     constructor(fields) {
         Object.assign(this, fields);
     }
@@ -9174,8 +9153,9 @@ class SalesRepresentative {
     created_at;
     updated_at;
     user_full_name;
+    is_default;
     loaded_user;
-    constructor(internal_id, external_id, partner_id, user_id, created_at, updated_at, user_full_name, loaded_user) {
+    constructor(internal_id, external_id, partner_id, user_id, created_at, updated_at, user_full_name, is_default, loaded_user) {
         this.internal_id = internal_id;
         this.external_id = external_id;
         this.partner_id = partner_id;
@@ -9183,6 +9163,7 @@ class SalesRepresentative {
         this.created_at = created_at;
         this.updated_at = updated_at;
         this.user_full_name = user_full_name;
+        this.is_default = is_default;
         this.loaded_user = loaded_user;
     }
 }
@@ -9315,6 +9296,57 @@ __decorate([
 
 /***/ },
 
+/***/ "./apps/suppliers-ms/src/modules/sales-representatives/presentation/dto/sales-representative-public-option.dto.ts"
+/*!************************************************************************************************************************!*\
+  !*** ./apps/suppliers-ms/src/modules/sales-representatives/presentation/dto/sales-representative-public-option.dto.ts ***!
+  \************************************************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SalesRepresentativePublicOptionDto = void 0;
+const swagger_1 = __webpack_require__(/*! @nestjs/swagger */ "@nestjs/swagger");
+class SalesRepresentativePublicOptionDto {
+    externalId;
+    userFullName;
+    isDefault;
+    static from(fields) {
+        const d = new SalesRepresentativePublicOptionDto();
+        d.externalId = fields.external_id;
+        d.userFullName = fields.user_full_name;
+        d.isDefault = fields.is_default;
+        return d;
+    }
+}
+exports.SalesRepresentativePublicOptionDto = SalesRepresentativePublicOptionDto;
+__decorate([
+    (0, swagger_1.ApiProperty)({ format: 'uuid' }),
+    __metadata("design:type", String)
+], SalesRepresentativePublicOptionDto.prototype, "externalId", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        nullable: true,
+        description: 'Nombre completo desde persona (first_name + last_name) del usuario vinculado',
+    }),
+    __metadata("design:type", Object)
+], SalesRepresentativePublicOptionDto.prototype, "userFullName", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ description: 'Representante por defecto del partner' }),
+    __metadata("design:type", Boolean)
+], SalesRepresentativePublicOptionDto.prototype, "isDefault", void 0);
+
+
+/***/ },
+
 /***/ "./apps/suppliers-ms/src/modules/sales-representatives/presentation/dto/sales-representative-response.dto.ts"
 /*!*******************************************************************************************************************!*\
   !*** ./apps/suppliers-ms/src/modules/sales-representatives/presentation/dto/sales-representative-response.dto.ts ***!
@@ -9345,6 +9377,7 @@ class SalesRepresentativeResponseDto {
     userDisplayName;
     userRoleName;
     userState;
+    isDefault;
     static from(fields) {
         const d = new SalesRepresentativeResponseDto();
         d.internalId = fields.internal_id;
@@ -9355,6 +9388,7 @@ class SalesRepresentativeResponseDto {
         d.userDisplayName = fields.user_display_name;
         d.userRoleName = fields.user_role_name;
         d.userState = fields.user_state;
+        d.isDefault = fields.is_default;
         return d;
     }
 }
@@ -9394,6 +9428,84 @@ __decorate([
     (0, swagger_1.ApiProperty)({ enum: shared_1.UserState, nullable: true }),
     __metadata("design:type", Object)
 ], SalesRepresentativeResponseDto.prototype, "userState", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ description: 'Representante por defecto del partner' }),
+    __metadata("design:type", Boolean)
+], SalesRepresentativeResponseDto.prototype, "isDefault", void 0);
+
+
+/***/ },
+
+/***/ "./apps/suppliers-ms/src/modules/sales-representatives/presentation/sales-representatives-public.controller.ts"
+/*!*********************************************************************************************************************!*\
+  !*** ./apps/suppliers-ms/src/modules/sales-representatives/presentation/sales-representatives-public.controller.ts ***!
+  \*********************************************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+var _a, _b, _c;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SalesRepresentativesPublicController = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const swagger_1 = __webpack_require__(/*! @nestjs/swagger */ "@nestjs/swagger");
+const shared_1 = __webpack_require__(/*! @platam/shared */ "./libs/shared/src/index.ts");
+const get_partner_by_external_id_use_case_1 = __webpack_require__(/*! @modules/partners/application/use-cases/get-partner-by-external-id/get-partner-by-external-id.use-case */ "./apps/suppliers-ms/src/modules/partners/application/use-cases/get-partner-by-external-id/get-partner-by-external-id.use-case.ts");
+const get_partner_by_external_id_request_1 = __webpack_require__(/*! @modules/partners/application/use-cases/get-partner-by-external-id/get-partner-by-external-id.request */ "./apps/suppliers-ms/src/modules/partners/application/use-cases/get-partner-by-external-id/get-partner-by-external-id.request.ts");
+const list_sales_representatives_use_case_1 = __webpack_require__(/*! @modules/sales-representatives/application/use-cases/list-sales-representatives/list-sales-representatives.use-case */ "./apps/suppliers-ms/src/modules/sales-representatives/application/use-cases/list-sales-representatives/list-sales-representatives.use-case.ts");
+const list_sales_representatives_request_1 = __webpack_require__(/*! @modules/sales-representatives/application/use-cases/list-sales-representatives/list-sales-representatives.request */ "./apps/suppliers-ms/src/modules/sales-representatives/application/use-cases/list-sales-representatives/list-sales-representatives.request.ts");
+const sales_representative_public_option_dto_1 = __webpack_require__(/*! ./dto/sales-representative-public-option.dto */ "./apps/suppliers-ms/src/modules/sales-representatives/presentation/dto/sales-representative-public-option.dto.ts");
+let SalesRepresentativesPublicController = class SalesRepresentativesPublicController {
+    get_partner;
+    list_sales_representatives;
+    constructor(get_partner, list_sales_representatives) {
+        this.get_partner = get_partner;
+        this.list_sales_representatives = list_sales_representatives;
+    }
+    async list_by_partner_public(partner_external_id) {
+        await this.assert_active_partner(partner_external_id);
+        const rows = await this.list_sales_representatives.execute(new list_sales_representatives_request_1.ListSalesRepresentativesRequest(partner_external_id, true));
+        return rows.map(sales_representative_public_option_dto_1.SalesRepresentativePublicOptionDto.from);
+    }
+    async assert_active_partner(partner_external_id) {
+        const res = await this.get_partner.execute(new get_partner_by_external_id_request_1.GetPartnerByExternalIdRequest(partner_external_id));
+        if (res.state !== shared_1.PartnerState.ACTIVE) {
+            throw new common_1.NotFoundException('partner not found');
+        }
+    }
+};
+exports.SalesRepresentativesPublicController = SalesRepresentativesPublicController;
+__decorate([
+    (0, common_1.Get)('partner/:partner_external_id'),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Listar representantes de ventas del partner (público)',
+        description: 'Solo disponible si el partner existe y está `active`. Incluye todos los representantes del partner, también los marcados como `is_default`. Respuesta con `externalId`, `userFullName` e `isDefault`.',
+    }),
+    (0, swagger_1.ApiOkResponse)({
+        description: 'Lista de representantes',
+        type: [sales_representative_public_option_dto_1.SalesRepresentativePublicOptionDto],
+    }),
+    __param(0, (0, common_1.Param)('partner_external_id', new common_1.ParseUUIDPipe({ version: '4' }))),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", typeof (_c = typeof Promise !== "undefined" && Promise) === "function" ? _c : Object)
+], SalesRepresentativesPublicController.prototype, "list_by_partner_public", null);
+exports.SalesRepresentativesPublicController = SalesRepresentativesPublicController = __decorate([
+    (0, swagger_1.ApiTags)('sales-representatives'),
+    (0, common_1.Controller)('sales-representatives'),
+    __metadata("design:paramtypes", [typeof (_a = typeof get_partner_by_external_id_use_case_1.GetPartnerByExternalIdUseCase !== "undefined" && get_partner_by_external_id_use_case_1.GetPartnerByExternalIdUseCase) === "function" ? _a : Object, typeof (_b = typeof list_sales_representatives_use_case_1.ListSalesRepresentativesUseCase !== "undefined" && list_sales_representatives_use_case_1.ListSalesRepresentativesUseCase) === "function" ? _b : Object])
+], SalesRepresentativesPublicController);
 
 
 /***/ },
@@ -9551,6 +9663,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SalesRepresentativesModule = void 0;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
 const infrastructure_module_1 = __webpack_require__(/*! @infrastructure/infrastructure.module */ "./apps/suppliers-ms/src/infrastructure/infrastructure.module.ts");
+const partners_module_1 = __webpack_require__(/*! @modules/partners/partners.module */ "./apps/suppliers-ms/src/modules/partners/partners.module.ts");
 const typeorm_sales_representative_repository_1 = __webpack_require__(/*! @infrastructure/database/repositories/typeorm-sales-representative.repository */ "./apps/suppliers-ms/src/infrastructure/database/repositories/typeorm-sales-representative.repository.ts");
 const sales_representatives_tokens_1 = __webpack_require__(/*! ./sales-representatives.tokens */ "./apps/suppliers-ms/src/modules/sales-representatives/sales-representatives.tokens.ts");
 const create_sales_representative_use_case_1 = __webpack_require__(/*! ./application/use-cases/create-sales-representative/create-sales-representative.use-case */ "./apps/suppliers-ms/src/modules/sales-representatives/application/use-cases/create-sales-representative/create-sales-representative.use-case.ts");
@@ -9559,13 +9672,14 @@ const list_sales_representatives_use_case_1 = __webpack_require__(/*! ./applicat
 const update_sales_representative_by_external_id_use_case_1 = __webpack_require__(/*! ./application/use-cases/update-sales-representative-by-external-id/update-sales-representative-by-external-id.use-case */ "./apps/suppliers-ms/src/modules/sales-representatives/application/use-cases/update-sales-representative-by-external-id/update-sales-representative-by-external-id.use-case.ts");
 const delete_sales_representative_by_external_id_use_case_1 = __webpack_require__(/*! ./application/use-cases/delete-sales-representative-by-external-id/delete-sales-representative-by-external-id.use-case */ "./apps/suppliers-ms/src/modules/sales-representatives/application/use-cases/delete-sales-representative-by-external-id/delete-sales-representative-by-external-id.use-case.ts");
 const sales_representatives_controller_1 = __webpack_require__(/*! ./presentation/sales-representatives.controller */ "./apps/suppliers-ms/src/modules/sales-representatives/presentation/sales-representatives.controller.ts");
+const sales_representatives_public_controller_1 = __webpack_require__(/*! ./presentation/sales-representatives-public.controller */ "./apps/suppliers-ms/src/modules/sales-representatives/presentation/sales-representatives-public.controller.ts");
 let SalesRepresentativesModule = class SalesRepresentativesModule {
 };
 exports.SalesRepresentativesModule = SalesRepresentativesModule;
 exports.SalesRepresentativesModule = SalesRepresentativesModule = __decorate([
     (0, common_1.Module)({
-        imports: [infrastructure_module_1.InfrastructureModule],
-        controllers: [sales_representatives_controller_1.SalesRepresentativesController],
+        imports: [infrastructure_module_1.InfrastructureModule, partners_module_1.PartnersModule],
+        controllers: [sales_representatives_controller_1.SalesRepresentativesController, sales_representatives_public_controller_1.SalesRepresentativesPublicController],
         providers: [
             {
                 provide: sales_representatives_tokens_1.SALES_REPRESENTATIVE_REPOSITORY,

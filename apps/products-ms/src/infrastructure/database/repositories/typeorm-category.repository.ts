@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Equal, Repository } from 'typeorm';
-import { CategoryEntity } from '@app/products-data';
+import { CategoryEntity, CreditFacilityEntity } from '@app/products-data';
 import { CategoryRepository } from '@modules/categories/domain/ports/category.ports';
 import {
   Category,
@@ -48,13 +48,49 @@ export class TypeormCategoryRepository implements CategoryRepository {
     private readonly repo: Repository<CategoryEntity>,
   ) {}
 
+  /**
+   * TypeORM a veces no hidrata `creditFacility` en el lado inverso del M:N; si hay fila en
+   * `client_category_assignments`, completamos el id mínimo que exige `CategoryMapper`.
+   */
+  private async hydrate_credit_facilities_from_assignments(
+    rows: CategoryEntity[],
+  ): Promise<void> {
+    const missing = rows.filter((r) => (r.creditFacility?.length ?? 0) === 0);
+    if (missing.length === 0) {
+      return;
+    }
+    const ids = missing.map((r) => r.id);
+    const links = await this.repo.query(
+      `SELECT category_id, credit_facility_id
+       FROM products_schema.client_category_assignments
+       WHERE category_id = ANY($1::bigint[])`,
+      [ids],
+    ) as { category_id: string; credit_facility_id: string }[];
+    const by_category = new Map<number, number>(
+      links.map((l) => [
+        Number(l.category_id),
+        Number(l.credit_facility_id),
+      ]),
+    );
+    for (const r of missing) {
+      const cf_id = by_category.get(r.id);
+      if (cf_id !== undefined) {
+        r.creditFacility = [{ id: cf_id } as CreditFacilityEntity];
+      }
+    }
+  }
+
   async find_by_external_id(external_id: string): Promise<Category | null> {
     const row = await this.repo.findOne({
       where: { externalId: external_id },
       select: CATEGORY_SELECT,
       relations: CATEGORY_RELATIONS,
     });
-    return row ? CategoryMapper.to_domain(row) : null;
+    if (!row) {
+      return null;
+    }
+    await this.hydrate_credit_facilities_from_assignments([row]);
+    return CategoryMapper.to_domain(row);
   }
 
   async find_all(filter?: {
@@ -74,6 +110,7 @@ export class TypeormCategoryRepository implements CategoryRepository {
       relations: CATEGORY_RELATIONS,
       order: { id: 'ASC' },
     });
+    await this.hydrate_credit_facilities_from_assignments(rows);
     return rows.map((r) => CategoryMapper.to_domain(r));
   }
 

@@ -12,6 +12,7 @@ export class CreateSalesRepresentativeResponse implements SalesRepresentativePub
   user_state: UserState | null;
   created_at: Date;
   updated_at: Date;
+  is_default: boolean;
 
   constructor(fields: SalesRepresentativePublicFields) {
     Object.assign(this, fields);

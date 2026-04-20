@@ -16,6 +16,12 @@ import { PRODUCTS_REFERENCE_LOOKUP } from '@common/ports/products-reference-look
 import { TypeormProductsReferenceLookupAdapter } from '@infrastructure/database/common/typeorm-products-reference-lookup.adapter';
 import { TypeormClientRegistrationAdapter } from '@infrastructure/database/adapters/typeorm-client-registration.adapter';
 import { StubCreditApplicationDocumentStorageAdapter } from '@infrastructure/database/adapters/stub-credit-application-document-storage.adapter';
+import { PartnerCreateUserSqsIdempotencyEntity } from '@app/transversal-data';
+import { ConfigTransversalCreatePersonQueueUrlAdapter } from '@infrastructure/messaging/sqs/adapters/config-transversal-create-person-queue-url.adapter';
+import { TRANSVERSAL_CREATE_PERSON_QUEUE_URL_PORT } from '@messaging/domain/ports/transversal-create-person-queue-url.port';
+import { PublishCreatePersonCommandUseCase } from '@messaging/application/use-cases/publish-create-person-command.use-case';
+import { TypeormCreatePersonSqsResultPollAdapter } from '@infrastructure/database/adapters/typeorm-create-person-sqs-result-poll.adapter';
+import { CREATE_PERSON_SQS_RESULT_READER_PORT } from '@modules/credit-applications/application/ports/create-person-sqs-result-reader.port';
 
 @Global()
 @Module({
@@ -24,6 +30,7 @@ import { StubCreditApplicationDocumentStorageAdapter } from '@infrastructure/dat
       imports: [ConfigModule],
       useClass: PostgresTypeOrmConfigService,
     }),
+    TypeOrmModule.forFeature([PartnerCreateUserSqsIdempotencyEntity]),
     ProductsDataModule,
     SqsModule,
   ],
@@ -55,6 +62,17 @@ import { StubCreditApplicationDocumentStorageAdapter } from '@infrastructure/dat
       provide: CREDIT_APPLICATION_DOCUMENT_STORAGE,
       useExisting: StubCreditApplicationDocumentStorageAdapter,
     },
+    ConfigTransversalCreatePersonQueueUrlAdapter,
+    {
+      provide: TRANSVERSAL_CREATE_PERSON_QUEUE_URL_PORT,
+      useExisting: ConfigTransversalCreatePersonQueueUrlAdapter,
+    },
+    PublishCreatePersonCommandUseCase,
+    TypeormCreatePersonSqsResultPollAdapter,
+    {
+      provide: CREATE_PERSON_SQS_RESULT_READER_PORT,
+      useExisting: TypeormCreatePersonSqsResultPollAdapter,
+    },
   ],
   exports: [
     CATEGORY_REPOSITORY,
@@ -63,6 +81,8 @@ import { StubCreditApplicationDocumentStorageAdapter } from '@infrastructure/dat
     CLIENT_REGISTRATION_PORT,
     CREDIT_APPLICATION_DOCUMENT_STORAGE,
     PRODUCTS_REFERENCE_LOOKUP,
+    PublishCreatePersonCommandUseCase,
+    CREATE_PERSON_SQS_RESULT_READER_PORT,
   ],
 })
 export class InfrastructureModule {}
