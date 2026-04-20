@@ -49,4 +49,17 @@ export class TypeormProductsReferenceLookupAdapter
     const v = rows[0]?.external_id;
     return v === undefined || v === null || v.length === 0 ? null : v;
   }
+
+  async get_partner_internal_id_by_external_id(
+    external_id: string,
+  ): Promise<number | null> {
+    const rows: Array<{ id: number }> = await this.data_source.query(
+      `SELECT id
+       FROM suppliers_schema.partners
+       WHERE external_id = $1::uuid
+       LIMIT 1`,
+      [external_id],
+    );
+    return rows[0]?.id ?? null;
+  }
 }

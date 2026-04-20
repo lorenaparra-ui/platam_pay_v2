@@ -7,7 +7,7 @@ import type {
 export interface CategoryRepository {
   find_by_external_id(external_id: string): Promise<Category | null>;
 
-  find_all(filter?: { credit_facility_id?: number }): Promise<Category[]>;
+  find_all(filter?: { credit_facility_id?: number; partner_id?: number }): Promise<Category[]>;
 
   create(props: CreateCategoryProps): Promise<Category>;
 

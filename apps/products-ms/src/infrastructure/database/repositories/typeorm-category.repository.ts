@@ -10,10 +10,10 @@ import {
 } from '@modules/categories/domain/models/category.models';
 import { CategoryMapper } from '@infrastructure/database/mappers/category.mapper';
 
+/** Sin `partnerId`: es @RelationId y TypeORM no lo admite en find select/where. */
 const CATEGORY_SELECT = {
   id: true,
   externalId: true,
-  partnerId: true,
   name: true,
   modality: true,
   discountPercentage: true,
@@ -28,9 +28,17 @@ const CATEGORY_SELECT = {
   state: true,
   createdAt: true,
   updatedAt: true,
+  partner: {
+    id: true,
+  },
   creditFacility: {
     id: true,
   },
+} as const;
+
+const CATEGORY_RELATIONS = {
+  creditFacility: true,
+  partner: true,
 } as const;
 
 @Injectable()
@@ -44,25 +52,26 @@ export class TypeormCategoryRepository implements CategoryRepository {
     const row = await this.repo.findOne({
       where: { externalId: external_id },
       select: CATEGORY_SELECT,
-      relations: { creditFacility: true },
+      relations: CATEGORY_RELATIONS,
     });
     return row ? CategoryMapper.to_domain(row) : null;
   }
 
   async find_all(filter?: {
     credit_facility_id?: number;
+    partner_id?: number;
   }): Promise<Category[]> {
+    const where: Record<string, unknown> = {};
+    if (filter?.credit_facility_id !== undefined) {
+      where['creditFacility'] = { id: Equal(filter.credit_facility_id) };
+    }
+    if (filter?.partner_id !== undefined) {
+      where['partner'] = { id: Equal(filter.partner_id) };
+    }
     const rows = await this.repo.find({
-      where:
-        filter?.credit_facility_id !== undefined
-          ? {
-              creditFacility: {
-                id: Equal(filter.credit_facility_id),
-              },
-            }
-          : {},
+      where,
       select: CATEGORY_SELECT,
-      relations: { creditFacility: true },
+      relations: CATEGORY_RELATIONS,
       order: { id: 'ASC' },
     });
     return rows.map((r) => CategoryMapper.to_domain(r));

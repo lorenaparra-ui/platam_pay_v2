@@ -4,6 +4,7 @@ import { GetCategoryByExternalIdUseCase } from '@modules/categories/application/
 import { ListCategoriesUseCase } from '@modules/categories/application/use-cases/list-categories/list-categories.use-case';
 import { UpdateCategoryByExternalIdUseCase } from '@modules/categories/application/use-cases/update-category-by-external-id/update-category-by-external-id.use-case';
 import { DeleteCategoryByExternalIdUseCase } from '@modules/categories/application/use-cases/delete-category-by-external-id/delete-category-by-external-id.use-case';
+import { ListCategoriesByPartnerUseCase } from '@modules/categories/application/use-cases/list-categories-by-partner/list-categories-by-partner.use-case';
 
 @Module({
   providers: [
@@ -12,6 +13,7 @@ import { DeleteCategoryByExternalIdUseCase } from '@modules/categories/applicati
     ListCategoriesUseCase,
     UpdateCategoryByExternalIdUseCase,
     DeleteCategoryByExternalIdUseCase,
+    ListCategoriesByPartnerUseCase,
   ],
   exports: [
     CreateCategoryUseCase,
@@ -19,6 +21,7 @@ import { DeleteCategoryByExternalIdUseCase } from '@modules/categories/applicati
     ListCategoriesUseCase,
     UpdateCategoryByExternalIdUseCase,
     DeleteCategoryByExternalIdUseCase,
+    ListCategoriesByPartnerUseCase,
   ],
 })
 export class CategoriesApplicationModule {}

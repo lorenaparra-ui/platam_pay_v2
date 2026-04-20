@@ -22,7 +22,7 @@ export class CategoryMapper {
       row.id,
       row.externalId,
       credit_facility_id_from_entity(row),
-      row.partnerId ?? null,
+      row.partner?.id ?? row.partnerId ?? null,
       row.name,
       row.modality,
       row.discountPercentage,

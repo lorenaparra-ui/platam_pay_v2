@@ -16,4 +16,8 @@ export interface ProductsReferenceLookupPort {
   get_partner_external_id_by_internal_id(
     internal_id: number,
   ): Promise<string | null>;
+
+  get_partner_internal_id_by_external_id(
+    external_id: string,
+  ): Promise<number | null>;
 }
