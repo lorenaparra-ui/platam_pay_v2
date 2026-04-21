@@ -5,6 +5,7 @@ import type {
   TwilioMessagingPort,
   TwilioSmsSendRequest,
   TwilioWhatsappSendRequest,
+  TwilioWhatsappTemplateSendRequest,
 } from '@modules/notifications/domain/ports/twilio-messaging.port';
 
 @Injectable()
@@ -52,6 +53,32 @@ export class TwilioMessagingAdapter implements TwilioMessagingPort {
       });
     } catch (err: unknown) {
       this.log_twilio_error('whatsapp', err);
+      throw err instanceof Error ? err : new Error(String(err));
+    }
+  }
+
+  async send_whatsapp_template(request: TwilioWhatsappTemplateSendRequest): Promise<void> {
+    const from_raw = (
+      this.config_service.get<string>('notifications.twilio_from_whatsapp') ?? ''
+    ).trim();
+    if (!from_raw) {
+      throw new Error('TWILIO_FROM_WHATSAPP no configurado');
+    }
+    const from = from_raw.startsWith('whatsapp:') ? from_raw : `whatsapp:${from_raw}`;
+    const to = request.to_e164.startsWith('whatsapp:')
+      ? request.to_e164
+      : `whatsapp:${request.to_e164}`;
+
+    const client = this.create_client();
+    try {
+      await client.messages.create({
+        from,
+        to,
+        contentSid: request.content_sid,
+        contentVariables: JSON.stringify(request.content_variables),
+      });
+    } catch (err: unknown) {
+      this.log_twilio_error('whatsapp_template', err);
       throw err instanceof Error ? err : new Error(String(err));
     }
   }

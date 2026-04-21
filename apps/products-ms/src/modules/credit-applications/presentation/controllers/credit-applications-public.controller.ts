@@ -42,6 +42,7 @@ export class CreditApplicationsPublicController {
         dto.businessType,
         dto.isCurrentClient,
         dto.requestedCreditLine,
+        dto.privacyPolicyAccepted,
         dto.relationshipToBusiness,
         dto.cityId,
         dto.businessAddress,

@@ -11,6 +11,9 @@ import { ApproveCreditApplicationUseCase } from '@modules/credit-applications/ap
 import { RejectCreditApplicationUseCase } from '@modules/credit-applications/application/use-cases/reject-credit-application/reject-credit-application.use-case';
 import { SaveCreditApplicationPreStudyUseCase } from '@modules/credit-applications/application/use-cases/save-credit-application-pre-study/save-credit-application-pre-study.use-case';
 import { UploadCreditApplicationDocumentUseCase } from '@modules/credit-applications/application/use-cases/upload-credit-application-document/upload-credit-application-document.use-case';
+import { GetCreditApplicationAuthorizationDataUseCase } from '@modules/credit-applications/application/use-cases/get-credit-application-authorization-data/get-credit-application-authorization-data.use-case';
+import { AuthorizeCreditApplicationUseCase } from '@modules/credit-applications/application/use-cases/authorize-credit-application/authorize-credit-application.use-case';
+import { PublishAuthorizationNotificationUseCase } from '@modules/credit-applications/application/use-cases/publish-authorization-notification/publish-authorization-notification.use-case';
 
 const USE_CASES = [
   CreateCreditApplicationUseCase,
@@ -25,6 +28,9 @@ const USE_CASES = [
   RejectCreditApplicationUseCase,
   SaveCreditApplicationPreStudyUseCase,
   UploadCreditApplicationDocumentUseCase,
+  GetCreditApplicationAuthorizationDataUseCase,
+  AuthorizeCreditApplicationUseCase,
+  PublishAuthorizationNotificationUseCase,
 ];
 
 @Module({

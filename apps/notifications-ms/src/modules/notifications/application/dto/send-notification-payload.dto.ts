@@ -5,6 +5,7 @@ import {
   IsEmail,
   IsEnum,
   IsIn,
+  IsNotEmpty,
   IsObject,
   IsOptional,
   IsString,
@@ -89,11 +90,45 @@ export class WhatsappNotificationPayloadDto {
   body!: string;
 }
 
+/** Envío con plantilla Twilio Content API (WhatsApp pre-aprobado Meta). */
+export class WhatsappTemplateNotificationPayloadDto {
+  @Expose()
+  @Transform(({ obj }) => {
+    if (typeof obj !== 'object' || obj === null) return undefined;
+    const r = obj as Record<string, unknown>;
+    return r.toE164 ?? r.to_e164;
+  })
+  @IsString()
+  @Matches(/^\+[1-9]\d{1,14}$/, {
+    message: 'to_e164 debe ser E.164 (ej. +573001234567)',
+  })
+  to_e164!: string;
+
+  @Expose()
+  @Transform(({ obj }) => {
+    if (typeof obj !== 'object' || obj === null) return undefined;
+    const r = obj as Record<string, unknown>;
+    return r.contentSid ?? r.content_sid;
+  })
+  @IsString()
+  @IsNotEmpty()
+  content_sid!: string;
+
+  @Expose()
+  @Transform(({ obj }) => {
+    if (typeof obj !== 'object' || obj === null) return undefined;
+    const r = obj as Record<string, unknown>;
+    return r.contentVariables ?? r.content_variables;
+  })
+  @IsObject()
+  content_variables!: Record<string, string>;
+}
+
 /**
  * Contrato entrante SQS v1.0 (event: "send-notification", version: "1.0").
  * - correlationId o correlation_id
- * - channel: "email" | "sms" | "whatsapp"
- * - payload: según canal (email: to[], subject, html y/o text; sms/whatsapp: toE164|to_e164, body)
+ * - channel: "email" | "sms" | "whatsapp" | "whatsapp_template"
+ * - payload: según canal
  */
 export class SendNotificationInboundEnvelopeDto {
   @Expose()

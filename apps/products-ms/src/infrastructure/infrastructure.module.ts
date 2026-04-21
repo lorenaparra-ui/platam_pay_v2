@@ -16,6 +16,8 @@ import { PRODUCTS_REFERENCE_LOOKUP } from '@common/ports/products-reference-look
 import { TypeormProductsReferenceLookupAdapter } from '@infrastructure/database/common/typeorm-products-reference-lookup.adapter';
 import { TypeormClientRegistrationAdapter } from '@infrastructure/database/adapters/typeorm-client-registration.adapter';
 import { StubCreditApplicationDocumentStorageAdapter } from '@infrastructure/database/adapters/stub-credit-application-document-storage.adapter';
+import { EventBridgeSchedulerAdapter } from '@infrastructure/scheduler/eventbridge-scheduler.adapter';
+import { REMINDER_SCHEDULER_PORT } from '@modules/credit-applications/credit-applications.tokens';
 
 @Global()
 @Module({
@@ -55,6 +57,11 @@ import { StubCreditApplicationDocumentStorageAdapter } from '@infrastructure/dat
       provide: CREDIT_APPLICATION_DOCUMENT_STORAGE,
       useExisting: StubCreditApplicationDocumentStorageAdapter,
     },
+    EventBridgeSchedulerAdapter,
+    {
+      provide: REMINDER_SCHEDULER_PORT,
+      useExisting: EventBridgeSchedulerAdapter,
+    },
   ],
   exports: [
     CATEGORY_REPOSITORY,
@@ -63,6 +70,7 @@ import { StubCreditApplicationDocumentStorageAdapter } from '@infrastructure/dat
     CLIENT_REGISTRATION_PORT,
     CREDIT_APPLICATION_DOCUMENT_STORAGE,
     PRODUCTS_REFERENCE_LOOKUP,
+    REMINDER_SCHEDULER_PORT,
   ],
 })
 export class InfrastructureModule {}
