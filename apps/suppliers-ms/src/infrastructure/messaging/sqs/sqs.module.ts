@@ -5,11 +5,13 @@ import { create_sqs_client, QUEUES_CONFIG, SQS_CLIENT, type SqsQueuesUrlsConfig 
 import { SqsMessagePublisherAdapter } from './adapters/sqs-message-publisher.adapter';
 import { ConfigOutboundTransversalQueueUrlAdapter } from './adapters/config-outbound-transversal-queue-url.adapter';
 import { ConfigOutboundProductsQueueUrlAdapter } from './adapters/config-outbound-products-queue-url.adapter';
+import { ConfigProductsInboundQueueUrlAdapter } from './adapters/config-products-inbound-queue-url.adapter';
 import { TransversalInboundSqsConsumer } from './consumers/transversal-inbound-sqs.consumer';
 import { MessagingApplicationModule } from '@messaging/messaging-application.module';
 import { OUTBOUND_MESSAGE_PUBLISHER_PORT } from '@messaging/domain/ports/outbound-message-publisher.port';
 import { TRANSVERSAL_OUTBOUND_QUEUE_URL_PORT } from '@messaging/domain/ports/transversal-outbound-queue-url.port';
 import { PRODUCTS_OUTBOUND_QUEUE_URL_PORT } from '@messaging/domain/ports/products-outbound-queue-url.port';
+import { PRODUCTS_INBOUND_QUEUE_URL_PORT } from '@messaging/domain/ports/products-inbound-queue-url.port';
 import { TRANSVERSAL_UPLOAD_FILES_QUEUE_URL_PORT } from '@messaging/domain/ports/transversal-upload-files-queue-url.port';
 import { ConfigTransversalUploadFilesQueueUrlAdapter } from './adapters/config-transversal-upload-files-queue-url.adapter';
 import { TRANSVERSAL_CREATE_PARTNER_USER_QUEUE_URL_PORT } from '@messaging/domain/ports/transversal-create-partner-user-queue-url.port';
@@ -89,6 +91,11 @@ import { ConfigProductsCreateCategoriesQueueUrlAdapter } from './adapters/config
       provide: PRODUCTS_CREATE_CATEGORIES_QUEUE_URL_PORT,
       useExisting: ConfigProductsCreateCategoriesQueueUrlAdapter,
     },
+    ConfigProductsInboundQueueUrlAdapter,
+    {
+      provide: PRODUCTS_INBOUND_QUEUE_URL_PORT,
+      useExisting: ConfigProductsInboundQueueUrlAdapter,
+    },
   ],
   exports: [
     SQS_CLIENT,
@@ -101,6 +108,7 @@ import { ConfigProductsCreateCategoriesQueueUrlAdapter } from './adapters/config
     PRODUCTS_OUTBOUND_QUEUE_URL_PORT,
     PRODUCTS_CREATE_CREDIT_FACILITY_QUEUE_URL_PORT,
     PRODUCTS_CREATE_CATEGORIES_QUEUE_URL_PORT,
+    PRODUCTS_INBOUND_QUEUE_URL_PORT,
     PublishProductsEventUseCase,
   ],
 })

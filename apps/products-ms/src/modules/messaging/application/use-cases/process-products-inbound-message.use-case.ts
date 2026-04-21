@@ -1,6 +1,14 @@
-﻿import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 import type { UseCase } from '@platam/shared';
-import { CategoryState, CreditFacilityState } from '@platam/shared';
+import {
+  AsyncJobStatus,
+  AsyncJobStep,
+  CategoryState,
+  CreditApplicationStatus,
+  CreditFacilityState,
+} from '@platam/shared';
 import { TransversalInboundMessageDto } from '../dto/transversal-inbound-message.dto';
 import { TransversalEventType } from '../dto/transversal-outbound-event.dto';
 import { CreateCreditFacilityUseCase } from '@modules/credit-facilities/application/use-cases/create-credit-facility/create-credit-facility.use-case';
@@ -9,6 +17,10 @@ import { CreateCategoryUseCase } from '@modules/categories/application/use-cases
 import { CreateCategoryRequest } from '@modules/categories/application/use-cases/create-category/create-category.request';
 import { CREDIT_FACILITY_REPOSITORY } from '@modules/credit-facilities/credit-facilities.tokens';
 import type { CreditFacilityRepository } from '@modules/credit-facilities/domain/ports/credit-facility.ports';
+import { CREDIT_APPLICATION_JOB_REPOSITORY } from '@modules/credit-applications/credit-applications.tokens';
+import type { CreditApplicationJobRepository } from '@modules/credit-applications/domain/ports/credit-application-job.port';
+import { CreateCreditApplicationUseCase } from '@modules/credit-applications/application/use-cases/create-credit-application/create-credit-application.use-case';
+import { CreateCreditApplicationRequest } from '@modules/credit-applications/application/use-cases/create-credit-application/create-credit-application.request';
 
 type CreditFacilityPayload = Readonly<{
   credit_facility_external_id?: string;
@@ -38,6 +50,12 @@ type CategoryBatchPayload = Readonly<{
   partner_id?: number | null;
   state?: string;
   categories?: CategoryItemPayload[];
+}>;
+
+type BusinessCreatedPayload = Readonly<{
+  job_id?: unknown;
+  business_internal_id?: unknown;
+  business_external_id?: unknown;
 }>;
 
 function parse_credit_facility_state(
@@ -77,6 +95,11 @@ export class ProcessProductsInboundMessageUseCase
     private readonly credit_facility_repository: CreditFacilityRepository,
     private readonly create_credit_facility: CreateCreditFacilityUseCase,
     private readonly create_category: CreateCategoryUseCase,
+    @Inject(CREDIT_APPLICATION_JOB_REPOSITORY)
+    private readonly job_repository: CreditApplicationJobRepository,
+    private readonly create_credit_application: CreateCreditApplicationUseCase,
+    @InjectDataSource()
+    private readonly ds: DataSource,
   ) {}
 
   async execute(dto: TransversalInboundMessageDto): Promise<void> {
@@ -86,6 +109,9 @@ export class ProcessProductsInboundMessageUseCase
         return;
       case TransversalEventType.partner_onboarding_category_batch_requested:
         await this.handle_category_batch(dto);
+        return;
+      case TransversalEventType.credit_application_business_created:
+        await this.handle_business_created(dto);
         return;
       default:
         this.logger.log(
@@ -196,6 +222,95 @@ export class ProcessProductsInboundMessageUseCase
 
     this.logger.debug(
       `[Saga][products] categorías creadas count=${categories.length} correlation_id=${dto.correlation_id}`,
+    );
+  }
+
+  private async handle_business_created(
+    dto: TransversalInboundMessageDto,
+  ): Promise<void> {
+    const p = dto.payload as BusinessCreatedPayload;
+
+    const job_id = typeof p.job_id === 'string' ? p.job_id : null;
+    const business_internal_id =
+      typeof p.business_internal_id === 'number' ? p.business_internal_id : null;
+
+    if (!job_id || business_internal_id === null) {
+      this.logger.warn(
+        `[BusinessCreated] payload inválido correlation_id=${dto.correlation_id}`,
+      );
+      return;
+    }
+
+    const job = await this.job_repository.find_by_external_id(job_id);
+    if (!job) {
+      this.logger.warn(`[BusinessCreated] job no encontrado job_id=${job_id}`);
+      return;
+    }
+
+    if (job.step === AsyncJobStep.COMPLETED || job.step === AsyncJobStep.FAILED) {
+      this.logger.debug(`[BusinessCreated] job ya finalizado step=${job.step} job_id=${job_id}`);
+      return;
+    }
+
+    const partner_internal_id = job.resolvedIds.partner_internal_id ?? null;
+    const person_internal_id = job.resolvedIds.person_internal_id ?? null;
+    const sales_rep_internal_id = job.resolvedIds.sales_rep_internal_id ?? null;
+
+    if (sales_rep_internal_id === null) {
+      this.logger.error(`[BusinessCreated] sales_rep_internal_id no resuelto job_id=${job_id}`);
+      await this.job_repository.update_failed(job.id, 'sales_rep_internal_id no resuelto');
+      return;
+    }
+
+    let partner_category_id: number | null = null;
+    if (partner_internal_id !== null) {
+      const rows: Array<{ id: number }> = await this.ds.query(
+        `SELECT id FROM products_schema.categories
+         WHERE partner_id = $1 AND is_default = true
+         LIMIT 1`,
+        [partner_internal_id],
+      );
+      if (rows.length > 0) {
+        partner_category_id = rows[0].id;
+      }
+    }
+
+    const payload = job.payload;
+    await this.create_credit_application.execute(
+      new CreateCreditApplicationRequest(
+        person_internal_id,
+        partner_internal_id,
+        partner_category_id,
+        business_internal_id,
+        sales_rep_internal_id,
+        CreditApplicationStatus.IN_PROGRESS,
+        false,
+        payload.privacy_policy_accepted ?? false,
+        payload.number_of_locations,
+        payload.number_of_employees,
+        payload.business_seniority,
+        null,
+        payload.business_flagship_m2,
+        payload.business_has_rent,
+        payload.business_rent_amount,
+        payload.monthly_income,
+        payload.monthly_expenses,
+        payload.monthly_purchases,
+        payload.current_purchases,
+        payload.total_assets,
+        payload.requested_credit_line,
+      ),
+    );
+
+    await this.job_repository.update_status_and_step(
+      job.id,
+      AsyncJobStatus.COMPLETED,
+      AsyncJobStep.COMPLETED,
+      { business_internal_id },
+    );
+
+    this.logger.log(
+      `[BusinessCreated] solicitud de crédito creada job_id=${job_id} business_id=${business_internal_id}`,
     );
   }
 }

@@ -64,16 +64,12 @@ export class RegisterNaturalPersonCreditApplicationUseCase {
     if (person_id === null) {
       const correlation_id = new_uuid();
       const idempotency_key = `${correlation_id}__natural_person_credit_application`;
-      const default_country =
-        (this.config_service.get<string>('config.natural_person_onboarding.default_country_code') ??
-          'CO') ||
-        'CO';
+     
 
       try {
         await this.publish_create_person.execute({
           correlation_id,
           idempotency_key,
-          country_code: default_country,
           first_name: req.firstName,
           last_name: req.lastName,
           doc_type: req.docType,

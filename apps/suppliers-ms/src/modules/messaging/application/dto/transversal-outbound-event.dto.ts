@@ -10,6 +10,8 @@ export enum TransversalEventType {
   /** Publicación hacia products-ms (mismo contrato JSON en SQS). */
   partner_onboarding_credit_facility_requested = 'partner_onboarding_credit_facility_requested',
   partner_onboarding_category_batch_requested = 'partner_onboarding_category_batch_requested',
+  /** Solicitud de creación de negocio para un job de solicitud de crédito (products-ms → suppliers-ms). */
+  credit_application_business_requested = 'credit_application_business_requested',
 }
 
 /**
