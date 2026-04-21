@@ -14,6 +14,7 @@ export class GetSalesRepresentativeByExternalIdResponse
   user_state: UserState | null;
   created_at: Date;
   updated_at: Date;
+  is_default: boolean;
 
   constructor(fields: SalesRepresentativePublicFields) {
     Object.assign(this, fields);

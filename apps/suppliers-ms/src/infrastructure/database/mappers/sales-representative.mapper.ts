@@ -21,6 +21,7 @@ export class SalesRepresentativeMapper {
       row.createdAt,
       row.updatedAt,
       user_full_name,
+      row.is_default,
       loaded_user,
     );
   }
@@ -65,6 +66,7 @@ export class SalesRepresentativeMapper {
       new Date(String(row['created_at'])),
       new Date(String(row['updated_at'])),
       null,
+      row['is_default'] === true,
     );
   }
 }

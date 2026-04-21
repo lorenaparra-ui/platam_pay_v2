@@ -14,6 +14,7 @@ import { UploadCreditApplicationDocumentUseCase } from '@modules/credit-applicat
 import { GetCreditApplicationAuthorizationDataUseCase } from '@modules/credit-applications/application/use-cases/get-credit-application-authorization-data/get-credit-application-authorization-data.use-case';
 import { AuthorizeCreditApplicationUseCase } from '@modules/credit-applications/application/use-cases/authorize-credit-application/authorize-credit-application.use-case';
 import { PublishAuthorizationNotificationUseCase } from '@modules/credit-applications/application/use-cases/publish-authorization-notification/publish-authorization-notification.use-case';
+import { RegisterNaturalPersonCreditApplicationUseCase } from '@modules/credit-applications/application/use-cases/register-natural-person-credit-application/register-natural-person-credit-application.use-case';
 
 const USE_CASES = [
   CreateCreditApplicationUseCase,
@@ -31,6 +32,7 @@ const USE_CASES = [
   GetCreditApplicationAuthorizationDataUseCase,
   AuthorizeCreditApplicationUseCase,
   PublishAuthorizationNotificationUseCase,
+  RegisterNaturalPersonCreditApplicationUseCase,
 ];
 
 @Module({

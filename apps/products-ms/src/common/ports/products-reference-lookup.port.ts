@@ -20,4 +20,13 @@ export interface ProductsReferenceLookupPort {
   get_partner_internal_id_by_external_id(
     external_id: string,
   ): Promise<number | null>;
+
+  /**
+   * Resuelve `sales_representatives.id` por `external_id` (UUID),
+   * opcionalmente acotado al partner (recomendado en onboarding).
+   */
+  get_sales_representative_internal_id_by_external_id(
+    external_id: string,
+    partner_internal_id: number | null,
+  ): Promise<number | null>;
 }

@@ -18,6 +18,12 @@ import { TypeormClientRegistrationAdapter } from '@infrastructure/database/adapt
 import { StubCreditApplicationDocumentStorageAdapter } from '@infrastructure/database/adapters/stub-credit-application-document-storage.adapter';
 import { EventBridgeSchedulerAdapter } from '@infrastructure/scheduler/eventbridge-scheduler.adapter';
 import { REMINDER_SCHEDULER_PORT } from '@modules/credit-applications/credit-applications.tokens';
+import { PartnerCreateUserSqsIdempotencyEntity } from '@app/transversal-data';
+import { ConfigTransversalCreatePersonQueueUrlAdapter } from '@infrastructure/messaging/sqs/adapters/config-transversal-create-person-queue-url.adapter';
+import { TRANSVERSAL_CREATE_PERSON_QUEUE_URL_PORT } from '@messaging/domain/ports/transversal-create-person-queue-url.port';
+import { PublishCreatePersonCommandUseCase } from '@messaging/application/use-cases/publish-create-person-command.use-case';
+import { TypeormCreatePersonSqsResultPollAdapter } from '@infrastructure/database/adapters/typeorm-create-person-sqs-result-poll.adapter';
+import { CREATE_PERSON_SQS_RESULT_READER_PORT } from '@modules/credit-applications/application/ports/create-person-sqs-result-reader.port';
 
 @Global()
 @Module({
@@ -26,6 +32,7 @@ import { REMINDER_SCHEDULER_PORT } from '@modules/credit-applications/credit-app
       imports: [ConfigModule],
       useClass: PostgresTypeOrmConfigService,
     }),
+    TypeOrmModule.forFeature([PartnerCreateUserSqsIdempotencyEntity]),
     ProductsDataModule,
     SqsModule,
   ],
@@ -62,6 +69,17 @@ import { REMINDER_SCHEDULER_PORT } from '@modules/credit-applications/credit-app
       provide: REMINDER_SCHEDULER_PORT,
       useExisting: EventBridgeSchedulerAdapter,
     },
+    ConfigTransversalCreatePersonQueueUrlAdapter,
+    {
+      provide: TRANSVERSAL_CREATE_PERSON_QUEUE_URL_PORT,
+      useExisting: ConfigTransversalCreatePersonQueueUrlAdapter,
+    },
+    PublishCreatePersonCommandUseCase,
+    TypeormCreatePersonSqsResultPollAdapter,
+    {
+      provide: CREATE_PERSON_SQS_RESULT_READER_PORT,
+      useExisting: TypeormCreatePersonSqsResultPollAdapter,
+    },
   ],
   exports: [
     CATEGORY_REPOSITORY,
@@ -71,6 +89,8 @@ import { REMINDER_SCHEDULER_PORT } from '@modules/credit-applications/credit-app
     CREDIT_APPLICATION_DOCUMENT_STORAGE,
     PRODUCTS_REFERENCE_LOOKUP,
     REMINDER_SCHEDULER_PORT,
+    PublishCreatePersonCommandUseCase,
+    CREATE_PERSON_SQS_RESULT_READER_PORT,
   ],
 })
 export class InfrastructureModule {}

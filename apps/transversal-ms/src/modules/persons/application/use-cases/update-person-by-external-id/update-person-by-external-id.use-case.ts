@@ -22,9 +22,6 @@ export class UpdatePersonByExternalIdUseCase {
   ): Promise<UpdatePersonByExternalIdResponse> {
     const patch: UpdatePersonProps = {};
 
-    if (req.country_code !== undefined) {
-      patch.country_code = req.country_code;
-    }
     if (req.first_name !== undefined) {
       patch.first_name = req.first_name;
     }
@@ -51,9 +48,6 @@ export class UpdatePersonByExternalIdUseCase {
     }
     if (req.residential_address !== undefined) {
       patch.residential_address = req.residential_address;
-    }
-    if (req.business_address !== undefined) {
-      patch.business_address = req.business_address;
     }
     if (req.city_external_id !== undefined) {
       if (req.city_external_id === null) {

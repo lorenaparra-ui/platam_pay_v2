@@ -30,6 +30,31 @@ export class TypeormClientRegistrationAdapter implements ClientRegistrationPort 
     return rows[0]?.id ?? null;
   }
 
+  async get_person_internal_id_by_external_id(external_id: string): Promise<number | null> {
+    const rows: Array<{ id: number }> = await this.data_source.query(
+      `SELECT id FROM transversal_schema.persons WHERE external_id = $1::uuid LIMIT 1`,
+      [external_id],
+    );
+    return rows[0]?.id ?? null;
+  }
+
+  /**
+   * Campos no cubiertos por el contrato SQS create-person (email, fecha nacimiento).
+   */
+  async patch_person_email_and_birth_date(
+    person_id: number,
+    email: string | null,
+    birth_date_iso: string | null,
+  ): Promise<void> {
+    await this.data_source.query(
+      `UPDATE transversal_schema.persons
+       SET email = COALESCE($2, email),
+           birth_date = COALESCE($3::date, birth_date)
+       WHERE id = $1`,
+      [person_id, email, birth_date_iso],
+    );
+  }
+
   async create_person(data: CreatePersonData): Promise<number> {
     const rows: Array<{ id: number }> = await this.data_source.query(
       `INSERT INTO transversal_schema.persons

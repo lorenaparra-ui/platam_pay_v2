@@ -6,7 +6,14 @@ import {
 export interface SalesRepresentativeRepository {
   find_by_external_id(external_id: string): Promise<SalesRepresentative | null>;
 
-  find_all(partner_id_filter?: number): Promise<SalesRepresentative[]>;
+  /**
+   * @param include_default_representatives Si es `true`, incluye filas con `is_default = true`.
+   * Por defecto se excluyen (comportamiento histórico del listado interno).
+   */
+  find_all(
+    partner_id_filter?: number,
+    include_default_representatives?: boolean,
+  ): Promise<SalesRepresentative[]>;
 
   create(props: CreateSalesRepresentativeProps): Promise<SalesRepresentative>;
 

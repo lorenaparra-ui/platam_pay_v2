@@ -33,12 +33,20 @@ export class TypeormSalesRepresentativeRepository
     return row ? SalesRepresentativeMapper.to_domain(row) : null;
   }
 
-  async find_all(partner_id_filter?: number): Promise<SalesRepresentative[]> {
+  async find_all(
+    partner_id_filter?: number,
+    include_default_representatives = false,
+  ): Promise<SalesRepresentative[]> {
     const qb = this.with_user_graph_qb().orderBy('sr.id', 'ASC');
+    if (!include_default_representatives) {
+      qb.where('sr.is_default = :is_default', { is_default: false });
+    }
     if (partner_id_filter !== undefined) {
-      qb.andWhere('sr.partner_id = :partner_id', {
-        partner_id: partner_id_filter,
-      });
+      if (include_default_representatives) {
+        qb.where('sr.partner_id = :partner_id', { partner_id: partner_id_filter });
+      } else {
+        qb.andWhere('sr.partner_id = :partner_id', { partner_id: partner_id_filter });
+      }
     }
     const rows = await qb.getMany();
     return rows.map((r) => SalesRepresentativeMapper.to_domain(r));
@@ -49,7 +57,7 @@ export class TypeormSalesRepresentativeRepository
       `INSERT INTO suppliers_schema.sales_representatives (
         external_id, partner_id, user_id
       ) VALUES (gen_random_uuid(), $1, $2)
-      RETURNING id, external_id, partner_id, user_id, created_at, updated_at`,
+      RETURNING id, external_id, partner_id, user_id, created_at, updated_at, is_default`,
       [props.partner_id, props.user_id],
     );
     return SalesRepresentativeMapper.from_raw_row(rows[0] as Record<string, unknown>);
