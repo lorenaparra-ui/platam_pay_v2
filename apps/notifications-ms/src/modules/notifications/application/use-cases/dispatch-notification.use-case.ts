@@ -9,6 +9,7 @@ import type {
   EmailNotificationPayloadDto,
   SmsNotificationPayloadDto,
   WhatsappNotificationPayloadDto,
+  WhatsappTemplateNotificationPayloadDto,
 } from '@modules/notifications/application/dto/send-notification-payload.dto';
 
 export type DispatchNotificationCommand = Readonly<{
@@ -17,7 +18,8 @@ export type DispatchNotificationCommand = Readonly<{
   payload:
     | EmailNotificationPayloadDto
     | SmsNotificationPayloadDto
-    | WhatsappNotificationPayloadDto;
+    | WhatsappNotificationPayloadDto
+    | WhatsappTemplateNotificationPayloadDto;
 }>;
 
 @Injectable()
@@ -51,19 +53,27 @@ export class DispatchNotificationUseCase implements UseCase<DispatchNotification
           to_e164: (command.payload as SmsNotificationPayloadDto).to_e164,
           body: (command.payload as SmsNotificationPayloadDto).body,
         });
-        this.logger.log(
-          `[Notify][correlationId=${correlation_id}][channel=sms][step=sent]`,
-        );
+        this.logger.log(`[Notify][correlationId=${correlation_id}][channel=sms][step=sent]`);
         return;
       case NotificationChannel.whatsapp:
         await this.twilio.send_whatsapp({
           to_e164: (command.payload as WhatsappNotificationPayloadDto).to_e164,
           body: (command.payload as WhatsappNotificationPayloadDto).body,
         });
+        this.logger.log(`[Notify][correlationId=${correlation_id}][channel=whatsapp][step=sent]`);
+        return;
+      case NotificationChannel.whatsapp_template: {
+        const p = command.payload as WhatsappTemplateNotificationPayloadDto;
+        await this.twilio.send_whatsapp_template({
+          to_e164: p.to_e164,
+          content_sid: p.content_sid,
+          content_variables: p.content_variables,
+        });
         this.logger.log(
-          `[Notify][correlationId=${correlation_id}][channel=whatsapp][step=sent]`,
+          `[Notify][correlationId=${correlation_id}][channel=whatsapp_template][step=sent][sid=${p.content_sid}]`,
         );
         return;
+      }
       default: {
         const _exhaustive: never = channel;
         void _exhaustive;

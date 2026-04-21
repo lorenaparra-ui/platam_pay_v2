@@ -29,7 +29,6 @@ export class CreatePersonUseCase {
     }
 
     const created = await this.person_repository.create({
-      country_code: req.country_code,
       first_name: req.first_name,
       last_name: req.last_name,
       doc_type: req.doc_type,
@@ -39,7 +38,6 @@ export class CreatePersonUseCase {
       gender: req.gender,
       phone: req.phone,
       residential_address: req.residential_address,
-      business_address: req.business_address,
       city_id,
     });
 

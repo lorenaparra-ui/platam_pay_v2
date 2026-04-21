@@ -17,7 +17,6 @@ export class PersonMapper {
     return new Person(
       row.id,
       row.externalId,
-      null,
       row.firstName,
       row.lastName,
       row.docType,
@@ -27,7 +26,6 @@ export class PersonMapper {
       row.gender ?? null,
       row.phone ?? null,
       row.residentialAddress ?? null,
-      null,
       row.cityId ?? null,
       row.createdAt,
       row.updatedAt,
@@ -38,9 +36,6 @@ export class PersonMapper {
     return new Person(
       Number(row['id']),
       String(row['external_id']),
-      row['country_code'] === null || row['country_code'] === undefined
-        ? null
-        : String(row['country_code']),
       String(row['first_name']),
       String(row['last_name']),
       String(row['doc_type']),
@@ -57,9 +52,6 @@ export class PersonMapper {
       row['residential_address'] === undefined
         ? null
         : String(row['residential_address']),
-      row['business_address'] === null || row['business_address'] === undefined
-        ? null
-        : String(row['business_address']),
       row['city_id'] === null || row['city_id'] === undefined
         ? null
         : Number(row['city_id']),

@@ -7,7 +7,6 @@ import { BankAccountsModule } from '@modules/bank-accounts/bank-accounts.module'
 import { BusinessesModule } from '@modules/businesses/businesses.module';
 import { LegalRepresentativesModule } from '@modules/legal-representatives/legal-representatives.module';
 import { SuppliersModule } from '@modules/suppliers/suppliers.module';
-import { SalesRepresentativesModule } from '@modules/sales-representatives/sales-representatives.module';
 import { TypeormPartnerRepository } from '@infrastructure/database/repositories/typeorm-partner.repository';
 import { PARTNER_REPOSITORY } from './partners.tokens';
 import { CreatePartnerUseCase } from './application/use-cases/create-partner/create-partner.use-case';
@@ -27,7 +26,6 @@ import { PartnersPublicController } from './presentation/partners-public.control
     BusinessesModule,
     LegalRepresentativesModule,
     SuppliersModule,
-    SalesRepresentativesModule,
     MulterModule.register({
       storage: memoryStorage(),
       limits: { fileSize: 12 * 1024 * 1024 },

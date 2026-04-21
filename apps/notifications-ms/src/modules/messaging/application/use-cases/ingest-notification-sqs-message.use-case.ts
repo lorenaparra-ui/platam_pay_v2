@@ -9,6 +9,7 @@ import {
   SendNotificationInboundEnvelopeDto,
   SmsNotificationPayloadDto,
   WhatsappNotificationPayloadDto,
+  WhatsappTemplateNotificationPayloadDto,
 } from '@modules/notifications/application/dto/send-notification-payload.dto';
 
 export type IngestNotificationSqsCommand = Readonly<{
@@ -19,7 +20,8 @@ export type IngestNotificationSqsCommand = Readonly<{
 type ValidatedPayload =
   | EmailNotificationPayloadDto
   | SmsNotificationPayloadDto
-  | WhatsappNotificationPayloadDto;
+  | WhatsappNotificationPayloadDto
+  | WhatsappTemplateNotificationPayloadDto;
 
 @Injectable()
 export class IngestNotificationSqsMessageUseCase
@@ -116,6 +118,19 @@ export class IngestNotificationSqsMessageUseCase
       }
       case NotificationChannel.whatsapp: {
         const dto = plainToInstance(WhatsappNotificationPayloadDto, raw, {
+          enableImplicitConversion: true,
+        });
+        const errors = validateSync(dto as object, { forbidUnknownValues: false });
+        if (errors.length > 0) {
+          return {
+            ok: false,
+            error: errors.map((e) => Object.values(e.constraints ?? {}).join(', ')).join('; '),
+          };
+        }
+        return { ok: true, payload: dto };
+      }
+      case NotificationChannel.whatsapp_template: {
+        const dto = plainToInstance(WhatsappTemplateNotificationPayloadDto, raw, {
           enableImplicitConversion: true,
         });
         const errors = validateSync(dto as object, { forbidUnknownValues: false });

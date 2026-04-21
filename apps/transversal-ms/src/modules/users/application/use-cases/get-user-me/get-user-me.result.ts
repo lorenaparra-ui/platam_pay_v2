@@ -1,7 +1,9 @@
 export type UserMeHierarchy = Readonly<{
   parentId: string | null;
-  /** Reservado: vínculo partner en BD cuando exista columna/FK explícita. */
+  /** Id interno del partner en BD (suppliers_schema.partners.id). Poblado para PartnerRoles; null para back-office o si no existe vínculo. */
   partnerId: string | null;
+  /** external_id UUID del registro en suppliers_schema.sales_representatives. Sólo para SALES_REPRESENTATIVE; null en caso contrario. */
+  salesRepExternalId: string | null;
 }>;
 
 export type UserMeProfile = Readonly<{

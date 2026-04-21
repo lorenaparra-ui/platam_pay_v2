@@ -953,21 +953,17 @@ function parse_date_only(value) {
 }
 class PersonMapper {
     static to_domain(row) {
-        return new person_models_1.Person(row.id, row.externalId, null, row.firstName, row.lastName, row.docType, row.docNumber, row.docIssueDate ? parse_date_only(row.docIssueDate) : null, row.birthDate ? parse_date_only(row.birthDate) : null, row.gender ?? null, row.phone ?? null, row.residentialAddress ?? null, null, row.cityId ?? null, row.createdAt, row.updatedAt);
+        return new person_models_1.Person(row.id, row.externalId, row.firstName, row.lastName, row.docType, row.docNumber, row.docIssueDate ? parse_date_only(row.docIssueDate) : null, row.birthDate ? parse_date_only(row.birthDate) : null, row.gender ?? null, row.phone ?? null, row.residentialAddress ?? null, row.cityId ?? null, row.createdAt, row.updatedAt);
     }
     static from_raw_row(row) {
-        return new person_models_1.Person(Number(row['id']), String(row['external_id']), row['country_code'] === null || row['country_code'] === undefined
-            ? null
-            : String(row['country_code']), String(row['first_name']), String(row['last_name']), String(row['doc_type']), String(row['doc_number']), parse_date_only(row['doc_issue_date']), parse_date_only(row['birth_date']), row['gender'] === null || row['gender'] === undefined
+        return new person_models_1.Person(Number(row['id']), String(row['external_id']), String(row['first_name']), String(row['last_name']), String(row['doc_type']), String(row['doc_number']), parse_date_only(row['doc_issue_date']), parse_date_only(row['birth_date']), row['gender'] === null || row['gender'] === undefined
             ? null
             : String(row['gender']), row['phone'] === null || row['phone'] === undefined
             ? null
             : String(row['phone']), row['residential_address'] === null ||
             row['residential_address'] === undefined
             ? null
-            : String(row['residential_address']), row['business_address'] === null || row['business_address'] === undefined
-            ? null
-            : String(row['business_address']), row['city_id'] === null || row['city_id'] === undefined
+            : String(row['residential_address']), row['city_id'] === null || row['city_id'] === undefined
             ? null
             : Number(row['city_id']), new Date(String(row['created_at'])), new Date(String(row['updated_at'])));
     }
@@ -1090,6 +1086,60 @@ class UserMapper {
     }
 }
 exports.UserMapper = UserMapper;
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/infrastructure/database/readers/typeorm-partner-link.reader.ts"
+/*!************************************************************************************************!*\
+  !*** ./apps/transversal-ms/src/infrastructure/database/readers/typeorm-partner-link.reader.ts ***!
+  \************************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+var _a;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.TypeormPartnerLinkReader = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const typeorm_1 = __webpack_require__(/*! @nestjs/typeorm */ "@nestjs/typeorm");
+const typeorm_2 = __webpack_require__(/*! typeorm */ "typeorm");
+let TypeormPartnerLinkReader = class TypeormPartnerLinkReader {
+    data_source;
+    constructor(data_source) {
+        this.data_source = data_source;
+    }
+    async find_by_user_internal_id(user_internal_id) {
+        const rows = (await this.data_source.query(`SELECT partner_id, external_id
+       FROM suppliers_schema.sales_representatives
+       WHERE user_id = $1
+       LIMIT 1`, [user_internal_id]));
+        if (rows.length === 0)
+            return null;
+        const row = rows[0];
+        return {
+            partnerId: String(row.partner_id),
+            salesRepresentativeExternalId: String(row.external_id),
+        };
+    }
+};
+exports.TypeormPartnerLinkReader = TypeormPartnerLinkReader;
+exports.TypeormPartnerLinkReader = TypeormPartnerLinkReader = __decorate([
+    (0, common_1.Injectable)(),
+    __param(0, (0, typeorm_1.InjectDataSource)()),
+    __metadata("design:paramtypes", [typeof (_a = typeof typeorm_2.DataSource !== "undefined" && typeorm_2.DataSource) === "function" ? _a : Object])
+], TypeormPartnerLinkReader);
 
 
 /***/ },
@@ -1459,15 +1509,14 @@ let TypeormPersonRepository = class TypeormPersonRepository {
     }
     async create(props) {
         const rows = await this.repo.query(`INSERT INTO transversal_schema.persons (
-        external_id, country_code, first_name, last_name, doc_type, doc_number,
-        doc_issue_date, birth_date, gender, phone, residential_address, business_address, city_id
+        external_id, first_name, last_name, doc_type, doc_number,
+        doc_issue_date, birth_date, gender, phone, residential_address, city_id
       ) VALUES (
-        gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12
+        gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10
       )
-      RETURNING id, external_id, created_at, updated_at, country_code, first_name, last_name,
+      RETURNING id, external_id, created_at, updated_at, first_name, last_name,
         doc_type, doc_number, doc_issue_date, birth_date, gender, phone, residential_address,
-        business_address, city_id`, [
-            props.country_code,
+        city_id`, [
             props.first_name,
             props.last_name,
             props.doc_type,
@@ -1477,7 +1526,6 @@ let TypeormPersonRepository = class TypeormPersonRepository {
             props.gender,
             props.phone,
             props.residential_address,
-            props.business_address,
             props.city_id,
         ]);
         return person_mapper_1.PersonMapper.from_raw_row(rows[0]);
@@ -1498,9 +1546,6 @@ let TypeormPersonRepository = class TypeormPersonRepository {
             values.push(val);
             i += 1;
         };
-        if (patch.country_code !== undefined) {
-            add('country_code', patch.country_code);
-        }
         if (patch.first_name !== undefined) {
             add('first_name', patch.first_name);
         }
@@ -1527,9 +1572,6 @@ let TypeormPersonRepository = class TypeormPersonRepository {
         }
         if (patch.residential_address !== undefined) {
             add('residential_address', patch.residential_address);
-        }
-        if (patch.business_address !== undefined) {
-            add('business_address', patch.business_address);
         }
         if (patch.city_id !== undefined) {
             add('city_id', patch.city_id);
@@ -2160,6 +2202,7 @@ const typeorm_role_repository_1 = __webpack_require__(/*! @infrastructure/databa
 const typeorm_city_repository_1 = __webpack_require__(/*! @infrastructure/database/repositories/typeorm-city.repository */ "./apps/transversal-ms/src/infrastructure/database/repositories/typeorm-city.repository.ts");
 const typeorm_status_repository_1 = __webpack_require__(/*! @infrastructure/database/repositories/typeorm-status.repository */ "./apps/transversal-ms/src/infrastructure/database/repositories/typeorm-status.repository.ts");
 const typeorm_currency_read_repository_1 = __webpack_require__(/*! @infrastructure/database/repositories/typeorm-currency-read.repository */ "./apps/transversal-ms/src/infrastructure/database/repositories/typeorm-currency-read.repository.ts");
+const typeorm_partner_link_reader_1 = __webpack_require__(/*! @infrastructure/database/readers/typeorm-partner-link.reader */ "./apps/transversal-ms/src/infrastructure/database/readers/typeorm-partner-link.reader.ts");
 const persons_tokens_1 = __webpack_require__(/*! @modules/persons/persons.tokens */ "./apps/transversal-ms/src/modules/persons/persons.tokens.ts");
 const users_tokens_1 = __webpack_require__(/*! @modules/users/users.tokens */ "./apps/transversal-ms/src/modules/users/users.tokens.ts");
 const transversal_tokens_2 = __webpack_require__(/*! @modules/transversal/transversal.tokens */ "./apps/transversal-ms/src/modules/transversal/transversal.tokens.ts");
@@ -2213,6 +2256,11 @@ exports.InfrastructureModule = InfrastructureModule = __decorate([
                 provide: transversal_tokens_2.CURRENCY_READ_PORT,
                 useClass: typeorm_currency_read_repository_1.TypeormCurrencyReadRepository,
             },
+            typeorm_partner_link_reader_1.TypeormPartnerLinkReader,
+            {
+                provide: users_tokens_1.PARTNER_LINK_READER,
+                useExisting: typeorm_partner_link_reader_1.TypeormPartnerLinkReader,
+            },
         ],
         exports: [
             transversal_data_1.TransversalDataModule,
@@ -2224,6 +2272,7 @@ exports.InfrastructureModule = InfrastructureModule = __decorate([
             transversal_tokens_2.CITY_REPOSITORY,
             transversal_tokens_2.STATUS_REPOSITORY,
             transversal_tokens_2.CURRENCY_READ_PORT,
+            users_tokens_1.PARTNER_LINK_READER,
         ],
     })
 ], InfrastructureModule);
@@ -5081,7 +5130,6 @@ async function build_person_public_fields(row, city_repo) {
     }
     return {
         external_id: row.external_id,
-        country_code: row.country_code,
         first_name: row.first_name,
         last_name: row.last_name,
         doc_type: row.doc_type,
@@ -5091,12 +5139,49 @@ async function build_person_public_fields(row, city_repo) {
         gender: row.gender,
         phone: row.phone,
         residential_address: row.residential_address,
-        business_address: row.business_address,
         city_external_id,
         created_at: row.created_at,
         updated_at: row.updated_at,
     };
 }
+
+
+/***/ },
+
+/***/ "./apps/transversal-ms/src/modules/persons/application/use-cases/create-person/create-person.request.ts"
+/*!**************************************************************************************************************!*\
+  !*** ./apps/transversal-ms/src/modules/persons/application/use-cases/create-person/create-person.request.ts ***!
+  \**************************************************************************************************************/
+(__unused_webpack_module, exports) {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.CreatePersonRequest = void 0;
+class CreatePersonRequest {
+    first_name;
+    last_name;
+    doc_type;
+    doc_number;
+    doc_issue_date;
+    birth_date;
+    gender;
+    phone;
+    residential_address;
+    city_external_id;
+    constructor(first_name, last_name, doc_type, doc_number, doc_issue_date, birth_date, gender, phone, residential_address, city_external_id) {
+        this.first_name = first_name;
+        this.last_name = last_name;
+        this.doc_type = doc_type;
+        this.doc_number = doc_number;
+        this.doc_issue_date = doc_issue_date;
+        this.birth_date = birth_date;
+        this.gender = gender;
+        this.phone = phone;
+        this.residential_address = residential_address;
+        this.city_external_id = city_external_id;
+    }
+}
+exports.CreatePersonRequest = CreatePersonRequest;
 
 
 /***/ },
@@ -5112,7 +5197,6 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CreatePersonResponse = void 0;
 class CreatePersonResponse {
     external_id;
-    country_code;
     first_name;
     last_name;
     doc_type;
@@ -5122,7 +5206,6 @@ class CreatePersonResponse {
     gender;
     phone;
     residential_address;
-    business_address;
     city_external_id;
     created_at;
     updated_at;
@@ -5180,7 +5263,6 @@ let CreatePersonUseCase = class CreatePersonUseCase {
             city_id = city.id;
         }
         const created = await this.person_repository.create({
-            country_code: req.country_code,
             first_name: req.first_name,
             last_name: req.last_name,
             doc_type: req.doc_type,
@@ -5190,7 +5272,6 @@ let CreatePersonUseCase = class CreatePersonUseCase {
             gender: req.gender,
             phone: req.phone,
             residential_address: req.residential_address,
-            business_address: req.business_address,
             city_id,
         });
         const fields = await (0, person_public_fields_builder_1.build_person_public_fields)(created, this.city_repository);
@@ -5266,7 +5347,6 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.GetPersonByExternalIdResponse = void 0;
 class GetPersonByExternalIdResponse {
     external_id;
-    country_code;
     first_name;
     last_name;
     doc_type;
@@ -5276,7 +5356,6 @@ class GetPersonByExternalIdResponse {
     gender;
     phone;
     residential_address;
-    business_address;
     city_external_id;
     created_at;
     updated_at;
@@ -5364,6 +5443,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 var IngestCreatePersonSqsMessageUseCase_1;
+var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.IngestCreatePersonSqsMessageUseCase = void 0;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
@@ -5372,17 +5452,21 @@ const class_validator_1 = __webpack_require__(/*! class-validator */ "class-vali
 const typeorm_1 = __webpack_require__(/*! typeorm */ "typeorm");
 const persons_tokens_1 = __webpack_require__(/*! @modules/persons/persons.tokens */ "./apps/transversal-ms/src/modules/persons/persons.tokens.ts");
 const transversal_tokens_1 = __webpack_require__(/*! @modules/transversal/transversal.tokens */ "./apps/transversal-ms/src/modules/transversal/transversal.tokens.ts");
+const create_person_use_case_1 = __webpack_require__(/*! @modules/persons/application/use-cases/create-person/create-person.use-case */ "./apps/transversal-ms/src/modules/persons/application/use-cases/create-person/create-person.use-case.ts");
+const create_person_request_1 = __webpack_require__(/*! @modules/persons/application/use-cases/create-person/create-person.request */ "./apps/transversal-ms/src/modules/persons/application/use-cases/create-person/create-person.request.ts");
 const create_person_inbound_dto_1 = __webpack_require__(/*! @modules/transversal/application/dto/create-person-inbound.dto */ "./apps/transversal-ms/src/modules/transversal/application/dto/create-person-inbound.dto.ts");
 const PG_UNIQUE_VIOLATION = '23505';
 let IngestCreatePersonSqsMessageUseCase = IngestCreatePersonSqsMessageUseCase_1 = class IngestCreatePersonSqsMessageUseCase {
     idempotency;
     person_repository;
     city_repository;
+    create_person;
     logger = new common_1.Logger(IngestCreatePersonSqsMessageUseCase_1.name);
-    constructor(idempotency, person_repository, city_repository) {
+    constructor(idempotency, person_repository, city_repository, create_person) {
         this.idempotency = idempotency;
         this.person_repository = person_repository;
         this.city_repository = city_repository;
+        this.create_person = create_person;
     }
     async execute(command) {
         let parsed;
@@ -5416,30 +5500,8 @@ let IngestCreatePersonSqsMessageUseCase = IngestCreatePersonSqsMessageUseCase_1 
         }
         const payload = dto.payload;
         try {
-            let city_id = null;
-            if (payload.city_external_id !== null && payload.city_external_id !== undefined) {
-                const city = await this.city_repository.find_by_external_id(payload.city_external_id);
-                if (city === null) {
-                    this.logger.warn(`[CreatePerson][correlationId=${dto.correlation_id}][step=city_not_found] city_external_id=${payload.city_external_id}`);
-                }
-                else {
-                    city_id = city.id;
-                }
-            }
-            const created = await this.person_repository.create({
-                country_code: payload.country_code ?? null,
-                first_name: payload.first_name.trim(),
-                last_name: payload.last_name.trim(),
-                doc_type: payload.doc_type.trim(),
-                doc_number: payload.doc_number.trim(),
-                doc_issue_date: null,
-                birth_date: null,
-                gender: null,
-                phone: payload.phone ?? null,
-                residential_address: null,
-                business_address: null,
-                city_id,
-            });
+            const city_external_id = await this.resolve_city_external_id_lenient(dto.correlation_id, payload.city_external_id);
+            const created = await this.create_person.execute(new create_person_request_1.CreatePersonRequest(payload.first_name.trim(), payload.last_name.trim(), payload.doc_type.trim(), payload.doc_number.trim(), null, null, null, payload.phone ?? null, null, city_external_id));
             await this.idempotency.complete(dto.idempotency_key, {
                 user_external_id: 'n/a',
                 person_external_id: created.external_id,
@@ -5482,6 +5544,17 @@ let IngestCreatePersonSqsMessageUseCase = IngestCreatePersonSqsMessageUseCase_1 
             ? String(err.driverError.code) === PG_UNIQUE_VIOLATION
             : false;
     }
+    async resolve_city_external_id_lenient(correlation_id, city_external_id) {
+        if (city_external_id === null || city_external_id === undefined) {
+            return null;
+        }
+        const city = await this.city_repository.find_by_external_id(city_external_id);
+        if (city === null) {
+            this.logger.warn(`[CreatePerson][correlationId=${correlation_id}][step=city_not_found] city_external_id=${city_external_id}`);
+            return null;
+        }
+        return city_external_id;
+    }
 };
 exports.IngestCreatePersonSqsMessageUseCase = IngestCreatePersonSqsMessageUseCase;
 exports.IngestCreatePersonSqsMessageUseCase = IngestCreatePersonSqsMessageUseCase = IngestCreatePersonSqsMessageUseCase_1 = __decorate([
@@ -5489,7 +5562,7 @@ exports.IngestCreatePersonSqsMessageUseCase = IngestCreatePersonSqsMessageUseCas
     __param(0, (0, common_1.Inject)(transversal_tokens_1.PARTNER_CREATE_USER_SQS_IDEMPOTENCY_PORT)),
     __param(1, (0, common_1.Inject)(persons_tokens_1.PERSON_REPOSITORY)),
     __param(2, (0, common_1.Inject)(transversal_tokens_1.CITY_REPOSITORY)),
-    __metadata("design:paramtypes", [Object, Object, Object])
+    __metadata("design:paramtypes", [Object, Object, Object, typeof (_a = typeof create_person_use_case_1.CreatePersonUseCase !== "undefined" && create_person_use_case_1.CreatePersonUseCase) === "function" ? _a : Object])
 ], IngestCreatePersonSqsMessageUseCase);
 
 
@@ -5506,7 +5579,6 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ListPersonsItemResponse = void 0;
 class ListPersonsItemResponse {
     external_id;
-    country_code;
     first_name;
     last_name;
     doc_type;
@@ -5516,7 +5588,6 @@ class ListPersonsItemResponse {
     gender;
     phone;
     residential_address;
-    business_address;
     city_external_id;
     created_at;
     updated_at;
@@ -5596,7 +5667,6 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.UpdatePersonByExternalIdResponse = void 0;
 class UpdatePersonByExternalIdResponse {
     external_id;
-    country_code;
     first_name;
     last_name;
     doc_type;
@@ -5606,7 +5676,6 @@ class UpdatePersonByExternalIdResponse {
     gender;
     phone;
     residential_address;
-    business_address;
     city_external_id;
     created_at;
     updated_at;
@@ -5656,9 +5725,6 @@ let UpdatePersonByExternalIdUseCase = class UpdatePersonByExternalIdUseCase {
     }
     async execute(req) {
         const patch = {};
-        if (req.country_code !== undefined) {
-            patch.country_code = req.country_code;
-        }
         if (req.first_name !== undefined) {
             patch.first_name = req.first_name;
         }
@@ -5685,9 +5751,6 @@ let UpdatePersonByExternalIdUseCase = class UpdatePersonByExternalIdUseCase {
         }
         if (req.residential_address !== undefined) {
             patch.residential_address = req.residential_address;
-        }
-        if (req.business_address !== undefined) {
-            patch.business_address = req.business_address;
         }
         if (req.city_external_id !== undefined) {
             if (req.city_external_id === null) {
@@ -5732,7 +5795,6 @@ exports.Person = void 0;
 class Person {
     internal_id;
     external_id;
-    country_code;
     first_name;
     last_name;
     doc_type;
@@ -5742,14 +5804,12 @@ class Person {
     gender;
     phone;
     residential_address;
-    business_address;
     city_id;
     created_at;
     updated_at;
-    constructor(internal_id, external_id, country_code, first_name, last_name, doc_type, doc_number, doc_issue_date, birth_date, gender, phone, residential_address, business_address, city_id, created_at, updated_at) {
+    constructor(internal_id, external_id, first_name, last_name, doc_type, doc_number, doc_issue_date, birth_date, gender, phone, residential_address, city_id, created_at, updated_at) {
         this.internal_id = internal_id;
         this.external_id = external_id;
-        this.country_code = country_code;
         this.first_name = first_name;
         this.last_name = last_name;
         this.doc_type = doc_type;
@@ -5759,7 +5819,6 @@ class Person {
         this.gender = gender;
         this.phone = phone;
         this.residential_address = residential_address;
-        this.business_address = business_address;
         this.city_id = city_id;
         this.created_at = created_at;
         this.updated_at = updated_at;
@@ -6005,7 +6064,6 @@ const class_transformer_1 = __webpack_require__(/*! class-transformer */ "class-
 const class_validator_1 = __webpack_require__(/*! class-validator */ "class-validator");
 const empty_string_to_null = ({ value }) => value === '' ? null : value;
 class CreatePersonInboundPayloadDto {
-    country_code;
     first_name;
     last_name;
     doc_type;
@@ -6014,16 +6072,6 @@ class CreatePersonInboundPayloadDto {
     city_external_id;
 }
 exports.CreatePersonInboundPayloadDto = CreatePersonInboundPayloadDto;
-__decorate([
-    (0, class_transformer_1.Expose)({ name: 'country_code' }),
-    (0, class_validator_1.IsOptional)(),
-    (0, class_transformer_1.Transform)(empty_string_to_null),
-    (0, class_validator_1.ValidateIf)((o) => o.country_code !== null),
-    (0, class_validator_1.IsString)(),
-    (0, class_validator_1.MinLength)(2),
-    (0, class_validator_1.MaxLength)(2),
-    __metadata("design:type", Object)
-], CreatePersonInboundPayloadDto.prototype, "country_code", void 0);
 __decorate([
     (0, class_transformer_1.Expose)({ name: 'first_name' }),
     (0, class_validator_1.IsString)(),
@@ -8681,20 +8729,34 @@ const swagger_1 = __webpack_require__(/*! @nestjs/swagger */ "@nestjs/swagger");
 class UserMeHierarchyDto {
     parentId;
     partnerId;
+    salesRepExternalId;
 }
 exports.UserMeHierarchyDto = UserMeHierarchyDto;
 __decorate([
-    (0, swagger_1.ApiProperty)({ nullable: true, example: '20' }),
+    (0, swagger_1.ApiProperty)({ nullable: true, example: '20', description: 'Id interno del usuario padre en la jerarquía.' }),
     __metadata("design:type", Object)
 ], UserMeHierarchyDto.prototype, "parentId", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({
         nullable: true,
-        example: null,
-        description: 'Reservado cuando exista vínculo explícito usuario–partner en BD.',
+        example: '7',
+        description: 'Id interno del partner en BD (suppliers_schema.partners.id). ' +
+            'Presente para roles PartnerRoles (PARTNER_ADMIN, PARTNER_OPERATIONS, CUSTOMER, SALES_MANAGER, SALES_REPRESENTATIVE). ' +
+            'null para roles back-office o si el usuario no tiene vínculo de partner registrado.',
     }),
     __metadata("design:type", Object)
 ], UserMeHierarchyDto.prototype, "partnerId", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        nullable: true,
+        format: 'uuid',
+        example: null,
+        description: 'external_id UUID del registro en suppliers_schema.sales_representatives. ' +
+            'Presente únicamente cuando role = SALES_REPRESENTATIVE y existe fila en esa tabla. ' +
+            'null en cualquier otro caso.',
+    }),
+    __metadata("design:type", Object)
+], UserMeHierarchyDto.prototype, "salesRepExternalId", void 0);
 class UserMeProfileDto {
     externalId;
     email;
@@ -9098,18 +9160,22 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.GetUserMeUseCase = void 0;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const shared_1 = __webpack_require__(/*! @platam/shared */ "./libs/shared/src/index.ts");
 const auth_tokens_1 = __webpack_require__(/*! @modules/auth/auth.tokens */ "./apps/transversal-ms/src/modules/auth/auth.tokens.ts");
 const persons_tokens_1 = __webpack_require__(/*! @modules/persons/persons.tokens */ "./apps/transversal-ms/src/modules/persons/persons.tokens.ts");
 const users_tokens_1 = __webpack_require__(/*! @modules/users/users.tokens */ "./apps/transversal-ms/src/modules/users/users.tokens.ts");
 const get_user_me_result_1 = __webpack_require__(/*! ./get-user-me.result */ "./apps/transversal-ms/src/modules/users/application/use-cases/get-user-me/get-user-me.result.ts");
+const PARTNER_ROLE_SET = new Set(Object.values(shared_1.PartnerRoles));
 let GetUserMeUseCase = class GetUserMeUseCase {
     user_repository;
     person_repository;
     permission_codes_reader;
-    constructor(user_repository, person_repository, permission_codes_reader) {
+    partner_link_reader;
+    constructor(user_repository, person_repository, permission_codes_reader, partner_link_reader) {
         this.user_repository = user_repository;
         this.person_repository = person_repository;
         this.permission_codes_reader = permission_codes_reader;
+        this.partner_link_reader = partner_link_reader;
     }
     async execute(ctx) {
         const user = await this.user_repository.find_by_cognito_sub(ctx.cognitoSub);
@@ -9126,6 +9192,17 @@ let GetUserMeUseCase = class GetUserMeUseCase {
         const permissions = user.role_id !== null
             ? await this.permission_codes_reader.list_codes_for_role_internal_id(user.role_id)
             : [];
+        let partner_id = null;
+        let sales_rep_external_id = null;
+        if (PARTNER_ROLE_SET.has(ctx.roleCode)) {
+            const link = await this.partner_link_reader.find_by_user_internal_id(user.internal_id);
+            if (link !== null) {
+                partner_id = link.partnerId;
+                if (ctx.roleCode === shared_1.Roles.SALES_REPRESENTATIVE) {
+                    sales_rep_external_id = link.salesRepresentativeExternalId;
+                }
+            }
+        }
         return new get_user_me_result_1.GetUserMeResult({
             externalId: user.external_id,
             email: user.email,
@@ -9133,7 +9210,8 @@ let GetUserMeUseCase = class GetUserMeUseCase {
             role: ctx.roleCode,
             hierarchy: {
                 parentId: user.parent_id !== null ? String(user.parent_id) : null,
-                partnerId: null,
+                partnerId: partner_id,
+                salesRepExternalId: sales_rep_external_id,
             },
         }, permissions);
     }
@@ -9144,7 +9222,8 @@ exports.GetUserMeUseCase = GetUserMeUseCase = __decorate([
     __param(0, (0, common_1.Inject)(users_tokens_1.USER_REPOSITORY)),
     __param(1, (0, common_1.Inject)(persons_tokens_1.PERSON_REPOSITORY)),
     __param(2, (0, common_1.Inject)(auth_tokens_1.PERMISSION_CODES_BY_ROLE_READER)),
-    __metadata("design:paramtypes", [Object, Object, Object])
+    __param(3, (0, common_1.Inject)(users_tokens_1.PARTNER_LINK_READER)),
+    __metadata("design:paramtypes", [Object, Object, Object, Object])
 ], GetUserMeUseCase);
 
 
@@ -9595,6 +9674,7 @@ function to_user_me_response_dto(result) {
     const hierarchy = new user_me_response_dto_1.UserMeHierarchyDto();
     hierarchy.parentId = result.user.hierarchy.parentId;
     hierarchy.partnerId = result.user.hierarchy.partnerId;
+    hierarchy.salesRepExternalId = result.user.hierarchy.salesRepExternalId;
     const user = new user_me_response_dto_1.UserMeProfileDto();
     user.externalId = result.user.externalId;
     user.email = result.user.email;
@@ -9707,9 +9787,10 @@ exports.UsersModule = UsersModule = __decorate([
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.COGNITO_USER_PROVISIONING_PORT = exports.USER_REPOSITORY = void 0;
+exports.PARTNER_LINK_READER = exports.COGNITO_USER_PROVISIONING_PORT = exports.USER_REPOSITORY = void 0;
 exports.USER_REPOSITORY = Symbol('USER_REPOSITORY');
 exports.COGNITO_USER_PROVISIONING_PORT = Symbol('COGNITO_USER_PROVISIONING_PORT');
+exports.PARTNER_LINK_READER = Symbol('PARTNER_LINK_READER');
 
 
 /***/ },
@@ -9915,7 +9996,22 @@ var Roles;
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.BatchLogsStatus = exports.PaymentsMethod = exports.PaymentsStatus = exports.AdjustmentsStatus = exports.DisbursementBatchesStatus = exports.DisbursementStatus = exports.LoanStatus = exports.LoanRequestStatus = exports.ExperianQueryStatus = exports.BusinessSeniorityCatalogState = exports.RolePermissionLinkState = exports.PermissionDefinitionState = exports.RoleDefinitionState = exports.PurchaseOrderRecordState = exports.BankAccountRecordState = exports.ShareholderRecordState = exports.LegalRepresentativeLifecycleState = exports.PersonRecordState = exports.BusinessLifecycleState = exports.CatalogActivationState = exports.UserState = exports.SalesRepresentativeRecordState = exports.PartnerOnboardingSagaStatus = exports.SupplierState = exports.PartnerState = exports.DocumentVerificationStatus = exports.ContractTemplateCatalogStatus = exports.ContractCatalogStatus = exports.CreditApplicationStatus = exports.CategoryState = exports.CreditFacilityState = void 0;
+exports.BatchLogsStatus = exports.PaymentsMethod = exports.PaymentsStatus = exports.AdjustmentsStatus = exports.DisbursementBatchesStatus = exports.DisbursementStatus = exports.LoanStatus = exports.LoanRequestStatus = exports.ExperianQueryStatus = exports.BusinessSeniorityCatalogState = exports.RolePermissionLinkState = exports.PermissionDefinitionState = exports.RoleDefinitionState = exports.PurchaseOrderRecordState = exports.BankAccountRecordState = exports.ShareholderRecordState = exports.LegalRepresentativeLifecycleState = exports.PersonRecordState = exports.BusinessLifecycleState = exports.CatalogActivationState = exports.UserState = exports.SalesRepresentativeRecordState = exports.PartnerOnboardingSagaStatus = exports.SupplierState = exports.PartnerState = exports.DocumentVerificationStatus = exports.ContractTemplateCatalogStatus = exports.ContractCatalogStatus = exports.CreditApplicationStatus = exports.CategoryState = exports.CreditFacilityState = exports.AsyncJobStep = exports.AsyncJobStatus = void 0;
+var AsyncJobStatus;
+(function (AsyncJobStatus) {
+    AsyncJobStatus["PENDING"] = "PENDING";
+    AsyncJobStatus["RUNNING"] = "RUNNING";
+    AsyncJobStatus["COMPLETED"] = "COMPLETED";
+    AsyncJobStatus["FAILED"] = "FAILED";
+})(AsyncJobStatus || (exports.AsyncJobStatus = AsyncJobStatus = {}));
+var AsyncJobStep;
+(function (AsyncJobStep) {
+    AsyncJobStep["ENQUEUED"] = "ENQUEUED";
+    AsyncJobStep["AWAITING_PERSON_CREATION"] = "AWAITING_PERSON_CREATION";
+    AsyncJobStep["AWAITING_BUSINESS_CREATION"] = "AWAITING_BUSINESS_CREATION";
+    AsyncJobStep["COMPLETED"] = "COMPLETED";
+    AsyncJobStep["FAILED"] = "FAILED";
+})(AsyncJobStep || (exports.AsyncJobStep = AsyncJobStep = {}));
 var CreditFacilityState;
 (function (CreditFacilityState) {
     CreditFacilityState["ACTIVE"] = "active";

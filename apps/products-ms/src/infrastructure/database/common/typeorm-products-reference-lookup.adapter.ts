@@ -62,4 +62,28 @@ export class TypeormProductsReferenceLookupAdapter
     );
     return rows[0]?.id ?? null;
   }
+
+  async get_sales_representative_internal_id_by_external_id(
+    external_id: string,
+    partner_internal_id: number | null,
+  ): Promise<number | null> {
+    if (partner_internal_id !== null) {
+      const rows: Array<{ id: number }> = await this.data_source.query(
+        `SELECT sr.id
+         FROM suppliers_schema.sales_representatives sr
+         WHERE sr.external_id = $1::uuid AND sr.partner_id = $2
+         LIMIT 1`,
+        [external_id, partner_internal_id],
+      );
+      return rows[0]?.id ?? null;
+    }
+    const rows: Array<{ id: number }> = await this.data_source.query(
+      `SELECT id
+       FROM suppliers_schema.sales_representatives
+       WHERE external_id = $1::uuid
+       LIMIT 1`,
+      [external_id],
+    );
+    return rows[0]?.id ?? null;
+  }
 }

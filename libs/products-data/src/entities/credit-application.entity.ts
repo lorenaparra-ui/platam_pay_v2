@@ -142,7 +142,6 @@ export class CreditApplicationEntity extends BaseExternalIdEntity {
   @Column({ name: 'privacy_policy_date', type: 'timestamptz', nullable: true })
   privacyPolicyDate: Date | null;
 
-  // Relaciones al final
   @ManyToOne(() => SalesRepresentativeEntity, { nullable: false })
   @JoinColumn({
     name: 'sales_representative_id',

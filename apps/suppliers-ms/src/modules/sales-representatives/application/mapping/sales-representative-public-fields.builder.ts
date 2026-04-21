@@ -14,6 +14,7 @@ export interface SalesRepresentativePublicFields {
   user_state: UserState | null;
   created_at: Date;
   updated_at: Date;
+  is_default: boolean;
 }
 
 export async function build_sales_representative_public_fields(
@@ -45,5 +46,6 @@ export async function build_sales_representative_public_fields(
     user_state: lu?.state ?? null,
     created_at: rep.created_at,
     updated_at: rep.updated_at,
+    is_default: rep.is_default,
   };
 }

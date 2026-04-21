@@ -20,6 +20,7 @@ function to_user_me_response_dto(result: GetUserMeResult): UserMeResponseDto {
   const hierarchy = new UserMeHierarchyDto();
   hierarchy.parentId = result.user.hierarchy.parentId;
   hierarchy.partnerId = result.user.hierarchy.partnerId;
+  hierarchy.salesRepExternalId = result.user.hierarchy.salesRepExternalId;
 
   const user = new UserMeProfileDto();
   user.externalId = result.user.externalId;
