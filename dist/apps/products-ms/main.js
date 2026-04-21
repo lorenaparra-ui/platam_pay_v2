@@ -296,6 +296,7 @@ class ProductsSqsEnv {
     products_sqs_outbound_queue_url;
     products_sqs_inbound_queue_url;
     products_sqs_create_person_queue_url;
+    notifications_sqs_inbound_queue_url;
     suppliers_sqs_inbound_queue_url;
     products_sqs_wait_time_seconds = 20;
     products_sqs_max_number_of_messages = 10;
@@ -328,6 +329,12 @@ __decorate([
     (0, class_validator_1.IsUrl)({ require_tld: false }),
     __metadata("design:type", String)
 ], ProductsSqsEnv.prototype, "products_sqs_create_person_queue_url", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_transformer_1.Transform)(({ value }) => (value === '' || value === undefined ? undefined : value)),
+    (0, class_validator_1.IsUrl)({ require_tld: false }),
+    __metadata("design:type", String)
+], ProductsSqsEnv.prototype, "notifications_sqs_inbound_queue_url", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_transformer_1.Transform)(({ value }) => (value === '' || value === undefined ? undefined : value)),
@@ -383,6 +390,7 @@ function get_products_sqs_config_from_env() {
             ? outbound_raw
             : PRODUCTS_SQS_OUTBOUND_QUEUE_URL_DEFAULT,
         products_sqs_inbound_queue_url: process.env.PRODUCTS_SQS_INBOUND_QUEUE_URL,
+        notifications_sqs_inbound_queue_url: process.env.NOTIFICATIONS_SQS_INBOUND_QUEUE_URL,
         products_sqs_create_person_queue_url: create_person_queue_raw ?? undefined,
         suppliers_sqs_inbound_queue_url: process.env.SUPPLIERS_SQS_INBOUND_QUEUE_URL,
         products_sqs_wait_time_seconds: process.env.PRODUCTS_SQS_WAIT_TIME_SECONDS ?? 20,
@@ -395,6 +403,7 @@ function get_products_sqs_config_from_env() {
         endpoint: env.aws_sqs_endpoint,
         outbound_queue_url: env.products_sqs_outbound_queue_url,
         inbound_queue_url: env.products_sqs_inbound_queue_url,
+        notifications_inbound_queue_url: env.notifications_sqs_inbound_queue_url,
         create_person_queue_url: env.products_sqs_create_person_queue_url,
         suppliers_inbound_queue_url: env.suppliers_sqs_inbound_queue_url,
         wait_time_seconds: env.products_sqs_wait_time_seconds,
@@ -1615,6 +1624,8 @@ const products_reference_lookup_port_1 = __webpack_require__(/*! @common/ports/p
 const typeorm_products_reference_lookup_adapter_1 = __webpack_require__(/*! @infrastructure/database/common/typeorm-products-reference-lookup.adapter */ "./apps/products-ms/src/infrastructure/database/common/typeorm-products-reference-lookup.adapter.ts");
 const typeorm_client_registration_adapter_1 = __webpack_require__(/*! @infrastructure/database/adapters/typeorm-client-registration.adapter */ "./apps/products-ms/src/infrastructure/database/adapters/typeorm-client-registration.adapter.ts");
 const stub_credit_application_document_storage_adapter_1 = __webpack_require__(/*! @infrastructure/database/adapters/stub-credit-application-document-storage.adapter */ "./apps/products-ms/src/infrastructure/database/adapters/stub-credit-application-document-storage.adapter.ts");
+const eventbridge_scheduler_adapter_1 = __webpack_require__(/*! @infrastructure/scheduler/eventbridge-scheduler.adapter */ "./apps/products-ms/src/infrastructure/scheduler/eventbridge-scheduler.adapter.ts");
+const credit_applications_tokens_2 = __webpack_require__(/*! @modules/credit-applications/credit-applications.tokens */ "./apps/products-ms/src/modules/credit-applications/credit-applications.tokens.ts");
 const transversal_data_1 = __webpack_require__(/*! @app/transversal-data */ "./libs/transversal-data/src/index.ts");
 const config_transversal_create_person_queue_url_adapter_1 = __webpack_require__(/*! @infrastructure/messaging/sqs/adapters/config-transversal-create-person-queue-url.adapter */ "./apps/products-ms/src/infrastructure/messaging/sqs/adapters/config-transversal-create-person-queue-url.adapter.ts");
 const transversal_create_person_queue_url_port_1 = __webpack_require__(/*! @messaging/domain/ports/transversal-create-person-queue-url.port */ "./apps/products-ms/src/modules/messaging/domain/ports/transversal-create-person-queue-url.port.ts");
@@ -1669,6 +1680,11 @@ exports.InfrastructureModule = InfrastructureModule = __decorate([
                 provide: credit_application_document_storage_port_1.CREDIT_APPLICATION_DOCUMENT_STORAGE,
                 useExisting: stub_credit_application_document_storage_adapter_1.StubCreditApplicationDocumentStorageAdapter,
             },
+            eventbridge_scheduler_adapter_1.EventBridgeSchedulerAdapter,
+            {
+                provide: credit_applications_tokens_2.REMINDER_SCHEDULER_PORT,
+                useExisting: eventbridge_scheduler_adapter_1.EventBridgeSchedulerAdapter,
+            },
             config_transversal_create_person_queue_url_adapter_1.ConfigTransversalCreatePersonQueueUrlAdapter,
             {
                 provide: transversal_create_person_queue_url_port_1.TRANSVERSAL_CREATE_PERSON_QUEUE_URL_PORT,
@@ -1689,6 +1705,7 @@ exports.InfrastructureModule = InfrastructureModule = __decorate([
             client_registration_port_1.CLIENT_REGISTRATION_PORT,
             credit_application_document_storage_port_1.CREDIT_APPLICATION_DOCUMENT_STORAGE,
             products_reference_lookup_port_1.PRODUCTS_REFERENCE_LOOKUP,
+            credit_applications_tokens_2.REMINDER_SCHEDULER_PORT,
             publish_create_person_command_use_case_1.PublishCreatePersonCommandUseCase,
             create_person_sqs_result_reader_port_1.CREATE_PERSON_SQS_RESULT_READER_PORT,
         ],
@@ -2016,6 +2033,7 @@ exports.SqsModule = SqsModule = __decorate([
                     outbound_queue_url: config_service.getOrThrow('sqs.outbound_queue_url'),
                     inbound_queue_url: config_service.get('sqs.inbound_queue_url'),
                     suppliers_callback_queue_url: config_service.get('sqs.suppliers_callback_queue_url'),
+                    notifications_inbound_queue_url: config_service.get('sqs.notifications_inbound_queue_url'),
                     create_person_queue_url: config_service.get('sqs.create_person_queue_url'),
                     suppliers_inbound_queue_url: config_service.get('sqs.suppliers_inbound_queue_url'),
                 }),
@@ -2057,6 +2075,153 @@ exports.SqsModule = SqsModule = __decorate([
         ],
     })
 ], SqsModule);
+
+
+/***/ },
+
+/***/ "./apps/products-ms/src/infrastructure/scheduler/eventbridge-scheduler.adapter.ts"
+/*!****************************************************************************************!*\
+  !*** ./apps/products-ms/src/infrastructure/scheduler/eventbridge-scheduler.adapter.ts ***!
+  \****************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var EventBridgeSchedulerAdapter_1;
+var _a;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.EventBridgeSchedulerAdapter = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const config_1 = __webpack_require__(/*! @nestjs/config */ "@nestjs/config");
+const client_scheduler_1 = __webpack_require__(Object(function webpackMissingModule() { var e = new Error("Cannot find module '@aws-sdk/client-scheduler'"); e.code = 'MODULE_NOT_FOUND'; throw e; }()));
+let EventBridgeSchedulerAdapter = EventBridgeSchedulerAdapter_1 = class EventBridgeSchedulerAdapter {
+    config_service;
+    logger = new common_1.Logger(EventBridgeSchedulerAdapter_1.name);
+    constructor(config_service) {
+        this.config_service = config_service;
+    }
+    async schedule_reminder(params) {
+        const client = this.create_client();
+        const group_name = this.get_group_name();
+        const role_arn = this.get_role_arn();
+        const target_arn = this.get_target_arn();
+        const channel_short = params.notification.channel === 'whatsapp_template' ? 'wa' : 'email';
+        const schedule_name = this.build_schedule_name(params.credit_application_external_id, params.reminder_type, channel_short);
+        const fire_at_expression = `at(${params.fire_at.toISOString().replace(/\.\d{3}Z$/, '')})`;
+        const sqs_envelope = this.build_sqs_envelope(params.credit_application_external_id, params.reminder_type, channel_short, params.notification);
+        try {
+            await client.send(new client_scheduler_1.CreateScheduleCommand({
+                Name: schedule_name,
+                GroupName: group_name,
+                ScheduleExpression: fire_at_expression,
+                ScheduleExpressionTimezone: 'UTC',
+                Target: {
+                    Arn: target_arn,
+                    RoleArn: role_arn,
+                    Input: JSON.stringify(sqs_envelope),
+                },
+                FlexibleTimeWindow: { Mode: client_scheduler_1.FlexibleTimeWindowMode.OFF },
+                ActionAfterCompletion: client_scheduler_1.ActionAfterCompletion.DELETE,
+            }));
+            this.logger.log(`[Scheduler][step=created][name=${schedule_name}][fireAt=${params.fire_at.toISOString()}]`);
+        }
+        catch (err) {
+            const text = err instanceof Error ? err.message : String(err);
+            this.logger.error(`[Scheduler][step=create_failed][name=${schedule_name}] ${text}`);
+            throw err instanceof Error ? err : new Error(text);
+        }
+    }
+    async cancel_reminders(credit_application_external_id) {
+        const client = this.create_client();
+        const group_name = this.get_group_name();
+        const names = [];
+        for (const reminder_type of ['reminder_1', 'reminder_2']) {
+            for (const channel_short of ['wa', 'email']) {
+                names.push(this.build_schedule_name(credit_application_external_id, reminder_type, channel_short));
+            }
+        }
+        for (const schedule_name of names) {
+            try {
+                await client.send(new client_scheduler_1.DeleteScheduleCommand({ Name: schedule_name, GroupName: group_name }));
+                this.logger.log(`[Scheduler][step=cancelled][name=${schedule_name}]`);
+            }
+            catch (err) {
+                if (err instanceof client_scheduler_1.ResourceNotFoundException) {
+                    this.logger.log(`[Scheduler][step=cancel_not_found][name=${schedule_name}] — ya ejecutado o no creado`);
+                    continue;
+                }
+                const text = err instanceof Error ? err.message : String(err);
+                this.logger.warn(`[Scheduler][step=cancel_failed][name=${schedule_name}] ${text}`);
+            }
+        }
+    }
+    build_schedule_name(external_id, reminder_type, channel_short) {
+        return `platam-auth-${reminder_type}_${channel_short}-${external_id}`;
+    }
+    build_sqs_envelope(external_id, reminder_type, channel_short, notification) {
+        const correlation_id = `reminder-${reminder_type}-${channel_short}-${external_id}`;
+        if (notification.channel === 'whatsapp_template') {
+            return {
+                event: 'send-notification',
+                version: '1.0',
+                correlation_id,
+                channel: 'whatsapp_template',
+                payload: {
+                    to_e164: notification.to_e164,
+                    content_sid: notification.content_sid,
+                    content_variables: notification.content_variables,
+                },
+            };
+        }
+        return {
+            event: 'send-notification',
+            version: '1.0',
+            correlation_id,
+            channel: 'email',
+            payload: {
+                to: notification.to,
+                subject: notification.subject,
+                html: notification.html,
+            },
+        };
+    }
+    create_client() {
+        const region = this.config_service.get('sqs.region') ??
+            process.env.AWS_REGION ??
+            'us-east-1';
+        return new client_scheduler_1.SchedulerClient({ region });
+    }
+    get_group_name() {
+        return (process.env.EVENTBRIDGE_SCHEDULER_GROUP_NAME ??
+            'platam-auth-reminders');
+    }
+    get_role_arn() {
+        const arn = process.env.EVENTBRIDGE_SCHEDULER_ROLE_ARN;
+        if (!arn)
+            throw new Error('EVENTBRIDGE_SCHEDULER_ROLE_ARN no configurado');
+        return arn;
+    }
+    get_target_arn() {
+        const arn = process.env.EVENTBRIDGE_SCHEDULER_TARGET_ARN ??
+            this.config_service.get('sqs.notifications_inbound_queue_url');
+        if (!arn)
+            throw new Error('EVENTBRIDGE_SCHEDULER_TARGET_ARN no configurado');
+        return arn;
+    }
+};
+exports.EventBridgeSchedulerAdapter = EventBridgeSchedulerAdapter;
+exports.EventBridgeSchedulerAdapter = EventBridgeSchedulerAdapter = EventBridgeSchedulerAdapter_1 = __decorate([
+    (0, common_1.Injectable)(),
+    __metadata("design:paramtypes", [typeof (_a = typeof config_1.ConfigService !== "undefined" && config_1.ConfigService) === "function" ? _a : Object])
+], EventBridgeSchedulerAdapter);
 
 
 /***/ },
@@ -3601,6 +3766,117 @@ exports.ApproveCreditApplicationUseCase = ApproveCreditApplicationUseCase = __de
 
 /***/ },
 
+/***/ "./apps/products-ms/src/modules/credit-applications/application/use-cases/authorize-credit-application/authorize-credit-application.request.ts"
+/*!*****************************************************************************************************************************************************!*\
+  !*** ./apps/products-ms/src/modules/credit-applications/application/use-cases/authorize-credit-application/authorize-credit-application.request.ts ***!
+  \*****************************************************************************************************************************************************/
+(__unused_webpack_module, exports) {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.AuthorizeCreditApplicationRequest = void 0;
+class AuthorizeCreditApplicationRequest {
+    externalId;
+    constructor(externalId) {
+        this.externalId = externalId;
+    }
+}
+exports.AuthorizeCreditApplicationRequest = AuthorizeCreditApplicationRequest;
+
+
+/***/ },
+
+/***/ "./apps/products-ms/src/modules/credit-applications/application/use-cases/authorize-credit-application/authorize-credit-application.response.ts"
+/*!******************************************************************************************************************************************************!*\
+  !*** ./apps/products-ms/src/modules/credit-applications/application/use-cases/authorize-credit-application/authorize-credit-application.response.ts ***!
+  \******************************************************************************************************************************************************/
+(__unused_webpack_module, exports) {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.AuthorizeCreditApplicationResponse = void 0;
+class AuthorizeCreditApplicationResponse {
+    result;
+    constructor(result) {
+        this.result = result;
+    }
+}
+exports.AuthorizeCreditApplicationResponse = AuthorizeCreditApplicationResponse;
+
+
+/***/ },
+
+/***/ "./apps/products-ms/src/modules/credit-applications/application/use-cases/authorize-credit-application/authorize-credit-application.use-case.ts"
+/*!******************************************************************************************************************************************************!*\
+  !*** ./apps/products-ms/src/modules/credit-applications/application/use-cases/authorize-credit-application/authorize-credit-application.use-case.ts ***!
+  \******************************************************************************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+var AuthorizeCreditApplicationUseCase_1;
+var _a;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.AuthorizeCreditApplicationUseCase = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const shared_1 = __webpack_require__(/*! @platam/shared */ "./libs/shared/src/index.ts");
+const credit_applications_tokens_1 = __webpack_require__(/*! @modules/credit-applications/credit-applications.tokens */ "./apps/products-ms/src/modules/credit-applications/credit-applications.tokens.ts");
+const credit_application_ports_1 = __webpack_require__(/*! @modules/credit-applications/domain/ports/credit-application.ports */ "./apps/products-ms/src/modules/credit-applications/domain/ports/credit-application.ports.ts");
+const authorize_credit_application_response_1 = __webpack_require__(/*! ./authorize-credit-application.response */ "./apps/products-ms/src/modules/credit-applications/application/use-cases/authorize-credit-application/authorize-credit-application.response.ts");
+let AuthorizeCreditApplicationUseCase = AuthorizeCreditApplicationUseCase_1 = class AuthorizeCreditApplicationUseCase {
+    credit_application_repository;
+    reminder_scheduler;
+    logger = new common_1.Logger(AuthorizeCreditApplicationUseCase_1.name);
+    constructor(credit_application_repository, reminder_scheduler) {
+        this.credit_application_repository = credit_application_repository;
+        this.reminder_scheduler = reminder_scheduler;
+    }
+    async execute(req) {
+        const application = await this.credit_application_repository.find_by_external_id(req.externalId);
+        if (application === null) {
+            return new authorize_credit_application_response_1.AuthorizeCreditApplicationResponse('not_found');
+        }
+        if (application.status !== shared_1.CreditApplicationStatus.PENDING_AUTHORIZATION) {
+            return new authorize_credit_application_response_1.AuthorizeCreditApplicationResponse('already_authorized');
+        }
+        await this.credit_application_repository.update_by_external_id(req.externalId, {
+            status: shared_1.CreditApplicationStatus.IN_PROGRESS,
+            privacy_policy_accepted: true,
+            privacy_policy_date: new Date(),
+        });
+        try {
+            await this.reminder_scheduler.cancel_reminders(req.externalId);
+        }
+        catch (err) {
+            const text = err instanceof Error ? err.message : String(err);
+            this.logger.warn(`[Auth][externalId=${req.externalId}][step=cancel_reminders_failed] ${text}`);
+        }
+        this.logger.log(`[Auth][externalId=${req.externalId}][step=authorized][newStatus=in_progress]`);
+        return new authorize_credit_application_response_1.AuthorizeCreditApplicationResponse('authorized');
+    }
+};
+exports.AuthorizeCreditApplicationUseCase = AuthorizeCreditApplicationUseCase;
+exports.AuthorizeCreditApplicationUseCase = AuthorizeCreditApplicationUseCase = AuthorizeCreditApplicationUseCase_1 = __decorate([
+    (0, common_1.Injectable)(),
+    __param(0, (0, common_1.Inject)(credit_applications_tokens_1.CREDIT_APPLICATION_REPOSITORY)),
+    __param(1, (0, common_1.Inject)(credit_applications_tokens_1.REMINDER_SCHEDULER_PORT)),
+    __metadata("design:paramtypes", [typeof (_a = typeof credit_application_ports_1.CreditApplicationRepository !== "undefined" && credit_application_ports_1.CreditApplicationRepository) === "function" ? _a : Object, Object])
+], AuthorizeCreditApplicationUseCase);
+
+
+/***/ },
+
 /***/ "./apps/products-ms/src/modules/credit-applications/application/use-cases/create-credit-application/create-credit-application.request.ts"
 /*!***********************************************************************************************************************************************!*\
   !*** ./apps/products-ms/src/modules/credit-applications/application/use-cases/create-credit-application/create-credit-application.request.ts ***!
@@ -4098,6 +4374,101 @@ exports.EnqueueNaturalPersonCreditApplicationUseCase = EnqueueNaturalPersonCredi
     __param(2, (0, common_1.Inject)(client_registration_port_1.CLIENT_REGISTRATION_PORT)),
     __metadata("design:paramtypes", [Object, Object, typeof (_a = typeof client_registration_port_1.ClientRegistrationPort !== "undefined" && client_registration_port_1.ClientRegistrationPort) === "function" ? _a : Object, typeof (_b = typeof publish_create_person_command_use_case_1.PublishCreatePersonCommandUseCase !== "undefined" && publish_create_person_command_use_case_1.PublishCreatePersonCommandUseCase) === "function" ? _b : Object, typeof (_c = typeof publish_create_business_job_use_case_1.PublishCreateBusinessJobUseCase !== "undefined" && publish_create_business_job_use_case_1.PublishCreateBusinessJobUseCase) === "function" ? _c : Object])
 ], EnqueueNaturalPersonCreditApplicationUseCase);
+
+
+/***/ },
+
+/***/ "./apps/products-ms/src/modules/credit-applications/application/use-cases/get-credit-application-authorization-data/get-credit-application-authorization-data.request.ts"
+/*!*******************************************************************************************************************************************************************************!*\
+  !*** ./apps/products-ms/src/modules/credit-applications/application/use-cases/get-credit-application-authorization-data/get-credit-application-authorization-data.request.ts ***!
+  \*******************************************************************************************************************************************************************************/
+(__unused_webpack_module, exports) {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.GetCreditApplicationAuthorizationDataRequest = void 0;
+class GetCreditApplicationAuthorizationDataRequest {
+    externalId;
+    constructor(externalId) {
+        this.externalId = externalId;
+    }
+}
+exports.GetCreditApplicationAuthorizationDataRequest = GetCreditApplicationAuthorizationDataRequest;
+
+
+/***/ },
+
+/***/ "./apps/products-ms/src/modules/credit-applications/application/use-cases/get-credit-application-authorization-data/get-credit-application-authorization-data.response.ts"
+/*!********************************************************************************************************************************************************************************!*\
+  !*** ./apps/products-ms/src/modules/credit-applications/application/use-cases/get-credit-application-authorization-data/get-credit-application-authorization-data.response.ts ***!
+  \********************************************************************************************************************************************************************************/
+(__unused_webpack_module, exports) {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.GetCreditApplicationAuthorizationDataResponse = void 0;
+class GetCreditApplicationAuthorizationDataResponse {
+    authorizationStatus;
+    externalId;
+    constructor(authorizationStatus, externalId) {
+        this.authorizationStatus = authorizationStatus;
+        this.externalId = externalId;
+    }
+}
+exports.GetCreditApplicationAuthorizationDataResponse = GetCreditApplicationAuthorizationDataResponse;
+
+
+/***/ },
+
+/***/ "./apps/products-ms/src/modules/credit-applications/application/use-cases/get-credit-application-authorization-data/get-credit-application-authorization-data.use-case.ts"
+/*!********************************************************************************************************************************************************************************!*\
+  !*** ./apps/products-ms/src/modules/credit-applications/application/use-cases/get-credit-application-authorization-data/get-credit-application-authorization-data.use-case.ts ***!
+  \********************************************************************************************************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+var _a;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.GetCreditApplicationAuthorizationDataUseCase = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const shared_1 = __webpack_require__(/*! @platam/shared */ "./libs/shared/src/index.ts");
+const credit_applications_tokens_1 = __webpack_require__(/*! @modules/credit-applications/credit-applications.tokens */ "./apps/products-ms/src/modules/credit-applications/credit-applications.tokens.ts");
+const credit_application_ports_1 = __webpack_require__(/*! @modules/credit-applications/domain/ports/credit-application.ports */ "./apps/products-ms/src/modules/credit-applications/domain/ports/credit-application.ports.ts");
+const get_credit_application_authorization_data_response_1 = __webpack_require__(/*! ./get-credit-application-authorization-data.response */ "./apps/products-ms/src/modules/credit-applications/application/use-cases/get-credit-application-authorization-data/get-credit-application-authorization-data.response.ts");
+let GetCreditApplicationAuthorizationDataUseCase = class GetCreditApplicationAuthorizationDataUseCase {
+    credit_application_repository;
+    constructor(credit_application_repository) {
+        this.credit_application_repository = credit_application_repository;
+    }
+    async execute(req) {
+        const application = await this.credit_application_repository.find_by_external_id(req.externalId);
+        if (application === null) {
+            return new get_credit_application_authorization_data_response_1.GetCreditApplicationAuthorizationDataResponse('not_found', req.externalId);
+        }
+        const status = application.status === shared_1.CreditApplicationStatus.PENDING_AUTHORIZATION
+            ? 'pending'
+            : 'already_authorized';
+        return new get_credit_application_authorization_data_response_1.GetCreditApplicationAuthorizationDataResponse(status, req.externalId);
+    }
+};
+exports.GetCreditApplicationAuthorizationDataUseCase = GetCreditApplicationAuthorizationDataUseCase;
+exports.GetCreditApplicationAuthorizationDataUseCase = GetCreditApplicationAuthorizationDataUseCase = __decorate([
+    (0, common_1.Injectable)(),
+    __param(0, (0, common_1.Inject)(credit_applications_tokens_1.CREDIT_APPLICATION_REPOSITORY)),
+    __metadata("design:paramtypes", [typeof (_a = typeof credit_application_ports_1.CreditApplicationRepository !== "undefined" && credit_application_ports_1.CreditApplicationRepository) === "function" ? _a : Object])
+], GetCreditApplicationAuthorizationDataUseCase);
 
 
 /***/ },
@@ -4661,6 +5032,205 @@ exports.ListCreditApplicationsUseCase = ListCreditApplicationsUseCase = __decora
 
 /***/ },
 
+/***/ "./apps/products-ms/src/modules/credit-applications/application/use-cases/publish-authorization-notification/publish-authorization-notification.use-case.ts"
+/*!******************************************************************************************************************************************************************!*\
+  !*** ./apps/products-ms/src/modules/credit-applications/application/use-cases/publish-authorization-notification/publish-authorization-notification.use-case.ts ***!
+  \******************************************************************************************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+var PublishAuthorizationNotificationUseCase_1;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.PublishAuthorizationNotificationUseCase = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const shared_1 = __webpack_require__(/*! @platam/shared */ "./libs/shared/src/index.ts");
+const outbound_message_publisher_port_1 = __webpack_require__(/*! @messaging/domain/ports/outbound-message-publisher.port */ "./apps/products-ms/src/modules/messaging/domain/ports/outbound-message-publisher.port.ts");
+const credit_applications_tokens_1 = __webpack_require__(/*! @modules/credit-applications/credit-applications.tokens */ "./apps/products-ms/src/modules/credit-applications/credit-applications.tokens.ts");
+const APP_BASE_URL = process.env.APP_BASE_URL ?? 'https://platampay.com';
+let PublishAuthorizationNotificationUseCase = PublishAuthorizationNotificationUseCase_1 = class PublishAuthorizationNotificationUseCase {
+    publisher;
+    queues;
+    reminder_scheduler;
+    logger = new common_1.Logger(PublishAuthorizationNotificationUseCase_1.name);
+    constructor(publisher, queues, reminder_scheduler) {
+        this.publisher = publisher;
+        this.queues = queues;
+        this.reminder_scheduler = reminder_scheduler;
+    }
+    async execute(command) {
+        const queue_url = this.queues.notifications_inbound_queue_url;
+        if (!queue_url) {
+            this.logger.warn(`[AuthNotify][externalId=${command.credit_application_external_id}] NOTIFICATIONS_SQS_INBOUND_QUEUE_URL no configurado — notificación omitida`);
+            return;
+        }
+        const authorization_url = `${APP_BASE_URL}/auth/${command.credit_application_external_id}`;
+        const partner_name = command.partner_name ?? 'Platam';
+        const wa_initial = this.build_wa_initial_payload(command, partner_name);
+        const email_initial = this.build_email_initial_payload(command, partner_name, authorization_url);
+        await Promise.allSettled([
+            this.publish(queue_url, 'whatsapp_template', wa_initial, command.credit_application_external_id, 'initial_wa'),
+            this.publish(queue_url, 'email', email_initial, command.credit_application_external_id, 'initial_email'),
+        ]);
+        await this.schedule_reminders(command, partner_name, authorization_url);
+    }
+    async schedule_reminders(command, partner_name, authorization_url) {
+        const external_id = command.credit_application_external_id;
+        const now = new Date();
+        const t24 = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+        const t48 = new Date(now.getTime() + 48 * 60 * 60 * 1000);
+        const wa_reminder_1 = this.build_wa_reminder_payload(command, partner_name, 'reminder_1');
+        const wa_reminder_2 = this.build_wa_reminder_payload(command, partner_name, 'reminder_2');
+        const email_reminder_1 = this.build_email_reminder_payload(command, partner_name, authorization_url, 'reminder_1');
+        const email_reminder_2 = this.build_email_reminder_payload(command, partner_name, authorization_url, 'reminder_2');
+        const schedules = [
+            { fire_at: t24, reminder_type: 'reminder_1', notification: wa_reminder_1 },
+            { fire_at: t24, reminder_type: 'reminder_1', notification: email_reminder_1 },
+            { fire_at: t48, reminder_type: 'reminder_2', notification: wa_reminder_2 },
+            { fire_at: t48, reminder_type: 'reminder_2', notification: email_reminder_2 },
+        ];
+        await Promise.allSettled(schedules.map((s) => this.reminder_scheduler
+            .schedule_reminder({ credit_application_external_id: external_id, ...s })
+            .catch((err) => {
+            const text = err instanceof Error ? err.message : String(err);
+            this.logger.warn(`[AuthNotify][externalId=${external_id}][step=schedule_failed][type=${s.reminder_type}][channel=${s.notification.channel}] ${text}`);
+        })));
+    }
+    async publish(queue_url, channel, payload, external_id, step) {
+        const correlation_id = `auth-${step}-${external_id}`;
+        try {
+            await this.publisher.publish({
+                queue_url,
+                body: JSON.stringify({ event: 'send-notification', version: '1.0', correlation_id, channel, payload }),
+            });
+            this.logger.log(`[AuthNotify][externalId=${external_id}][step=${step}][step=published]`);
+        }
+        catch (err) {
+            const text = err instanceof Error ? err.message : String(err);
+            this.logger.error(`[AuthNotify][externalId=${external_id}][step=${step}][step=publish_failed] ${text}`);
+        }
+    }
+    build_wa_initial_payload(cmd, partner_name) {
+        const content_sid = cmd.client_type === 'pn'
+            ? (process.env.TWILIO_TEMPLATE_AUTORIZACION_PN ?? '')
+            : (process.env.TWILIO_TEMPLATE_AUTORIZACION_PJ ?? '');
+        const content_variables = this.build_wa_variables(cmd, partner_name);
+        return { to_e164: cmd.client_phone_e164, content_sid, content_variables };
+    }
+    build_wa_reminder_payload(cmd, partner_name, reminder_type) {
+        const env_key = cmd.client_type === 'pn'
+            ? (reminder_type === 'reminder_1' ? 'TWILIO_TEMPLATE_RECORDATORIO_1_PN' : 'TWILIO_TEMPLATE_RECORDATORIO_2_PN')
+            : (reminder_type === 'reminder_1' ? 'TWILIO_TEMPLATE_RECORDATORIO_1_PJ' : 'TWILIO_TEMPLATE_RECORDATORIO_2_PJ');
+        return {
+            channel: 'whatsapp_template',
+            to_e164: cmd.client_phone_e164,
+            content_sid: process.env[env_key] ?? '',
+            content_variables: cmd.client_type === 'pn'
+                ? this.build_wa_variables_pn(cmd, partner_name)
+                : this.build_wa_reminder_variables_pj(cmd, partner_name),
+        };
+    }
+    build_wa_variables(cmd, partner_name) {
+        return cmd.client_type === 'pn'
+            ? this.build_wa_variables_pn(cmd, partner_name)
+            : this.build_wa_initial_variables_pj(cmd, partner_name);
+    }
+    build_wa_variables_pn(cmd, partner_name) {
+        return {
+            '1': cmd.client_first_name,
+            '2': partner_name,
+            '4': cmd.credit_application_external_id,
+        };
+    }
+    build_wa_initial_variables_pj(cmd, partner_name) {
+        return {
+            '1': cmd.client_first_name,
+            '2': partner_name,
+            '3': cmd.business_legal_name ?? '',
+            '4': cmd.credit_application_external_id,
+        };
+    }
+    build_wa_reminder_variables_pj(cmd, partner_name) {
+        return {
+            '1': cmd.client_first_name,
+            '2': cmd.business_legal_name ?? '',
+            '3': partner_name,
+            '4': cmd.credit_application_external_id,
+        };
+    }
+    build_email_initial_payload(cmd, partner_name, authorization_url) {
+        const subject = `Autorización requerida para tu solicitud de crédito Platam | ${partner_name}`;
+        const legal_name_line = cmd.client_type === 'pj' && cmd.business_legal_name
+            ? `<p>Como representante legal de <strong>${cmd.business_legal_name}</strong>, autoriza a Platam Colombia SAS para consultar la información de la empresa en centrales de riesgo como DATACRÉDITO.</p>`
+            : '';
+        const html = `<!DOCTYPE html>
+<html lang="es">
+<body style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;">
+  <h2>¡Hola ${cmd.client_first_name}!</h2>
+  <p>Para continuar con tu solicitud de línea de crédito <strong>Platam | ${partner_name}</strong>, necesitamos tu autorización para consultar tus antecedentes crediticios.</p>
+  <p>Al autorizar, confirmas que has leído y aceptas nuestra Política de Protección de Datos. Autorizas a Platam Colombia S.A.S para consultar tu información en centrales de riesgo como DATACRÉDITO y validar tus datos para el análisis de crédito.</p>
+  ${legal_name_line}
+  <p style="text-align:center;margin:32px 0;">
+    <a href="${authorization_url}" style="background:#1a56db;color:#fff;padding:14px 28px;border-radius:6px;text-decoration:none;font-weight:bold;">
+      AUTORIZAR CONSULTA CREDITICIA
+    </a>
+  </p>
+  <p style="font-size:12px;color:#666;">Si el botón no funciona, copia y pega este enlace en tu navegador:<br>${authorization_url}</p>
+  <p>¡Gracias por confiar en nosotros!</p>
+  <p>Platam</p>
+</body>
+</html>`;
+        return { to: [cmd.client_email], subject, html, from_override: 'Platam <noresponder@mail.platam.co>' };
+    }
+    build_email_reminder_payload(cmd, partner_name, authorization_url, reminder_type) {
+        const is_last = reminder_type === 'reminder_2';
+        const subject = is_last
+            ? `Último recordatorio: autoriza tu solicitud de crédito Platam | ${partner_name}`
+            : `Recordatorio: tu solicitud de crédito Platam | ${partner_name} espera tu autorización`;
+        const body_text = is_last
+            ? `Tu solicitud de línea de crédito con <strong>Platam | ${partner_name}</strong> sigue esperando tu autorización. Sin ella, no podemos continuar con tu estudio crediticio.<br><strong>Este es nuestro último recordatorio automático.</strong> Autoriza ahora para no perder tu solicitud.`
+            : `Te recordamos que tu solicitud de línea de crédito con <strong>Platam | ${partner_name}</strong> está esperando tu autorización para avanzar.<br>Solo toma un segundo — autoriza la consulta y tu estudio crediticio comenzará de inmediato.`;
+        const html = `<!DOCTYPE html>
+<html lang="es">
+<body style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;">
+  <h2>¡Hola ${cmd.client_first_name}!</h2>
+  <p>${body_text}</p>
+  <p style="text-align:center;margin:32px 0;">
+    <a href="${authorization_url}" style="background:#1a56db;color:#fff;padding:14px 28px;border-radius:6px;text-decoration:none;font-weight:bold;">
+      AUTORIZAR CONSULTA CREDITICIA
+    </a>
+  </p>
+  <p style="font-size:12px;color:#666;">${authorization_url}</p>
+  <p>¡Estamos listos para ayudarte!</p>
+  <p>Platam</p>
+</body>
+</html>`;
+        return { channel: 'email', to: [cmd.client_email], subject, html };
+    }
+};
+exports.PublishAuthorizationNotificationUseCase = PublishAuthorizationNotificationUseCase;
+exports.PublishAuthorizationNotificationUseCase = PublishAuthorizationNotificationUseCase = PublishAuthorizationNotificationUseCase_1 = __decorate([
+    (0, common_1.Injectable)(),
+    __param(0, (0, common_1.Inject)(outbound_message_publisher_port_1.OUTBOUND_MESSAGE_PUBLISHER_PORT)),
+    __param(1, (0, common_1.Inject)(shared_1.QUEUES_CONFIG)),
+    __param(2, (0, common_1.Inject)(credit_applications_tokens_1.REMINDER_SCHEDULER_PORT)),
+    __metadata("design:paramtypes", [Object, Object, Object])
+], PublishAuthorizationNotificationUseCase);
+
+
+/***/ },
+
 /***/ "./apps/products-ms/src/modules/credit-applications/application/use-cases/register-client-credit-application/register-client-credit-application.request.ts"
 /*!*****************************************************************************************************************************************************************!*\
   !*** ./apps/products-ms/src/modules/credit-applications/application/use-cases/register-client-credit-application/register-client-credit-application.request.ts ***!
@@ -4681,6 +5251,7 @@ class RegisterClientCreditApplicationRequest {
     businessType;
     isCurrentClient;
     requestedCreditLine;
+    privacyPolicyAccepted;
     relationshipToBusiness;
     cityExternalId;
     businessAddress;
@@ -4695,7 +5266,11 @@ class RegisterClientCreditApplicationRequest {
     totalAssets;
     monthlyIncome;
     monthlyExpenses;
-    constructor(phone, email, docType, docNumber, firstName, lastName, businessName, businessType, isCurrentClient, requestedCreditLine, relationshipToBusiness, cityExternalId, businessAddress, businessSeniority, numberOfEmployees, numberOfLocations, businessFlagshipM2, businessHasRent, businessRentAmount, monthlyPurchases, currentPurchases, totalAssets, monthlyIncome, monthlyExpenses) {
+    status;
+    partnerName;
+    clientType;
+    businessLegalName;
+    constructor(phone, email, docType, docNumber, firstName, lastName, businessName, businessType, isCurrentClient, requestedCreditLine, privacyPolicyAccepted, relationshipToBusiness, cityExternalId, businessAddress, businessSeniority, numberOfEmployees, numberOfLocations, businessFlagshipM2, businessHasRent, businessRentAmount, monthlyPurchases, currentPurchases, totalAssets, monthlyIncome, monthlyExpenses, status, partnerName, clientType, businessLegalName) {
         this.phone = phone;
         this.email = email;
         this.docType = docType;
@@ -4706,6 +5281,7 @@ class RegisterClientCreditApplicationRequest {
         this.businessType = businessType;
         this.isCurrentClient = isCurrentClient;
         this.requestedCreditLine = requestedCreditLine;
+        this.privacyPolicyAccepted = privacyPolicyAccepted;
         this.relationshipToBusiness = relationshipToBusiness;
         this.cityExternalId = cityExternalId;
         this.businessAddress = businessAddress;
@@ -4720,6 +5296,10 @@ class RegisterClientCreditApplicationRequest {
         this.totalAssets = totalAssets;
         this.monthlyIncome = monthlyIncome;
         this.monthlyExpenses = monthlyExpenses;
+        this.status = status;
+        this.partnerName = partnerName;
+        this.clientType = clientType;
+        this.businessLegalName = businessLegalName;
     }
 }
 exports.RegisterClientCreditApplicationRequest = RegisterClientCreditApplicationRequest;
@@ -4799,7 +5379,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var _a, _b;
+var _a, _b, _c;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.RegisterClientCreditApplicationUseCase = void 0;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
@@ -4808,13 +5388,16 @@ const credit_applications_tokens_1 = __webpack_require__(/*! @modules/credit-app
 const credit_application_ports_1 = __webpack_require__(/*! @modules/credit-applications/domain/ports/credit-application.ports */ "./apps/products-ms/src/modules/credit-applications/domain/ports/credit-application.ports.ts");
 const client_registration_port_1 = __webpack_require__(/*! @modules/credit-applications/application/ports/client-registration.port */ "./apps/products-ms/src/modules/credit-applications/application/ports/client-registration.port.ts");
 const credit_application_public_fields_builder_1 = __webpack_require__(/*! @modules/credit-applications/application/mapping/credit-application-public-fields.builder */ "./apps/products-ms/src/modules/credit-applications/application/mapping/credit-application-public-fields.builder.ts");
+const publish_authorization_notification_use_case_1 = __webpack_require__(/*! ../publish-authorization-notification/publish-authorization-notification.use-case */ "./apps/products-ms/src/modules/credit-applications/application/use-cases/publish-authorization-notification/publish-authorization-notification.use-case.ts");
 const register_client_credit_application_response_1 = __webpack_require__(/*! ./register-client-credit-application.response */ "./apps/products-ms/src/modules/credit-applications/application/use-cases/register-client-credit-application/register-client-credit-application.response.ts");
 let RegisterClientCreditApplicationUseCase = class RegisterClientCreditApplicationUseCase {
     credit_application_repository;
     client_registration;
-    constructor(credit_application_repository, client_registration) {
+    publish_authorization_notification;
+    constructor(credit_application_repository, client_registration, publish_authorization_notification) {
         this.credit_application_repository = credit_application_repository;
         this.client_registration = client_registration;
+        this.publish_authorization_notification = publish_authorization_notification;
     }
     async execute(req) {
         let city_id = null;
@@ -4845,16 +5428,18 @@ let RegisterClientCreditApplicationUseCase = class RegisterClientCreditApplicati
                 city_id,
             });
         }
+        const resolved_status = req.status ?? shared_1.CreditApplicationStatus.IN_PROGRESS;
+        const is_pending_auth = resolved_status === shared_1.CreditApplicationStatus.PENDING_AUTHORIZATION;
         const created = await this.credit_application_repository.create({
             person_id,
             business_id,
             partner_id: null,
             partner_category_id: null,
             sales_representative_id: null,
-            status: shared_1.CreditApplicationStatus.IN_PROGRESS,
+            status: resolved_status,
             is_current_client: req.isCurrentClient,
-            privacy_policy_accepted: true,
-            privacy_policy_date: new Date(),
+            privacy_policy_accepted: is_pending_auth ? false : req.privacyPolicyAccepted,
+            privacy_policy_date: is_pending_auth ? null : (req.privacyPolicyAccepted ? new Date() : null),
             submission_date: new Date(),
             business_seniority: req.businessSeniority,
             number_of_employees: req.numberOfEmployees,
@@ -4869,6 +5454,17 @@ let RegisterClientCreditApplicationUseCase = class RegisterClientCreditApplicati
             monthly_income: req.monthlyIncome,
             monthly_expenses: req.monthlyExpenses,
         });
+        if (is_pending_auth) {
+            await this.publish_authorization_notification.execute({
+                credit_application_external_id: created.external_id,
+                client_type: req.clientType ?? 'pn',
+                client_phone_e164: req.phone,
+                client_email: req.email,
+                client_first_name: req.firstName,
+                partner_name: req.partnerName ?? null,
+                business_legal_name: req.businessLegalName,
+            });
+        }
         return new register_client_credit_application_response_1.RegisterClientCreditApplicationResponse((0, credit_application_public_fields_builder_1.build_credit_application_public_fields)(created));
     }
 };
@@ -4877,7 +5473,7 @@ exports.RegisterClientCreditApplicationUseCase = RegisterClientCreditApplication
     (0, common_1.Injectable)(),
     __param(0, (0, common_1.Inject)(credit_applications_tokens_1.CREDIT_APPLICATION_REPOSITORY)),
     __param(1, (0, common_1.Inject)(client_registration_port_1.CLIENT_REGISTRATION_PORT)),
-    __metadata("design:paramtypes", [typeof (_a = typeof credit_application_ports_1.CreditApplicationRepository !== "undefined" && credit_application_ports_1.CreditApplicationRepository) === "function" ? _a : Object, typeof (_b = typeof client_registration_port_1.ClientRegistrationPort !== "undefined" && client_registration_port_1.ClientRegistrationPort) === "function" ? _b : Object])
+    __metadata("design:paramtypes", [typeof (_a = typeof credit_application_ports_1.CreditApplicationRepository !== "undefined" && credit_application_ports_1.CreditApplicationRepository) === "function" ? _a : Object, typeof (_b = typeof client_registration_port_1.ClientRegistrationPort !== "undefined" && client_registration_port_1.ClientRegistrationPort) === "function" ? _b : Object, typeof (_c = typeof publish_authorization_notification_use_case_1.PublishAuthorizationNotificationUseCase !== "undefined" && publish_authorization_notification_use_case_1.PublishAuthorizationNotificationUseCase) === "function" ? _c : Object])
 ], RegisterClientCreditApplicationUseCase);
 
 
@@ -5755,6 +6351,9 @@ const approve_credit_application_use_case_1 = __webpack_require__(/*! @modules/c
 const reject_credit_application_use_case_1 = __webpack_require__(/*! @modules/credit-applications/application/use-cases/reject-credit-application/reject-credit-application.use-case */ "./apps/products-ms/src/modules/credit-applications/application/use-cases/reject-credit-application/reject-credit-application.use-case.ts");
 const save_credit_application_pre_study_use_case_1 = __webpack_require__(/*! @modules/credit-applications/application/use-cases/save-credit-application-pre-study/save-credit-application-pre-study.use-case */ "./apps/products-ms/src/modules/credit-applications/application/use-cases/save-credit-application-pre-study/save-credit-application-pre-study.use-case.ts");
 const upload_credit_application_document_use_case_1 = __webpack_require__(/*! @modules/credit-applications/application/use-cases/upload-credit-application-document/upload-credit-application-document.use-case */ "./apps/products-ms/src/modules/credit-applications/application/use-cases/upload-credit-application-document/upload-credit-application-document.use-case.ts");
+const get_credit_application_authorization_data_use_case_1 = __webpack_require__(/*! @modules/credit-applications/application/use-cases/get-credit-application-authorization-data/get-credit-application-authorization-data.use-case */ "./apps/products-ms/src/modules/credit-applications/application/use-cases/get-credit-application-authorization-data/get-credit-application-authorization-data.use-case.ts");
+const authorize_credit_application_use_case_1 = __webpack_require__(/*! @modules/credit-applications/application/use-cases/authorize-credit-application/authorize-credit-application.use-case */ "./apps/products-ms/src/modules/credit-applications/application/use-cases/authorize-credit-application/authorize-credit-application.use-case.ts");
+const publish_authorization_notification_use_case_1 = __webpack_require__(/*! @modules/credit-applications/application/use-cases/publish-authorization-notification/publish-authorization-notification.use-case */ "./apps/products-ms/src/modules/credit-applications/application/use-cases/publish-authorization-notification/publish-authorization-notification.use-case.ts");
 const register_natural_person_credit_application_use_case_1 = __webpack_require__(/*! @modules/credit-applications/application/use-cases/register-natural-person-credit-application/register-natural-person-credit-application.use-case */ "./apps/products-ms/src/modules/credit-applications/application/use-cases/register-natural-person-credit-application/register-natural-person-credit-application.use-case.ts");
 const enqueue_natural_person_credit_application_use_case_1 = __webpack_require__(/*! @modules/credit-applications/application/use-cases/enqueue-natural-person-credit-application/enqueue-natural-person-credit-application.use-case */ "./apps/products-ms/src/modules/credit-applications/application/use-cases/enqueue-natural-person-credit-application/enqueue-natural-person-credit-application.use-case.ts");
 const get_credit_application_job_use_case_1 = __webpack_require__(/*! @modules/credit-applications/application/use-cases/get-credit-application-job/get-credit-application-job.use-case */ "./apps/products-ms/src/modules/credit-applications/application/use-cases/get-credit-application-job/get-credit-application-job.use-case.ts");
@@ -5772,6 +6371,9 @@ const USE_CASES = [
     reject_credit_application_use_case_1.RejectCreditApplicationUseCase,
     save_credit_application_pre_study_use_case_1.SaveCreditApplicationPreStudyUseCase,
     upload_credit_application_document_use_case_1.UploadCreditApplicationDocumentUseCase,
+    get_credit_application_authorization_data_use_case_1.GetCreditApplicationAuthorizationDataUseCase,
+    authorize_credit_application_use_case_1.AuthorizeCreditApplicationUseCase,
+    publish_authorization_notification_use_case_1.PublishAuthorizationNotificationUseCase,
     register_natural_person_credit_application_use_case_1.RegisterNaturalPersonCreditApplicationUseCase,
     enqueue_natural_person_credit_application_use_case_1.EnqueueNaturalPersonCreditApplicationUseCase,
     get_credit_application_job_use_case_1.GetCreditApplicationJobUseCase,
@@ -5811,6 +6413,8 @@ const multer_1 = __webpack_require__(/*! multer */ "multer");
 const credit_applications_application_module_1 = __webpack_require__(/*! @modules/credit-applications/credit-applications-application.module */ "./apps/products-ms/src/modules/credit-applications/credit-applications-application.module.ts");
 const credit_applications_public_controller_1 = __webpack_require__(/*! ./presentation/controllers/credit-applications-public.controller */ "./apps/products-ms/src/modules/credit-applications/presentation/controllers/credit-applications-public.controller.ts");
 const credit_applications_private_controller_1 = __webpack_require__(/*! ./presentation/controllers/credit-applications-private.controller */ "./apps/products-ms/src/modules/credit-applications/presentation/controllers/credit-applications-private.controller.ts");
+const credit_applications_authorize_controller_1 = __webpack_require__(/*! ./presentation/controllers/credit-applications-authorize.controller */ "./apps/products-ms/src/modules/credit-applications/presentation/controllers/credit-applications-authorize.controller.ts");
+const twilio_webhook_controller_1 = __webpack_require__(/*! ./presentation/controllers/twilio-webhook.controller */ "./apps/products-ms/src/modules/credit-applications/presentation/controllers/twilio-webhook.controller.ts");
 let CreditApplicationsModule = class CreditApplicationsModule {
 };
 exports.CreditApplicationsModule = CreditApplicationsModule;
@@ -5823,7 +6427,12 @@ exports.CreditApplicationsModule = CreditApplicationsModule = __decorate([
                 limits: { fileSize: 10 * 1024 * 1024 },
             }),
         ],
-        controllers: [credit_applications_public_controller_1.CreditApplicationsPublicController, credit_applications_private_controller_1.CreditApplicationsPrivateController],
+        controllers: [
+            credit_applications_public_controller_1.CreditApplicationsPublicController,
+            credit_applications_private_controller_1.CreditApplicationsPrivateController,
+            credit_applications_authorize_controller_1.CreditApplicationsAuthorizeController,
+            twilio_webhook_controller_1.TwilioWebhookController,
+        ],
         exports: [credit_applications_application_module_1.CreditApplicationsApplicationModule],
     })
 ], CreditApplicationsModule);
@@ -5839,9 +6448,9 @@ exports.CreditApplicationsModule = CreditApplicationsModule = __decorate([
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.CREDIT_APPLICATION_JOB_REPOSITORY = exports.CREDIT_APPLICATION_REPOSITORY = void 0;
+exports.REMINDER_SCHEDULER_PORT = exports.CREDIT_APPLICATION_REPOSITORY = void 0;
 exports.CREDIT_APPLICATION_REPOSITORY = Symbol('CREDIT_APPLICATION_REPOSITORY');
-exports.CREDIT_APPLICATION_JOB_REPOSITORY = Symbol('CREDIT_APPLICATION_JOB_REPOSITORY');
+exports.REMINDER_SCHEDULER_PORT = Symbol('REMINDER_SCHEDULER_PORT');
 
 
 /***/ },
@@ -6067,6 +6676,92 @@ exports.CreditApplicationJobWorkerService = CreditApplicationJobWorkerService = 
     __param(2, (0, typeorm_1.InjectDataSource)()),
     __metadata("design:paramtypes", [Object, typeof (_a = typeof client_registration_port_1.ClientRegistrationPort !== "undefined" && client_registration_port_1.ClientRegistrationPort) === "function" ? _a : Object, typeof (_b = typeof typeorm_2.DataSource !== "undefined" && typeorm_2.DataSource) === "function" ? _b : Object, typeof (_c = typeof publish_create_business_job_use_case_1.PublishCreateBusinessJobUseCase !== "undefined" && publish_create_business_job_use_case_1.PublishCreateBusinessJobUseCase) === "function" ? _c : Object])
 ], CreditApplicationJobWorkerService);
+
+
+/***/ },
+
+/***/ "./apps/products-ms/src/modules/credit-applications/presentation/controllers/credit-applications-authorize.controller.ts"
+/*!*******************************************************************************************************************************!*\
+  !*** ./apps/products-ms/src/modules/credit-applications/presentation/controllers/credit-applications-authorize.controller.ts ***!
+  \*******************************************************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+var _a, _b, _c, _d;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.CreditApplicationsAuthorizeController = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const swagger_1 = __webpack_require__(/*! @nestjs/swagger */ "@nestjs/swagger");
+const get_credit_application_authorization_data_use_case_1 = __webpack_require__(/*! @modules/credit-applications/application/use-cases/get-credit-application-authorization-data/get-credit-application-authorization-data.use-case */ "./apps/products-ms/src/modules/credit-applications/application/use-cases/get-credit-application-authorization-data/get-credit-application-authorization-data.use-case.ts");
+const get_credit_application_authorization_data_request_1 = __webpack_require__(/*! @modules/credit-applications/application/use-cases/get-credit-application-authorization-data/get-credit-application-authorization-data.request */ "./apps/products-ms/src/modules/credit-applications/application/use-cases/get-credit-application-authorization-data/get-credit-application-authorization-data.request.ts");
+const authorize_credit_application_use_case_1 = __webpack_require__(/*! @modules/credit-applications/application/use-cases/authorize-credit-application/authorize-credit-application.use-case */ "./apps/products-ms/src/modules/credit-applications/application/use-cases/authorize-credit-application/authorize-credit-application.use-case.ts");
+const authorize_credit_application_request_1 = __webpack_require__(/*! @modules/credit-applications/application/use-cases/authorize-credit-application/authorize-credit-application.request */ "./apps/products-ms/src/modules/credit-applications/application/use-cases/authorize-credit-application/authorize-credit-application.request.ts");
+const authorization_data_response_dto_1 = __webpack_require__(/*! ../dto/authorization-data-response.dto */ "./apps/products-ms/src/modules/credit-applications/presentation/dto/authorization-data-response.dto.ts");
+const authorize_result_response_dto_1 = __webpack_require__(/*! ../dto/authorize-result-response.dto */ "./apps/products-ms/src/modules/credit-applications/presentation/dto/authorize-result-response.dto.ts");
+let CreditApplicationsAuthorizeController = class CreditApplicationsAuthorizeController {
+    get_authorization_data;
+    authorize;
+    constructor(get_authorization_data, authorize) {
+        this.get_authorization_data = get_authorization_data;
+        this.authorize = authorize;
+    }
+    async get_data(externalId) {
+        const result = await this.get_authorization_data.execute(new get_credit_application_authorization_data_request_1.GetCreditApplicationAuthorizationDataRequest(externalId));
+        return authorization_data_response_dto_1.AuthorizationDataResponseDto.from(result.authorizationStatus, result.externalId);
+    }
+    async accept(externalId) {
+        const result = await this.authorize.execute(new authorize_credit_application_request_1.AuthorizeCreditApplicationRequest(externalId));
+        if (result.result === 'not_found') {
+            throw new common_1.NotFoundException('Solicitud no encontrada');
+        }
+        return authorize_result_response_dto_1.AuthorizeResultResponseDto.from(result.result);
+    }
+};
+exports.CreditApplicationsAuthorizeController = CreditApplicationsAuthorizeController;
+__decorate([
+    (0, common_1.Get)(':externalId'),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Estado de autorización de una solicitud (público)',
+        description: 'Sin JWT. Devuelve el estado de autorización para renderear la landing page del cliente.',
+    }),
+    (0, swagger_1.ApiOkResponse)({ type: authorization_data_response_dto_1.AuthorizationDataResponseDto }),
+    __param(0, (0, common_1.Param)('externalId', common_1.ParseUUIDPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", typeof (_c = typeof Promise !== "undefined" && Promise) === "function" ? _c : Object)
+], CreditApplicationsAuthorizeController.prototype, "get_data", null);
+__decorate([
+    (0, common_1.Post)(':externalId'),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    (0, swagger_1.ApiOperation)({
+        summary: 'El cliente acepta la política de privacidad y autoriza la consulta (público)',
+        description: 'Sin JWT. Idempotente: si la solicitud ya fue autorizada devuelve already_authorized. ' +
+            'Si no existe devuelve not_found. Si está en pending_authorization, transiciona a in_progress.',
+    }),
+    (0, swagger_1.ApiOkResponse)({ type: authorize_result_response_dto_1.AuthorizeResultResponseDto }),
+    __param(0, (0, common_1.Param)('externalId', common_1.ParseUUIDPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", typeof (_d = typeof Promise !== "undefined" && Promise) === "function" ? _d : Object)
+], CreditApplicationsAuthorizeController.prototype, "accept", null);
+exports.CreditApplicationsAuthorizeController = CreditApplicationsAuthorizeController = __decorate([
+    (0, swagger_1.ApiTags)('credit-applications'),
+    (0, common_1.Controller)('credit-applications/authorize'),
+    __metadata("design:paramtypes", [typeof (_a = typeof get_credit_application_authorization_data_use_case_1.GetCreditApplicationAuthorizationDataUseCase !== "undefined" && get_credit_application_authorization_data_use_case_1.GetCreditApplicationAuthorizationDataUseCase) === "function" ? _a : Object, typeof (_b = typeof authorize_credit_application_use_case_1.AuthorizeCreditApplicationUseCase !== "undefined" && authorize_credit_application_use_case_1.AuthorizeCreditApplicationUseCase) === "function" ? _b : Object])
+], CreditApplicationsAuthorizeController);
 
 
 /***/ },
@@ -6344,7 +7039,7 @@ let CreditApplicationsPublicController = class CreditApplicationsPublicControlle
         this.get_job = get_job;
     }
     async create(dto) {
-        const result = await this.register_client.execute(new register_client_credit_application_request_1.RegisterClientCreditApplicationRequest(dto.phone, dto.email, dto.docType, dto.docNumber, dto.firstName, dto.lastName, dto.businessName, dto.businessType, dto.isCurrentClient, dto.requestedCreditLine, dto.relationshipToBusiness, dto.cityId, dto.businessAddress, dto.businessSeniority, dto.numberOfEmployees, dto.numberOfLocations, dto.businessFlagshipM2, dto.businessHasRent, dto.businessRentAmount, dto.monthlyPurchases, dto.currentPurchases, dto.totalAssets, dto.monthlyIncome, dto.monthlyExpenses));
+        const result = await this.register_client.execute(new register_client_credit_application_request_1.RegisterClientCreditApplicationRequest(dto.phone, dto.email, dto.docType, dto.docNumber, dto.firstName, dto.lastName, dto.businessName, dto.businessType, dto.isCurrentClient, dto.requestedCreditLine, dto.privacyPolicyAccepted, dto.relationshipToBusiness, dto.cityId, dto.businessAddress, dto.businessSeniority, dto.numberOfEmployees, dto.numberOfLocations, dto.businessFlagshipM2, dto.businessHasRent, dto.businessRentAmount, dto.monthlyPurchases, dto.currentPurchases, dto.totalAssets, dto.monthlyIncome, dto.monthlyExpenses));
         return credit_application_response_dto_1.CreditApplicationResponseDto.from(result);
     }
     async create_natural_person(dto) {
@@ -6426,6 +7121,96 @@ exports.CreditApplicationsPublicController = CreditApplicationsPublicController 
 
 /***/ },
 
+/***/ "./apps/products-ms/src/modules/credit-applications/presentation/controllers/twilio-webhook.controller.ts"
+/*!****************************************************************************************************************!*\
+  !*** ./apps/products-ms/src/modules/credit-applications/presentation/controllers/twilio-webhook.controller.ts ***!
+  \****************************************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+var TwilioWebhookController_1;
+var _a, _b, _c;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.TwilioWebhookController = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const swagger_1 = __webpack_require__(/*! @nestjs/swagger */ "@nestjs/swagger");
+const twilio_1 = __importDefault(__webpack_require__(/*! twilio */ "twilio"));
+const authorize_credit_application_use_case_1 = __webpack_require__(/*! @modules/credit-applications/application/use-cases/authorize-credit-application/authorize-credit-application.use-case */ "./apps/products-ms/src/modules/credit-applications/application/use-cases/authorize-credit-application/authorize-credit-application.use-case.ts");
+const authorize_credit_application_request_1 = __webpack_require__(/*! @modules/credit-applications/application/use-cases/authorize-credit-application/authorize-credit-application.request */ "./apps/products-ms/src/modules/credit-applications/application/use-cases/authorize-credit-application/authorize-credit-application.request.ts");
+let TwilioWebhookController = TwilioWebhookController_1 = class TwilioWebhookController {
+    authorize;
+    logger = new common_1.Logger(TwilioWebhookController_1.name);
+    constructor(authorize) {
+        this.authorize = authorize;
+    }
+    async handle(req, signature, body) {
+        this.validate_signature(req, signature, body);
+        const button_payload = body['ButtonPayload'];
+        if (!button_payload || button_payload.trim().length === 0) {
+            this.logger.warn('[TwilioWebhook][step=missing_button_payload]');
+            return '<Response/>';
+        }
+        const external_id = button_payload.trim();
+        this.logger.log(`[TwilioWebhook][step=received][externalId=${external_id}]`);
+        const result = await this.authorize.execute(new authorize_credit_application_request_1.AuthorizeCreditApplicationRequest(external_id));
+        this.logger.log(`[TwilioWebhook][step=completed][externalId=${external_id}][result=${result.result}]`);
+        return '<Response/>';
+    }
+    validate_signature(req, signature, body) {
+        const auth_token = process.env.TWILIO_AUTH_TOKEN;
+        if (!auth_token) {
+            throw new common_1.BadRequestException('Twilio auth token no configurado');
+        }
+        if (!signature) {
+            throw new common_1.UnauthorizedException('Falta cabecera X-Twilio-Signature');
+        }
+        const url = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
+        const is_valid = twilio_1.default.validateRequest(auth_token, signature, url, body);
+        if (!is_valid) {
+            this.logger.warn(`[TwilioWebhook][step=invalid_signature][url=${url}]`);
+            throw new common_1.UnauthorizedException('Firma Twilio inválida');
+        }
+    }
+};
+exports.TwilioWebhookController = TwilioWebhookController;
+__decorate([
+    (0, common_1.Post)('whatsapp'),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Webhook Twilio — botón "Autorizar Consulta" (WhatsApp)',
+        description: 'Valida la firma X-Twilio-Signature y ejecuta la autorización de la solicitud identificada por ButtonPayload.',
+    }),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Headers)('x-twilio-signature')),
+    __param(2, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object, typeof (_b = typeof Record !== "undefined" && Record) === "function" ? _b : Object]),
+    __metadata("design:returntype", typeof (_c = typeof Promise !== "undefined" && Promise) === "function" ? _c : Object)
+], TwilioWebhookController.prototype, "handle", null);
+exports.TwilioWebhookController = TwilioWebhookController = TwilioWebhookController_1 = __decorate([
+    (0, swagger_1.ApiTags)('webhooks'),
+    (0, common_1.Controller)('webhooks/twilio'),
+    __metadata("design:paramtypes", [typeof (_a = typeof authorize_credit_application_use_case_1.AuthorizeCreditApplicationUseCase !== "undefined" && authorize_credit_application_use_case_1.AuthorizeCreditApplicationUseCase) === "function" ? _a : Object])
+], TwilioWebhookController);
+
+
+/***/ },
+
 /***/ "./apps/products-ms/src/modules/credit-applications/presentation/dto/approve-credit-application.dto.ts"
 /*!*************************************************************************************************************!*\
   !*** ./apps/products-ms/src/modules/credit-applications/presentation/dto/approve-credit-application.dto.ts ***!
@@ -6464,6 +7249,84 @@ __decorate([
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", Object)
 ], ApproveCreditApplicationDto.prototype, "analystReport", void 0);
+
+
+/***/ },
+
+/***/ "./apps/products-ms/src/modules/credit-applications/presentation/dto/authorization-data-response.dto.ts"
+/*!**************************************************************************************************************!*\
+  !*** ./apps/products-ms/src/modules/credit-applications/presentation/dto/authorization-data-response.dto.ts ***!
+  \**************************************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.AuthorizationDataResponseDto = void 0;
+const swagger_1 = __webpack_require__(/*! @nestjs/swagger */ "@nestjs/swagger");
+class AuthorizationDataResponseDto {
+    authorizationStatus;
+    externalId;
+    static from(status, externalId) {
+        const dto = new AuthorizationDataResponseDto();
+        dto.authorizationStatus = status;
+        dto.externalId = externalId;
+        return dto;
+    }
+}
+exports.AuthorizationDataResponseDto = AuthorizationDataResponseDto;
+__decorate([
+    (0, swagger_1.ApiProperty)({ enum: ['pending', 'already_authorized', 'not_found'] }),
+    __metadata("design:type", String)
+], AuthorizationDataResponseDto.prototype, "authorizationStatus", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    __metadata("design:type", String)
+], AuthorizationDataResponseDto.prototype, "externalId", void 0);
+
+
+/***/ },
+
+/***/ "./apps/products-ms/src/modules/credit-applications/presentation/dto/authorize-result-response.dto.ts"
+/*!************************************************************************************************************!*\
+  !*** ./apps/products-ms/src/modules/credit-applications/presentation/dto/authorize-result-response.dto.ts ***!
+  \************************************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.AuthorizeResultResponseDto = void 0;
+const swagger_1 = __webpack_require__(/*! @nestjs/swagger */ "@nestjs/swagger");
+class AuthorizeResultResponseDto {
+    result;
+    static from(result) {
+        const dto = new AuthorizeResultResponseDto();
+        dto.result = result;
+        return dto;
+    }
+}
+exports.AuthorizeResultResponseDto = AuthorizeResultResponseDto;
+__decorate([
+    (0, swagger_1.ApiProperty)({ enum: ['authorized', 'already_authorized', 'not_found'] }),
+    __metadata("design:type", String)
+], AuthorizeResultResponseDto.prototype, "result", void 0);
 
 
 /***/ },
@@ -6508,6 +7371,7 @@ class CreateCreditApplicationDto {
     businessRentAmount;
     requestedCreditLine;
     isCurrentClient;
+    privacyPolicyAccepted;
     monthlyPurchases;
     currentPurchases;
     totalAssets;
@@ -6631,6 +7495,11 @@ __decorate([
     (0, class_validator_1.IsBoolean)(),
     __metadata("design:type", Boolean)
 ], CreateCreditApplicationDto.prototype, "isCurrentClient", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ description: 'Acepta política de privacidad y consulta en centrales de riesgo' }),
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], CreateCreditApplicationDto.prototype, "privacyPolicyAccepted", void 0);
 __decorate([
     (0, swagger_1.ApiPropertyOptional)({ nullable: true }),
     (0, class_validator_1.IsOptional)(),
@@ -13817,6 +14686,16 @@ module.exports = require("path");
 (module) {
 
 module.exports = require("reflect-metadata");
+
+/***/ },
+
+/***/ "twilio"
+/*!*************************!*\
+  !*** external "twilio" ***!
+  \*************************/
+(module) {
+
+module.exports = require("twilio");
 
 /***/ },
 
