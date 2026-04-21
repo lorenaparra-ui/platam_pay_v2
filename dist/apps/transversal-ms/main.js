@@ -1090,6 +1090,60 @@ exports.UserMapper = UserMapper;
 
 /***/ },
 
+/***/ "./apps/transversal-ms/src/infrastructure/database/readers/typeorm-partner-link.reader.ts"
+/*!************************************************************************************************!*\
+  !*** ./apps/transversal-ms/src/infrastructure/database/readers/typeorm-partner-link.reader.ts ***!
+  \************************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+var _a;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.TypeormPartnerLinkReader = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const typeorm_1 = __webpack_require__(/*! @nestjs/typeorm */ "@nestjs/typeorm");
+const typeorm_2 = __webpack_require__(/*! typeorm */ "typeorm");
+let TypeormPartnerLinkReader = class TypeormPartnerLinkReader {
+    data_source;
+    constructor(data_source) {
+        this.data_source = data_source;
+    }
+    async find_by_user_internal_id(user_internal_id) {
+        const rows = (await this.data_source.query(`SELECT partner_id, external_id
+       FROM suppliers_schema.sales_representatives
+       WHERE user_id = $1
+       LIMIT 1`, [user_internal_id]));
+        if (rows.length === 0)
+            return null;
+        const row = rows[0];
+        return {
+            partnerId: String(row.partner_id),
+            salesRepresentativeExternalId: String(row.external_id),
+        };
+    }
+};
+exports.TypeormPartnerLinkReader = TypeormPartnerLinkReader;
+exports.TypeormPartnerLinkReader = TypeormPartnerLinkReader = __decorate([
+    (0, common_1.Injectable)(),
+    __param(0, (0, typeorm_1.InjectDataSource)()),
+    __metadata("design:paramtypes", [typeof (_a = typeof typeorm_2.DataSource !== "undefined" && typeorm_2.DataSource) === "function" ? _a : Object])
+], TypeormPartnerLinkReader);
+
+
+/***/ },
+
 /***/ "./apps/transversal-ms/src/infrastructure/database/readers/typeorm-permission-codes-by-role.reader.ts"
 /*!************************************************************************************************************!*\
   !*** ./apps/transversal-ms/src/infrastructure/database/readers/typeorm-permission-codes-by-role.reader.ts ***!
@@ -2148,6 +2202,7 @@ const typeorm_role_repository_1 = __webpack_require__(/*! @infrastructure/databa
 const typeorm_city_repository_1 = __webpack_require__(/*! @infrastructure/database/repositories/typeorm-city.repository */ "./apps/transversal-ms/src/infrastructure/database/repositories/typeorm-city.repository.ts");
 const typeorm_status_repository_1 = __webpack_require__(/*! @infrastructure/database/repositories/typeorm-status.repository */ "./apps/transversal-ms/src/infrastructure/database/repositories/typeorm-status.repository.ts");
 const typeorm_currency_read_repository_1 = __webpack_require__(/*! @infrastructure/database/repositories/typeorm-currency-read.repository */ "./apps/transversal-ms/src/infrastructure/database/repositories/typeorm-currency-read.repository.ts");
+const typeorm_partner_link_reader_1 = __webpack_require__(/*! @infrastructure/database/readers/typeorm-partner-link.reader */ "./apps/transversal-ms/src/infrastructure/database/readers/typeorm-partner-link.reader.ts");
 const persons_tokens_1 = __webpack_require__(/*! @modules/persons/persons.tokens */ "./apps/transversal-ms/src/modules/persons/persons.tokens.ts");
 const users_tokens_1 = __webpack_require__(/*! @modules/users/users.tokens */ "./apps/transversal-ms/src/modules/users/users.tokens.ts");
 const transversal_tokens_2 = __webpack_require__(/*! @modules/transversal/transversal.tokens */ "./apps/transversal-ms/src/modules/transversal/transversal.tokens.ts");
@@ -2201,6 +2256,11 @@ exports.InfrastructureModule = InfrastructureModule = __decorate([
                 provide: transversal_tokens_2.CURRENCY_READ_PORT,
                 useClass: typeorm_currency_read_repository_1.TypeormCurrencyReadRepository,
             },
+            typeorm_partner_link_reader_1.TypeormPartnerLinkReader,
+            {
+                provide: users_tokens_1.PARTNER_LINK_READER,
+                useExisting: typeorm_partner_link_reader_1.TypeormPartnerLinkReader,
+            },
         ],
         exports: [
             transversal_data_1.TransversalDataModule,
@@ -2212,6 +2272,7 @@ exports.InfrastructureModule = InfrastructureModule = __decorate([
             transversal_tokens_2.CITY_REPOSITORY,
             transversal_tokens_2.STATUS_REPOSITORY,
             transversal_tokens_2.CURRENCY_READ_PORT,
+            users_tokens_1.PARTNER_LINK_READER,
         ],
     })
 ], InfrastructureModule);
@@ -8668,20 +8729,34 @@ const swagger_1 = __webpack_require__(/*! @nestjs/swagger */ "@nestjs/swagger");
 class UserMeHierarchyDto {
     parentId;
     partnerId;
+    salesRepExternalId;
 }
 exports.UserMeHierarchyDto = UserMeHierarchyDto;
 __decorate([
-    (0, swagger_1.ApiProperty)({ nullable: true, example: '20' }),
+    (0, swagger_1.ApiProperty)({ nullable: true, example: '20', description: 'Id interno del usuario padre en la jerarquía.' }),
     __metadata("design:type", Object)
 ], UserMeHierarchyDto.prototype, "parentId", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({
         nullable: true,
-        example: null,
-        description: 'Reservado cuando exista vínculo explícito usuario–partner en BD.',
+        example: '7',
+        description: 'Id interno del partner en BD (suppliers_schema.partners.id). ' +
+            'Presente para roles PartnerRoles (PARTNER_ADMIN, PARTNER_OPERATIONS, CUSTOMER, SALES_MANAGER, SALES_REPRESENTATIVE). ' +
+            'null para roles back-office o si el usuario no tiene vínculo de partner registrado.',
     }),
     __metadata("design:type", Object)
 ], UserMeHierarchyDto.prototype, "partnerId", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        nullable: true,
+        format: 'uuid',
+        example: null,
+        description: 'external_id UUID del registro en suppliers_schema.sales_representatives. ' +
+            'Presente únicamente cuando role = SALES_REPRESENTATIVE y existe fila en esa tabla. ' +
+            'null en cualquier otro caso.',
+    }),
+    __metadata("design:type", Object)
+], UserMeHierarchyDto.prototype, "salesRepExternalId", void 0);
 class UserMeProfileDto {
     externalId;
     email;
@@ -9085,18 +9160,22 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.GetUserMeUseCase = void 0;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const shared_1 = __webpack_require__(/*! @platam/shared */ "./libs/shared/src/index.ts");
 const auth_tokens_1 = __webpack_require__(/*! @modules/auth/auth.tokens */ "./apps/transversal-ms/src/modules/auth/auth.tokens.ts");
 const persons_tokens_1 = __webpack_require__(/*! @modules/persons/persons.tokens */ "./apps/transversal-ms/src/modules/persons/persons.tokens.ts");
 const users_tokens_1 = __webpack_require__(/*! @modules/users/users.tokens */ "./apps/transversal-ms/src/modules/users/users.tokens.ts");
 const get_user_me_result_1 = __webpack_require__(/*! ./get-user-me.result */ "./apps/transversal-ms/src/modules/users/application/use-cases/get-user-me/get-user-me.result.ts");
+const PARTNER_ROLE_SET = new Set(Object.values(shared_1.PartnerRoles));
 let GetUserMeUseCase = class GetUserMeUseCase {
     user_repository;
     person_repository;
     permission_codes_reader;
-    constructor(user_repository, person_repository, permission_codes_reader) {
+    partner_link_reader;
+    constructor(user_repository, person_repository, permission_codes_reader, partner_link_reader) {
         this.user_repository = user_repository;
         this.person_repository = person_repository;
         this.permission_codes_reader = permission_codes_reader;
+        this.partner_link_reader = partner_link_reader;
     }
     async execute(ctx) {
         const user = await this.user_repository.find_by_cognito_sub(ctx.cognitoSub);
@@ -9113,6 +9192,17 @@ let GetUserMeUseCase = class GetUserMeUseCase {
         const permissions = user.role_id !== null
             ? await this.permission_codes_reader.list_codes_for_role_internal_id(user.role_id)
             : [];
+        let partner_id = null;
+        let sales_rep_external_id = null;
+        if (PARTNER_ROLE_SET.has(ctx.roleCode)) {
+            const link = await this.partner_link_reader.find_by_user_internal_id(user.internal_id);
+            if (link !== null) {
+                partner_id = link.partnerId;
+                if (ctx.roleCode === shared_1.Roles.SALES_REPRESENTATIVE) {
+                    sales_rep_external_id = link.salesRepresentativeExternalId;
+                }
+            }
+        }
         return new get_user_me_result_1.GetUserMeResult({
             externalId: user.external_id,
             email: user.email,
@@ -9120,7 +9210,8 @@ let GetUserMeUseCase = class GetUserMeUseCase {
             role: ctx.roleCode,
             hierarchy: {
                 parentId: user.parent_id !== null ? String(user.parent_id) : null,
-                partnerId: null,
+                partnerId: partner_id,
+                salesRepExternalId: sales_rep_external_id,
             },
         }, permissions);
     }
@@ -9131,7 +9222,8 @@ exports.GetUserMeUseCase = GetUserMeUseCase = __decorate([
     __param(0, (0, common_1.Inject)(users_tokens_1.USER_REPOSITORY)),
     __param(1, (0, common_1.Inject)(persons_tokens_1.PERSON_REPOSITORY)),
     __param(2, (0, common_1.Inject)(auth_tokens_1.PERMISSION_CODES_BY_ROLE_READER)),
-    __metadata("design:paramtypes", [Object, Object, Object])
+    __param(3, (0, common_1.Inject)(users_tokens_1.PARTNER_LINK_READER)),
+    __metadata("design:paramtypes", [Object, Object, Object, Object])
 ], GetUserMeUseCase);
 
 
@@ -9582,6 +9674,7 @@ function to_user_me_response_dto(result) {
     const hierarchy = new user_me_response_dto_1.UserMeHierarchyDto();
     hierarchy.parentId = result.user.hierarchy.parentId;
     hierarchy.partnerId = result.user.hierarchy.partnerId;
+    hierarchy.salesRepExternalId = result.user.hierarchy.salesRepExternalId;
     const user = new user_me_response_dto_1.UserMeProfileDto();
     user.externalId = result.user.externalId;
     user.email = result.user.email;
@@ -9694,9 +9787,10 @@ exports.UsersModule = UsersModule = __decorate([
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.COGNITO_USER_PROVISIONING_PORT = exports.USER_REPOSITORY = void 0;
+exports.PARTNER_LINK_READER = exports.COGNITO_USER_PROVISIONING_PORT = exports.USER_REPOSITORY = void 0;
 exports.USER_REPOSITORY = Symbol('USER_REPOSITORY');
 exports.COGNITO_USER_PROVISIONING_PORT = Symbol('COGNITO_USER_PROVISIONING_PORT');
+exports.PARTNER_LINK_READER = Symbol('PARTNER_LINK_READER');
 
 
 /***/ },

@@ -17,8 +17,9 @@ import { TypeormRoleRepository } from '@infrastructure/database/repositories/typ
 import { TypeormCityRepository } from '@infrastructure/database/repositories/typeorm-city.repository';
 import { TypeormStatusRepository } from '@infrastructure/database/repositories/typeorm-status.repository';
 import { TypeormCurrencyReadRepository } from '@infrastructure/database/repositories/typeorm-currency-read.repository';
+import { TypeormPartnerLinkReader } from '@infrastructure/database/readers/typeorm-partner-link.reader';
 import { PERSON_REPOSITORY } from '@modules/persons/persons.tokens';
-import { USER_REPOSITORY } from '@modules/users/users.tokens';
+import { USER_REPOSITORY, PARTNER_LINK_READER } from '@modules/users/users.tokens';
 import {
   ROLE_REPOSITORY,
   CITY_REPOSITORY,
@@ -72,6 +73,11 @@ import {
       provide: CURRENCY_READ_PORT,
       useClass: TypeormCurrencyReadRepository,
     },
+    TypeormPartnerLinkReader,
+    {
+      provide: PARTNER_LINK_READER,
+      useExisting: TypeormPartnerLinkReader,
+    },
   ],
   exports: [
     TransversalDataModule,
@@ -83,6 +89,7 @@ import {
     CITY_REPOSITORY,
     STATUS_REPOSITORY,
     CURRENCY_READ_PORT,
+    PARTNER_LINK_READER,
   ],
 })
 export class InfrastructureModule {}
