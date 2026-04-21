@@ -1,4 +1,19 @@
 
+export enum AsyncJobStatus {
+  PENDING = 'PENDING',
+  RUNNING = 'RUNNING',
+  COMPLETED = 'COMPLETED',
+  FAILED = 'FAILED',
+}
+
+export enum AsyncJobStep {
+  ENQUEUED = 'ENQUEUED',
+  AWAITING_PERSON_CREATION = 'AWAITING_PERSON_CREATION',
+  AWAITING_BUSINESS_CREATION = 'AWAITING_BUSINESS_CREATION',
+  COMPLETED = 'COMPLETED',
+  FAILED = 'FAILED',
+}
+
 export enum CreditFacilityState {
   ACTIVE = 'active',
   INACTIVE = 'inactive',

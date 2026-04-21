@@ -9,6 +9,7 @@ import { ProcessTransversalInboundMessageUseCase } from './application/use-cases
 import { ProcessFilesUploadedInboundUseCase } from './application/use-cases/process-files-uploaded-inbound.use-case';
 import { IngestTransversalInboundSqsMessageUseCase } from './application/use-cases/ingest-transversal-inbound-sqs-message.use-case';
 import { FilesUploadedCorrelationAwaiter } from './application/services/files-uploaded-correlation-awaiter.service';
+import { CreateBusinessForJobUseCase } from '@modules/businesses/application/use-cases/create-business-for-job/create-business-for-job.use-case';
 
 @Module({
   providers: [
@@ -19,6 +20,7 @@ import { FilesUploadedCorrelationAwaiter } from './application/services/files-up
     PublishCreatePersonCommandUseCase,
     PublishCreateCreditFacilityCommandUseCase,
     PublishCreateCategoriesCommandUseCase,
+    CreateBusinessForJobUseCase,
     ProcessTransversalInboundMessageUseCase,
     ProcessFilesUploadedInboundUseCase,
     IngestTransversalInboundSqsMessageUseCase,
@@ -31,6 +33,7 @@ import { FilesUploadedCorrelationAwaiter } from './application/services/files-up
     PublishCreatePersonCommandUseCase,
     PublishCreateCreditFacilityCommandUseCase,
     PublishCreateCategoriesCommandUseCase,
+    CreateBusinessForJobUseCase,
     ProcessTransversalInboundMessageUseCase,
     ProcessFilesUploadedInboundUseCase,
     IngestTransversalInboundSqsMessageUseCase,

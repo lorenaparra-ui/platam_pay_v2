@@ -303,6 +303,7 @@ class SqsEnv {
     transversal_sqs_suppliers_callback_queue_url;
     products_sqs_create_credit_facility_queue_url;
     products_sqs_create_categories_queue_url;
+    products_sqs_inbound_queue_url;
     transversal_sqs_wait_time_seconds = 20;
     transversal_sqs_max_number_of_messages = 10;
     transversal_sqs_visibility_timeout_seconds = 30;
@@ -358,6 +359,12 @@ __decorate([
     (0, class_validator_1.IsUrl)({ require_tld: false }),
     __metadata("design:type", String)
 ], SqsEnv.prototype, "products_sqs_create_categories_queue_url", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_transformer_1.Transform)(({ value }) => (value === '' || value === undefined ? undefined : value)),
+    (0, class_validator_1.IsUrl)({ require_tld: false }),
+    __metadata("design:type", String)
+], SqsEnv.prototype, "products_sqs_inbound_queue_url", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_transformer_1.Type)(() => Number),
@@ -430,6 +437,7 @@ function get_sqs_config_from_env() {
         suppliers_callback_queue_url: trim_url(env.transversal_sqs_suppliers_callback_queue_url),
         products_create_credit_facility_queue_url: trim_url(env.products_sqs_create_credit_facility_queue_url),
         products_create_categories_queue_url: trim_url(env.products_sqs_create_categories_queue_url),
+        products_inbound_queue_url: trim_url(env.products_sqs_inbound_queue_url),
         wait_time_seconds: env.transversal_sqs_wait_time_seconds,
         max_number_of_messages: env.transversal_sqs_max_number_of_messages,
         visibility_timeout_seconds: env.transversal_sqs_visibility_timeout_seconds,
@@ -2268,6 +2276,45 @@ exports.ConfigProductsCreateCreditFacilityQueueUrlAdapter = ConfigProductsCreate
 
 /***/ },
 
+/***/ "./apps/suppliers-ms/src/infrastructure/messaging/sqs/adapters/config-products-inbound-queue-url.adapter.ts"
+/*!******************************************************************************************************************!*\
+  !*** ./apps/suppliers-ms/src/infrastructure/messaging/sqs/adapters/config-products-inbound-queue-url.adapter.ts ***!
+  \******************************************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var _a;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ConfigProductsInboundQueueUrlAdapter = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const config_1 = __webpack_require__(/*! @nestjs/config */ "@nestjs/config");
+let ConfigProductsInboundQueueUrlAdapter = class ConfigProductsInboundQueueUrlAdapter {
+    config_service;
+    constructor(config_service) {
+        this.config_service = config_service;
+    }
+    get_products_inbound_queue_url() {
+        return this.config_service.get('sqs.products_inbound_queue_url');
+    }
+};
+exports.ConfigProductsInboundQueueUrlAdapter = ConfigProductsInboundQueueUrlAdapter;
+exports.ConfigProductsInboundQueueUrlAdapter = ConfigProductsInboundQueueUrlAdapter = __decorate([
+    (0, common_1.Injectable)(),
+    __metadata("design:paramtypes", [typeof (_a = typeof config_1.ConfigService !== "undefined" && config_1.ConfigService) === "function" ? _a : Object])
+], ConfigProductsInboundQueueUrlAdapter);
+
+
+/***/ },
+
 /***/ "./apps/suppliers-ms/src/infrastructure/messaging/sqs/adapters/config-transversal-create-partner-user-queue-url.adapter.ts"
 /*!*********************************************************************************************************************************!*\
   !*** ./apps/suppliers-ms/src/infrastructure/messaging/sqs/adapters/config-transversal-create-partner-user-queue-url.adapter.ts ***!
@@ -2686,11 +2733,13 @@ const shared_1 = __webpack_require__(/*! @platam/shared */ "./libs/shared/src/in
 const sqs_message_publisher_adapter_1 = __webpack_require__(/*! ./adapters/sqs-message-publisher.adapter */ "./apps/suppliers-ms/src/infrastructure/messaging/sqs/adapters/sqs-message-publisher.adapter.ts");
 const config_outbound_transversal_queue_url_adapter_1 = __webpack_require__(/*! ./adapters/config-outbound-transversal-queue-url.adapter */ "./apps/suppliers-ms/src/infrastructure/messaging/sqs/adapters/config-outbound-transversal-queue-url.adapter.ts");
 const config_outbound_products_queue_url_adapter_1 = __webpack_require__(/*! ./adapters/config-outbound-products-queue-url.adapter */ "./apps/suppliers-ms/src/infrastructure/messaging/sqs/adapters/config-outbound-products-queue-url.adapter.ts");
+const config_products_inbound_queue_url_adapter_1 = __webpack_require__(/*! ./adapters/config-products-inbound-queue-url.adapter */ "./apps/suppliers-ms/src/infrastructure/messaging/sqs/adapters/config-products-inbound-queue-url.adapter.ts");
 const transversal_inbound_sqs_consumer_1 = __webpack_require__(/*! ./consumers/transversal-inbound-sqs.consumer */ "./apps/suppliers-ms/src/infrastructure/messaging/sqs/consumers/transversal-inbound-sqs.consumer.ts");
 const messaging_application_module_1 = __webpack_require__(/*! @messaging/messaging-application.module */ "./apps/suppliers-ms/src/modules/messaging/messaging-application.module.ts");
 const outbound_message_publisher_port_1 = __webpack_require__(/*! @messaging/domain/ports/outbound-message-publisher.port */ "./apps/suppliers-ms/src/modules/messaging/domain/ports/outbound-message-publisher.port.ts");
 const transversal_outbound_queue_url_port_1 = __webpack_require__(/*! @messaging/domain/ports/transversal-outbound-queue-url.port */ "./apps/suppliers-ms/src/modules/messaging/domain/ports/transversal-outbound-queue-url.port.ts");
 const products_outbound_queue_url_port_1 = __webpack_require__(/*! @messaging/domain/ports/products-outbound-queue-url.port */ "./apps/suppliers-ms/src/modules/messaging/domain/ports/products-outbound-queue-url.port.ts");
+const products_inbound_queue_url_port_1 = __webpack_require__(/*! @messaging/domain/ports/products-inbound-queue-url.port */ "./apps/suppliers-ms/src/modules/messaging/domain/ports/products-inbound-queue-url.port.ts");
 const transversal_upload_files_queue_url_port_1 = __webpack_require__(/*! @messaging/domain/ports/transversal-upload-files-queue-url.port */ "./apps/suppliers-ms/src/modules/messaging/domain/ports/transversal-upload-files-queue-url.port.ts");
 const config_transversal_upload_files_queue_url_adapter_1 = __webpack_require__(/*! ./adapters/config-transversal-upload-files-queue-url.adapter */ "./apps/suppliers-ms/src/infrastructure/messaging/sqs/adapters/config-transversal-upload-files-queue-url.adapter.ts");
 const transversal_create_partner_user_queue_url_port_1 = __webpack_require__(/*! @messaging/domain/ports/transversal-create-partner-user-queue-url.port */ "./apps/suppliers-ms/src/modules/messaging/domain/ports/transversal-create-partner-user-queue-url.port.ts");
@@ -2772,6 +2821,11 @@ exports.SqsModule = SqsModule = __decorate([
                 provide: products_create_categories_queue_url_port_1.PRODUCTS_CREATE_CATEGORIES_QUEUE_URL_PORT,
                 useExisting: config_products_create_categories_queue_url_adapter_1.ConfigProductsCreateCategoriesQueueUrlAdapter,
             },
+            config_products_inbound_queue_url_adapter_1.ConfigProductsInboundQueueUrlAdapter,
+            {
+                provide: products_inbound_queue_url_port_1.PRODUCTS_INBOUND_QUEUE_URL_PORT,
+                useExisting: config_products_inbound_queue_url_adapter_1.ConfigProductsInboundQueueUrlAdapter,
+            },
         ],
         exports: [
             shared_1.SQS_CLIENT,
@@ -2784,6 +2838,7 @@ exports.SqsModule = SqsModule = __decorate([
             products_outbound_queue_url_port_1.PRODUCTS_OUTBOUND_QUEUE_URL_PORT,
             products_create_credit_facility_queue_url_port_1.PRODUCTS_CREATE_CREDIT_FACILITY_QUEUE_URL_PORT,
             products_create_categories_queue_url_port_1.PRODUCTS_CREATE_CATEGORIES_QUEUE_URL_PORT,
+            products_inbound_queue_url_port_1.PRODUCTS_INBOUND_QUEUE_URL_PORT,
             publish_products_event_use_case_1.PublishProductsEventUseCase,
         ],
     })
@@ -3695,6 +3750,95 @@ async function build_business_public_fields(business, lookup) {
         updated_at: business.updated_at,
     };
 }
+
+
+/***/ },
+
+/***/ "./apps/suppliers-ms/src/modules/businesses/application/use-cases/create-business-for-job/create-business-for-job.use-case.ts"
+/*!************************************************************************************************************************************!*\
+  !*** ./apps/suppliers-ms/src/modules/businesses/application/use-cases/create-business-for-job/create-business-for-job.use-case.ts ***!
+  \************************************************************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+var CreateBusinessForJobUseCase_1;
+var _a;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.CreateBusinessForJobUseCase = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const shared_1 = __webpack_require__(/*! @platam/shared */ "./libs/shared/src/index.ts");
+const typeorm_business_repository_1 = __webpack_require__(/*! @infrastructure/database/repositories/typeorm-business.repository */ "./apps/suppliers-ms/src/infrastructure/database/repositories/typeorm-business.repository.ts");
+const outbound_message_publisher_port_1 = __webpack_require__(/*! @messaging/domain/ports/outbound-message-publisher.port */ "./apps/suppliers-ms/src/modules/messaging/domain/ports/outbound-message-publisher.port.ts");
+const products_inbound_queue_url_port_1 = __webpack_require__(/*! @messaging/domain/ports/products-inbound-queue-url.port */ "./apps/suppliers-ms/src/modules/messaging/domain/ports/products-inbound-queue-url.port.ts");
+let CreateBusinessForJobUseCase = CreateBusinessForJobUseCase_1 = class CreateBusinessForJobUseCase {
+    business_repo;
+    products_queue;
+    publisher;
+    logger = new common_1.Logger(CreateBusinessForJobUseCase_1.name);
+    constructor(business_repo, products_queue, publisher) {
+        this.business_repo = business_repo;
+        this.products_queue = products_queue;
+        this.publisher = publisher;
+    }
+    async execute(input) {
+        if (input.already_exists === true && input.business_internal_id !== undefined) {
+            await this.publish_callback(input.job_id, input.business_internal_id, null);
+            return;
+        }
+        const business = await this.business_repo.create({
+            person_id: input.person_internal_id,
+            city_id: input.city_internal_id,
+            entity_type: input.entity_type,
+            business_name: input.business_name,
+            business_address: input.business_address,
+            business_type: input.business_type,
+            relationship_to_business: input.relationship_to_business,
+            legal_name: null,
+            trade_name: null,
+            tax_id: null,
+            year_of_establishment: null,
+        });
+        this.logger.log(`[CreateBusinessForJob] negocio creado id=${business.internal_id} job_id=${input.job_id}`);
+        await this.publish_callback(input.job_id, business.internal_id, business.external_id);
+    }
+    async publish_callback(job_id, business_internal_id, business_external_id) {
+        const queue_url = this.products_queue.get_products_inbound_queue_url();
+        if (!queue_url) {
+            this.logger.warn('[CreateBusinessForJob] PRODUCTS_SQS_INBOUND_QUEUE_URL no configurada; omitiendo callback.');
+            return;
+        }
+        const body = JSON.stringify({
+            correlation_id: (0, shared_1.new_uuid)(),
+            event_type: 'credit_application_business_created',
+            payload: {
+                job_id,
+                business_internal_id,
+                business_external_id,
+            },
+        });
+        await this.publisher.publish({ queue_url, body });
+        this.logger.log(`[CreateBusinessForJob] callback publicado job_id=${job_id} business_id=${business_internal_id}`);
+    }
+};
+exports.CreateBusinessForJobUseCase = CreateBusinessForJobUseCase;
+exports.CreateBusinessForJobUseCase = CreateBusinessForJobUseCase = CreateBusinessForJobUseCase_1 = __decorate([
+    (0, common_1.Injectable)(),
+    __param(1, (0, common_1.Inject)(products_inbound_queue_url_port_1.PRODUCTS_INBOUND_QUEUE_URL_PORT)),
+    __param(2, (0, common_1.Inject)(outbound_message_publisher_port_1.OUTBOUND_MESSAGE_PUBLISHER_PORT)),
+    __metadata("design:paramtypes", [typeof (_a = typeof typeorm_business_repository_1.TypeormBusinessRepository !== "undefined" && typeorm_business_repository_1.TypeormBusinessRepository) === "function" ? _a : Object, Object, Object])
+], CreateBusinessForJobUseCase);
 
 
 /***/ },
@@ -4866,6 +5010,7 @@ var TransversalEventType;
     TransversalEventType["partner_onboarding_files_upload_requested"] = "partner_onboarding_files_upload_requested";
     TransversalEventType["partner_onboarding_credit_facility_requested"] = "partner_onboarding_credit_facility_requested";
     TransversalEventType["partner_onboarding_category_batch_requested"] = "partner_onboarding_category_batch_requested";
+    TransversalEventType["credit_application_business_requested"] = "credit_application_business_requested";
 })(TransversalEventType || (exports.TransversalEventType = TransversalEventType = {}));
 class TransversalOutboundEventDto {
     correlationId;
@@ -5152,19 +5297,67 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
 var ProcessTransversalInboundMessageUseCase_1;
+var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ProcessTransversalInboundMessageUseCase = void 0;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const transversal_outbound_event_dto_1 = __webpack_require__(/*! ../dto/transversal-outbound-event.dto */ "./apps/suppliers-ms/src/modules/messaging/application/dto/transversal-outbound-event.dto.ts");
+const create_business_for_job_use_case_1 = __webpack_require__(/*! @modules/businesses/application/use-cases/create-business-for-job/create-business-for-job.use-case */ "./apps/suppliers-ms/src/modules/businesses/application/use-cases/create-business-for-job/create-business-for-job.use-case.ts");
 let ProcessTransversalInboundMessageUseCase = ProcessTransversalInboundMessageUseCase_1 = class ProcessTransversalInboundMessageUseCase {
+    create_business_for_job;
     logger = new common_1.Logger(ProcessTransversalInboundMessageUseCase_1.name);
+    constructor(create_business_for_job) {
+        this.create_business_for_job = create_business_for_job;
+    }
     async execute(dto) {
-        this.logger.log(`Mensaje transversal recibido: event_type=${dto.eventType} correlation_id=${dto.correlationId}`);
+        switch (dto.eventType) {
+            case transversal_outbound_event_dto_1.TransversalEventType.credit_application_business_requested:
+                await this.handle_create_business(dto);
+                return;
+            default:
+                this.logger.log(`Mensaje transversal recibido: event_type=${dto.eventType} correlation_id=${dto.correlationId}`);
+        }
+    }
+    async handle_create_business(dto) {
+        const p = dto.payload;
+        const job_id = typeof p.job_id === 'string' ? p.job_id : null;
+        if (!job_id) {
+            this.logger.warn(`[CreateBusiness] job_id faltante correlation_id=${dto.correlationId}`);
+            return;
+        }
+        const person_internal_id = typeof p.person_internal_id === 'number' ? p.person_internal_id : null;
+        if (person_internal_id === null) {
+            this.logger.warn(`[CreateBusiness] person_internal_id faltante job_id=${job_id}`);
+            return;
+        }
+        const input = {
+            job_id,
+            person_internal_id,
+            city_internal_id: typeof p.city_internal_id === 'number' ? p.city_internal_id : null,
+            entity_type: typeof p.entity_type === 'string' ? p.entity_type : 'natural',
+            business_name: typeof p.business_name === 'string' ? p.business_name : null,
+            business_address: typeof p.business_address === 'string' ? p.business_address : null,
+            business_type: typeof p.business_type === 'string' ? p.business_type : null,
+            relationship_to_business: typeof p.relationship_to_business === 'string' ? p.relationship_to_business : null,
+            already_exists: p.already_exists === true,
+            business_internal_id: typeof p.business_internal_id === 'number' ? p.business_internal_id : undefined,
+        };
+        try {
+            await this.create_business_for_job.execute(input);
+        }
+        catch (err) {
+            this.logger.error(`[CreateBusiness] error job_id=${job_id}: ${err instanceof Error ? err.message : String(err)}`);
+        }
     }
 };
 exports.ProcessTransversalInboundMessageUseCase = ProcessTransversalInboundMessageUseCase;
 exports.ProcessTransversalInboundMessageUseCase = ProcessTransversalInboundMessageUseCase = ProcessTransversalInboundMessageUseCase_1 = __decorate([
-    (0, common_1.Injectable)()
+    (0, common_1.Injectable)(),
+    __metadata("design:paramtypes", [typeof (_a = typeof create_business_for_job_use_case_1.CreateBusinessForJobUseCase !== "undefined" && create_business_for_job_use_case_1.CreateBusinessForJobUseCase) === "function" ? _a : Object])
 ], ProcessTransversalInboundMessageUseCase);
 
 
@@ -5703,6 +5896,20 @@ exports.PRODUCTS_CREATE_CREDIT_FACILITY_QUEUE_URL_PORT = Symbol('PRODUCTS_CREATE
 
 /***/ },
 
+/***/ "./apps/suppliers-ms/src/modules/messaging/domain/ports/products-inbound-queue-url.port.ts"
+/*!*************************************************************************************************!*\
+  !*** ./apps/suppliers-ms/src/modules/messaging/domain/ports/products-inbound-queue-url.port.ts ***!
+  \*************************************************************************************************/
+(__unused_webpack_module, exports) {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.PRODUCTS_INBOUND_QUEUE_URL_PORT = void 0;
+exports.PRODUCTS_INBOUND_QUEUE_URL_PORT = Symbol('PRODUCTS_INBOUND_QUEUE_URL_PORT');
+
+
+/***/ },
+
 /***/ "./apps/suppliers-ms/src/modules/messaging/domain/ports/products-outbound-queue-url.port.ts"
 /*!**************************************************************************************************!*\
   !*** ./apps/suppliers-ms/src/modules/messaging/domain/ports/products-outbound-queue-url.port.ts ***!
@@ -5799,6 +6006,7 @@ const process_transversal_inbound_message_use_case_1 = __webpack_require__(/*! .
 const process_files_uploaded_inbound_use_case_1 = __webpack_require__(/*! ./application/use-cases/process-files-uploaded-inbound.use-case */ "./apps/suppliers-ms/src/modules/messaging/application/use-cases/process-files-uploaded-inbound.use-case.ts");
 const ingest_transversal_inbound_sqs_message_use_case_1 = __webpack_require__(/*! ./application/use-cases/ingest-transversal-inbound-sqs-message.use-case */ "./apps/suppliers-ms/src/modules/messaging/application/use-cases/ingest-transversal-inbound-sqs-message.use-case.ts");
 const files_uploaded_correlation_awaiter_service_1 = __webpack_require__(/*! ./application/services/files-uploaded-correlation-awaiter.service */ "./apps/suppliers-ms/src/modules/messaging/application/services/files-uploaded-correlation-awaiter.service.ts");
+const create_business_for_job_use_case_1 = __webpack_require__(/*! @modules/businesses/application/use-cases/create-business-for-job/create-business-for-job.use-case */ "./apps/suppliers-ms/src/modules/businesses/application/use-cases/create-business-for-job/create-business-for-job.use-case.ts");
 let MessagingApplicationModule = class MessagingApplicationModule {
 };
 exports.MessagingApplicationModule = MessagingApplicationModule;
@@ -5812,6 +6020,7 @@ exports.MessagingApplicationModule = MessagingApplicationModule = __decorate([
             publish_create_person_command_use_case_1.PublishCreatePersonCommandUseCase,
             publish_create_credit_facility_command_use_case_1.PublishCreateCreditFacilityCommandUseCase,
             publish_create_categories_command_use_case_1.PublishCreateCategoriesCommandUseCase,
+            create_business_for_job_use_case_1.CreateBusinessForJobUseCase,
             process_transversal_inbound_message_use_case_1.ProcessTransversalInboundMessageUseCase,
             process_files_uploaded_inbound_use_case_1.ProcessFilesUploadedInboundUseCase,
             ingest_transversal_inbound_sqs_message_use_case_1.IngestTransversalInboundSqsMessageUseCase,
@@ -5824,6 +6033,7 @@ exports.MessagingApplicationModule = MessagingApplicationModule = __decorate([
             publish_create_person_command_use_case_1.PublishCreatePersonCommandUseCase,
             publish_create_credit_facility_command_use_case_1.PublishCreateCreditFacilityCommandUseCase,
             publish_create_categories_command_use_case_1.PublishCreateCategoriesCommandUseCase,
+            create_business_for_job_use_case_1.CreateBusinessForJobUseCase,
             process_transversal_inbound_message_use_case_1.ProcessTransversalInboundMessageUseCase,
             process_files_uploaded_inbound_use_case_1.ProcessFilesUploadedInboundUseCase,
             ingest_transversal_inbound_sqs_message_use_case_1.IngestTransversalInboundSqsMessageUseCase,
@@ -10864,7 +11074,22 @@ var Roles;
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.BatchLogsStatus = exports.PaymentsMethod = exports.PaymentsStatus = exports.AdjustmentsStatus = exports.DisbursementBatchesStatus = exports.DisbursementStatus = exports.LoanStatus = exports.LoanRequestStatus = exports.ExperianQueryStatus = exports.BusinessSeniorityCatalogState = exports.RolePermissionLinkState = exports.PermissionDefinitionState = exports.RoleDefinitionState = exports.PurchaseOrderRecordState = exports.BankAccountRecordState = exports.ShareholderRecordState = exports.LegalRepresentativeLifecycleState = exports.PersonRecordState = exports.BusinessLifecycleState = exports.CatalogActivationState = exports.UserState = exports.SalesRepresentativeRecordState = exports.PartnerOnboardingSagaStatus = exports.SupplierState = exports.PartnerState = exports.DocumentVerificationStatus = exports.ContractTemplateCatalogStatus = exports.ContractCatalogStatus = exports.CreditApplicationStatus = exports.CategoryState = exports.CreditFacilityState = void 0;
+exports.BatchLogsStatus = exports.PaymentsMethod = exports.PaymentsStatus = exports.AdjustmentsStatus = exports.DisbursementBatchesStatus = exports.DisbursementStatus = exports.LoanStatus = exports.LoanRequestStatus = exports.ExperianQueryStatus = exports.BusinessSeniorityCatalogState = exports.RolePermissionLinkState = exports.PermissionDefinitionState = exports.RoleDefinitionState = exports.PurchaseOrderRecordState = exports.BankAccountRecordState = exports.ShareholderRecordState = exports.LegalRepresentativeLifecycleState = exports.PersonRecordState = exports.BusinessLifecycleState = exports.CatalogActivationState = exports.UserState = exports.SalesRepresentativeRecordState = exports.PartnerOnboardingSagaStatus = exports.SupplierState = exports.PartnerState = exports.DocumentVerificationStatus = exports.ContractTemplateCatalogStatus = exports.ContractCatalogStatus = exports.CreditApplicationStatus = exports.CategoryState = exports.CreditFacilityState = exports.AsyncJobStep = exports.AsyncJobStatus = void 0;
+var AsyncJobStatus;
+(function (AsyncJobStatus) {
+    AsyncJobStatus["PENDING"] = "PENDING";
+    AsyncJobStatus["RUNNING"] = "RUNNING";
+    AsyncJobStatus["COMPLETED"] = "COMPLETED";
+    AsyncJobStatus["FAILED"] = "FAILED";
+})(AsyncJobStatus || (exports.AsyncJobStatus = AsyncJobStatus = {}));
+var AsyncJobStep;
+(function (AsyncJobStep) {
+    AsyncJobStep["ENQUEUED"] = "ENQUEUED";
+    AsyncJobStep["AWAITING_PERSON_CREATION"] = "AWAITING_PERSON_CREATION";
+    AsyncJobStep["AWAITING_BUSINESS_CREATION"] = "AWAITING_BUSINESS_CREATION";
+    AsyncJobStep["COMPLETED"] = "COMPLETED";
+    AsyncJobStep["FAILED"] = "FAILED";
+})(AsyncJobStep || (exports.AsyncJobStep = AsyncJobStep = {}));
 var CreditFacilityState;
 (function (CreditFacilityState) {
     CreditFacilityState["ACTIVE"] = "active";

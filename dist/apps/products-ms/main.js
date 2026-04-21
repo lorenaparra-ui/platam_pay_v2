@@ -160,12 +160,25 @@ exports.PRODUCTS_REFERENCE_LOOKUP = Symbol('PRODUCTS_REFERENCE_LOOKUP');
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const config_1 = __webpack_require__(/*! @nestjs/config */ "@nestjs/config");
+function bounded_timeout_ms(raw, fallback) {
+    const n = Number(raw);
+    if (!Number.isFinite(n)) {
+        return fallback;
+    }
+    return Math.min(Math.max(n, 5_000), 600_000);
+}
+function bounded_interval_ms(raw, fallback) {
+    const n = Number(raw);
+    if (!Number.isFinite(n)) {
+        return fallback;
+    }
+    return Math.min(Math.max(n, 50), 5_000);
+}
 exports["default"] = (0, config_1.registerAs)('config', () => {
     return {
         natural_person_onboarding: {
-            default_country_code: (process.env.NATURAL_PERSON_ONBOARDING_DEFAULT_COUNTRY_CODE ?? 'CO').trim(),
-            sqs_poll_timeout_ms: Number(process.env.NATURAL_PERSON_ONBOARDING_SQS_POLL_TIMEOUT_MS ?? 60000),
-            sqs_poll_interval_ms: Number(process.env.NATURAL_PERSON_ONBOARDING_SQS_POLL_INTERVAL_MS ?? 300),
+            sqs_poll_timeout_ms: bounded_timeout_ms(process.env.NATURAL_PERSON_ONBOARDING_SQS_POLL_TIMEOUT_MS, 120_000),
+            sqs_poll_interval_ms: bounded_interval_ms(process.env.NATURAL_PERSON_ONBOARDING_SQS_POLL_INTERVAL_MS, 300),
         },
         environment: process.env.APP_ENV || 'development',
         port: process.env.PRODUCTS_MS_PORT || 8083,
@@ -283,6 +296,7 @@ class ProductsSqsEnv {
     products_sqs_outbound_queue_url;
     products_sqs_inbound_queue_url;
     products_sqs_create_person_queue_url;
+    suppliers_sqs_inbound_queue_url;
     products_sqs_wait_time_seconds = 20;
     products_sqs_max_number_of_messages = 10;
     products_sqs_visibility_timeout_seconds = 30;
@@ -314,6 +328,12 @@ __decorate([
     (0, class_validator_1.IsUrl)({ require_tld: false }),
     __metadata("design:type", String)
 ], ProductsSqsEnv.prototype, "products_sqs_create_person_queue_url", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_transformer_1.Transform)(({ value }) => (value === '' || value === undefined ? undefined : value)),
+    (0, class_validator_1.IsUrl)({ require_tld: false }),
+    __metadata("design:type", String)
+], ProductsSqsEnv.prototype, "suppliers_sqs_inbound_queue_url", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_transformer_1.Type)(() => Number),
@@ -364,6 +384,7 @@ function get_products_sqs_config_from_env() {
             : PRODUCTS_SQS_OUTBOUND_QUEUE_URL_DEFAULT,
         products_sqs_inbound_queue_url: process.env.PRODUCTS_SQS_INBOUND_QUEUE_URL,
         products_sqs_create_person_queue_url: create_person_queue_raw ?? undefined,
+        suppliers_sqs_inbound_queue_url: process.env.SUPPLIERS_SQS_INBOUND_QUEUE_URL,
         products_sqs_wait_time_seconds: process.env.PRODUCTS_SQS_WAIT_TIME_SECONDS ?? 20,
         products_sqs_max_number_of_messages: process.env.PRODUCTS_SQS_MAX_NUMBER_OF_MESSAGES ?? 10,
         products_sqs_visibility_timeout_seconds: process.env.PRODUCTS_SQS_VISIBILITY_TIMEOUT_SECONDS ?? 30,
@@ -375,6 +396,7 @@ function get_products_sqs_config_from_env() {
         outbound_queue_url: env.products_sqs_outbound_queue_url,
         inbound_queue_url: env.products_sqs_inbound_queue_url,
         create_person_queue_url: env.products_sqs_create_person_queue_url,
+        suppliers_inbound_queue_url: env.suppliers_sqs_inbound_queue_url,
         wait_time_seconds: env.products_sqs_wait_time_seconds,
         max_number_of_messages: env.products_sqs_max_number_of_messages,
         visibility_timeout_seconds: env.products_sqs_visibility_timeout_seconds,
@@ -1034,6 +1056,108 @@ exports.TypeormCategoryRepository = TypeormCategoryRepository = __decorate([
 
 /***/ },
 
+/***/ "./apps/products-ms/src/infrastructure/database/repositories/typeorm-credit-application-job.repository.ts"
+/*!****************************************************************************************************************!*\
+  !*** ./apps/products-ms/src/infrastructure/database/repositories/typeorm-credit-application-job.repository.ts ***!
+  \****************************************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+var _a;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.TypeormCreditApplicationJobRepository = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const typeorm_1 = __webpack_require__(/*! @nestjs/typeorm */ "@nestjs/typeorm");
+const typeorm_2 = __webpack_require__(/*! typeorm */ "typeorm");
+const shared_1 = __webpack_require__(/*! @platam/shared */ "./libs/shared/src/index.ts");
+function map_row(r) {
+    return {
+        id: Number(r.id),
+        externalId: r.external_id,
+        status: r.status,
+        step: r.step,
+        payload: r.payload,
+        resolvedIds: r.resolved_ids ?? {},
+        errorMessage: r.error_message,
+        idempotencyKey: r.idempotency_key,
+        createdAt: r.created_at,
+        updatedAt: r.updated_at,
+    };
+}
+let TypeormCreditApplicationJobRepository = class TypeormCreditApplicationJobRepository {
+    ds;
+    constructor(ds) {
+        this.ds = ds;
+    }
+    async create(props) {
+        const rows = await this.ds.query(`INSERT INTO products_schema.credit_application_jobs
+         (status, step, payload, resolved_ids, idempotency_key)
+       VALUES ($1, $2, $3::jsonb, $4::jsonb, $5)
+       RETURNING *`, [
+            props.status,
+            props.step,
+            JSON.stringify(props.payload),
+            JSON.stringify(props.resolvedIds),
+            props.idempotency_key ?? null,
+        ]);
+        return map_row(rows[0]);
+    }
+    async find_by_external_id(external_id) {
+        const rows = await this.ds.query(`SELECT * FROM products_schema.credit_application_jobs
+       WHERE external_id = $1::uuid LIMIT 1`, [external_id]);
+        return rows[0] ? map_row(rows[0]) : null;
+    }
+    async find_by_idempotency_key(key) {
+        const rows = await this.ds.query(`SELECT * FROM products_schema.credit_application_jobs
+       WHERE idempotency_key = $1 LIMIT 1`, [key]);
+        return rows[0] ? map_row(rows[0]) : null;
+    }
+    async find_by_step(step) {
+        const rows = await this.ds.query(`SELECT * FROM products_schema.credit_application_jobs
+       WHERE status = $1 AND step = $2
+       ORDER BY id ASC LIMIT 100`, [shared_1.AsyncJobStatus.RUNNING, step]);
+        return rows.map(map_row);
+    }
+    async update_status_and_step(id, status, step, resolved_ids) {
+        if (resolved_ids !== undefined) {
+            await this.ds.query(`UPDATE products_schema.credit_application_jobs
+         SET status = $1, step = $2, resolved_ids = resolved_ids || $3::jsonb
+         WHERE id = $4`, [status, step, JSON.stringify(resolved_ids), id]);
+        }
+        else {
+            await this.ds.query(`UPDATE products_schema.credit_application_jobs
+         SET status = $1, step = $2
+         WHERE id = $3`, [status, step, id]);
+        }
+    }
+    async update_failed(id, error_message) {
+        await this.ds.query(`UPDATE products_schema.credit_application_jobs
+       SET status = $1, step = $2, error_message = $3
+       WHERE id = $4`, [shared_1.AsyncJobStatus.FAILED, shared_1.AsyncJobStep.FAILED, error_message, id]);
+    }
+};
+exports.TypeormCreditApplicationJobRepository = TypeormCreditApplicationJobRepository;
+exports.TypeormCreditApplicationJobRepository = TypeormCreditApplicationJobRepository = __decorate([
+    (0, common_1.Injectable)(),
+    __param(0, (0, typeorm_1.InjectDataSource)()),
+    __metadata("design:paramtypes", [typeof (_a = typeof typeorm_2.DataSource !== "undefined" && typeorm_2.DataSource) === "function" ? _a : Object])
+], TypeormCreditApplicationJobRepository);
+
+
+/***/ },
+
 /***/ "./apps/products-ms/src/infrastructure/database/repositories/typeorm-credit-application.repository.ts"
 /*!************************************************************************************************************!*\
   !*** ./apps/products-ms/src/infrastructure/database/repositories/typeorm-credit-application.repository.ts ***!
@@ -1481,6 +1605,7 @@ const products_data_1 = __webpack_require__(/*! @app/products-data */ "./libs/pr
 const typeorm_category_repository_1 = __webpack_require__(/*! @infrastructure/database/repositories/typeorm-category.repository */ "./apps/products-ms/src/infrastructure/database/repositories/typeorm-category.repository.ts");
 const typeorm_credit_facility_repository_1 = __webpack_require__(/*! @infrastructure/database/repositories/typeorm-credit-facility.repository */ "./apps/products-ms/src/infrastructure/database/repositories/typeorm-credit-facility.repository.ts");
 const typeorm_credit_application_repository_1 = __webpack_require__(/*! @infrastructure/database/repositories/typeorm-credit-application.repository */ "./apps/products-ms/src/infrastructure/database/repositories/typeorm-credit-application.repository.ts");
+const typeorm_credit_application_job_repository_1 = __webpack_require__(/*! @infrastructure/database/repositories/typeorm-credit-application-job.repository */ "./apps/products-ms/src/infrastructure/database/repositories/typeorm-credit-application-job.repository.ts");
 const categories_tokens_1 = __webpack_require__(/*! @modules/categories/categories.tokens */ "./apps/products-ms/src/modules/categories/categories.tokens.ts");
 const credit_facilities_tokens_1 = __webpack_require__(/*! @modules/credit-facilities/credit-facilities.tokens */ "./apps/products-ms/src/modules/credit-facilities/credit-facilities.tokens.ts");
 const credit_applications_tokens_1 = __webpack_require__(/*! @modules/credit-applications/credit-applications.tokens */ "./apps/products-ms/src/modules/credit-applications/credit-applications.tokens.ts");
@@ -1529,6 +1654,11 @@ exports.InfrastructureModule = InfrastructureModule = __decorate([
                 provide: credit_applications_tokens_1.CREDIT_APPLICATION_REPOSITORY,
                 useClass: typeorm_credit_application_repository_1.TypeormCreditApplicationRepository,
             },
+            typeorm_credit_application_job_repository_1.TypeormCreditApplicationJobRepository,
+            {
+                provide: credit_applications_tokens_1.CREDIT_APPLICATION_JOB_REPOSITORY,
+                useExisting: typeorm_credit_application_job_repository_1.TypeormCreditApplicationJobRepository,
+            },
             typeorm_client_registration_adapter_1.TypeormClientRegistrationAdapter,
             {
                 provide: client_registration_port_1.CLIENT_REGISTRATION_PORT,
@@ -1555,6 +1685,7 @@ exports.InfrastructureModule = InfrastructureModule = __decorate([
             categories_tokens_1.CATEGORY_REPOSITORY,
             credit_facilities_tokens_1.CREDIT_FACILITY_REPOSITORY,
             credit_applications_tokens_1.CREDIT_APPLICATION_REPOSITORY,
+            credit_applications_tokens_1.CREDIT_APPLICATION_JOB_REPOSITORY,
             client_registration_port_1.CLIENT_REGISTRATION_PORT,
             credit_application_document_storage_port_1.CREDIT_APPLICATION_DOCUMENT_STORAGE,
             products_reference_lookup_port_1.PRODUCTS_REFERENCE_LOOKUP,
@@ -1605,6 +1736,48 @@ exports.ConfigOutboundProductsQueueUrlAdapter = ConfigOutboundProductsQueueUrlAd
     __param(0, (0, common_1.Inject)(shared_1.QUEUES_CONFIG)),
     __metadata("design:paramtypes", [Object])
 ], ConfigOutboundProductsQueueUrlAdapter);
+
+
+/***/ },
+
+/***/ "./apps/products-ms/src/infrastructure/messaging/sqs/adapters/config-suppliers-inbound-queue-url.adapter.ts"
+/*!******************************************************************************************************************!*\
+  !*** ./apps/products-ms/src/infrastructure/messaging/sqs/adapters/config-suppliers-inbound-queue-url.adapter.ts ***!
+  \******************************************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ConfigSuppliersInboundQueueUrlAdapter = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const shared_1 = __webpack_require__(/*! @platam/shared */ "./libs/shared/src/index.ts");
+let ConfigSuppliersInboundQueueUrlAdapter = class ConfigSuppliersInboundQueueUrlAdapter {
+    queues_config;
+    constructor(queues_config) {
+        this.queues_config = queues_config;
+    }
+    get_suppliers_inbound_queue_url() {
+        return this.queues_config.suppliers_inbound_queue_url;
+    }
+};
+exports.ConfigSuppliersInboundQueueUrlAdapter = ConfigSuppliersInboundQueueUrlAdapter;
+exports.ConfigSuppliersInboundQueueUrlAdapter = ConfigSuppliersInboundQueueUrlAdapter = __decorate([
+    (0, common_1.Injectable)(),
+    __param(0, (0, common_1.Inject)(shared_1.QUEUES_CONFIG)),
+    __metadata("design:paramtypes", [Object])
+], ConfigSuppliersInboundQueueUrlAdapter);
 
 
 /***/ },
@@ -1822,10 +1995,13 @@ const config_1 = __webpack_require__(/*! @nestjs/config */ "@nestjs/config");
 const shared_1 = __webpack_require__(/*! @platam/shared */ "./libs/shared/src/index.ts");
 const sqs_message_publisher_adapter_1 = __webpack_require__(/*! ./adapters/sqs-message-publisher.adapter */ "./apps/products-ms/src/infrastructure/messaging/sqs/adapters/sqs-message-publisher.adapter.ts");
 const config_outbound_products_queue_url_adapter_1 = __webpack_require__(/*! ./adapters/config-outbound-products-queue-url.adapter */ "./apps/products-ms/src/infrastructure/messaging/sqs/adapters/config-outbound-products-queue-url.adapter.ts");
+const config_suppliers_inbound_queue_url_adapter_1 = __webpack_require__(/*! ./adapters/config-suppliers-inbound-queue-url.adapter */ "./apps/products-ms/src/infrastructure/messaging/sqs/adapters/config-suppliers-inbound-queue-url.adapter.ts");
 const products_inbound_sqs_consumer_1 = __webpack_require__(/*! ./consumers/products-inbound-sqs.consumer */ "./apps/products-ms/src/infrastructure/messaging/sqs/consumers/products-inbound-sqs.consumer.ts");
 const messaging_application_module_1 = __webpack_require__(/*! @messaging/messaging-application.module */ "./apps/products-ms/src/modules/messaging/messaging-application.module.ts");
 const outbound_message_publisher_port_1 = __webpack_require__(/*! @messaging/domain/ports/outbound-message-publisher.port */ "./apps/products-ms/src/modules/messaging/domain/ports/outbound-message-publisher.port.ts");
 const products_outbound_queue_url_port_1 = __webpack_require__(/*! @messaging/domain/ports/products-outbound-queue-url.port */ "./apps/products-ms/src/modules/messaging/domain/ports/products-outbound-queue-url.port.ts");
+const suppliers_inbound_queue_url_port_1 = __webpack_require__(/*! @messaging/domain/ports/suppliers-inbound-queue-url.port */ "./apps/products-ms/src/modules/messaging/domain/ports/suppliers-inbound-queue-url.port.ts");
+const publish_create_business_job_use_case_1 = __webpack_require__(/*! @messaging/application/use-cases/publish-create-business-job.use-case */ "./apps/products-ms/src/modules/messaging/application/use-cases/publish-create-business-job.use-case.ts");
 let SqsModule = class SqsModule {
 };
 exports.SqsModule = SqsModule;
@@ -1841,6 +2017,7 @@ exports.SqsModule = SqsModule = __decorate([
                     inbound_queue_url: config_service.get('sqs.inbound_queue_url'),
                     suppliers_callback_queue_url: config_service.get('sqs.suppliers_callback_queue_url'),
                     create_person_queue_url: config_service.get('sqs.create_person_queue_url'),
+                    suppliers_inbound_queue_url: config_service.get('sqs.suppliers_inbound_queue_url'),
                 }),
                 inject: [config_1.ConfigService],
             },
@@ -1863,12 +2040,20 @@ exports.SqsModule = SqsModule = __decorate([
                 provide: products_outbound_queue_url_port_1.PRODUCTS_OUTBOUND_QUEUE_URL_PORT,
                 useExisting: config_outbound_products_queue_url_adapter_1.ConfigOutboundProductsQueueUrlAdapter,
             },
+            config_suppliers_inbound_queue_url_adapter_1.ConfigSuppliersInboundQueueUrlAdapter,
+            {
+                provide: suppliers_inbound_queue_url_port_1.SUPPLIERS_INBOUND_QUEUE_URL_PORT,
+                useExisting: config_suppliers_inbound_queue_url_adapter_1.ConfigSuppliersInboundQueueUrlAdapter,
+            },
+            publish_create_business_job_use_case_1.PublishCreateBusinessJobUseCase,
         ],
         exports: [
             shared_1.SQS_CLIENT,
             shared_1.QUEUES_CONFIG,
             outbound_message_publisher_port_1.OUTBOUND_MESSAGE_PUBLISHER_PORT,
             products_outbound_queue_url_port_1.PRODUCTS_OUTBOUND_QUEUE_URL_PORT,
+            suppliers_inbound_queue_url_port_1.SUPPLIERS_INBOUND_QUEUE_URL_PORT,
+            publish_create_business_job_use_case_1.PublishCreateBusinessJobUseCase,
         ],
     })
 ], SqsModule);
@@ -3416,6 +3601,72 @@ exports.ApproveCreditApplicationUseCase = ApproveCreditApplicationUseCase = __de
 
 /***/ },
 
+/***/ "./apps/products-ms/src/modules/credit-applications/application/use-cases/create-credit-application/create-credit-application.request.ts"
+/*!***********************************************************************************************************************************************!*\
+  !*** ./apps/products-ms/src/modules/credit-applications/application/use-cases/create-credit-application/create-credit-application.request.ts ***!
+  \***********************************************************************************************************************************************/
+(__unused_webpack_module, exports) {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.CreateCreditApplicationRequest = void 0;
+class CreateCreditApplicationRequest {
+    personId;
+    partnerId;
+    partnerCategoryId;
+    businessId;
+    salesRepresentativeId;
+    status;
+    isCurrentClient;
+    privacyPolicyAccepted;
+    numberOfLocations;
+    numberOfEmployees;
+    businessSeniority;
+    sectorExperience;
+    businessFlagshipM2;
+    businessHasRent;
+    businessRentAmount;
+    monthlyIncome;
+    monthlyExpenses;
+    monthlyPurchases;
+    currentPurchases;
+    totalAssets;
+    requestedCreditLine;
+    submissionDate;
+    privacyPolicyDate;
+    externalId;
+    constructor(personId, partnerId, partnerCategoryId, businessId, salesRepresentativeId, status, isCurrentClient, privacyPolicyAccepted, numberOfLocations, numberOfEmployees, businessSeniority, sectorExperience, businessFlagshipM2, businessHasRent, businessRentAmount, monthlyIncome, monthlyExpenses, monthlyPurchases, currentPurchases, totalAssets, requestedCreditLine, submissionDate, privacyPolicyDate, externalId) {
+        this.personId = personId;
+        this.partnerId = partnerId;
+        this.partnerCategoryId = partnerCategoryId;
+        this.businessId = businessId;
+        this.salesRepresentativeId = salesRepresentativeId;
+        this.status = status;
+        this.isCurrentClient = isCurrentClient;
+        this.privacyPolicyAccepted = privacyPolicyAccepted;
+        this.numberOfLocations = numberOfLocations;
+        this.numberOfEmployees = numberOfEmployees;
+        this.businessSeniority = businessSeniority;
+        this.sectorExperience = sectorExperience;
+        this.businessFlagshipM2 = businessFlagshipM2;
+        this.businessHasRent = businessHasRent;
+        this.businessRentAmount = businessRentAmount;
+        this.monthlyIncome = monthlyIncome;
+        this.monthlyExpenses = monthlyExpenses;
+        this.monthlyPurchases = monthlyPurchases;
+        this.currentPurchases = currentPurchases;
+        this.totalAssets = totalAssets;
+        this.requestedCreditLine = requestedCreditLine;
+        this.submissionDate = submissionDate;
+        this.privacyPolicyDate = privacyPolicyDate;
+        this.externalId = externalId;
+    }
+}
+exports.CreateCreditApplicationRequest = CreateCreditApplicationRequest;
+
+
+/***/ },
+
 /***/ "./apps/products-ms/src/modules/credit-applications/application/use-cases/create-credit-application/create-credit-application.response.ts"
 /*!************************************************************************************************************************************************!*\
   !*** ./apps/products-ms/src/modules/credit-applications/application/use-cases/create-credit-application/create-credit-application.response.ts ***!
@@ -3589,6 +3840,268 @@ exports.DeleteCreditApplicationByExternalIdUseCase = DeleteCreditApplicationByEx
 
 /***/ },
 
+/***/ "./apps/products-ms/src/modules/credit-applications/application/use-cases/enqueue-natural-person-credit-application/enqueue-natural-person-credit-application.request.ts"
+/*!*******************************************************************************************************************************************************************************!*\
+  !*** ./apps/products-ms/src/modules/credit-applications/application/use-cases/enqueue-natural-person-credit-application/enqueue-natural-person-credit-application.request.ts ***!
+  \*******************************************************************************************************************************************************************************/
+(__unused_webpack_module, exports) {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.EnqueueNaturalPersonCreditApplicationRequest = void 0;
+class EnqueueNaturalPersonCreditApplicationRequest {
+    partnerId;
+    salesRepId;
+    firstName;
+    lastName;
+    docType;
+    docNumber;
+    phone;
+    email;
+    birthDate;
+    cityId;
+    businessType;
+    businessName;
+    businessAddress;
+    relationshipToBusiness;
+    businessSeniority;
+    numberOfEmployees;
+    numberOfLocations;
+    businessFlagshipM2;
+    businessHasRent;
+    businessRentAmount;
+    requestedCreditLine;
+    monthlyPurchases;
+    currentPurchases;
+    totalAssets;
+    monthlyIncome;
+    monthlyExpenses;
+    privacyPolicyAccepted;
+    idempotencyKey;
+    constructor(partnerId, salesRepId, firstName, lastName, docType, docNumber, phone, email, birthDate, cityId, businessType, businessName, businessAddress, relationshipToBusiness, businessSeniority, numberOfEmployees, numberOfLocations, businessFlagshipM2, businessHasRent, businessRentAmount, requestedCreditLine, monthlyPurchases, currentPurchases, totalAssets, monthlyIncome, monthlyExpenses, privacyPolicyAccepted, idempotencyKey) {
+        this.partnerId = partnerId;
+        this.salesRepId = salesRepId;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.docType = docType;
+        this.docNumber = docNumber;
+        this.phone = phone;
+        this.email = email;
+        this.birthDate = birthDate;
+        this.cityId = cityId;
+        this.businessType = businessType;
+        this.businessName = businessName;
+        this.businessAddress = businessAddress;
+        this.relationshipToBusiness = relationshipToBusiness;
+        this.businessSeniority = businessSeniority;
+        this.numberOfEmployees = numberOfEmployees;
+        this.numberOfLocations = numberOfLocations;
+        this.businessFlagshipM2 = businessFlagshipM2;
+        this.businessHasRent = businessHasRent;
+        this.businessRentAmount = businessRentAmount;
+        this.requestedCreditLine = requestedCreditLine;
+        this.monthlyPurchases = monthlyPurchases;
+        this.currentPurchases = currentPurchases;
+        this.totalAssets = totalAssets;
+        this.monthlyIncome = monthlyIncome;
+        this.monthlyExpenses = monthlyExpenses;
+        this.privacyPolicyAccepted = privacyPolicyAccepted;
+        this.idempotencyKey = idempotencyKey;
+    }
+}
+exports.EnqueueNaturalPersonCreditApplicationRequest = EnqueueNaturalPersonCreditApplicationRequest;
+
+
+/***/ },
+
+/***/ "./apps/products-ms/src/modules/credit-applications/application/use-cases/enqueue-natural-person-credit-application/enqueue-natural-person-credit-application.response.ts"
+/*!********************************************************************************************************************************************************************************!*\
+  !*** ./apps/products-ms/src/modules/credit-applications/application/use-cases/enqueue-natural-person-credit-application/enqueue-natural-person-credit-application.response.ts ***!
+  \********************************************************************************************************************************************************************************/
+(__unused_webpack_module, exports) {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.EnqueueNaturalPersonCreditApplicationResponse = void 0;
+class EnqueueNaturalPersonCreditApplicationResponse {
+    jobId;
+    constructor(jobId) {
+        this.jobId = jobId;
+    }
+}
+exports.EnqueueNaturalPersonCreditApplicationResponse = EnqueueNaturalPersonCreditApplicationResponse;
+
+
+/***/ },
+
+/***/ "./apps/products-ms/src/modules/credit-applications/application/use-cases/enqueue-natural-person-credit-application/enqueue-natural-person-credit-application.use-case.ts"
+/*!********************************************************************************************************************************************************************************!*\
+  !*** ./apps/products-ms/src/modules/credit-applications/application/use-cases/enqueue-natural-person-credit-application/enqueue-natural-person-credit-application.use-case.ts ***!
+  \********************************************************************************************************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+var _a, _b, _c;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.EnqueueNaturalPersonCreditApplicationUseCase = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const shared_1 = __webpack_require__(/*! @platam/shared */ "./libs/shared/src/index.ts");
+const credit_applications_tokens_1 = __webpack_require__(/*! @modules/credit-applications/credit-applications.tokens */ "./apps/products-ms/src/modules/credit-applications/credit-applications.tokens.ts");
+const products_reference_lookup_port_1 = __webpack_require__(/*! @common/ports/products-reference-lookup.port */ "./apps/products-ms/src/common/ports/products-reference-lookup.port.ts");
+const client_registration_port_1 = __webpack_require__(/*! @modules/credit-applications/application/ports/client-registration.port */ "./apps/products-ms/src/modules/credit-applications/application/ports/client-registration.port.ts");
+const publish_create_person_command_use_case_1 = __webpack_require__(/*! @messaging/application/use-cases/publish-create-person-command.use-case */ "./apps/products-ms/src/modules/messaging/application/use-cases/publish-create-person-command.use-case.ts");
+const publish_create_business_job_use_case_1 = __webpack_require__(/*! @messaging/application/use-cases/publish-create-business-job.use-case */ "./apps/products-ms/src/modules/messaging/application/use-cases/publish-create-business-job.use-case.ts");
+const validation_failed_error_1 = __webpack_require__(/*! @messaging/application/exceptions/validation-failed.error */ "./apps/products-ms/src/modules/messaging/application/exceptions/validation-failed.error.ts");
+const enqueue_natural_person_credit_application_response_1 = __webpack_require__(/*! ./enqueue-natural-person-credit-application.response */ "./apps/products-ms/src/modules/credit-applications/application/use-cases/enqueue-natural-person-credit-application/enqueue-natural-person-credit-application.response.ts");
+let EnqueueNaturalPersonCreditApplicationUseCase = class EnqueueNaturalPersonCreditApplicationUseCase {
+    job_repository;
+    products_lookup;
+    client_registration;
+    publish_create_person;
+    publish_create_business_job;
+    constructor(job_repository, products_lookup, client_registration, publish_create_person, publish_create_business_job) {
+        this.job_repository = job_repository;
+        this.products_lookup = products_lookup;
+        this.client_registration = client_registration;
+        this.publish_create_person = publish_create_person;
+        this.publish_create_business_job = publish_create_business_job;
+    }
+    async execute(req) {
+        if (req.idempotencyKey) {
+            const existing = await this.job_repository.find_by_idempotency_key(req.idempotencyKey);
+            if (existing) {
+                return new enqueue_natural_person_credit_application_response_1.EnqueueNaturalPersonCreditApplicationResponse(existing.externalId);
+            }
+        }
+        const partner_internal_id = await this.products_lookup.get_partner_internal_id_by_external_id(req.partnerId);
+        if (partner_internal_id === null) {
+            throw new common_1.NotFoundException('partner no encontrado');
+        }
+        const sales_rep_internal_id = await this.products_lookup.get_sales_representative_internal_id_by_external_id(req.salesRepId, partner_internal_id);
+        if (sales_rep_internal_id === null) {
+            throw new common_1.NotFoundException('representante de ventas no encontrado o no pertenece al partner indicado');
+        }
+        let city_internal_id = null;
+        if (req.cityId) {
+            city_internal_id = await this.client_registration.resolve_city_internal_id(req.cityId);
+        }
+        const job = await this.job_repository.create({
+            status: shared_1.AsyncJobStatus.RUNNING,
+            step: shared_1.AsyncJobStep.ENQUEUED,
+            payload: {
+                partner_id: req.partnerId,
+                sales_rep_id: req.salesRepId,
+                doc_number: req.docNumber,
+                doc_type: req.docType,
+                first_name: req.firstName,
+                last_name: req.lastName,
+                phone: req.phone ?? null,
+                email: req.email ?? null,
+                city_id: req.cityId ?? null,
+                birth_date: req.birthDate ?? null,
+                business_type: req.businessType,
+                business_name: req.businessName ?? null,
+                business_address: req.businessAddress ?? null,
+                relationship_to_business: req.relationshipToBusiness ?? null,
+                business_seniority: req.businessSeniority ?? null,
+                number_of_employees: req.numberOfEmployees ?? null,
+                number_of_locations: req.numberOfLocations ?? null,
+                business_flagship_m2: req.businessFlagshipM2 ?? null,
+                business_has_rent: req.businessHasRent ?? null,
+                business_rent_amount: req.businessRentAmount ?? null,
+                requested_credit_line: req.requestedCreditLine,
+                monthly_purchases: req.monthlyPurchases ?? null,
+                current_purchases: req.currentPurchases ?? null,
+                total_assets: req.totalAssets ?? null,
+                monthly_income: req.monthlyIncome ?? null,
+                monthly_expenses: req.monthlyExpenses ?? null,
+                privacy_policy_accepted: req.privacyPolicyAccepted,
+            },
+            resolvedIds: {
+                partner_internal_id,
+                sales_rep_internal_id,
+                city_internal_id: city_internal_id ?? null,
+            },
+            idempotency_key: req.idempotencyKey ?? null,
+        });
+        const person_id = await this.client_registration.find_person_by_doc_number(req.docNumber);
+        if (person_id !== null) {
+            const business_id = await this.client_registration.find_business_by_person_id(person_id);
+            if (business_id !== null) {
+                try {
+                    await this.publish_create_business_job.execute_already_resolved(job.externalId, person_id, business_id);
+                }
+                catch {
+                }
+                await this.job_repository.update_status_and_step(job.id, shared_1.AsyncJobStatus.RUNNING, shared_1.AsyncJobStep.AWAITING_BUSINESS_CREATION, { person_internal_id: person_id, business_internal_id: business_id });
+            }
+            else {
+                try {
+                    await this.publish_create_business_job.execute(job.externalId, person_id, {
+                        city_internal_id: city_internal_id ?? null,
+                        entity_type: req.businessType,
+                        business_name: req.businessName ?? null,
+                        business_address: req.businessAddress ?? null,
+                        business_type: req.businessType ?? null,
+                        relationship_to_business: req.relationshipToBusiness ?? null,
+                    });
+                }
+                catch {
+                }
+                await this.job_repository.update_status_and_step(job.id, shared_1.AsyncJobStatus.RUNNING, shared_1.AsyncJobStep.AWAITING_BUSINESS_CREATION, { person_internal_id: person_id });
+            }
+        }
+        else {
+            const correlation_id = (0, shared_1.new_uuid)();
+            const sqs_idempotency_key = `job_create_person_${job.externalId}`;
+            try {
+                await this.publish_create_person.execute({
+                    correlation_id,
+                    idempotency_key: sqs_idempotency_key,
+                    first_name: req.firstName,
+                    last_name: req.lastName,
+                    doc_type: req.docType,
+                    doc_number: req.docNumber,
+                    phone: req.phone ?? null,
+                    city_external_id: req.cityId ?? null,
+                });
+            }
+            catch (e) {
+                if (e instanceof validation_failed_error_1.ValidationFailedError) {
+                    await this.job_repository.update_failed(job.id, 'Cola create-person no configurada');
+                    throw new common_1.ConflictException(e.message);
+                }
+                throw e;
+            }
+            await this.job_repository.update_status_and_step(job.id, shared_1.AsyncJobStatus.RUNNING, shared_1.AsyncJobStep.AWAITING_PERSON_CREATION);
+        }
+        return new enqueue_natural_person_credit_application_response_1.EnqueueNaturalPersonCreditApplicationResponse(job.externalId);
+    }
+};
+exports.EnqueueNaturalPersonCreditApplicationUseCase = EnqueueNaturalPersonCreditApplicationUseCase;
+exports.EnqueueNaturalPersonCreditApplicationUseCase = EnqueueNaturalPersonCreditApplicationUseCase = __decorate([
+    (0, common_1.Injectable)(),
+    __param(0, (0, common_1.Inject)(credit_applications_tokens_1.CREDIT_APPLICATION_JOB_REPOSITORY)),
+    __param(1, (0, common_1.Inject)(products_reference_lookup_port_1.PRODUCTS_REFERENCE_LOOKUP)),
+    __param(2, (0, common_1.Inject)(client_registration_port_1.CLIENT_REGISTRATION_PORT)),
+    __metadata("design:paramtypes", [Object, Object, typeof (_a = typeof client_registration_port_1.ClientRegistrationPort !== "undefined" && client_registration_port_1.ClientRegistrationPort) === "function" ? _a : Object, typeof (_b = typeof publish_create_person_command_use_case_1.PublishCreatePersonCommandUseCase !== "undefined" && publish_create_person_command_use_case_1.PublishCreatePersonCommandUseCase) === "function" ? _b : Object, typeof (_c = typeof publish_create_business_job_use_case_1.PublishCreateBusinessJobUseCase !== "undefined" && publish_create_business_job_use_case_1.PublishCreateBusinessJobUseCase) === "function" ? _c : Object])
+], EnqueueNaturalPersonCreditApplicationUseCase);
+
+
+/***/ },
+
 /***/ "./apps/products-ms/src/modules/credit-applications/application/use-cases/get-credit-application-by-external-id/get-credit-application-by-external-id.request.ts"
 /*!***********************************************************************************************************************************************************************!*\
   !*** ./apps/products-ms/src/modules/credit-applications/application/use-cases/get-credit-application-by-external-id/get-credit-application-by-external-id.request.ts ***!
@@ -3709,6 +4222,101 @@ exports.GetCreditApplicationByExternalIdUseCase = GetCreditApplicationByExternal
     __param(0, (0, common_1.Inject)(credit_applications_tokens_1.CREDIT_APPLICATION_REPOSITORY)),
     __metadata("design:paramtypes", [typeof (_a = typeof credit_application_ports_1.CreditApplicationRepository !== "undefined" && credit_application_ports_1.CreditApplicationRepository) === "function" ? _a : Object])
 ], GetCreditApplicationByExternalIdUseCase);
+
+
+/***/ },
+
+/***/ "./apps/products-ms/src/modules/credit-applications/application/use-cases/get-credit-application-job/get-credit-application-job.request.ts"
+/*!*************************************************************************************************************************************************!*\
+  !*** ./apps/products-ms/src/modules/credit-applications/application/use-cases/get-credit-application-job/get-credit-application-job.request.ts ***!
+  \*************************************************************************************************************************************************/
+(__unused_webpack_module, exports) {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.GetCreditApplicationJobRequest = void 0;
+class GetCreditApplicationJobRequest {
+    jobId;
+    constructor(jobId) {
+        this.jobId = jobId;
+    }
+}
+exports.GetCreditApplicationJobRequest = GetCreditApplicationJobRequest;
+
+
+/***/ },
+
+/***/ "./apps/products-ms/src/modules/credit-applications/application/use-cases/get-credit-application-job/get-credit-application-job.response.ts"
+/*!**************************************************************************************************************************************************!*\
+  !*** ./apps/products-ms/src/modules/credit-applications/application/use-cases/get-credit-application-job/get-credit-application-job.response.ts ***!
+  \**************************************************************************************************************************************************/
+(__unused_webpack_module, exports) {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.GetCreditApplicationJobResponse = void 0;
+class GetCreditApplicationJobResponse {
+    jobId;
+    status;
+    step;
+    creditApplicationId;
+    errorMessage;
+    constructor(jobId, status, step, creditApplicationId, errorMessage) {
+        this.jobId = jobId;
+        this.status = status;
+        this.step = step;
+        this.creditApplicationId = creditApplicationId;
+        this.errorMessage = errorMessage;
+    }
+}
+exports.GetCreditApplicationJobResponse = GetCreditApplicationJobResponse;
+
+
+/***/ },
+
+/***/ "./apps/products-ms/src/modules/credit-applications/application/use-cases/get-credit-application-job/get-credit-application-job.use-case.ts"
+/*!**************************************************************************************************************************************************!*\
+  !*** ./apps/products-ms/src/modules/credit-applications/application/use-cases/get-credit-application-job/get-credit-application-job.use-case.ts ***!
+  \**************************************************************************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.GetCreditApplicationJobUseCase = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const credit_applications_tokens_1 = __webpack_require__(/*! @modules/credit-applications/credit-applications.tokens */ "./apps/products-ms/src/modules/credit-applications/credit-applications.tokens.ts");
+const get_credit_application_job_response_1 = __webpack_require__(/*! ./get-credit-application-job.response */ "./apps/products-ms/src/modules/credit-applications/application/use-cases/get-credit-application-job/get-credit-application-job.response.ts");
+let GetCreditApplicationJobUseCase = class GetCreditApplicationJobUseCase {
+    job_repository;
+    constructor(job_repository) {
+        this.job_repository = job_repository;
+    }
+    async execute(req) {
+        const job = await this.job_repository.find_by_external_id(req.jobId);
+        if (!job) {
+            throw new common_1.NotFoundException(`job no encontrado: ${req.jobId}`);
+        }
+        return new get_credit_application_job_response_1.GetCreditApplicationJobResponse(job.externalId, job.status, job.step, job.resolvedIds.credit_application_external_id ?? null, job.errorMessage);
+    }
+};
+exports.GetCreditApplicationJobUseCase = GetCreditApplicationJobUseCase;
+exports.GetCreditApplicationJobUseCase = GetCreditApplicationJobUseCase = __decorate([
+    (0, common_1.Injectable)(),
+    __param(0, (0, common_1.Inject)(credit_applications_tokens_1.CREDIT_APPLICATION_JOB_REPOSITORY)),
+    __metadata("design:paramtypes", [Object])
+], GetCreditApplicationJobUseCase);
 
 
 /***/ },
@@ -4411,14 +5019,10 @@ let RegisterNaturalPersonCreditApplicationUseCase = class RegisterNaturalPersonC
         if (person_id === null) {
             const correlation_id = (0, shared_1.new_uuid)();
             const idempotency_key = `${correlation_id}__natural_person_credit_application`;
-            const default_country = (this.config_service.get('config.natural_person_onboarding.default_country_code') ??
-                'CO') ||
-                'CO';
             try {
                 await this.publish_create_person.execute({
                     correlation_id,
                     idempotency_key,
-                    country_code: default_country,
                     first_name: req.firstName,
                     last_name: req.lastName,
                     doc_type: req.docType,
@@ -5152,6 +5756,9 @@ const reject_credit_application_use_case_1 = __webpack_require__(/*! @modules/cr
 const save_credit_application_pre_study_use_case_1 = __webpack_require__(/*! @modules/credit-applications/application/use-cases/save-credit-application-pre-study/save-credit-application-pre-study.use-case */ "./apps/products-ms/src/modules/credit-applications/application/use-cases/save-credit-application-pre-study/save-credit-application-pre-study.use-case.ts");
 const upload_credit_application_document_use_case_1 = __webpack_require__(/*! @modules/credit-applications/application/use-cases/upload-credit-application-document/upload-credit-application-document.use-case */ "./apps/products-ms/src/modules/credit-applications/application/use-cases/upload-credit-application-document/upload-credit-application-document.use-case.ts");
 const register_natural_person_credit_application_use_case_1 = __webpack_require__(/*! @modules/credit-applications/application/use-cases/register-natural-person-credit-application/register-natural-person-credit-application.use-case */ "./apps/products-ms/src/modules/credit-applications/application/use-cases/register-natural-person-credit-application/register-natural-person-credit-application.use-case.ts");
+const enqueue_natural_person_credit_application_use_case_1 = __webpack_require__(/*! @modules/credit-applications/application/use-cases/enqueue-natural-person-credit-application/enqueue-natural-person-credit-application.use-case */ "./apps/products-ms/src/modules/credit-applications/application/use-cases/enqueue-natural-person-credit-application/enqueue-natural-person-credit-application.use-case.ts");
+const get_credit_application_job_use_case_1 = __webpack_require__(/*! @modules/credit-applications/application/use-cases/get-credit-application-job/get-credit-application-job.use-case */ "./apps/products-ms/src/modules/credit-applications/application/use-cases/get-credit-application-job/get-credit-application-job.use-case.ts");
+const credit_application_job_worker_1 = __webpack_require__(/*! @modules/credit-applications/infrastructure/workers/credit-application-job.worker */ "./apps/products-ms/src/modules/credit-applications/infrastructure/workers/credit-application-job.worker.ts");
 const USE_CASES = [
     create_credit_application_use_case_1.CreateCreditApplicationUseCase,
     get_credit_application_by_external_id_use_case_1.GetCreditApplicationByExternalIdUseCase,
@@ -5166,6 +5773,9 @@ const USE_CASES = [
     save_credit_application_pre_study_use_case_1.SaveCreditApplicationPreStudyUseCase,
     upload_credit_application_document_use_case_1.UploadCreditApplicationDocumentUseCase,
     register_natural_person_credit_application_use_case_1.RegisterNaturalPersonCreditApplicationUseCase,
+    enqueue_natural_person_credit_application_use_case_1.EnqueueNaturalPersonCreditApplicationUseCase,
+    get_credit_application_job_use_case_1.GetCreditApplicationJobUseCase,
+    credit_application_job_worker_1.CreditApplicationJobWorkerService,
 ];
 let CreditApplicationsApplicationModule = class CreditApplicationsApplicationModule {
 };
@@ -5229,8 +5839,9 @@ exports.CreditApplicationsModule = CreditApplicationsModule = __decorate([
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.CREDIT_APPLICATION_REPOSITORY = void 0;
+exports.CREDIT_APPLICATION_JOB_REPOSITORY = exports.CREDIT_APPLICATION_REPOSITORY = void 0;
 exports.CREDIT_APPLICATION_REPOSITORY = Symbol('CREDIT_APPLICATION_REPOSITORY');
+exports.CREDIT_APPLICATION_JOB_REPOSITORY = Symbol('CREDIT_APPLICATION_JOB_REPOSITORY');
 
 
 /***/ },
@@ -5331,6 +5942,131 @@ exports.CreditApplication = CreditApplication;
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+
+
+/***/ },
+
+/***/ "./apps/products-ms/src/modules/credit-applications/infrastructure/workers/credit-application-job.worker.ts"
+/*!******************************************************************************************************************!*\
+  !*** ./apps/products-ms/src/modules/credit-applications/infrastructure/workers/credit-application-job.worker.ts ***!
+  \******************************************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+var CreditApplicationJobWorkerService_1;
+var _a, _b, _c;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.CreditApplicationJobWorkerService = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const typeorm_1 = __webpack_require__(/*! @nestjs/typeorm */ "@nestjs/typeorm");
+const typeorm_2 = __webpack_require__(/*! typeorm */ "typeorm");
+const shared_1 = __webpack_require__(/*! @platam/shared */ "./libs/shared/src/index.ts");
+const credit_applications_tokens_1 = __webpack_require__(/*! @modules/credit-applications/credit-applications.tokens */ "./apps/products-ms/src/modules/credit-applications/credit-applications.tokens.ts");
+const client_registration_port_1 = __webpack_require__(/*! @modules/credit-applications/application/ports/client-registration.port */ "./apps/products-ms/src/modules/credit-applications/application/ports/client-registration.port.ts");
+const publish_create_business_job_use_case_1 = __webpack_require__(/*! @messaging/application/use-cases/publish-create-business-job.use-case */ "./apps/products-ms/src/modules/messaging/application/use-cases/publish-create-business-job.use-case.ts");
+const POLL_INTERVAL_MS = 5_000;
+let CreditApplicationJobWorkerService = CreditApplicationJobWorkerService_1 = class CreditApplicationJobWorkerService {
+    job_repo;
+    client_registration;
+    ds;
+    publish_create_business_job;
+    logger = new common_1.Logger(CreditApplicationJobWorkerService_1.name);
+    timer = null;
+    constructor(job_repo, client_registration, ds, publish_create_business_job) {
+        this.job_repo = job_repo;
+        this.client_registration = client_registration;
+        this.ds = ds;
+        this.publish_create_business_job = publish_create_business_job;
+    }
+    onModuleInit() {
+        this.timer = setInterval(() => void this.tick(), POLL_INTERVAL_MS);
+    }
+    onModuleDestroy() {
+        if (this.timer) {
+            clearInterval(this.timer);
+            this.timer = null;
+        }
+    }
+    async tick() {
+        try {
+            await this.process_awaiting_person_jobs();
+        }
+        catch (err) {
+            this.logger.error(`Error en tick del worker: ${err instanceof Error ? err.message : String(err)}`);
+        }
+    }
+    async process_awaiting_person_jobs() {
+        const jobs = await this.job_repo.find_by_step(shared_1.AsyncJobStep.AWAITING_PERSON_CREATION);
+        for (const job of jobs) {
+            await this.handle_awaiting_person(job).catch((err) => {
+                this.logger.error(`[job=${job.externalId}] Error procesando AWAITING_PERSON_CREATION: ${err instanceof Error ? err.message : String(err)}`);
+            });
+        }
+    }
+    async handle_awaiting_person(job) {
+        const sqs_idempotency_key = `job_create_person_${job.externalId}`;
+        const rows = await this.ds.query(`SELECT result
+       FROM transversal_schema.partner_create_user_sqs_idempotency
+       WHERE idempotency_key = $1 AND result IS NOT NULL
+       LIMIT 1`, [sqs_idempotency_key]);
+        if (!rows.length || rows[0].result === null) {
+            return;
+        }
+        const raw = rows[0].result;
+        const person_external_id = typeof raw['person_external_id'] === 'string'
+            ? raw['person_external_id']
+            : null;
+        if (!person_external_id) {
+            this.logger.warn(`[job=${job.externalId}] person_external_id vacío en idempotencia`);
+            return;
+        }
+        const person_id = await this.client_registration.get_person_internal_id_by_external_id(person_external_id);
+        if (person_id === null) {
+            this.logger.warn(`[job=${job.externalId}] person no encontrado por external_id=${person_external_id}`);
+            return;
+        }
+        if (job.payload.email || job.payload.birth_date) {
+            await this.client_registration.patch_person_email_and_birth_date(person_id, job.payload.email ?? null, job.payload.birth_date ?? null);
+        }
+        const business_id = await this.client_registration.find_business_by_person_id(person_id);
+        if (business_id !== null) {
+            await this.job_repo.update_status_and_step(job.id, shared_1.AsyncJobStatus.RUNNING, shared_1.AsyncJobStep.AWAITING_BUSINESS_CREATION, { person_internal_id: person_id, person_external_id, business_internal_id: business_id });
+            await this.publish_create_business_job.execute_already_resolved(job.externalId, person_id, business_id);
+        }
+        else {
+            await this.job_repo.update_status_and_step(job.id, shared_1.AsyncJobStatus.RUNNING, shared_1.AsyncJobStep.AWAITING_BUSINESS_CREATION, { person_internal_id: person_id, person_external_id });
+            await this.publish_create_business_job.execute(job.externalId, person_id, {
+                city_internal_id: job.resolvedIds.city_internal_id ?? null,
+                entity_type: job.payload.business_type,
+                business_name: job.payload.business_name,
+                business_address: job.payload.business_address,
+                business_type: job.payload.business_type,
+                relationship_to_business: job.payload.relationship_to_business,
+            });
+        }
+        this.logger.log(`[job=${job.externalId}] AWAITING_PERSON_CREATION → AWAITING_BUSINESS_CREATION person_id=${person_id}`);
+    }
+};
+exports.CreditApplicationJobWorkerService = CreditApplicationJobWorkerService;
+exports.CreditApplicationJobWorkerService = CreditApplicationJobWorkerService = CreditApplicationJobWorkerService_1 = __decorate([
+    (0, common_1.Injectable)(),
+    __param(0, (0, common_1.Inject)(credit_applications_tokens_1.CREDIT_APPLICATION_JOB_REPOSITORY)),
+    __param(1, (0, common_1.Inject)(client_registration_port_1.CLIENT_REGISTRATION_PORT)),
+    __param(2, (0, typeorm_1.InjectDataSource)()),
+    __metadata("design:paramtypes", [Object, typeof (_a = typeof client_registration_port_1.ClientRegistrationPort !== "undefined" && client_registration_port_1.ClientRegistrationPort) === "function" ? _a : Object, typeof (_b = typeof typeorm_2.DataSource !== "undefined" && typeorm_2.DataSource) === "function" ? _b : Object, typeof (_c = typeof publish_create_business_job_use_case_1.PublishCreateBusinessJobUseCase !== "undefined" && publish_create_business_job_use_case_1.PublishCreateBusinessJobUseCase) === "function" ? _c : Object])
+], CreditApplicationJobWorkerService);
 
 
 /***/ },
@@ -5579,7 +6315,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var _a, _b, _c, _d, _e, _f;
+var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CreditApplicationsPublicController = void 0;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
@@ -5588,15 +6324,24 @@ const register_client_credit_application_use_case_1 = __webpack_require__(/*! @m
 const register_client_credit_application_request_1 = __webpack_require__(/*! @modules/credit-applications/application/use-cases/register-client-credit-application/register-client-credit-application.request */ "./apps/products-ms/src/modules/credit-applications/application/use-cases/register-client-credit-application/register-client-credit-application.request.ts");
 const register_natural_person_credit_application_use_case_1 = __webpack_require__(/*! @modules/credit-applications/application/use-cases/register-natural-person-credit-application/register-natural-person-credit-application.use-case */ "./apps/products-ms/src/modules/credit-applications/application/use-cases/register-natural-person-credit-application/register-natural-person-credit-application.use-case.ts");
 const register_natural_person_credit_application_request_1 = __webpack_require__(/*! @modules/credit-applications/application/use-cases/register-natural-person-credit-application/register-natural-person-credit-application.request */ "./apps/products-ms/src/modules/credit-applications/application/use-cases/register-natural-person-credit-application/register-natural-person-credit-application.request.ts");
+const enqueue_natural_person_credit_application_use_case_1 = __webpack_require__(/*! @modules/credit-applications/application/use-cases/enqueue-natural-person-credit-application/enqueue-natural-person-credit-application.use-case */ "./apps/products-ms/src/modules/credit-applications/application/use-cases/enqueue-natural-person-credit-application/enqueue-natural-person-credit-application.use-case.ts");
+const enqueue_natural_person_credit_application_request_1 = __webpack_require__(/*! @modules/credit-applications/application/use-cases/enqueue-natural-person-credit-application/enqueue-natural-person-credit-application.request */ "./apps/products-ms/src/modules/credit-applications/application/use-cases/enqueue-natural-person-credit-application/enqueue-natural-person-credit-application.request.ts");
+const get_credit_application_job_use_case_1 = __webpack_require__(/*! @modules/credit-applications/application/use-cases/get-credit-application-job/get-credit-application-job.use-case */ "./apps/products-ms/src/modules/credit-applications/application/use-cases/get-credit-application-job/get-credit-application-job.use-case.ts");
+const get_credit_application_job_request_1 = __webpack_require__(/*! @modules/credit-applications/application/use-cases/get-credit-application-job/get-credit-application-job.request */ "./apps/products-ms/src/modules/credit-applications/application/use-cases/get-credit-application-job/get-credit-application-job.request.ts");
 const create_credit_application_dto_1 = __webpack_require__(/*! ../dto/create-credit-application.dto */ "./apps/products-ms/src/modules/credit-applications/presentation/dto/create-credit-application.dto.ts");
 const create_natural_person_credit_application_dto_1 = __webpack_require__(/*! ../dto/create-natural-person-credit-application.dto */ "./apps/products-ms/src/modules/credit-applications/presentation/dto/create-natural-person-credit-application.dto.ts");
 const credit_application_response_dto_1 = __webpack_require__(/*! ../dto/credit-application-response.dto */ "./apps/products-ms/src/modules/credit-applications/presentation/dto/credit-application-response.dto.ts");
+const credit_application_job_response_dto_1 = __webpack_require__(/*! ../dto/credit-application-job-response.dto */ "./apps/products-ms/src/modules/credit-applications/presentation/dto/credit-application-job-response.dto.ts");
 let CreditApplicationsPublicController = class CreditApplicationsPublicController {
     register_client;
     register_natural_person;
-    constructor(register_client, register_natural_person) {
+    enqueue_natural_person;
+    get_job;
+    constructor(register_client, register_natural_person, enqueue_natural_person, get_job) {
         this.register_client = register_client;
         this.register_natural_person = register_natural_person;
+        this.enqueue_natural_person = enqueue_natural_person;
+        this.get_job = get_job;
     }
     async create(dto) {
         const result = await this.register_client.execute(new register_client_credit_application_request_1.RegisterClientCreditApplicationRequest(dto.phone, dto.email, dto.docType, dto.docNumber, dto.firstName, dto.lastName, dto.businessName, dto.businessType, dto.isCurrentClient, dto.requestedCreditLine, dto.relationshipToBusiness, dto.cityId, dto.businessAddress, dto.businessSeniority, dto.numberOfEmployees, dto.numberOfLocations, dto.businessFlagshipM2, dto.businessHasRent, dto.businessRentAmount, dto.monthlyPurchases, dto.currentPurchases, dto.totalAssets, dto.monthlyIncome, dto.monthlyExpenses));
@@ -5605,6 +6350,14 @@ let CreditApplicationsPublicController = class CreditApplicationsPublicControlle
     async create_natural_person(dto) {
         const result = await this.register_natural_person.execute(new register_natural_person_credit_application_request_1.RegisterNaturalPersonCreditApplicationRequest(dto.birthDate, dto.businessAddress, dto.businessFlagshipM2, dto.businessName, dto.businessRentAmount, dto.businessSeniority, dto.businessType, dto.cityId, dto.currentPurchases, dto.docNumber, dto.docType, dto.email, dto.firstName, dto.lastName, dto.monthlyExpenses, dto.monthlyIncome, dto.monthlyPurchases, dto.numberOfEmployees, dto.numberOfLocations, dto.partnerId, dto.salesRepId, dto.privacyPolicyAccepted, dto.phone, dto.relationshipToBusiness, dto.requestedCreditLine, dto.totalAssets));
         return credit_application_response_dto_1.CreditApplicationResponseDto.from(result);
+    }
+    async create_natural_person_async(dto, idempotency_key) {
+        const result = await this.enqueue_natural_person.execute(new enqueue_natural_person_credit_application_request_1.EnqueueNaturalPersonCreditApplicationRequest(dto.partnerId, dto.salesRepId, dto.firstName, dto.lastName, dto.docType, dto.docNumber, dto.phone ?? null, dto.email ?? null, dto.birthDate ?? null, dto.cityId ?? null, dto.businessType, dto.businessName ?? null, dto.businessAddress ?? null, dto.relationshipToBusiness ?? null, dto.businessSeniority ?? null, dto.numberOfEmployees ?? null, dto.numberOfLocations ?? null, dto.businessFlagshipM2 ?? null, null, dto.businessRentAmount ?? null, dto.requestedCreditLine, dto.monthlyPurchases ?? null, dto.currentPurchases ?? null, dto.totalAssets ?? null, dto.monthlyIncome ?? null, dto.monthlyExpenses ?? null, dto.privacyPolicyAccepted, idempotency_key ?? null));
+        return new credit_application_job_response_dto_1.EnqueueCreditApplicationResponseDto(result.jobId);
+    }
+    async get_job_status(job_id) {
+        const result = await this.get_job.execute(new get_credit_application_job_request_1.GetCreditApplicationJobRequest(job_id));
+        return new credit_application_job_response_dto_1.CreditApplicationJobStatusResponseDto(result.jobId, result.status, result.step, result.creditApplicationId, result.errorMessage);
     }
 };
 exports.CreditApplicationsPublicController = CreditApplicationsPublicController;
@@ -5621,8 +6374,8 @@ __decorate([
     }),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_c = typeof create_credit_application_dto_1.CreateCreditApplicationDto !== "undefined" && create_credit_application_dto_1.CreateCreditApplicationDto) === "function" ? _c : Object]),
-    __metadata("design:returntype", typeof (_d = typeof Promise !== "undefined" && Promise) === "function" ? _d : Object)
+    __metadata("design:paramtypes", [typeof (_e = typeof create_credit_application_dto_1.CreateCreditApplicationDto !== "undefined" && create_credit_application_dto_1.CreateCreditApplicationDto) === "function" ? _e : Object]),
+    __metadata("design:returntype", typeof (_f = typeof Promise !== "undefined" && Promise) === "function" ? _f : Object)
 ], CreditApplicationsPublicController.prototype, "create", null);
 __decorate([
     (0, common_1.Post)('natural-person'),
@@ -5637,13 +6390,37 @@ __decorate([
     }),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_e = typeof create_natural_person_credit_application_dto_1.CreateNaturalPersonCreditApplicationDto !== "undefined" && create_natural_person_credit_application_dto_1.CreateNaturalPersonCreditApplicationDto) === "function" ? _e : Object]),
-    __metadata("design:returntype", typeof (_f = typeof Promise !== "undefined" && Promise) === "function" ? _f : Object)
+    __metadata("design:paramtypes", [typeof (_g = typeof create_natural_person_credit_application_dto_1.CreateNaturalPersonCreditApplicationDto !== "undefined" && create_natural_person_credit_application_dto_1.CreateNaturalPersonCreditApplicationDto) === "function" ? _g : Object]),
+    __metadata("design:returntype", typeof (_h = typeof Promise !== "undefined" && Promise) === "function" ? _h : Object)
 ], CreditApplicationsPublicController.prototype, "create_natural_person", null);
+__decorate([
+    (0, common_1.Post)('natural-person/async'),
+    (0, common_1.HttpCode)(common_1.HttpStatus.ACCEPTED),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Encolar solicitud de cupo (persona natural) — asíncrono',
+        description: 'Devuelve 202 + job_id inmediatamente. El proceso crea persona (transversal-ms), negocio (suppliers-ms) y solicitud de crédito de forma asíncrona. Consultar estado en GET /credit-applications/jobs/:jobId.',
+    }),
+    (0, swagger_1.ApiAcceptedResponse)({ description: 'Job encolado', type: credit_application_job_response_dto_1.EnqueueCreditApplicationResponseDto }),
+    __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Headers)('Idempotency-Key')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [typeof (_j = typeof create_natural_person_credit_application_dto_1.CreateNaturalPersonCreditApplicationDto !== "undefined" && create_natural_person_credit_application_dto_1.CreateNaturalPersonCreditApplicationDto) === "function" ? _j : Object, String]),
+    __metadata("design:returntype", typeof (_k = typeof Promise !== "undefined" && Promise) === "function" ? _k : Object)
+], CreditApplicationsPublicController.prototype, "create_natural_person_async", null);
+__decorate([
+    (0, common_1.Get)('jobs/:jobId'),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    (0, swagger_1.ApiOperation)({ summary: 'Estado de un job de solicitud de crédito' }),
+    (0, swagger_1.ApiOkResponse)({ type: credit_application_job_response_dto_1.CreditApplicationJobStatusResponseDto }),
+    __param(0, (0, common_1.Param)('jobId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", typeof (_l = typeof Promise !== "undefined" && Promise) === "function" ? _l : Object)
+], CreditApplicationsPublicController.prototype, "get_job_status", null);
 exports.CreditApplicationsPublicController = CreditApplicationsPublicController = __decorate([
     (0, swagger_1.ApiTags)('credit-applications'),
     (0, common_1.Controller)('credit-applications'),
-    __metadata("design:paramtypes", [typeof (_a = typeof register_client_credit_application_use_case_1.RegisterClientCreditApplicationUseCase !== "undefined" && register_client_credit_application_use_case_1.RegisterClientCreditApplicationUseCase) === "function" ? _a : Object, typeof (_b = typeof register_natural_person_credit_application_use_case_1.RegisterNaturalPersonCreditApplicationUseCase !== "undefined" && register_natural_person_credit_application_use_case_1.RegisterNaturalPersonCreditApplicationUseCase) === "function" ? _b : Object])
+    __metadata("design:paramtypes", [typeof (_a = typeof register_client_credit_application_use_case_1.RegisterClientCreditApplicationUseCase !== "undefined" && register_client_credit_application_use_case_1.RegisterClientCreditApplicationUseCase) === "function" ? _a : Object, typeof (_b = typeof register_natural_person_credit_application_use_case_1.RegisterNaturalPersonCreditApplicationUseCase !== "undefined" && register_natural_person_credit_application_use_case_1.RegisterNaturalPersonCreditApplicationUseCase) === "function" ? _b : Object, typeof (_c = typeof enqueue_natural_person_credit_application_use_case_1.EnqueueNaturalPersonCreditApplicationUseCase !== "undefined" && enqueue_natural_person_credit_application_use_case_1.EnqueueNaturalPersonCreditApplicationUseCase) === "function" ? _c : Object, typeof (_d = typeof get_credit_application_job_use_case_1.GetCreditApplicationJobUseCase !== "undefined" && get_credit_application_job_use_case_1.GetCreditApplicationJobUseCase) === "function" ? _d : Object])
 ], CreditApplicationsPublicController);
 
 
@@ -6106,6 +6883,75 @@ __decorate([
     (0, class_validator_1.Min)(0),
     __metadata("design:type", Object)
 ], CreateNaturalPersonCreditApplicationDto.prototype, "totalAssets", void 0);
+
+
+/***/ },
+
+/***/ "./apps/products-ms/src/modules/credit-applications/presentation/dto/credit-application-job-response.dto.ts"
+/*!******************************************************************************************************************!*\
+  !*** ./apps/products-ms/src/modules/credit-applications/presentation/dto/credit-application-job-response.dto.ts ***!
+  \******************************************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.CreditApplicationJobStatusResponseDto = exports.EnqueueCreditApplicationResponseDto = void 0;
+const swagger_1 = __webpack_require__(/*! @nestjs/swagger */ "@nestjs/swagger");
+class EnqueueCreditApplicationResponseDto {
+    job_id;
+    constructor(job_id) {
+        this.job_id = job_id;
+    }
+}
+exports.EnqueueCreditApplicationResponseDto = EnqueueCreditApplicationResponseDto;
+__decorate([
+    (0, swagger_1.ApiProperty)({ description: 'UUID del job asíncrono creado' }),
+    __metadata("design:type", String)
+], EnqueueCreditApplicationResponseDto.prototype, "job_id", void 0);
+class CreditApplicationJobStatusResponseDto {
+    job_id;
+    status;
+    step;
+    credit_application_id;
+    error_message;
+    constructor(job_id, status, step, credit_application_id, error_message) {
+        this.job_id = job_id;
+        this.status = status;
+        this.step = step;
+        this.credit_application_id = credit_application_id;
+        this.error_message = error_message;
+    }
+}
+exports.CreditApplicationJobStatusResponseDto = CreditApplicationJobStatusResponseDto;
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    __metadata("design:type", String)
+], CreditApplicationJobStatusResponseDto.prototype, "job_id", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ enum: ['PENDING', 'RUNNING', 'COMPLETED', 'FAILED'] }),
+    __metadata("design:type", Object)
+], CreditApplicationJobStatusResponseDto.prototype, "status", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    __metadata("design:type", String)
+], CreditApplicationJobStatusResponseDto.prototype, "step", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ nullable: true }),
+    __metadata("design:type", Object)
+], CreditApplicationJobStatusResponseDto.prototype, "credit_application_id", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ nullable: true }),
+    __metadata("design:type", Object)
+], CreditApplicationJobStatusResponseDto.prototype, "error_message", void 0);
 
 
 /***/ },
@@ -7207,6 +8053,7 @@ var TransversalEventType;
     TransversalEventType["health_ping"] = "health_ping";
     TransversalEventType["partner_onboarding_credit_facility_requested"] = "partner_onboarding_credit_facility_requested";
     TransversalEventType["partner_onboarding_category_batch_requested"] = "partner_onboarding_category_batch_requested";
+    TransversalEventType["credit_application_business_created"] = "credit_application_business_created";
 })(TransversalEventType || (exports.TransversalEventType = TransversalEventType = {}));
 class TransversalOutboundEventDto {
     correlation_id;
@@ -7348,10 +8195,12 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 var ProcessProductsInboundMessageUseCase_1;
-var _a, _b;
+var _a, _b, _c, _d;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ProcessProductsInboundMessageUseCase = void 0;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const typeorm_1 = __webpack_require__(/*! @nestjs/typeorm */ "@nestjs/typeorm");
+const typeorm_2 = __webpack_require__(/*! typeorm */ "typeorm");
 const shared_1 = __webpack_require__(/*! @platam/shared */ "./libs/shared/src/index.ts");
 const transversal_outbound_event_dto_1 = __webpack_require__(/*! ../dto/transversal-outbound-event.dto */ "./apps/products-ms/src/modules/messaging/application/dto/transversal-outbound-event.dto.ts");
 const create_credit_facility_use_case_1 = __webpack_require__(/*! @modules/credit-facilities/application/use-cases/create-credit-facility/create-credit-facility.use-case */ "./apps/products-ms/src/modules/credit-facilities/application/use-cases/create-credit-facility/create-credit-facility.use-case.ts");
@@ -7359,6 +8208,9 @@ const create_credit_facility_request_1 = __webpack_require__(/*! @modules/credit
 const create_category_use_case_1 = __webpack_require__(/*! @modules/categories/application/use-cases/create-category/create-category.use-case */ "./apps/products-ms/src/modules/categories/application/use-cases/create-category/create-category.use-case.ts");
 const create_category_request_1 = __webpack_require__(/*! @modules/categories/application/use-cases/create-category/create-category.request */ "./apps/products-ms/src/modules/categories/application/use-cases/create-category/create-category.request.ts");
 const credit_facilities_tokens_1 = __webpack_require__(/*! @modules/credit-facilities/credit-facilities.tokens */ "./apps/products-ms/src/modules/credit-facilities/credit-facilities.tokens.ts");
+const credit_applications_tokens_1 = __webpack_require__(/*! @modules/credit-applications/credit-applications.tokens */ "./apps/products-ms/src/modules/credit-applications/credit-applications.tokens.ts");
+const create_credit_application_use_case_1 = __webpack_require__(/*! @modules/credit-applications/application/use-cases/create-credit-application/create-credit-application.use-case */ "./apps/products-ms/src/modules/credit-applications/application/use-cases/create-credit-application/create-credit-application.use-case.ts");
+const create_credit_application_request_1 = __webpack_require__(/*! @modules/credit-applications/application/use-cases/create-credit-application/create-credit-application.request */ "./apps/products-ms/src/modules/credit-applications/application/use-cases/create-credit-application/create-credit-application.request.ts");
 function parse_credit_facility_state(raw) {
     if (raw === undefined) {
         return null;
@@ -7385,11 +8237,17 @@ let ProcessProductsInboundMessageUseCase = ProcessProductsInboundMessageUseCase_
     credit_facility_repository;
     create_credit_facility;
     create_category;
+    job_repository;
+    create_credit_application;
+    ds;
     logger = new common_1.Logger(ProcessProductsInboundMessageUseCase_1.name);
-    constructor(credit_facility_repository, create_credit_facility, create_category) {
+    constructor(credit_facility_repository, create_credit_facility, create_category, job_repository, create_credit_application, ds) {
         this.credit_facility_repository = credit_facility_repository;
         this.create_credit_facility = create_credit_facility;
         this.create_category = create_category;
+        this.job_repository = job_repository;
+        this.create_credit_application = create_credit_application;
+        this.ds = ds;
     }
     async execute(dto) {
         switch (dto.event_type) {
@@ -7398,6 +8256,9 @@ let ProcessProductsInboundMessageUseCase = ProcessProductsInboundMessageUseCase_
                 return;
             case transversal_outbound_event_dto_1.TransversalEventType.partner_onboarding_category_batch_requested:
                 await this.handle_category_batch(dto);
+                return;
+            case transversal_outbound_event_dto_1.TransversalEventType.credit_application_business_created:
+                await this.handle_business_created(dto);
                 return;
             default:
                 this.logger.log(`Mensaje products-ms recibido: event_type=${dto.event_type} correlation_id=${dto.correlation_id}`);
@@ -7454,13 +8315,139 @@ let ProcessProductsInboundMessageUseCase = ProcessProductsInboundMessageUseCase_
         }
         this.logger.debug(`[Saga][products] categorías creadas count=${categories.length} correlation_id=${dto.correlation_id}`);
     }
+    async handle_business_created(dto) {
+        const p = dto.payload;
+        const job_id = typeof p.job_id === 'string' ? p.job_id : null;
+        const business_internal_id = typeof p.business_internal_id === 'number' ? p.business_internal_id : null;
+        if (!job_id || business_internal_id === null) {
+            this.logger.warn(`[BusinessCreated] payload inválido correlation_id=${dto.correlation_id}`);
+            return;
+        }
+        const job = await this.job_repository.find_by_external_id(job_id);
+        if (!job) {
+            this.logger.warn(`[BusinessCreated] job no encontrado job_id=${job_id}`);
+            return;
+        }
+        if (job.step === shared_1.AsyncJobStep.COMPLETED || job.step === shared_1.AsyncJobStep.FAILED) {
+            this.logger.debug(`[BusinessCreated] job ya finalizado step=${job.step} job_id=${job_id}`);
+            return;
+        }
+        const partner_internal_id = job.resolvedIds.partner_internal_id ?? null;
+        const person_internal_id = job.resolvedIds.person_internal_id ?? null;
+        const sales_rep_internal_id = job.resolvedIds.sales_rep_internal_id ?? null;
+        if (sales_rep_internal_id === null) {
+            this.logger.error(`[BusinessCreated] sales_rep_internal_id no resuelto job_id=${job_id}`);
+            await this.job_repository.update_failed(job.id, 'sales_rep_internal_id no resuelto');
+            return;
+        }
+        let partner_category_id = null;
+        if (partner_internal_id !== null) {
+            const rows = await this.ds.query(`SELECT id FROM products_schema.categories
+         WHERE partner_id = $1 AND is_default = true
+         LIMIT 1`, [partner_internal_id]);
+            if (rows.length > 0) {
+                partner_category_id = rows[0].id;
+            }
+        }
+        const payload = job.payload;
+        await this.create_credit_application.execute(new create_credit_application_request_1.CreateCreditApplicationRequest(person_internal_id, partner_internal_id, partner_category_id, business_internal_id, sales_rep_internal_id, shared_1.CreditApplicationStatus.IN_PROGRESS, false, payload.privacy_policy_accepted ?? false, payload.number_of_locations, payload.number_of_employees, payload.business_seniority, null, payload.business_flagship_m2, payload.business_has_rent, payload.business_rent_amount, payload.monthly_income, payload.monthly_expenses, payload.monthly_purchases, payload.current_purchases, payload.total_assets, payload.requested_credit_line));
+        await this.job_repository.update_status_and_step(job.id, shared_1.AsyncJobStatus.COMPLETED, shared_1.AsyncJobStep.COMPLETED, { business_internal_id });
+        this.logger.log(`[BusinessCreated] solicitud de crédito creada job_id=${job_id} business_id=${business_internal_id}`);
+    }
 };
 exports.ProcessProductsInboundMessageUseCase = ProcessProductsInboundMessageUseCase;
 exports.ProcessProductsInboundMessageUseCase = ProcessProductsInboundMessageUseCase = ProcessProductsInboundMessageUseCase_1 = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, common_1.Inject)(credit_facilities_tokens_1.CREDIT_FACILITY_REPOSITORY)),
-    __metadata("design:paramtypes", [Object, typeof (_a = typeof create_credit_facility_use_case_1.CreateCreditFacilityUseCase !== "undefined" && create_credit_facility_use_case_1.CreateCreditFacilityUseCase) === "function" ? _a : Object, typeof (_b = typeof create_category_use_case_1.CreateCategoryUseCase !== "undefined" && create_category_use_case_1.CreateCategoryUseCase) === "function" ? _b : Object])
+    __param(3, (0, common_1.Inject)(credit_applications_tokens_1.CREDIT_APPLICATION_JOB_REPOSITORY)),
+    __param(5, (0, typeorm_1.InjectDataSource)()),
+    __metadata("design:paramtypes", [Object, typeof (_a = typeof create_credit_facility_use_case_1.CreateCreditFacilityUseCase !== "undefined" && create_credit_facility_use_case_1.CreateCreditFacilityUseCase) === "function" ? _a : Object, typeof (_b = typeof create_category_use_case_1.CreateCategoryUseCase !== "undefined" && create_category_use_case_1.CreateCategoryUseCase) === "function" ? _b : Object, Object, typeof (_c = typeof create_credit_application_use_case_1.CreateCreditApplicationUseCase !== "undefined" && create_credit_application_use_case_1.CreateCreditApplicationUseCase) === "function" ? _c : Object, typeof (_d = typeof typeorm_2.DataSource !== "undefined" && typeorm_2.DataSource) === "function" ? _d : Object])
 ], ProcessProductsInboundMessageUseCase);
+
+
+/***/ },
+
+/***/ "./apps/products-ms/src/modules/messaging/application/use-cases/publish-create-business-job.use-case.ts"
+/*!**************************************************************************************************************!*\
+  !*** ./apps/products-ms/src/modules/messaging/application/use-cases/publish-create-business-job.use-case.ts ***!
+  \**************************************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+var PublishCreateBusinessJobUseCase_1;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.PublishCreateBusinessJobUseCase = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const shared_1 = __webpack_require__(/*! @platam/shared */ "./libs/shared/src/index.ts");
+const outbound_message_publisher_port_1 = __webpack_require__(/*! @messaging/domain/ports/outbound-message-publisher.port */ "./apps/products-ms/src/modules/messaging/domain/ports/outbound-message-publisher.port.ts");
+const suppliers_inbound_queue_url_port_1 = __webpack_require__(/*! @messaging/domain/ports/suppliers-inbound-queue-url.port */ "./apps/products-ms/src/modules/messaging/domain/ports/suppliers-inbound-queue-url.port.ts");
+let PublishCreateBusinessJobUseCase = PublishCreateBusinessJobUseCase_1 = class PublishCreateBusinessJobUseCase {
+    publisher;
+    suppliers_queue;
+    logger = new common_1.Logger(PublishCreateBusinessJobUseCase_1.name);
+    constructor(publisher, suppliers_queue) {
+        this.publisher = publisher;
+        this.suppliers_queue = suppliers_queue;
+    }
+    async execute(job_external_id, person_internal_id, data) {
+        const queue_url = this.suppliers_queue.get_suppliers_inbound_queue_url();
+        if (!queue_url) {
+            this.logger.warn('SUPPLIERS_SQS_INBOUND_QUEUE_URL no configurada; omitiendo publicación.');
+            return;
+        }
+        const body = JSON.stringify({
+            correlation_id: (0, shared_1.new_uuid)(),
+            event_type: 'credit_application_business_requested',
+            payload: {
+                job_id: job_external_id,
+                person_internal_id,
+                city_internal_id: data.city_internal_id,
+                entity_type: data.entity_type,
+                business_name: data.business_name,
+                business_address: data.business_address,
+                business_type: data.business_type,
+                relationship_to_business: data.relationship_to_business,
+            },
+        });
+        await this.publisher.publish({ queue_url, body });
+    }
+    async execute_already_resolved(job_external_id, person_internal_id, business_internal_id) {
+        const queue_url = this.suppliers_queue.get_suppliers_inbound_queue_url();
+        if (!queue_url) {
+            return;
+        }
+        const body = JSON.stringify({
+            correlation_id: (0, shared_1.new_uuid)(),
+            event_type: 'credit_application_business_requested',
+            payload: {
+                job_id: job_external_id,
+                person_internal_id,
+                business_internal_id,
+                already_exists: true,
+            },
+        });
+        await this.publisher.publish({ queue_url, body });
+    }
+};
+exports.PublishCreateBusinessJobUseCase = PublishCreateBusinessJobUseCase;
+exports.PublishCreateBusinessJobUseCase = PublishCreateBusinessJobUseCase = PublishCreateBusinessJobUseCase_1 = __decorate([
+    (0, common_1.Injectable)(),
+    __param(0, (0, common_1.Inject)(outbound_message_publisher_port_1.OUTBOUND_MESSAGE_PUBLISHER_PORT)),
+    __param(1, (0, common_1.Inject)(suppliers_inbound_queue_url_port_1.SUPPLIERS_INBOUND_QUEUE_URL_PORT)),
+    __metadata("design:paramtypes", [Object, Object])
+], PublishCreateBusinessJobUseCase);
 
 
 /***/ },
@@ -7508,7 +8495,6 @@ let PublishCreatePersonCommandUseCase = class PublishCreatePersonCommandUseCase 
             correlationId: command.correlation_id,
             idempotencyKey: command.idempotency_key,
             payload: {
-                country_code: command.country_code,
                 first_name: command.first_name,
                 last_name: command.last_name,
                 doc_type: command.doc_type,
@@ -7626,6 +8612,20 @@ exports.PRODUCTS_OUTBOUND_QUEUE_URL_PORT = Symbol('PRODUCTS_OUTBOUND_QUEUE_URL_P
 
 /***/ },
 
+/***/ "./apps/products-ms/src/modules/messaging/domain/ports/suppliers-inbound-queue-url.port.ts"
+/*!*************************************************************************************************!*\
+  !*** ./apps/products-ms/src/modules/messaging/domain/ports/suppliers-inbound-queue-url.port.ts ***!
+  \*************************************************************************************************/
+(__unused_webpack_module, exports) {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.SUPPLIERS_INBOUND_QUEUE_URL_PORT = void 0;
+exports.SUPPLIERS_INBOUND_QUEUE_URL_PORT = Symbol('SUPPLIERS_INBOUND_QUEUE_URL_PORT');
+
+
+/***/ },
+
 /***/ "./apps/products-ms/src/modules/messaging/domain/ports/transversal-create-person-queue-url.port.ts"
 /*!*********************************************************************************************************!*\
   !*** ./apps/products-ms/src/modules/messaging/domain/ports/transversal-create-person-queue-url.port.ts ***!
@@ -7661,12 +8661,13 @@ const process_products_inbound_message_use_case_1 = __webpack_require__(/*! ./ap
 const ingest_products_inbound_sqs_message_use_case_1 = __webpack_require__(/*! ./application/use-cases/ingest-products-inbound-sqs-message.use-case */ "./apps/products-ms/src/modules/messaging/application/use-cases/ingest-products-inbound-sqs-message.use-case.ts");
 const credit_facilities_application_module_1 = __webpack_require__(/*! @modules/credit-facilities/credit-facilities-application.module */ "./apps/products-ms/src/modules/credit-facilities/credit-facilities-application.module.ts");
 const categories_application_module_1 = __webpack_require__(/*! @modules/categories/categories-application.module */ "./apps/products-ms/src/modules/categories/categories-application.module.ts");
+const credit_applications_application_module_1 = __webpack_require__(/*! @modules/credit-applications/credit-applications-application.module */ "./apps/products-ms/src/modules/credit-applications/credit-applications-application.module.ts");
 let MessagingApplicationModule = class MessagingApplicationModule {
 };
 exports.MessagingApplicationModule = MessagingApplicationModule;
 exports.MessagingApplicationModule = MessagingApplicationModule = __decorate([
     (0, common_1.Module)({
-        imports: [credit_facilities_application_module_1.CreditFacilitiesApplicationModule, categories_application_module_1.CategoriesApplicationModule],
+        imports: [credit_facilities_application_module_1.CreditFacilitiesApplicationModule, categories_application_module_1.CategoriesApplicationModule, credit_applications_application_module_1.CreditApplicationsApplicationModule],
         providers: [
             publish_products_event_use_case_1.PublishProductsEventUseCase,
             process_products_inbound_message_use_case_1.ProcessProductsInboundMessageUseCase,
@@ -8150,6 +9151,100 @@ __decorate([
 exports.ContractEntity = ContractEntity = __decorate([
     (0, typeorm_1.Entity)({ name: 'contracts', schema: 'products_schema' })
 ], ContractEntity);
+
+
+/***/ },
+
+/***/ "./libs/products-data/src/entities/credit-application-job.entity.ts"
+/*!**************************************************************************!*\
+  !*** ./libs/products-data/src/entities/credit-application-job.entity.ts ***!
+  \**************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var _a, _b, _c;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.CreditApplicationJobEntity = void 0;
+const typeorm_1 = __webpack_require__(/*! typeorm */ "typeorm");
+const shared_1 = __webpack_require__(/*! @platam/shared */ "./libs/shared/src/index.ts");
+let CreditApplicationJobEntity = class CreditApplicationJobEntity {
+    id;
+    externalId;
+    status;
+    step;
+    payload;
+    resolvedIds;
+    errorMessage;
+    idempotencyKey;
+    createdAt;
+    updatedAt;
+};
+exports.CreditApplicationJobEntity = CreditApplicationJobEntity;
+__decorate([
+    (0, typeorm_1.PrimaryGeneratedColumn)({ type: 'bigint' }),
+    __metadata("design:type", Number)
+], CreditApplicationJobEntity.prototype, "id", void 0);
+__decorate([
+    (0, typeorm_1.Column)({
+        name: 'external_id',
+        type: 'uuid',
+        unique: true,
+        insert: false,
+        update: false,
+    }),
+    __metadata("design:type", String)
+], CreditApplicationJobEntity.prototype, "externalId", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'status', type: 'varchar', length: 32, default: shared_1.AsyncJobStatus.PENDING }),
+    __metadata("design:type", typeof (_a = typeof shared_1.AsyncJobStatus !== "undefined" && shared_1.AsyncJobStatus) === "function" ? _a : Object)
+], CreditApplicationJobEntity.prototype, "status", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'step', type: 'varchar', length: 64, default: shared_1.AsyncJobStep.ENQUEUED }),
+    __metadata("design:type", String)
+], CreditApplicationJobEntity.prototype, "step", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'payload', type: 'jsonb', default: '{}' }),
+    __metadata("design:type", Object)
+], CreditApplicationJobEntity.prototype, "payload", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'resolved_ids', type: 'jsonb', default: '{}' }),
+    __metadata("design:type", Object)
+], CreditApplicationJobEntity.prototype, "resolvedIds", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'error_message', type: 'text', nullable: true }),
+    __metadata("design:type", Object)
+], CreditApplicationJobEntity.prototype, "errorMessage", void 0);
+__decorate([
+    (0, typeorm_1.Column)({
+        name: 'idempotency_key',
+        type: 'varchar',
+        length: 512,
+        nullable: true,
+        unique: true,
+    }),
+    __metadata("design:type", Object)
+], CreditApplicationJobEntity.prototype, "idempotencyKey", void 0);
+__decorate([
+    (0, typeorm_1.CreateDateColumn)({ name: 'created_at', type: 'timestamptz', insert: false, update: false }),
+    __metadata("design:type", typeof (_b = typeof Date !== "undefined" && Date) === "function" ? _b : Object)
+], CreditApplicationJobEntity.prototype, "createdAt", void 0);
+__decorate([
+    (0, typeorm_1.UpdateDateColumn)({ name: 'updated_at', type: 'timestamptz', insert: false, update: false }),
+    __metadata("design:type", typeof (_c = typeof Date !== "undefined" && Date) === "function" ? _c : Object)
+], CreditApplicationJobEntity.prototype, "updatedAt", void 0);
+exports.CreditApplicationJobEntity = CreditApplicationJobEntity = __decorate([
+    (0, typeorm_1.Index)('IDX_credit_application_jobs_status', ['status']),
+    (0, typeorm_1.Entity)({ name: 'credit_application_jobs', schema: 'products_schema' })
+], CreditApplicationJobEntity);
 
 
 /***/ },
@@ -9234,6 +10329,7 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 __exportStar(__webpack_require__(/*! ./products-data.entities */ "./libs/products-data/src/products-data.entities.ts"), exports);
 __exportStar(__webpack_require__(/*! ./entities/category.entity */ "./libs/products-data/src/entities/category.entity.ts"), exports);
+__exportStar(__webpack_require__(/*! ./entities/credit-application-job.entity */ "./libs/products-data/src/entities/credit-application-job.entity.ts"), exports);
 __exportStar(__webpack_require__(/*! ./entities/contract.entity */ "./libs/products-data/src/entities/contract.entity.ts"), exports);
 __exportStar(__webpack_require__(/*! ./entities/contract-template.entity */ "./libs/products-data/src/entities/contract-template.entity.ts"), exports);
 __exportStar(__webpack_require__(/*! ./entities/credit-application.entity */ "./libs/products-data/src/entities/credit-application.entity.ts"), exports);
@@ -9264,6 +10360,7 @@ const category_entity_1 = __webpack_require__(/*! ./entities/category.entity */ 
 const contract_entity_1 = __webpack_require__(/*! ./entities/contract.entity */ "./libs/products-data/src/entities/contract.entity.ts");
 const contract_template_entity_1 = __webpack_require__(/*! ./entities/contract-template.entity */ "./libs/products-data/src/entities/contract-template.entity.ts");
 const credit_application_entity_1 = __webpack_require__(/*! ./entities/credit-application.entity */ "./libs/products-data/src/entities/credit-application.entity.ts");
+const credit_application_job_entity_1 = __webpack_require__(/*! ./entities/credit-application-job.entity */ "./libs/products-data/src/entities/credit-application-job.entity.ts");
 const credit_facility_entity_1 = __webpack_require__(/*! ./entities/credit-facility.entity */ "./libs/products-data/src/entities/credit-facility.entity.ts");
 const document_entity_1 = __webpack_require__(/*! ./entities/document.entity */ "./libs/products-data/src/entities/document.entity.ts");
 const experian_query_entity_1 = __webpack_require__(/*! ./entities/experian-query.entity */ "./libs/products-data/src/entities/experian-query.entity.ts");
@@ -9276,6 +10373,7 @@ exports.PRODUCTS_DATA_ENTITIES = [
     credit_facility_entity_1.CreditFacilityEntity,
     category_entity_1.CategoryEntity,
     credit_application_entity_1.CreditApplicationEntity,
+    credit_application_job_entity_1.CreditApplicationJobEntity,
     contract_entity_1.ContractEntity,
     contract_template_entity_1.ContractTemplateEntity,
     document_entity_1.DocumentEntity,
@@ -9485,7 +10583,22 @@ var Roles;
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.BatchLogsStatus = exports.PaymentsMethod = exports.PaymentsStatus = exports.AdjustmentsStatus = exports.DisbursementBatchesStatus = exports.DisbursementStatus = exports.LoanStatus = exports.LoanRequestStatus = exports.ExperianQueryStatus = exports.BusinessSeniorityCatalogState = exports.RolePermissionLinkState = exports.PermissionDefinitionState = exports.RoleDefinitionState = exports.PurchaseOrderRecordState = exports.BankAccountRecordState = exports.ShareholderRecordState = exports.LegalRepresentativeLifecycleState = exports.PersonRecordState = exports.BusinessLifecycleState = exports.CatalogActivationState = exports.UserState = exports.SalesRepresentativeRecordState = exports.PartnerOnboardingSagaStatus = exports.SupplierState = exports.PartnerState = exports.DocumentVerificationStatus = exports.ContractTemplateCatalogStatus = exports.ContractCatalogStatus = exports.CreditApplicationStatus = exports.CategoryState = exports.CreditFacilityState = void 0;
+exports.BatchLogsStatus = exports.PaymentsMethod = exports.PaymentsStatus = exports.AdjustmentsStatus = exports.DisbursementBatchesStatus = exports.DisbursementStatus = exports.LoanStatus = exports.LoanRequestStatus = exports.ExperianQueryStatus = exports.BusinessSeniorityCatalogState = exports.RolePermissionLinkState = exports.PermissionDefinitionState = exports.RoleDefinitionState = exports.PurchaseOrderRecordState = exports.BankAccountRecordState = exports.ShareholderRecordState = exports.LegalRepresentativeLifecycleState = exports.PersonRecordState = exports.BusinessLifecycleState = exports.CatalogActivationState = exports.UserState = exports.SalesRepresentativeRecordState = exports.PartnerOnboardingSagaStatus = exports.SupplierState = exports.PartnerState = exports.DocumentVerificationStatus = exports.ContractTemplateCatalogStatus = exports.ContractCatalogStatus = exports.CreditApplicationStatus = exports.CategoryState = exports.CreditFacilityState = exports.AsyncJobStep = exports.AsyncJobStatus = void 0;
+var AsyncJobStatus;
+(function (AsyncJobStatus) {
+    AsyncJobStatus["PENDING"] = "PENDING";
+    AsyncJobStatus["RUNNING"] = "RUNNING";
+    AsyncJobStatus["COMPLETED"] = "COMPLETED";
+    AsyncJobStatus["FAILED"] = "FAILED";
+})(AsyncJobStatus || (exports.AsyncJobStatus = AsyncJobStatus = {}));
+var AsyncJobStep;
+(function (AsyncJobStep) {
+    AsyncJobStep["ENQUEUED"] = "ENQUEUED";
+    AsyncJobStep["AWAITING_PERSON_CREATION"] = "AWAITING_PERSON_CREATION";
+    AsyncJobStep["AWAITING_BUSINESS_CREATION"] = "AWAITING_BUSINESS_CREATION";
+    AsyncJobStep["COMPLETED"] = "COMPLETED";
+    AsyncJobStep["FAILED"] = "FAILED";
+})(AsyncJobStep || (exports.AsyncJobStep = AsyncJobStep = {}));
 var CreditFacilityState;
 (function (CreditFacilityState) {
     CreditFacilityState["ACTIVE"] = "active";

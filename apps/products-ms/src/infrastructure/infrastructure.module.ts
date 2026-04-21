@@ -7,9 +7,10 @@ import { ProductsDataModule } from '@app/products-data';
 import { TypeormCategoryRepository } from '@infrastructure/database/repositories/typeorm-category.repository';
 import { TypeormCreditFacilityRepository } from '@infrastructure/database/repositories/typeorm-credit-facility.repository';
 import { TypeormCreditApplicationRepository } from '@infrastructure/database/repositories/typeorm-credit-application.repository';
+import { TypeormCreditApplicationJobRepository } from '@infrastructure/database/repositories/typeorm-credit-application-job.repository';
 import { CATEGORY_REPOSITORY } from '@modules/categories/categories.tokens';
 import { CREDIT_FACILITY_REPOSITORY } from '@modules/credit-facilities/credit-facilities.tokens';
-import { CREDIT_APPLICATION_REPOSITORY } from '@modules/credit-applications/credit-applications.tokens';
+import { CREDIT_APPLICATION_REPOSITORY, CREDIT_APPLICATION_JOB_REPOSITORY } from '@modules/credit-applications/credit-applications.tokens';
 import { CLIENT_REGISTRATION_PORT } from '@modules/credit-applications/application/ports/client-registration.port';
 import { CREDIT_APPLICATION_DOCUMENT_STORAGE } from '@modules/credit-applications/application/ports/credit-application-document-storage.port';
 import { PRODUCTS_REFERENCE_LOOKUP } from '@common/ports/products-reference-lookup.port';
@@ -52,6 +53,11 @@ import { CREATE_PERSON_SQS_RESULT_READER_PORT } from '@modules/credit-applicatio
       provide: CREDIT_APPLICATION_REPOSITORY,
       useClass: TypeormCreditApplicationRepository,
     },
+    TypeormCreditApplicationJobRepository,
+    {
+      provide: CREDIT_APPLICATION_JOB_REPOSITORY,
+      useExisting: TypeormCreditApplicationJobRepository,
+    },
     TypeormClientRegistrationAdapter,
     {
       provide: CLIENT_REGISTRATION_PORT,
@@ -78,6 +84,7 @@ import { CREATE_PERSON_SQS_RESULT_READER_PORT } from '@modules/credit-applicatio
     CATEGORY_REPOSITORY,
     CREDIT_FACILITY_REPOSITORY,
     CREDIT_APPLICATION_REPOSITORY,
+    CREDIT_APPLICATION_JOB_REPOSITORY,
     CLIENT_REGISTRATION_PORT,
     CREDIT_APPLICATION_DOCUMENT_STORAGE,
     PRODUCTS_REFERENCE_LOOKUP,

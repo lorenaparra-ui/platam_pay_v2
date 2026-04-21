@@ -32,4 +32,8 @@ export type SqsQueuesUrlsConfig = Readonly<{
    * notifications-ms: cola de jobs de notificación (email / SMS / WhatsApp).
    */
   notifications_inbound_queue_url?: string;
+  /**
+   * Cola de entrada de suppliers-ms (products-ms publica aquí para crear negocio async).
+   */
+  suppliers_inbound_queue_url?: string;
 }>;

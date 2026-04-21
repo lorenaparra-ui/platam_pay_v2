@@ -12,7 +12,6 @@ import { ValidationFailedError } from '../exceptions/validation-failed.error';
 export type PublishCreatePersonCommandInput = Readonly<{
   correlation_id: string;
   idempotency_key: string;
-  country_code: string | null;
   first_name: string;
   last_name: string;
   doc_type: string;
@@ -47,7 +46,6 @@ export class PublishCreatePersonCommandUseCase {
       correlationId: command.correlation_id,
       idempotencyKey: command.idempotency_key,
       payload: {
-        country_code: command.country_code,
         first_name: command.first_name,
         last_name: command.last_name,
         doc_type: command.doc_type,

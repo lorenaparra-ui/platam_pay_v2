@@ -1,5 +1,6 @@
 export * from './products-data.entities';
 export * from './entities/category.entity';
+export * from './entities/credit-application-job.entity';
 export * from './entities/contract.entity';
 export * from './entities/contract-template.entity';
 export * from './entities/credit-application.entity';
