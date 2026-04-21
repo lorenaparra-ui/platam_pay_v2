@@ -22,6 +22,7 @@ import { PublishCreateBusinessJobUseCase } from '@messaging/application/use-case
         outbound_queue_url: config_service.getOrThrow<string>('sqs.outbound_queue_url'),
         inbound_queue_url: config_service.get<string>('sqs.inbound_queue_url'),
         suppliers_callback_queue_url: config_service.get<string>('sqs.suppliers_callback_queue_url'),
+        notifications_inbound_queue_url: config_service.get<string>('sqs.notifications_inbound_queue_url'),
         create_person_queue_url: config_service.get<string>('sqs.create_person_queue_url'),
         suppliers_inbound_queue_url: config_service.get<string>('sqs.suppliers_inbound_queue_url'),
       }),

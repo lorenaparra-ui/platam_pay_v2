@@ -38,6 +38,11 @@ class ProductsSqsEnv {
   @IsUrl({ require_tld: false })
   products_sqs_create_person_queue_url?: string;
 
+  @IsOptional()
+  @Transform(({ value }) => (value === '' || value === undefined ? undefined : value))
+  @IsUrl({ require_tld: false })
+  notifications_sqs_inbound_queue_url?: string;
+
   /** Cola de entrada de suppliers-ms (para crear negocios async). */
   @IsOptional()
   @Transform(({ value }) => (value === '' || value === undefined ? undefined : value))
@@ -86,6 +91,7 @@ export function get_products_sqs_config_from_env(): {
   endpoint?: string;
   outbound_queue_url: string;
   inbound_queue_url?: string;
+  notifications_inbound_queue_url?: string;
   create_person_queue_url?: string;
   suppliers_inbound_queue_url?: string;
   wait_time_seconds: number;
@@ -103,6 +109,7 @@ export function get_products_sqs_config_from_env(): {
         ? outbound_raw
         : PRODUCTS_SQS_OUTBOUND_QUEUE_URL_DEFAULT,
     products_sqs_inbound_queue_url: process.env.PRODUCTS_SQS_INBOUND_QUEUE_URL,
+    notifications_sqs_inbound_queue_url: process.env.NOTIFICATIONS_SQS_INBOUND_QUEUE_URL,
     products_sqs_create_person_queue_url: create_person_queue_raw ?? undefined,
     suppliers_sqs_inbound_queue_url: process.env.SUPPLIERS_SQS_INBOUND_QUEUE_URL,
     products_sqs_wait_time_seconds: process.env.PRODUCTS_SQS_WAIT_TIME_SECONDS ?? 20,
@@ -119,6 +126,7 @@ export function get_products_sqs_config_from_env(): {
     endpoint: env.aws_sqs_endpoint,
     outbound_queue_url: env.products_sqs_outbound_queue_url,
     inbound_queue_url: env.products_sqs_inbound_queue_url,
+    notifications_inbound_queue_url: env.notifications_sqs_inbound_queue_url,
     create_person_queue_url: env.products_sqs_create_person_queue_url,
     suppliers_inbound_queue_url: env.suppliers_sqs_inbound_queue_url,
     wait_time_seconds: env.products_sqs_wait_time_seconds,

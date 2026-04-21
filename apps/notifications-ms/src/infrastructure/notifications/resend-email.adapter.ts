@@ -35,6 +35,7 @@ export class ResendEmailAdapter implements EmailSenderPort {
             to: [...request.to],
             subject: request.subject,
             html,
+            reply_to: 'info@platam.co',
             ...(text.length > 0 ? { text } : {}),
           })
         : await resend.emails.send({
@@ -42,6 +43,7 @@ export class ResendEmailAdapter implements EmailSenderPort {
             to: [...request.to],
             subject: request.subject,
             text,
+            reply_to: 'info@platam.co',
           });
 
     if (error) {

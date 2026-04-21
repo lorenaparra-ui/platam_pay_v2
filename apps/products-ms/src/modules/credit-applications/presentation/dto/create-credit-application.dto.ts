@@ -109,6 +109,10 @@ export class CreateCreditApplicationDto {
   @IsBoolean()
   isCurrentClient!: boolean;
 
+  @ApiProperty({ description: 'Acepta política de privacidad y consulta en centrales de riesgo' })
+  @IsBoolean()
+  privacyPolicyAccepted!: boolean;
+
   @ApiPropertyOptional({ nullable: true })
   @IsOptional()
   @IsNumber()

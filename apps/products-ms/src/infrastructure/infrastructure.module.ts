@@ -17,6 +17,8 @@ import { PRODUCTS_REFERENCE_LOOKUP } from '@common/ports/products-reference-look
 import { TypeormProductsReferenceLookupAdapter } from '@infrastructure/database/common/typeorm-products-reference-lookup.adapter';
 import { TypeormClientRegistrationAdapter } from '@infrastructure/database/adapters/typeorm-client-registration.adapter';
 import { StubCreditApplicationDocumentStorageAdapter } from '@infrastructure/database/adapters/stub-credit-application-document-storage.adapter';
+import { EventBridgeSchedulerAdapter } from '@infrastructure/scheduler/eventbridge-scheduler.adapter';
+import { REMINDER_SCHEDULER_PORT } from '@modules/credit-applications/credit-applications.tokens';
 import { PartnerCreateUserSqsIdempotencyEntity } from '@app/transversal-data';
 import { ConfigTransversalCreatePersonQueueUrlAdapter } from '@infrastructure/messaging/sqs/adapters/config-transversal-create-person-queue-url.adapter';
 import { TRANSVERSAL_CREATE_PERSON_QUEUE_URL_PORT } from '@messaging/domain/ports/transversal-create-person-queue-url.port';
@@ -68,6 +70,11 @@ import { CREATE_PERSON_SQS_RESULT_READER_PORT } from '@modules/credit-applicatio
       provide: CREDIT_APPLICATION_DOCUMENT_STORAGE,
       useExisting: StubCreditApplicationDocumentStorageAdapter,
     },
+    EventBridgeSchedulerAdapter,
+    {
+      provide: REMINDER_SCHEDULER_PORT,
+      useExisting: EventBridgeSchedulerAdapter,
+    },
     ConfigTransversalCreatePersonQueueUrlAdapter,
     {
       provide: TRANSVERSAL_CREATE_PERSON_QUEUE_URL_PORT,
@@ -88,6 +95,7 @@ import { CREATE_PERSON_SQS_RESULT_READER_PORT } from '@modules/credit-applicatio
     CLIENT_REGISTRATION_PORT,
     CREDIT_APPLICATION_DOCUMENT_STORAGE,
     PRODUCTS_REFERENCE_LOOKUP,
+    REMINDER_SCHEDULER_PORT,
     PublishCreatePersonCommandUseCase,
     CREATE_PERSON_SQS_RESULT_READER_PORT,
   ],

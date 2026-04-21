@@ -9,6 +9,7 @@
     "start:prod": "node ../../dist/apps/products-ms/main.js"
   },
   "dependencies": {
+    "@aws-sdk/client-scheduler": "^3.1033.0",
     "@aws-sdk/client-sqs": "^3.700.0",
     "@nestjs/common": "^11.0.0",
     "@nestjs/config": "^4.0.0",
@@ -23,6 +24,7 @@
     "pg": "^8.13.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
+    "twilio": "^5.13.1",
     "typeorm": "^0.3.20"
   },
   "devDependencies": {
