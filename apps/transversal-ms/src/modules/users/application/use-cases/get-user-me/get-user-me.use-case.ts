@@ -44,13 +44,13 @@ export class GetUserMeUseCase {
         ? await this.permission_codes_reader.list_codes_for_role_internal_id(user.role_id)
         : [];
 
-    let partner_id: string | null = null;
+    let partner_external_id: string | null = null;
     let sales_rep_external_id: string | null = null;
 
     if (PARTNER_ROLE_SET.has(ctx.roleCode)) {
       const link = await this.partner_link_reader.find_by_user_internal_id(user.internal_id);
       if (link !== null) {
-        partner_id = link.partnerId;
+        partner_external_id = link.partnerExternalId;
         if (ctx.roleCode === Roles.SALES_REPRESENTATIVE) {
           sales_rep_external_id = link.salesRepresentativeExternalId;
         }
@@ -65,7 +65,7 @@ export class GetUserMeUseCase {
         role: ctx.roleCode,
         hierarchy: {
           parentId: user.parent_id !== null ? String(user.parent_id) : null,
-          partnerId: partner_id,
+          partnerId: partner_external_id,
           salesRepExternalId: sales_rep_external_id,
         },
       },

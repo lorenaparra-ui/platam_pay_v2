@@ -1,6 +1,8 @@
 export interface PartnerLinkData {
-  /** String del id interno del partner en BD (suppliers_schema.partners.id). */
+  /** Id interno del partner en BD (suppliers_schema.partners.id). */
   readonly partnerId: string;
+  /** external_id UUID del registro en suppliers_schema.partners. Null si el partner no existe. */
+  readonly partnerExternalId: string | null;
   /** external_id UUID del registro en suppliers_schema.sales_representatives. */
   readonly salesRepresentativeExternalId: string;
 }

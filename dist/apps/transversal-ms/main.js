@@ -1121,16 +1121,18 @@ let TypeormPartnerLinkReader = class TypeormPartnerLinkReader {
         this.data_source = data_source;
     }
     async find_by_user_internal_id(user_internal_id) {
-        const rows = (await this.data_source.query(`SELECT partner_id, external_id
-       FROM suppliers_schema.sales_representatives
-       WHERE user_id = $1
+        const rows = (await this.data_source.query(`SELECT sr.partner_id, sr.external_id AS sales_rep_external_id, p.external_id AS partner_external_id
+       FROM suppliers_schema.sales_representatives sr
+       LEFT JOIN suppliers_schema.partners p ON p.id = sr.partner_id
+       WHERE sr.user_id = $1
        LIMIT 1`, [user_internal_id]));
         if (rows.length === 0)
             return null;
         const row = rows[0];
         return {
             partnerId: String(row.partner_id),
-            salesRepresentativeExternalId: String(row.external_id),
+            partnerExternalId: row.partner_external_id != null ? String(row.partner_external_id) : null,
+            salesRepresentativeExternalId: String(row.sales_rep_external_id),
         };
     }
 };
@@ -8739,8 +8741,9 @@ __decorate([
 __decorate([
     (0, swagger_1.ApiProperty)({
         nullable: true,
-        example: '7',
-        description: 'Id interno del partner en BD (suppliers_schema.partners.id). ' +
+        format: 'uuid',
+        example: null,
+        description: 'external_id UUID del partner en BD (suppliers_schema.partners.external_id). ' +
             'Presente para roles PartnerRoles (PARTNER_ADMIN, PARTNER_OPERATIONS, CUSTOMER, SALES_MANAGER, SALES_REPRESENTATIVE). ' +
             'null para roles back-office o si el usuario no tiene vínculo de partner registrado.',
     }),
@@ -9192,12 +9195,12 @@ let GetUserMeUseCase = class GetUserMeUseCase {
         const permissions = user.role_id !== null
             ? await this.permission_codes_reader.list_codes_for_role_internal_id(user.role_id)
             : [];
-        let partner_id = null;
+        let partner_external_id = null;
         let sales_rep_external_id = null;
         if (PARTNER_ROLE_SET.has(ctx.roleCode)) {
             const link = await this.partner_link_reader.find_by_user_internal_id(user.internal_id);
             if (link !== null) {
-                partner_id = link.partnerId;
+                partner_external_id = link.partnerExternalId;
                 if (ctx.roleCode === shared_1.Roles.SALES_REPRESENTATIVE) {
                     sales_rep_external_id = link.salesRepresentativeExternalId;
                 }
@@ -9210,7 +9213,7 @@ let GetUserMeUseCase = class GetUserMeUseCase {
             role: ctx.roleCode,
             hierarchy: {
                 parentId: user.parent_id !== null ? String(user.parent_id) : null,
-                partnerId: partner_id,
+                partnerId: partner_external_id,
                 salesRepExternalId: sales_rep_external_id,
             },
         }, permissions);

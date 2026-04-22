@@ -12,19 +12,21 @@ export class TypeormPartnerLinkReader implements PartnerLinkReaderPort {
 
   async find_by_user_internal_id(user_internal_id: number): Promise<PartnerLinkData | null> {
     const rows = (await this.data_source.query(
-      `SELECT partner_id, external_id
-       FROM suppliers_schema.sales_representatives
-       WHERE user_id = $1
+      `SELECT sr.partner_id, sr.external_id AS sales_rep_external_id, p.external_id AS partner_external_id
+       FROM suppliers_schema.sales_representatives sr
+       LEFT JOIN suppliers_schema.partners p ON p.id = sr.partner_id
+       WHERE sr.user_id = $1
        LIMIT 1`,
       [user_internal_id],
-    )) as Array<{ partner_id: unknown; external_id: unknown }>;
+    )) as Array<{ partner_id: unknown; sales_rep_external_id: unknown; partner_external_id: unknown }>;
 
     if (rows.length === 0) return null;
 
     const row = rows[0];
     return {
       partnerId: String(row.partner_id),
-      salesRepresentativeExternalId: String(row.external_id),
+      partnerExternalId: row.partner_external_id != null ? String(row.partner_external_id) : null,
+      salesRepresentativeExternalId: String(row.sales_rep_external_id),
     };
   }
 }
