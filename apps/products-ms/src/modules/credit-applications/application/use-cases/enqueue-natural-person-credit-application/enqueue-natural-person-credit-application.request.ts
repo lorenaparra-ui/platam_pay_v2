@@ -26,7 +26,7 @@ export class EnqueueNaturalPersonCreditApplicationRequest {
     readonly totalAssets: number | null,
     readonly monthlyIncome: number | null,
     readonly monthlyExpenses: number | null,
-    readonly privacyPolicyAccepted: boolean,
+    readonly privacyPolicyAccepted: boolean | undefined,
     readonly idempotencyKey?: string | null,
   ) {}
 }

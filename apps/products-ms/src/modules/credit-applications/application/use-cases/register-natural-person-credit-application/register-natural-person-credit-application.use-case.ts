@@ -1,4 +1,10 @@
-import { Inject, Injectable, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  NotFoundException,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { CreditApplicationStatus, new_uuid } from '@platam/shared';
 import { CREDIT_APPLICATION_REPOSITORY } from '@modules/credit-applications/credit-applications.tokens';
@@ -16,6 +22,9 @@ import type { ProductsReferenceLookupPort } from '@common/ports/products-referen
 import { PublishCreatePersonCommandUseCase } from '@messaging/application/use-cases/publish-create-person-command.use-case';
 import { ValidationFailedError } from '@messaging/application/exceptions/validation-failed.error';
 import { build_credit_application_public_fields } from '@modules/credit-applications/application/mapping/credit-application-public-fields.builder';
+import { CATEGORY_REPOSITORY } from '@modules/categories/categories.tokens';
+import type { CategoryRepository } from '@modules/categories/domain/ports/category.ports';
+import { PublishAuthorizationNotificationUseCase } from '@modules/credit-applications/application/use-cases/publish-authorization-notification/publish-authorization-notification.use-case';
 import { RegisterNaturalPersonCreditApplicationRequest } from './register-natural-person-credit-application.request';
 import { RegisterClientCreditApplicationResponse } from '@modules/credit-applications/application/use-cases/register-client-credit-application/register-client-credit-application.response';
 
@@ -30,7 +39,10 @@ export class RegisterNaturalPersonCreditApplicationUseCase {
     private readonly products_lookup: ProductsReferenceLookupPort,
     @Inject(CREATE_PERSON_SQS_RESULT_READER_PORT)
     private readonly create_person_sqs_result: CreatePersonSqsResultReaderPort,
+    @Inject(CATEGORY_REPOSITORY)
+    private readonly category_repository: CategoryRepository,
     private readonly publish_create_person: PublishCreatePersonCommandUseCase,
+    private readonly publish_authorization_notification: PublishAuthorizationNotificationUseCase,
     private readonly config_service: ConfigService,
   ) {}
 
@@ -55,6 +67,24 @@ export class RegisterNaturalPersonCreditApplicationUseCase {
       );
     }
 
+    // Resolver y validar categorías
+    const resolved_category_ids: number[] = [];
+    for (const cat_external_id of req.partnerCategoryIds) {
+      const category = await this.category_repository.find_by_external_id(cat_external_id);
+      if (!category) {
+        throw new BadRequestException(
+          `categoría no encontrada: ${cat_external_id}`,
+        );
+      }
+      if (category.partner_id !== partner_internal_id) {
+        throw new BadRequestException(
+          `categoría ${cat_external_id} no pertenece al partner indicado`,
+        );
+      }
+      resolved_category_ids.push(category.internal_id);
+    }
+    const partner_category_id = resolved_category_ids[0] ?? null;
+
     let city_id: number | null = null;
     if (req.cityId) {
       city_id = await this.client_registration.resolve_city_internal_id(req.cityId);
@@ -64,7 +94,6 @@ export class RegisterNaturalPersonCreditApplicationUseCase {
     if (person_id === null) {
       const correlation_id = new_uuid();
       const idempotency_key = `${correlation_id}__natural_person_credit_application`;
-     
 
       try {
         await this.publish_create_person.execute({
@@ -124,12 +153,12 @@ export class RegisterNaturalPersonCreditApplicationUseCase {
       person_id,
       business_id,
       partner_id: partner_internal_id,
-      partner_category_id: null,
+      partner_category_id,
       sales_representative_id: sales_representative_internal_id,
-      status: CreditApplicationStatus.IN_PROGRESS,
+      status: CreditApplicationStatus.PENDING_AUTHORIZATION,
       is_current_client: false,
-      privacy_policy_accepted: req.privacyPolicyAccepted,
-      privacy_policy_date: req.privacyPolicyAccepted ? new Date() : null,
+      privacy_policy_accepted: req.privacyPolicyAccepted === true,
+      privacy_policy_date: req.privacyPolicyAccepted === true ? new Date() : null,
       submission_date: new Date(),
       business_seniority: req.businessSeniority ?? null,
       number_of_employees: req.numberOfEmployees ?? null,
@@ -144,6 +173,26 @@ export class RegisterNaturalPersonCreditApplicationUseCase {
       monthly_income: req.monthlyIncome ?? null,
       monthly_expenses: req.monthlyExpenses ?? null,
     });
+
+    // Notificar al cliente por WhatsApp y correo (no revierte la creación si falla)
+    const partner_name = await this.products_lookup.get_partner_name_by_internal_id(
+      partner_internal_id,
+    );
+    const phone_e164 = req.phone.startsWith('+') ? req.phone : `+57${req.phone}`;
+
+    this.publish_authorization_notification
+      .execute({
+        credit_application_external_id: created.external_id,
+        client_type: 'pn',
+        client_phone_e164: phone_e164,
+        client_email: req.email,
+        client_first_name: req.firstName,
+        partner_name,
+        business_legal_name: null,
+      })
+      .catch(() => {
+        // Promise.allSettled interno ya loguea; este catch evita unhandled rejection
+      });
 
     return new RegisterClientCreditApplicationResponse(
       build_credit_application_public_fields(created),

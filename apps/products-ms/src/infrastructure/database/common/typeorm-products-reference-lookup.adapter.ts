@@ -86,4 +86,13 @@ export class TypeormProductsReferenceLookupAdapter
     );
     return rows[0]?.id ?? null;
   }
+
+  async get_partner_name_by_internal_id(internal_id: number): Promise<string | null> {
+    const rows: Array<{ alias: string | null }> = await this.data_source.query(
+      `SELECT alias FROM suppliers_schema.partners WHERE id = $1 LIMIT 1`,
+      [internal_id],
+    );
+    const v = rows[0]?.alias;
+    return v === undefined || v === null || v.length === 0 ? null : v;
+  }
 }

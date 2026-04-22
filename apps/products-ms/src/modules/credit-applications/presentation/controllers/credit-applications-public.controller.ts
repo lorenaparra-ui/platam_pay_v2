@@ -120,6 +120,7 @@ export class CreditApplicationsPublicController {
         dto.relationshipToBusiness,
         dto.requestedCreditLine,
         dto.totalAssets,
+        dto.partnerCategoryIds,
       ),
     );
     return CreditApplicationResponseDto.from(result);

@@ -29,4 +29,7 @@ export interface ProductsReferenceLookupPort {
     external_id: string,
     partner_internal_id: number | null,
   ): Promise<number | null>;
+
+  /** Devuelve el alias (nombre comercial) del partner, o null si no existe. */
+  get_partner_name_by_internal_id(internal_id: number): Promise<string | null>;
 }

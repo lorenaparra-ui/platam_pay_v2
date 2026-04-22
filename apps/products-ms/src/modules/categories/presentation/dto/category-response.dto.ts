@@ -5,8 +5,8 @@ export class CategoryResponseDto {
   @ApiProperty()
   externalId: string;
 
-  @ApiProperty()
-  creditFacilityExternalId: string;
+  @ApiPropertyOptional({ nullable: true })
+  creditFacilityExternalId: string | null;
 
   @ApiPropertyOptional({ nullable: true })
   partnerExternalId: string | null;

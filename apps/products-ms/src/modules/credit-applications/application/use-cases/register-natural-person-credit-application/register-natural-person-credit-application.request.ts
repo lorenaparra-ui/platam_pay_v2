@@ -21,10 +21,11 @@ export class RegisterNaturalPersonCreditApplicationRequest {
     readonly numberOfLocations: number | null | undefined,
     readonly partnerId: string,
     readonly salesRepId: string,
-    readonly privacyPolicyAccepted: boolean,
+    readonly privacyPolicyAccepted: boolean | undefined,
     readonly phone: string,
     readonly relationshipToBusiness: string | null | undefined,
     readonly requestedCreditLine: number,
     readonly totalAssets: number | null | undefined,
+    readonly partnerCategoryIds: string[],
   ) {}
 }

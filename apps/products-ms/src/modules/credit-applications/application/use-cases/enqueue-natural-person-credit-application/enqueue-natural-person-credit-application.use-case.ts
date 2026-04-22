@@ -90,7 +90,7 @@ export class EnqueueNaturalPersonCreditApplicationUseCase {
         total_assets: req.totalAssets ?? null,
         monthly_income: req.monthlyIncome ?? null,
         monthly_expenses: req.monthlyExpenses ?? null,
-        privacy_policy_accepted: req.privacyPolicyAccepted,
+        privacy_policy_accepted: req.privacyPolicyAccepted ?? false,
       },
       resolvedIds: {
         partner_internal_id,
