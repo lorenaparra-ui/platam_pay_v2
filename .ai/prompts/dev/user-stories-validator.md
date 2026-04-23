@@ -86,7 +86,19 @@ Restricciones
 
 ---
 
-FASE 5 — Plantilla reutilizable: Verificación incremental de avances en módulos/documentos
+FASE 5 — Resultados persistentes
+
+1. **Guarda el análisis completo** en la carpeta `@platam_pay_v2/.ai/user-stories-plan/` siguiendo la convención ya utilizada en `hu-05-authorization-execution-plan.md`, es decir, nombre claro con prefijo `hu-XX-` y descripción del flujo (por ejemplo `hu-06-...`, `hu-07-...`). Usa `-execution-plan.md` o `-analysis.md` según el tipo de contenido, y mantén el formato de Markdown ya establecido (encabezados `##`, listas numeradas, tablas, etc.).
+2. El archivo nuevo debe contener:
+   - Los resultados de las fases 2 a 5 (tabla de gaps, documentos faltantes, roadmap, plantilla de contexto y veredicto).
+   - La metadata mínima: título con referencia a la User Story y fecha de revisión.
+3. Cuando termines la sesión, **menciona en tu informe que el archivo fue creado/actualizado** y da su ruta completa para que el equipo lo encuentre (por ejemplo: `@platam_pay_v2/.ai/user-stories-plan/hu-XX-...-execution-plan.md`).
+
+---
+
+
+
+FASE 6 — Plantilla reutilizable: Verificación incremental de avances en módulos/documentos
 
   1. Indica el módulo o documento a revisar (ej: `@apps\products-ms\src\modules\credit-applications` ya fue creado).
   2. Solicita: "Lee los archivos relevantes y determina qué tan cerca se encuentra [`RUTA/AL/DOCUMENTO.md`] de estar listo de acuerdo a la User Story (HU) correspondiente."
