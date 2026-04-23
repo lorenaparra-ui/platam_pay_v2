@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find \"e:/Platam/platam_pay_v2/apps/transversal-ms/src/modules/auth\" -type f -name \"*.ts\" -exec wc -l {} +)",
+      "Bash(find docs *)",
+      "Bash(xargs ls *)",
+      "Bash(awk '{print $NF}')",
+      "Bash(cat)",
+      "Read(//tmp/**)"
+    ]
+  }
+}
