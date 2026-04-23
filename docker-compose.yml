@@ -25,44 +25,16 @@ services:
       timeout: 5s
       retries: 5
 
+  
   # ------------------------------------------------
-  # Microservicio 1: Users (Existente)
+  # Microservicio: Suppliers (NestJS + TypeORM + SQS)
   # ------------------------------------------------
-  users-service:
+  suppliers-service:
     build:
-      context: ./platam_pay_users
-      dockerfile: Dockerfile
-    container_name: platam_users
-    restart: unless-stopped
-    depends_on:
-      postgres:
-        condition: service_healthy
-    env_file:
-      - ./.env.docker
-    environment:
-      NODE_ENV: production
-      # Conexión a DB usando el nombre del servicio 'postgres' como host
-      POSTGRES_HOST: postgres
-      POSTGRES_USERNAME: ${POSTGRES_USERNAME:-admin}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DATABASE: ${POSTGRES_DATABASE:-platam_pay}
-      TYPEORM_TYPE: postgres
-      TYPEORM_PORT: 5432
-      PORT: 8080
-      RUES_API_BASE_URL: "https://ollama-rues.5n921h.easypanel.host"
-    ports:
-      - "8080:8080"
-    networks:
-      - backend-network
-
-  # ------------------------------------------------
-  # Microservicio 2: Partners (Nuevo)
-  # ------------------------------------------------
-  partners-service:
-    build:
-      context: ./platam_pay_partners
-      dockerfile: Dockerfile
-    container_name: platam_partners
+      context: .
+      dockerfile: apps/suppliers-ms/Dockerfile
+    image: platam/suppliers-ms:local
+    container_name: platam_suppliers
     restart: unless-stopped
     depends_on:
       postgres:
@@ -77,39 +49,175 @@ services:
       POSTGRES_DATABASE: ${POSTGRES_DATABASE:-platam_pay}
       TYPEORM_TYPE: postgres
       TYPEORM_PORT: 5432
-      PORT: 3000
+      SUPPLIERS_MS_PORT: 8081
+      RUES_API_BASE_URL: ${RUES_API_BASE_URL:-https://ollama-rues.5n921h.easypanel.host}
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      TRANSVERSAL_SQS_OUTBOUND_QUEUE_URL: ${TRANSVERSAL_SQS_OUTBOUND_QUEUE_URL}
+      # Debe coincidir con TRANSVERSAL_SQS_OUTBOUND_QUEUE_URL (archivos subidos vuelven por aquí).
+      TRANSVERSAL_SQS_INBOUND_QUEUE_URL: ${TRANSVERSAL_SQS_OUTBOUND_QUEUE_URL}
+      TRANSVERSAL_SQS_UPLOAD_FILES_QUEUE_URL: ${TRANSVERSAL_SQS_UPLOAD_FILES_QUEUE_URL:-}
+      AWS_SQS_ENDPOINT: ${AWS_SQS_ENDPOINT:-}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
     ports:
-      - "3001:3000"
+      - "8081:8081"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "-qO-",
+          "http://127.0.0.1:8081/api/health",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
     networks:
       - backend-network
 
   # ------------------------------------------------
-  # Microservicio 3: Notifications (Simulado)
+  # Microservicio: Transversal (NestJS + TypeORM + SQS)
   # ------------------------------------------------
-  # Para cumplir el requisito de "al menos 2 servicios", reutilizamos la imagen
-  # de users pero corriendo como un servicio separado en otro puerto.
-  # En el futuro, cambia el 'context' a la carpeta de tu nuevo microservicio.
-  # notifications-service:
-  #   build:
-  #     context: ./platam_pay_users # Cambiar a ./platam_pay_notifications
-  #     dockerfile: Dockerfile
-  #   container_name: platam_notifications
-  #   restart: unless-stopped
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
-  #   environment:
-  #     NODE_ENV: production
-  #     DB_HOST: postgres
-  #     DB_PORT: 5432
-  #     DB_USERNAME: ${POSTGRES_USER:-admin}
-  #     DB_PASSWORD: ${POSTGRES_PASSWORD:-securepassword}
-  #     DB_DATABASE: ${POSTGRES_DB:-platam_pay}
-  #     PORT: 3001 # Puerto interno diferente si la app lo soporta por env var
-  #   ports:
-  #     - "3001:3001" # Mapeo externo diferente
-  #   networks:
-  #     - backend-network
+  transversal-service:
+    build:
+      context: .
+      dockerfile: apps/transversal-ms/Dockerfile
+    image: platam/transversal-ms:local
+    container_name: platam_transversal
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - ./.env.docker
+    environment:
+      NODE_ENV: production
+      POSTGRES_HOST: postgres
+      POSTGRES_USERNAME: ${POSTGRES_USERNAME:-admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DATABASE: ${POSTGRES_DATABASE:-platam_pay}
+      TYPEORM_TYPE: postgres
+      TYPEORM_PORT: 5432
+      TRANSVERSAL_MS_PORT: 8080
+      RUES_API_BASE_URL: ${RUES_API_BASE_URL:-https://ollama-rues.5n921h.easypanel.host}
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      TRANSVERSAL_SQS_OUTBOUND_QUEUE_URL: ${TRANSVERSAL_SQS_OUTBOUND_QUEUE_URL:-}
+      TRANSVERSAL_SQS_INBOUND_QUEUE_URL: ${TRANSVERSAL_SQS_INBOUND_QUEUE_URL:-}
+      TRANSVERSAL_SQS_UPLOAD_FILES_QUEUE_URL: ${TRANSVERSAL_SQS_UPLOAD_FILES_QUEUE_URL:-}
+      AWS_S3_BUCKET: ${AWS_S3_BUCKET:-platam-partners-storage}
+      AWS_S3_REGION: ${AWS_S3_REGION:-us-east-2}
+    ports:
+      - "8082:8080"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "-qO-",
+          "http://127.0.0.1:8080/api/health",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+    networks:
+      - backend-network
+
+  # ------------------------------------------------
+  # Microservicio: Products (NestJS + TypeORM + SQS)
+  # ------------------------------------------------
+  products-service:
+    build:
+      context: .
+      dockerfile: apps/products-ms/Dockerfile
+    image: platam/products-ms:local
+    container_name: platam_products
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - ./.env.docker
+    environment:
+      NODE_ENV: production
+      POSTGRES_HOST: postgres
+      POSTGRES_USERNAME: ${POSTGRES_USERNAME:-admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DATABASE: ${POSTGRES_DATABASE:-platam_pay}
+      TYPEORM_TYPE: postgres
+      TYPEORM_PORT: 5432
+      PRODUCTS_MS_PORT: 8080
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      AWS_SQS_ENDPOINT: ${AWS_SQS_ENDPOINT:-}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-test}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-test}
+      PRODUCTS_SQS_OUTBOUND_QUEUE_URL: ${PRODUCTS_SQS_OUTBOUND_QUEUE_URL:-}
+      PRODUCTS_SQS_INBOUND_QUEUE_URL: ${PRODUCTS_SQS_INBOUND_QUEUE_URL:-}
+    ports:
+      - "8083:8080"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "-qO-",
+          "http://127.0.0.1:8080/api/health",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+    networks:
+      - backend-network
+
+  # ------------------------------------------------
+  # Microservicio: Contracts (NestJS + TypeORM + SQS)
+  # ------------------------------------------------
+  contracts-service:
+    build:
+      context: .
+      dockerfile: apps/contracts-ms/Dockerfile
+    image: platam/contracts-ms:local
+    container_name: platam_contracts
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - ./.env.docker
+    environment:
+      NODE_ENV: production
+      POSTGRES_HOST: postgres
+      POSTGRES_USERNAME: ${POSTGRES_USERNAME:-admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DATABASE: ${POSTGRES_DATABASE:-platam_pay}
+      TYPEORM_TYPE: postgres
+      TYPEORM_PORT: 5432
+      CONTRACTS_MS_PORT: 8080
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      AWS_SQS_ENDPOINT: ${AWS_SQS_ENDPOINT:-}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-test}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-test}
+      CONTRACTS_SQS_OUTBOUND_QUEUE_URL: ${CONTRACTS_SQS_OUTBOUND_QUEUE_URL:-}
+      CONTRACTS_SQS_CREATE_CONTRACT_QUEUE_URL: ${CONTRACTS_SQS_CREATE_CONTRACT_QUEUE_URL:-}
+      CONTRACTS_SQS_GET_CONTRACT_QUEUE_URL: ${CONTRACTS_SQS_GET_CONTRACT_QUEUE_URL:-}
+    ports:
+      - "8084:8080"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "-qO-",
+          "http://127.0.0.1:8080/api/health",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+    networks:
+      - backend-network
 
 # ------------------------------------------------
 # Redes y Volúmenes

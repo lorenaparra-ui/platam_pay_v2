@@ -1,4 +1,6 @@
-Analiza la historia de usuario `@.ai/user-stories/HU-B03___Gestion_de_Partners___Backoffice.md` dentro de `@.ai/user-stories` y determina los cambios necesarios en el microservicio `@platam_pay_partners`, alineados con el esquema de base de datos `@.ai/schemas/database-schema.sql`.
+Analiza la historia de usuario `@.ai/user-stories/HU-B03___Gestion_de_Partners___Backoffice.md` dentro de `@.ai/user-stories` y determina los cambios necesarios en el microservicio **`suppliers-ms`** (`apps/suppliers-ms/`, módulo `partners` y afines), alineados con el esquema de base de datos `@.ai/schemas/database-schema.sql`.
+
+> En este monorepo no existe el carpeta/servicio legacy `platam_pay_partners`; el bounded context de partners/onboarding vive en **suppliers-ms**.
 
 Objetivo:
 - Identificar qué se debe crear, actualizar o refactorizar en el microservicio y en sus módulos existentes para cumplir la HU.

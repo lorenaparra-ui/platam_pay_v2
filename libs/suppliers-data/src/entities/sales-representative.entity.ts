@@ -1,0 +1,47 @@
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToOne,
+  RelationId,
+} from 'typeorm';
+import { SalesRepresentativeRecordState } from '@platam/shared';
+import { BaseExternalIdEntity } from './base-external-id.entity';
+import { PartnerEntity } from './partner.entity';
+import { UserEntity } from '@app/transversal-data';
+
+@Entity({ name: 'sales_representatives', schema: 'suppliers_schema' })
+export class SalesRepresentativeEntity extends BaseExternalIdEntity {
+  @ManyToOne(() => PartnerEntity, (p) => p.salesRepresentatives, {
+    nullable: false,
+  })
+  @JoinColumn({ name: 'partner_id', referencedColumnName: 'id' })
+  partner: PartnerEntity;
+
+  @RelationId((sr: SalesRepresentativeEntity) => sr.partner)
+  partnerId: number;
+
+  @Column({
+    name: 'state',
+    type: 'enum',
+    enum: SalesRepresentativeRecordState,
+    enumName: 'sales_representative_state',
+    default: SalesRepresentativeRecordState.ACTIVE,
+  })
+  state: SalesRepresentativeRecordState;
+
+  @OneToOne(() => UserEntity, { nullable: false })
+  @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
+  user: UserEntity;
+
+  @RelationId((sr: SalesRepresentativeEntity) => sr.user)
+  userId: number;
+
+  @Column({
+    name: 'is_default',
+    type: 'boolean',
+    default: false,
+  })
+  is_default: boolean;
+}

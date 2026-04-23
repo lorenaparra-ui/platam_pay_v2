@@ -1,27 +1,52 @@
 ---
-description: Establece lineamientos estrictos para crear y aplicar migraciones de base de datos, priorizando la compatibilidad hacia atrás, la reversibilidad segura, la ausencia de downtime y la protección de datos críticos mediante pruebas, backups y el patrón expand/contract. Prohíbe la sincronización automática y migraciones destructivas sin control explícito.
+description: Lineamientos para migraciones TypeORM del monorepo @platam/database: compatibilidad hacia atrás, reversibilidad, cero downtime y expand/contract. Prohíbe synchronize en producción y DROP sin control.
 alwaysApply: false
 ---
-# Reglas para Migraciones de Base de Datos (NestJS + TypeORM/Prisma - Producción)
 
-## 1. Configuración de producción: prohibido `synchronize: true`
-En entornos de producción, **NUNCA** habilites la opción de sincronización automática del ORM (`synchronize: true` en TypeORM, `prisma db push` en producción). Solo se permite en desarrollo local, ya que puede perder o modificar datos sin control.  
-**Regla:** Toda alteración de esquema debe realizarse únicamente con migraciones generadas explícitamente y ejecutadas de forma controlada mediante CLI.
+# Reglas para Migraciones de Base de Datos (NestJS + TypeORM — Producción)
 
-## 2. Zero Downtime y compatibilidad hacia atrás
-- **Backwards compatibility:** Durante cualquier cambio de esquema, la aplicación deberá soportar ambos formatos durante la transición (lectura/escritura en columnas antiguas y nuevas).
-- **Desacoplamiento despliegue/migración:** Siempre despliega primero el código compatible con ambos esquemas antes de migrar datos.
-- **Rollout gradual:** Introduce nuevas columnas/campos, actualiza la app y después realiza el backfill de datos.
-- **Tamaño de columnas:** Antes de alterar columnas (p.ej., contraseñas encriptadas, strings grandes), valida el tamaño requerido y usa tipos apropiados como `varchar(500)` o `text`.
+## 1. Fuente de verdad y ubicación
 
-## 3. Reversión (Rollback) y transacciones
-- **Transacciones ACID:** Todas las operaciones de migración, en especial las críticas, deben ir envueltas en una transacción. Si ocurre un error, debe ejecutarse rollback automáticamente para evitar estados inconsistentes.
-- **No migraciones destructivas directas:** Prohibido eliminar columnas o tablas (DROP) sin estrategia de rollback ni advertencia explícita.
+- Esquema documental / DDL de referencia: **`.ai/schemas/database-schema.sql`** y DBML **`.ai/schemas/schema_ppay_v2.0.dbml`** (u otra versión `schema_ppay_v*.dbml` si el equipo la promueve).
+- Scripts auxiliares de datos o incrementales (cuando existan): `.ai/schemas/querys/`, `.ai/schemas/incremental/` — no sustituyen al flujo formal de migraciones TypeORM salvo que el proceso del repo lo indique.
+- **Código de migraciones:** `database/src/migrations/*.ts`.
+- **CLI:** workspace `@platam/database` (`database/package.json`), `DataSource` en `database/src/data-source.ts` con `synchronize: false`; carga de entorno vía `database/src/load-monorepo-env` (importado desde `data-source.ts`).
+- Desde la **raíz** del monorepo:
+  - `npm run migration:show`
+  - `npm run migration:run`
+  - `npm run migration:revert`
+- **Generar** migración (patrón documentado en comentarios de `data-source.ts`; el nombre descriptivo va tras `src/migrations/`; TypeORM antepone timestamp según su versión):
 
-## 4. Patrón de expansión y contracción (expand/contract)
-1. **Expandir:** Añade nueva columna/tablas (la versión actual ignora o no usa).
-2. **Escribir en ambas:** Despliega nueva app que escribe en ambos esquemas.
-3. **Migrar datos (Backfill):** Copia histórico a la nueva estructura.
-4. **Leer de la nueva:** Actualiza app para consumir solo la nueva estructura.
-5. **Contraer:** Elimina la columna/campo/tabla obsoleta.
-> Cumple siempre con estos pasos para garantizar despliegues seguros y sin downtime en producción.
+```bash
+npm run migration:generate -w @platam/database -- src/migrations/DescripcionEnPascalCase
+```
+
+(Alternativa: `cd database` y `npm run migration:generate -- src/migrations/DescripcionEnPascalCase`.)
+
+## 2. Configuración de producción: prohibido `synchronize: true`
+
+En producción, **nunca** habilites sincronización automática del ORM. Toda alteración de esquema debe ser por migraciones versionadas y ejecutadas de forma controlada.
+
+## 3. Zero Downtime y compatibilidad hacia atrás
+
+- **Backwards compatibility:** La aplicación debe soportar ambos formatos durante la transición cuando sea posible.
+- **Desacoplamiento despliegue/migración:** Desplegar código compatible con ambos esquemas antes de depender solo del esquema nuevo.
+- **Rollout gradual:** Añadir columnas/tablas → desplegar app que escribe en ambos → backfill → leer solo lo nuevo → contract.
+- **Tamaño de columnas:** Validar tamaños antes de acortar o cambiar tipos; evitar sorpresas en datos existentes.
+
+## 4. Reversión (Rollback) y transacciones
+
+- Preferir migraciones reversibles donde el producto lo exija; documentar límites cuando no sea posible (p. ej. pérdida de datos al revertir).
+- Operaciones críticas deben ir en transacción cuando TypeORM/PostgreSQL lo permita de forma segura para el tipo de operación.
+
+## 5. Patrón expand/contract
+
+1. **Expandir:** añadir columna/tablas nuevas.
+2. **Escribir en ambas:** app nueva escribe en viejo y nuevo.
+3. **Backfill:** copiar o calcular datos en la nueva estructura.
+4. **Leer de la nueva:** consumir solo la estructura nueva.
+5. **Contraer:** eliminar columnas/tablas obsoletas con plan y ventana acordados.
+
+## 6. Entidades y migraciones
+
+- Las entidades usadas por la CLI se agregan vía `ALL_DATA_ENTITIES` en `data-source.ts`, ensamblado desde exports de `libs/*-data` — al añadir tablas nuevas, mantener coherencia entre **DDL**, **entidades** y **migración** en el mismo cambio o fase expand/contract explícita.

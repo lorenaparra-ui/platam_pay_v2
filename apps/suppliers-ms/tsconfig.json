@@ -1,0 +1,19 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "../../dist/apps/suppliers-ms",
+    "baseUrl": ".",
+    "paths": {
+      "@config/*": ["src/config/*"],
+      "@common/*": ["src/common/*"],
+      "@messaging/*": ["src/modules/messaging/*"],
+      "@infrastructure/*": ["src/infrastructure/*"],
+      "@modules/*": ["src/modules/*"],
+      "@app/suppliers-data": ["../../libs/suppliers-data/src"],
+      "@app/transversal-data": ["../../libs/transversal-data/src"],
+      "@platam/shared": ["../../libs/shared/src"]
+    }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "test", "**/*spec.ts"]
+}

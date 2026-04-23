@@ -1,0 +1,298 @@
+---
+alwaysApply: true
+---
+## 1. Repositorios, núcleo compartido e integraciones transversales
+
+Platam Pay v2 se implementa en **dos repositorios**: backend **`platam_pay_v2`** (monorepo NestJS) y frontend **`platam_pay_v2_frontend`** (Next.js con App Router). El **mismo núcleo de datos y dominio** está pensado para convivir **BNPL**, **Confirming** y **Factoring** (líneas de crédito, contratos y operación comercial compartidos; el despliegue actual prioriza onboarding y BNPL).
+
+### Backend (monorepo)
+
+Distribución **orientativa** por carpetas de raíz (el detalle crece con el tiempo; no se listan aquí todos los paquetes ni cada MS):
+
+- **`apps/`** — aplicaciones NestJS ejecutables (microservicios y otros entrypoints). Cada subcarpeta suele ser un bounded context con su propio `src/` y manifiestos; **pueden añadirse, renombrarse o repartirse responsabilidades** según el producto. Inventario vigente: **`nest-cli.json`** y **`package.json`** (workspaces).
+- **`libs/`** — librerías compartidas (datos ORM, contratos, utilidades entre apps). Misma idea: **el conjunto evoluciona**; la fuente de verdad es el monorepo, no esta regla.
+- **`database/`** — paquete de migraciones TypeORM (**`@platam/database`**) y DataSource del CLI; DDL de referencia en **`.ai/schemas/database-schema.sql`** (motor y esquemas según versión vigente del repo).
+- **Raíz** — orquestación local (`docker-compose.yml`), workspaces, documentación en **`docs/`**, artefactos de producto en **`.ai/`**, etc.
+
+**Coordinación entre apps:** varios servicios comparten **PostgreSQL** (esquemas lógicos en el DDL de referencia) e integración **HTTP** + colas **Amazon SQS** (p. ej. LocalStack en local). Patrón **hexagonal** dentro de cada app (presentación → aplicación → dominio → infraestructura: TypeORM, SQS, clientes HTTP).
+
+### Frontend
+
+Distribución **orientativa** en el repo Next (las rutas y carpetas de dominio se amplían con nuevas HUs; no enumerar cada módulo aquí):
+
+- **`app/`** — App Router (páginas, layouts, route handlers bajo `app/api/`, etc.).
+- **Capas típicas en raíz del frontend** — por ejemplo `features/` (dominio por capacidad), `components/`, `infrastructure/` (clientes HTTP hacia los MS), `providers/`, `store/`, `lib/`, `utils/`, `constants/`: la jerarquía concreta **puede ganar carpetas o patrones**; al implementar, **replicar el módulo más cercano** existente antes de inventar otra raíz.
+
+**Stack del cliente:** Next.js 16, React 19, Tailwind CSS 4, TanStack React Query, Axios, react-hook-form + Zod, Zustand. URLs de APIs vía variables **`NEXT_PUBLIC_*`** (convención documentada en el propio repo frontend).
+
+### Integraciones externas “transversales”
+
+Las APIs de terceros y los **microservicios AWS** consumibles (RUES, SARLAFT, BDME, Rama Judicial, etc.) deben poder **reutilizarse desde cualquier microservicio** que tenga el caso de uso: el patrón alineado al monorepo es **adaptadores HTTP (y de mensajería) en Nest**, configuración por entorno, sin acoplar la lógica a un solo `*-ms` salvo decisión explícita de bounded context. La **HTTP API** documentada en el repo hermano **`platam_microservices`** (API Gateway v2, JWT Cognito) es **compartida**; las llamadas a `execute-api` deben hacerse **desde backend**, no desde el navegador final. Detalle operativo: **`.ai/context/api-integrations.md`**.
+
+### Glosario y términos de dominio
+
+Los acrónimos y definiciones de negocio viven en **`.ai/context/glossary.md`** (fuente única). Las reglas bajo **`.cursor/rules/`** deben **remitir** a ese archivo, no duplicar tablas de glosario.
+
+---
+
+## 2. Platam Pay — Modelo de negocio
+
+Platam Pay es una plataforma **B2B** cuyo producto principal en operación es **BNPL** (cliente de un Partner compra a crédito con Platam como financiador). El mismo **core** (usuarios, partners, líneas de crédito, contratos) está diseñado para **Confirming** y **Factoring** cuando esas líneas de negocio se activen sobre el mismo modelo de datos.
+
+### Actores del sistema
+
+| Actor | Descripción | Tabla / esquema (referencia DDL) |
+|---|---|---|
+| **Partner** | Empresa distribuidora/proveedora que integra Platam Pay a su canal comercial. Recibe el pago de Platam con descuento y delay. | `suppliers_schema.partners` |
+| **Sales Rep (SR / Hunter)** | Representante comercial del Partner. Origina solicitudes de crédito y órdenes de compra desde el sistema o app. | `suppliers_schema.sales_representatives` |
+| **Cliente (Comprador)** | MSME que compra a crédito usando Platam Pay. Puede ser Persona Natural (PN) o Persona Jurídica (PJ). | `transversal_schema.users`, `transversal_schema.persons`, `suppliers_schema.businesses` |
+| **Analista Platam** | Equipo interno que revisa solicitudes de crédito y toma decisiones de aprobación. | `transversal_schema.users` (rol backoffice analista) |
+| **Admin Platam** | Equipo interno que gestiona partners, categorías y configuración de la plataforma. | `transversal_schema.users` (rol backoffice admin) |
+
+### Flujo financiero (BNPL)
+```
+Cliente compra → Partner entrega el producto → 
+Platam paga al Partner (valor - descuento, después de delay_days) → 
+Cliente le paga a Platam en cuotas dentro de term_days
+```
+
+**Tres modelos de cobro según negociación con el Partner:**
+
+**Modelo 1 — Partner asume el costo de financiación:**
+El descuento lo absorbe el Partner. El cliente no paga intereses 
+corrientes ni fees de desembolso. Solo aplican intereses de mora 
+si el cliente se atrasa (estos son globales para todos los partners).
+
+**Modelo 2 — Cliente asume el costo de financiación:**
+El Partner no asume el descuento. Platam le cobra al cliente:
+- `interest_rate`: intereses corrientes sobre el monto financiado
+- `disbursement_fee_percent` / `minimum_disbursement_fee`: 
+  fee de desembolso al activar el crédito
+
+**Modelo 3 — Modelo mixto:**
+El costo de financiación se distribuye entre el Partner y el Cliente.
+El Partner asume una parte del descuento y el Cliente asume el resto
+vía intereses corrientes y/o fee de desembolso. La proporción se
+define en la negociación con cada partner.
+
+> `interest_rate` en la categoría del partner (`products_schema.categories`) corresponde a intereses 
+> **corrientes** (costo del crédito). Los intereses de **mora** son 
+> globales y aplican a todos los clientes por igual cuando se atrasan.
+
+### Configuración financiera por Partner (`products_schema.categories`)
+
+Tabla de categorías de producto por partner (evolución del modelo histórico `partner_categories` en DDL antiguo). Campos típicos:
+
+| Campo | Descripción |
+|---|---|
+| `discount_percentage` | % que Platam descuenta al pagarle al Partner |
+| `interest_rate` | Tasa de interés corriente que se cobra al Cliente (si aplica) |
+| `disbursement_fee_percent` | % de fee de desembolso sobre el monto (si aplica) |
+| `minimum_disbursement_fee` | Fee mínimo de desembolso en pesos |
+| `delay_days` | Días que Platam espera para pagarle al Partner |
+| `term_days` | Plazo que tiene el Cliente para pagarle a Platam |
+
+---
+
+## 3. Los tres flujos principales
+
+### Flujo 1 — Onboarding & underwriting
+*El cliente solicita un cupo de crédito (Line of Credit — LOC)*
+
+#### Canales de registro (3 vías)
+
+**a) Registro por Sales Rep (SR):**
+El SR registra al cliente (PN o PJ) desde el sistema. Al completar 
+el formulario, Platam envía automáticamente mensajes por WhatsApp 
+y correo al cliente para que:
+1. Autorice la consulta en centrales de riesgo (Experian)
+2. Acepte las políticas de privacidad
+
+Sin esta autorización no se puede proceder con el underwriting.
+
+**b) Registro por el cliente (self-service):**
+El cliente llena el formulario directamente (PN o PJ). El formulario 
+incluye un checkbox para autorizar la consulta en centrales de riesgo 
+y aceptar las políticas de privacidad en el mismo paso.
+
+**c) Registro vía API del Partner:**
+Los partners pueden registrar clientes desde sus propias plataformas 
+(ERP, ecommerce, app) usando la API de Platam.
+
+> Los formularios de PN y PJ son distintos. PJ requiere además datos 
+> de la empresa, representante legal, accionistas y posibles codeudores.
+
+#### Pipeline de underwriting
+```
+Autorización del cliente (consulta + privacidad) →
+KYC/KYB:
+  · Experian (buró de crédito — historial crediticio)
+  · RUES (cámara de comercio — validación empresa PJ)
+  · SARLAFT (listas restrictivas y fuentes gubernamentales) →
+Análisis AI (agente vía n8n + modelo LLM) →
+Revisión analista Platam →
+Decisión: Aprobado / Rechazado / Revisión manual →
+Contrato digital (ZapSign + Truora para validación de identidad) →
+Cliente con facilidad de crédito (`products_schema.credit_facilities`) y categorías vía `client_category_assignments`
+```
+
+**Épica activa:** `epic-01-onboarding-underwriting`
+
+---
+
+### Flujo 2 — Loan request (orden de compra)
+*El cliente usa su cupo para comprar*
+
+#### Canales de creación de orden
+
+- **SR desde el sistema:** el Sales Rep crea la orden en la plataforma
+- **API del Partner:** integración directa desde ERP, ecommerce, 
+  app de toma de pedidos u otros sistemas del Partner
+
+#### Pipeline de la orden
+```
+Orden creada (SR o API del Partner) →
+Cliente aprueba por WhatsApp o portal web →
+Partner confirma la ENTREGA del producto →
+Préstamo activado →
+Platam desembolsa al Partner →
+Cliente queda con deuda activa y plan de cuotas en el sistema
+```
+
+> **Importante:** El Partner confirma la **entrega del producto**, 
+> no la factura. Esto protege al cliente de que se active un crédito 
+> por un producto que aún no ha recibido.
+
+---
+
+### Flujo 3 — Collections (cobranza)
+*Platam gestiona el cobro al cliente*
+```
+Recordatorios automáticos desde D-3 →
+Vencimiento D+0 →
+Gestión de mora progresiva hasta D+150 →
+Reporte a centrales de riesgo si aplica
+```
+
+**Componentes previstos del módulo de cobranza:**
+- Comunicaciones automáticas: WhatsApp, email, voz/agentes según diseño de producto
+- Comisiones de cobranza escalonadas según días de mora
+- Cobro jurídico para casos extremos
+- Creación de **planes de pago** negociados con el cliente
+- **Análisis de riesgo** que alimente la gestión (p. ej. campos de estudio en `credit_applications` y modelos/score específicos en épicas futuras de cobranza)
+
+---
+
+## 4. Procesos de cumplimiento (compliance)
+
+| Proceso | Descripción | Herramienta |
+|---|---|---|
+| **KYC** (Know Your Customer) | Validación de identidad del cliente PN | Experian + Truora (via ZapSign) |
+| **KYB** (Know Your Business) | Validación de empresa PJ | RUES + Experian |
+| **SARLAFT** | Consulta de listas restrictivas y fuentes gubernamentales | Proceso interno + fuentes oficiales / jobs async vía `platam_microservices` |
+| **Firma digital** | Firma de contratos con validación de identidad del firmante | ZapSign + Truora |
+
+---
+
+## 5. Stack tecnológico
+
+| Capa | Tecnología |
+|---|---|
+| Backend | NestJS + TypeScript |
+| Frontend | Next.js 16 + React 19 + TypeScript + Tailwind CSS 4 + shadcn/ui (donde aplique) |
+| Base de datos | PostgreSQL 15+ (referencia local: imagen `postgres:15-alpine` en `docker-compose`) |
+| Infraestructura | AWS (Cognito, S3, SQS, CloudWatch, EventBridge, etc. según servicio) |
+| Contenedores | Docker |
+| IaC | Terraform (donde el equipo lo use para el entorno) |
+| Autenticación | AWS Cognito |
+| Firma digital + identidad | ZapSign + Truora |
+| Buró de crédito | Experian |
+| Validación empresas | RUES (y API HTTP en `platam_microservices`) |
+| Pagos / recaudo | Payvalida (contrato y detalle en evolución) |
+| Notificaciones | Twilio (WhatsApp); correo transaccional también vía **Resend** en flujos documentados |
+| Alertas operativas | Google Chat (SARLAFT, errores de integración, etc.) |
+| Orquestación / agente crédito | **n8n** (webhooks hacia/desde Nest; ver `.ai/context/api-integrations.md`) |
+| Análisis AI de crédito | Modelo LLM según configuración del flujo n8n |
+
+**Repositorios:**
+- Backend: https://github.com/lorenaparra-ui/platam_pay_v2
+- Frontend: https://github.com/lorenaparra-ui/platam_pay_v2_frontend
+- Microservicios AWS (consultas RUES, SARLAFT, BDME, Rama Judicial, JWT API Gateway): repositorio **`platam_microservices`** (separado; contratos HTTP compartidos).
+
+---
+
+## 6. Equipo
+
+| Persona | Rol |
+|---|---|
+| Richard Sewards | CPO/CTO · Product Owner |
+| Freddy Candelo | Fullstack Developer · Backend lead |
+| Lorena Parra | Frontend Developer |
+
+---
+
+## 7. Decisiones de producto y de datos tomadas
+
+- **Multi-producto (BNPL / Confirming / Factoring):** mismo núcleo; líneas de crédito y vínculo a categorías del partner mediante **`products_schema.credit_facilities`**, **`products_schema.client_category_assignments`** y **`products_schema.categories`** (no usar como verdad única el nombre legacy `user_products` del documento histórico).
+- **Multi-partner:** cada partner tiene su propia configuración financiera por categorías y sus propios Sales Reps.
+- **Multi-país:** tablas `transversal_schema.cities` y `transversal_schema.currencies` soportan expansión internacional desde el día uno.
+- **Estados:** catálogo **`transversal_schema.catalog_status_types`** con triggers de validación por entidad en tablas que usan `status_id`; en paralelo, varias entidades usan columnas `state` como **ENUM** (convivencia documentada en el DDL).
+- **IDs externos:** se usan `external_id` (UUID) en APIs públicas; los IDs internos suelen ser **bigint** secuenciales.
+- **Confirmación de entrega:** el Partner confirma entrega del 
+  producto (no la factura) antes de activar el préstamo.
+- **Tres modelos de cobro:** el costo de financiación puede recaer 
+  en el Partner, en el Cliente, o distribuirse entre ambos según 
+  negociación.
+- **Cuotas:** Platam Pay v2 introduce pagos en cuotas para los 
+  clientes, eliminando el modelo de pago único del MVP. 
+  Los detalles se definirán en la épica correspondiente.
+- **Canales múltiples de origen:** los clientes se pueden registrar 
+  vía SR, self-service o API del Partner. Las órdenes se pueden 
+  crear vía SR o API del Partner.
+- **WhatsApp como canal principal:** Twilio con línea nueva para 
+  este proyecto. El portal web es un canal adicional, no reemplaza 
+  WhatsApp.
+
+---
+
+## 8. Interfaces y portales
+
+### Canales de interacción por actor
+
+| Actor | Canal v1 (MVP) | Canal v2 (nuevo stack) |
+|---|---|---|
+| **Cliente** | Solo WhatsApp (bots) | WhatsApp + portal web propio |
+| **Sales Rep** | Portal web | Portal web |
+| **Partner** | — | Portal web del Partner |
+| **Analista / Admin Platam** | Backoffice interno | Backoffice interno |
+
+### Portal del cliente
+El cliente puede gestionar su cuenta desde WhatsApp (canal principal, 
+se mantiene para todos los flujos) o desde el portal web (nuevo en v2):
+- Ver cupo disponible y utilizado
+- Consultar historial de compras y préstamos activos
+- Ver estado de cuotas y fechas de vencimiento
+- Gestionar planes de pago
+
+### Portal del Partner
+Los partners tienen acceso a un portal propio donde pueden:
+- Ver todos sus clientes registrados y sus estados
+- Consultar solicitudes de crédito relacionadas
+- Ver préstamos activos de sus clientes
+- Consultar desembolsos con todos sus detalles
+- Activar y desactivar sus categorías
+
+### Backoffice Platam
+El equipo interno de Platam gestiona la operación completa desde 
+el backoffice:
+- Revisión y aprobación de solicitudes de crédito
+- Gestión de partners y su configuración
+- **Gestión de clientes:** bloquear / desbloquear clientes, 
+  aumentos de cupo
+- **Módulo de desembolsos:** gestión y seguimiento de todos los 
+  pagos que Platam realiza a los partners
+- **Carga manual de pagos:** registro de pagos recibidos por fuera 
+  de la pasarela (transferencias, consignaciones, otros medios)
+- **Gestión de categorías:** activación y desactivación de 
+  categorías por partner
+- Gestión de Sales Reps

@@ -1,0 +1,29 @@
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { LegalRepresentativeEntity } from '@app/suppliers-data';
+import { LegalRepresentativeRepository } from '@modules/legal-representatives/domain/repositories/legal-representative.repository';
+import {
+  LegalRepresentative,
+  CreateLegalRepresentativeProps,
+} from '@modules/legal-representatives/domain/entities/legal-representative.entity';
+import { LegalRepresentativeMapper } from '@infrastructure/database/mappers/legal-representative.mapper';
+
+@Injectable()
+export class TypeormLegalRepresentativeRepository implements LegalRepresentativeRepository {
+  constructor(
+    @InjectRepository(LegalRepresentativeEntity)
+    private readonly repo: Repository<LegalRepresentativeEntity>,
+  ) {}
+
+  async create(props: CreateLegalRepresentativeProps): Promise<LegalRepresentative> {
+    const rows = await this.repo.query(
+      `INSERT INTO suppliers_schema.legal_representatives (
+        external_id, business_id, person_id, is_primary
+      ) VALUES (gen_random_uuid(), $1, $2, $3)
+      RETURNING id, external_id, created_at, updated_at, business_id, person_id, is_primary`,
+      [props.business_id, props.person_id, props.is_primary],
+    );
+    return LegalRepresentativeMapper.from_raw_row(rows[0] as Record<string, unknown>);
+  }
+}

@@ -1,0 +1,1 @@
+export const PARTNER_REPOSITORY = Symbol('PARTNER_REPOSITORY');

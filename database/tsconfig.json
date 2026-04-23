@@ -1,0 +1,27 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "noEmit": true,
+    "baseUrl": "./src",
+    "paths": {
+      "@migrations": ["migrations"],
+      "@migrations/*": ["migrations/*"],
+      "@app/transversal-data": ["../../libs/transversal-data/src"],
+      "@app/products-data": ["../../libs/products-data/src"],
+      "@app/suppliers-data": ["../../libs/suppliers-data/src"],
+      "@app/disbursement-data": ["../../libs/disbursement-data/src"],
+      "@app/collections-data": ["../../libs/collections-data/src"],
+      "@libs/transversal-data": ["../../libs/transversal-data/src/transversal-data.entities"],
+      "@libs/products-data": ["../../libs/products-data/src/products-data.entities"],
+      "@libs/suppliers-data": ["../../libs/suppliers-data/src/suppliers-data.entities"],
+      "@libs/disbursement-data": ["../../libs/disbursement-data/src/entities/disbursement-data.entities"],
+      "@libs/collections-data": ["../../libs/collections-data/src/entities/collections-data.entities"],
+      "@platam/shared": ["../../libs/shared/src"]
+    }
+  },
+  "ts-node": {
+    "require": ["tsconfig-paths/register"]
+  },
+  "include": ["src/**/*"]
+}

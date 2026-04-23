@@ -1,0 +1,67 @@
+import { Global, Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { create_sqs_client, QUEUES_CONFIG, SQS_CLIENT, type SqsQueuesUrlsConfig } from '@platam/shared';
+
+import { SqsMessagePublisherAdapter } from './adapters/sqs-message-publisher.adapter';
+import { ConfigOutboundProductsQueueUrlAdapter } from './adapters/config-outbound-products-queue-url.adapter';
+import { ConfigSuppliersInboundQueueUrlAdapter } from './adapters/config-suppliers-inbound-queue-url.adapter';
+import { ProductsInboundSqsConsumer } from './consumers/products-inbound-sqs.consumer';
+import { MessagingApplicationModule } from '@messaging/messaging-application.module';
+import { OUTBOUND_MESSAGE_PUBLISHER_PORT } from '@messaging/domain/ports/outbound-message-publisher.port';
+import { PRODUCTS_OUTBOUND_QUEUE_URL_PORT } from '@messaging/domain/ports/products-outbound-queue-url.port';
+import { SUPPLIERS_INBOUND_QUEUE_URL_PORT } from '@messaging/domain/ports/suppliers-inbound-queue-url.port';
+import { PublishCreateBusinessJobUseCase } from '@messaging/application/use-cases/publish-create-business-job.use-case';
+
+@Global()
+@Module({
+  imports: [ConfigModule, MessagingApplicationModule],
+  providers: [
+    {
+      provide: QUEUES_CONFIG,
+      useFactory: (config_service: ConfigService): SqsQueuesUrlsConfig => ({
+        outbound_queue_url: config_service.getOrThrow<string>('sqs.outbound_queue_url'),
+        inbound_queue_url: config_service.get<string>('sqs.inbound_queue_url'),
+        suppliers_callback_queue_url: config_service.get<string>('sqs.suppliers_callback_queue_url'),
+        notifications_inbound_queue_url: config_service.get<string>('sqs.notifications_inbound_queue_url'),
+        create_person_queue_url: config_service.get<string>('sqs.create_person_queue_url'),
+        suppliers_inbound_queue_url: config_service.get<string>('sqs.suppliers_inbound_queue_url'),
+      }),
+      inject: [ConfigService],
+    },
+    {
+      provide: SQS_CLIENT,
+      useFactory: (config_service: ConfigService) =>
+        create_sqs_client({
+          region: config_service.getOrThrow<string>('sqs.region'),
+          endpoint: config_service.get<string>('sqs.endpoint'),
+        }),
+      inject: [ConfigService],
+    },
+    SqsMessagePublisherAdapter,
+    ProductsInboundSqsConsumer,
+    {
+      provide: OUTBOUND_MESSAGE_PUBLISHER_PORT,
+      useExisting: SqsMessagePublisherAdapter,
+    },
+    ConfigOutboundProductsQueueUrlAdapter,
+    {
+      provide: PRODUCTS_OUTBOUND_QUEUE_URL_PORT,
+      useExisting: ConfigOutboundProductsQueueUrlAdapter,
+    },
+    ConfigSuppliersInboundQueueUrlAdapter,
+    {
+      provide: SUPPLIERS_INBOUND_QUEUE_URL_PORT,
+      useExisting: ConfigSuppliersInboundQueueUrlAdapter,
+    },
+    PublishCreateBusinessJobUseCase,
+  ],
+  exports: [
+    SQS_CLIENT,
+    QUEUES_CONFIG,
+    OUTBOUND_MESSAGE_PUBLISHER_PORT,
+    PRODUCTS_OUTBOUND_QUEUE_URL_PORT,
+    SUPPLIERS_INBOUND_QUEUE_URL_PORT,
+    PublishCreateBusinessJobUseCase,
+  ],
+})
+export class SqsModule {}

@@ -1,0 +1,19 @@
+{
+  "name": "platam-pay-v2",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "database"
+  ],
+  "scripts": {
+    "localstack:sqs:init": "docker compose up -d localstack && docker compose run --rm localstack-bootstrap",
+    "start:transversal-ms:dev": "npx nest start transversal-ms --watch --builder webpack",
+    "start:suppliers-ms:dev": "npx nest start suppliers-ms --watch --builder webpack",
+    "start:products-ms:dev": "npx nest start products-ms --watch --builder webpack",
+    "start:contracts-ms:dev": "npx nest start contracts-ms --watch --builder webpack",
+    "start:notifications-ms:dev": "npx nest start notifications-ms --watch --builder webpack",
+    "migration:show": "npm run migration:show -w @platam/database",
+    "migration:run": "npm run migration:run -w @platam/database",
+    "migration:revert": "npm run migration:revert -w @platam/database"
+  }
+}

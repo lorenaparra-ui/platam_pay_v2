@@ -1,0 +1,38 @@
+import type { CreditApplicationStatus } from '@platam/shared';
+
+export class UpdateCreditApplicationByExternalIdRequest {
+  constructor(
+    readonly externalId: string,
+    readonly status?: CreditApplicationStatus,
+    readonly personId?: number | null,
+    readonly partnerId?: number | null,
+    readonly partnerCategoryId?: number | null,
+    readonly businessId?: number | null,
+    readonly salesRepresentativeId?: number,
+    readonly isCurrentClient?: boolean,
+    readonly privacyPolicyAccepted?: boolean,
+    readonly numberOfLocations?: number | null,
+    readonly numberOfEmployees?: number | null,
+    readonly businessSeniority?: string | null,
+    readonly sectorExperience?: string | null,
+    readonly businessFlagshipM2?: number | null,
+    readonly businessHasRent?: boolean | null,
+    readonly businessRentAmount?: number | null,
+    readonly monthlyIncome?: number | null,
+    readonly monthlyExpenses?: number | null,
+    readonly monthlyPurchases?: number | null,
+    readonly currentPurchases?: number | null,
+    readonly totalAssets?: number | null,
+    readonly requestedCreditLine?: number | null,
+    readonly submissionDate?: Date | null,
+    readonly approvalDate?: Date | null,
+    readonly rejectionReason?: string | null,
+    readonly creditStudyDate?: Date | null,
+    readonly creditScore?: string | null,
+    readonly creditDecision?: string | null,
+    readonly approvedCreditLine?: number | null,
+    readonly analystReport?: string | null,
+    readonly riskProfile?: string | null,
+    readonly privacyPolicyDate?: Date | null,
+  ) {}
+}
