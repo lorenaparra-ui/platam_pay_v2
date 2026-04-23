@@ -4123,6 +4123,290 @@ exports.DeleteCreditApplicationByExternalIdUseCase = DeleteCreditApplicationByEx
 
 /***/ },
 
+/***/ "./apps/products-ms/src/modules/credit-applications/application/use-cases/enqueue-legal-entity-credit-application/enqueue-legal-entity-credit-application.request.ts"
+/*!***************************************************************************************************************************************************************************!*\
+  !*** ./apps/products-ms/src/modules/credit-applications/application/use-cases/enqueue-legal-entity-credit-application/enqueue-legal-entity-credit-application.request.ts ***!
+  \***************************************************************************************************************************************************************************/
+(__unused_webpack_module, exports) {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.EnqueueLegalEntityCreditApplicationRequest = void 0;
+class EnqueueLegalEntityCreditApplicationRequest {
+    partnerId;
+    salesRepId;
+    legalName;
+    taxId;
+    yearOfEstablishment;
+    cityId;
+    businessAddress;
+    email;
+    firstName;
+    lastName;
+    docType;
+    docNumber;
+    phone;
+    legalRepAddress;
+    businessName;
+    businessType;
+    businessSeniority;
+    numberOfLocations;
+    numberOfEmployees;
+    businessFlagshipM2;
+    businessRentAmount;
+    totalAssets;
+    monthlyIncome;
+    monthlyExpenses;
+    monthlyPurchases;
+    currentPurchases;
+    requestedCreditLine;
+    shareholders;
+    salesRepKnowledgeTime;
+    salesRepConfidence;
+    salesRepSuggestedLimit;
+    privacyPolicyAccepted;
+    partnerCategoryIds;
+    idempotencyKey;
+    constructor(partnerId, salesRepId, legalName, taxId, yearOfEstablishment, cityId, businessAddress, email, firstName, lastName, docType, docNumber, phone, legalRepAddress, businessName, businessType, businessSeniority, numberOfLocations, numberOfEmployees, businessFlagshipM2, businessRentAmount, totalAssets, monthlyIncome, monthlyExpenses, monthlyPurchases, currentPurchases, requestedCreditLine, shareholders, salesRepKnowledgeTime, salesRepConfidence, salesRepSuggestedLimit, privacyPolicyAccepted, partnerCategoryIds, idempotencyKey) {
+        this.partnerId = partnerId;
+        this.salesRepId = salesRepId;
+        this.legalName = legalName;
+        this.taxId = taxId;
+        this.yearOfEstablishment = yearOfEstablishment;
+        this.cityId = cityId;
+        this.businessAddress = businessAddress;
+        this.email = email;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.docType = docType;
+        this.docNumber = docNumber;
+        this.phone = phone;
+        this.legalRepAddress = legalRepAddress;
+        this.businessName = businessName;
+        this.businessType = businessType;
+        this.businessSeniority = businessSeniority;
+        this.numberOfLocations = numberOfLocations;
+        this.numberOfEmployees = numberOfEmployees;
+        this.businessFlagshipM2 = businessFlagshipM2;
+        this.businessRentAmount = businessRentAmount;
+        this.totalAssets = totalAssets;
+        this.monthlyIncome = monthlyIncome;
+        this.monthlyExpenses = monthlyExpenses;
+        this.monthlyPurchases = monthlyPurchases;
+        this.currentPurchases = currentPurchases;
+        this.requestedCreditLine = requestedCreditLine;
+        this.shareholders = shareholders;
+        this.salesRepKnowledgeTime = salesRepKnowledgeTime;
+        this.salesRepConfidence = salesRepConfidence;
+        this.salesRepSuggestedLimit = salesRepSuggestedLimit;
+        this.privacyPolicyAccepted = privacyPolicyAccepted;
+        this.partnerCategoryIds = partnerCategoryIds;
+        this.idempotencyKey = idempotencyKey;
+    }
+}
+exports.EnqueueLegalEntityCreditApplicationRequest = EnqueueLegalEntityCreditApplicationRequest;
+
+
+/***/ },
+
+/***/ "./apps/products-ms/src/modules/credit-applications/application/use-cases/enqueue-legal-entity-credit-application/enqueue-legal-entity-credit-application.response.ts"
+/*!****************************************************************************************************************************************************************************!*\
+  !*** ./apps/products-ms/src/modules/credit-applications/application/use-cases/enqueue-legal-entity-credit-application/enqueue-legal-entity-credit-application.response.ts ***!
+  \****************************************************************************************************************************************************************************/
+(__unused_webpack_module, exports) {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.EnqueueLegalEntityCreditApplicationResponse = void 0;
+class EnqueueLegalEntityCreditApplicationResponse {
+    jobId;
+    constructor(jobId) {
+        this.jobId = jobId;
+    }
+}
+exports.EnqueueLegalEntityCreditApplicationResponse = EnqueueLegalEntityCreditApplicationResponse;
+
+
+/***/ },
+
+/***/ "./apps/products-ms/src/modules/credit-applications/application/use-cases/enqueue-legal-entity-credit-application/enqueue-legal-entity-credit-application.use-case.ts"
+/*!****************************************************************************************************************************************************************************!*\
+  !*** ./apps/products-ms/src/modules/credit-applications/application/use-cases/enqueue-legal-entity-credit-application/enqueue-legal-entity-credit-application.use-case.ts ***!
+  \****************************************************************************************************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+var _a, _b, _c;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.EnqueueLegalEntityCreditApplicationUseCase = void 0;
+const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
+const shared_1 = __webpack_require__(/*! @platam/shared */ "./libs/shared/src/index.ts");
+const credit_applications_tokens_1 = __webpack_require__(/*! @modules/credit-applications/credit-applications.tokens */ "./apps/products-ms/src/modules/credit-applications/credit-applications.tokens.ts");
+const products_reference_lookup_port_1 = __webpack_require__(/*! @common/ports/products-reference-lookup.port */ "./apps/products-ms/src/common/ports/products-reference-lookup.port.ts");
+const client_registration_port_1 = __webpack_require__(/*! @modules/credit-applications/application/ports/client-registration.port */ "./apps/products-ms/src/modules/credit-applications/application/ports/client-registration.port.ts");
+const publish_create_person_command_use_case_1 = __webpack_require__(/*! @messaging/application/use-cases/publish-create-person-command.use-case */ "./apps/products-ms/src/modules/messaging/application/use-cases/publish-create-person-command.use-case.ts");
+const publish_create_business_job_use_case_1 = __webpack_require__(/*! @messaging/application/use-cases/publish-create-business-job.use-case */ "./apps/products-ms/src/modules/messaging/application/use-cases/publish-create-business-job.use-case.ts");
+const validation_failed_error_1 = __webpack_require__(/*! @messaging/application/exceptions/validation-failed.error */ "./apps/products-ms/src/modules/messaging/application/exceptions/validation-failed.error.ts");
+const enqueue_legal_entity_credit_application_response_1 = __webpack_require__(/*! ./enqueue-legal-entity-credit-application.response */ "./apps/products-ms/src/modules/credit-applications/application/use-cases/enqueue-legal-entity-credit-application/enqueue-legal-entity-credit-application.response.ts");
+let EnqueueLegalEntityCreditApplicationUseCase = class EnqueueLegalEntityCreditApplicationUseCase {
+    job_repository;
+    products_lookup;
+    client_registration;
+    publish_create_person;
+    publish_create_business_job;
+    constructor(job_repository, products_lookup, client_registration, publish_create_person, publish_create_business_job) {
+        this.job_repository = job_repository;
+        this.products_lookup = products_lookup;
+        this.client_registration = client_registration;
+        this.publish_create_person = publish_create_person;
+        this.publish_create_business_job = publish_create_business_job;
+    }
+    async execute(req) {
+        if (req.idempotencyKey) {
+            const existing = await this.job_repository.find_by_idempotency_key(req.idempotencyKey);
+            if (existing) {
+                return new enqueue_legal_entity_credit_application_response_1.EnqueueLegalEntityCreditApplicationResponse(existing.externalId);
+            }
+        }
+        const partner_internal_id = await this.products_lookup.get_partner_internal_id_by_external_id(req.partnerId);
+        if (partner_internal_id === null) {
+            throw new common_1.NotFoundException('partner no encontrado');
+        }
+        const sales_rep_internal_id = await this.products_lookup.get_sales_representative_internal_id_by_external_id(req.salesRepId, partner_internal_id);
+        if (sales_rep_internal_id === null) {
+            throw new common_1.NotFoundException('representante de ventas no encontrado o no pertenece al partner indicado');
+        }
+        let city_internal_id = null;
+        if (req.cityId) {
+            city_internal_id = await this.client_registration.resolve_city_internal_id(req.cityId);
+        }
+        const job = await this.job_repository.create({
+            status: shared_1.AsyncJobStatus.RUNNING,
+            step: shared_1.AsyncJobStep.ENQUEUED,
+            payload: {
+                partner_id: req.partnerId,
+                sales_rep_id: req.salesRepId,
+                doc_number: req.docNumber,
+                doc_type: req.docType,
+                first_name: req.firstName,
+                last_name: req.lastName,
+                phone: req.phone ?? null,
+                email: req.email ?? null,
+                city_id: req.cityId ?? null,
+                birth_date: null,
+                business_type: req.businessType,
+                business_name: req.businessName ?? null,
+                business_address: req.businessAddress ?? null,
+                relationship_to_business: 'Representante legal',
+                business_seniority: req.businessSeniority ?? null,
+                number_of_employees: req.numberOfEmployees ?? null,
+                number_of_locations: req.numberOfLocations ?? null,
+                business_flagship_m2: req.businessFlagshipM2 ?? null,
+                business_has_rent: null,
+                business_rent_amount: req.businessRentAmount ?? null,
+                requested_credit_line: req.requestedCreditLine,
+                monthly_purchases: req.monthlyPurchases ?? null,
+                current_purchases: req.currentPurchases ?? null,
+                total_assets: req.totalAssets ?? null,
+                monthly_income: req.monthlyIncome ?? null,
+                monthly_expenses: req.monthlyExpenses ?? null,
+                privacy_policy_accepted: req.privacyPolicyAccepted ?? false,
+                is_legal_entity: true,
+                legal_name: req.legalName,
+                tax_id: req.taxId,
+                year_of_establishment: req.yearOfEstablishment ?? null,
+                legal_rep_address: req.legalRepAddress ?? null,
+                shareholders: req.shareholders,
+                sales_rep_knowledge_time: req.salesRepKnowledgeTime ?? null,
+                sales_rep_confidence: req.salesRepConfidence ?? null,
+                sales_rep_suggested_limit: req.salesRepSuggestedLimit ?? null,
+                partner_category_ids: req.partnerCategoryIds ?? null,
+            },
+            resolvedIds: {
+                partner_internal_id,
+                sales_rep_internal_id,
+                city_internal_id: city_internal_id ?? null,
+            },
+            idempotency_key: req.idempotencyKey ?? null,
+        });
+        const person_id = await this.client_registration.find_person_by_doc_number(req.docNumber);
+        if (person_id !== null) {
+            const business_id = await this.client_registration.find_business_by_person_id(person_id);
+            if (business_id !== null) {
+                try {
+                    await this.publish_create_business_job.execute_already_resolved(job.externalId, person_id, business_id);
+                }
+                catch {
+                }
+                await this.job_repository.update_status_and_step(job.id, shared_1.AsyncJobStatus.RUNNING, shared_1.AsyncJobStep.AWAITING_BUSINESS_CREATION, { person_internal_id: person_id, business_internal_id: business_id });
+            }
+            else {
+                try {
+                    await this.publish_create_business_job.execute(job.externalId, person_id, {
+                        city_internal_id: city_internal_id ?? null,
+                        entity_type: req.businessType,
+                        business_name: req.businessName ?? null,
+                        business_address: req.businessAddress ?? null,
+                        business_type: req.businessType ?? null,
+                        relationship_to_business: 'Representante legal',
+                    });
+                }
+                catch {
+                }
+                await this.job_repository.update_status_and_step(job.id, shared_1.AsyncJobStatus.RUNNING, shared_1.AsyncJobStep.AWAITING_BUSINESS_CREATION, { person_internal_id: person_id });
+            }
+        }
+        else {
+            const correlation_id = (0, shared_1.new_uuid)();
+            const sqs_idempotency_key = `job_create_person_${job.externalId}`;
+            try {
+                await this.publish_create_person.execute({
+                    correlation_id,
+                    idempotency_key: sqs_idempotency_key,
+                    first_name: req.firstName,
+                    last_name: req.lastName,
+                    doc_type: req.docType,
+                    doc_number: req.docNumber,
+                    phone: req.phone ?? null,
+                    city_external_id: req.cityId ?? null,
+                });
+            }
+            catch (e) {
+                if (e instanceof validation_failed_error_1.ValidationFailedError) {
+                    await this.job_repository.update_failed(job.id, 'Cola create-person no configurada');
+                    throw new common_1.ConflictException(e.message);
+                }
+                throw e;
+            }
+            await this.job_repository.update_status_and_step(job.id, shared_1.AsyncJobStatus.RUNNING, shared_1.AsyncJobStep.AWAITING_PERSON_CREATION);
+        }
+        return new enqueue_legal_entity_credit_application_response_1.EnqueueLegalEntityCreditApplicationResponse(job.externalId);
+    }
+};
+exports.EnqueueLegalEntityCreditApplicationUseCase = EnqueueLegalEntityCreditApplicationUseCase;
+exports.EnqueueLegalEntityCreditApplicationUseCase = EnqueueLegalEntityCreditApplicationUseCase = __decorate([
+    (0, common_1.Injectable)(),
+    __param(0, (0, common_1.Inject)(credit_applications_tokens_1.CREDIT_APPLICATION_JOB_REPOSITORY)),
+    __param(1, (0, common_1.Inject)(products_reference_lookup_port_1.PRODUCTS_REFERENCE_LOOKUP)),
+    __param(2, (0, common_1.Inject)(client_registration_port_1.CLIENT_REGISTRATION_PORT)),
+    __metadata("design:paramtypes", [Object, Object, typeof (_a = typeof client_registration_port_1.ClientRegistrationPort !== "undefined" && client_registration_port_1.ClientRegistrationPort) === "function" ? _a : Object, typeof (_b = typeof publish_create_person_command_use_case_1.PublishCreatePersonCommandUseCase !== "undefined" && publish_create_person_command_use_case_1.PublishCreatePersonCommandUseCase) === "function" ? _b : Object, typeof (_c = typeof publish_create_business_job_use_case_1.PublishCreateBusinessJobUseCase !== "undefined" && publish_create_business_job_use_case_1.PublishCreateBusinessJobUseCase) === "function" ? _c : Object])
+], EnqueueLegalEntityCreditApplicationUseCase);
+
+
+/***/ },
+
 /***/ "./apps/products-ms/src/modules/credit-applications/application/use-cases/enqueue-natural-person-credit-application/enqueue-natural-person-credit-application.request.ts"
 /*!*******************************************************************************************************************************************************************************!*\
   !*** ./apps/products-ms/src/modules/credit-applications/application/use-cases/enqueue-natural-person-credit-application/enqueue-natural-person-credit-application.request.ts ***!
@@ -6398,6 +6682,7 @@ const authorize_credit_application_use_case_1 = __webpack_require__(/*! @modules
 const publish_authorization_notification_use_case_1 = __webpack_require__(/*! @modules/credit-applications/application/use-cases/publish-authorization-notification/publish-authorization-notification.use-case */ "./apps/products-ms/src/modules/credit-applications/application/use-cases/publish-authorization-notification/publish-authorization-notification.use-case.ts");
 const register_natural_person_credit_application_use_case_1 = __webpack_require__(/*! @modules/credit-applications/application/use-cases/register-natural-person-credit-application/register-natural-person-credit-application.use-case */ "./apps/products-ms/src/modules/credit-applications/application/use-cases/register-natural-person-credit-application/register-natural-person-credit-application.use-case.ts");
 const enqueue_natural_person_credit_application_use_case_1 = __webpack_require__(/*! @modules/credit-applications/application/use-cases/enqueue-natural-person-credit-application/enqueue-natural-person-credit-application.use-case */ "./apps/products-ms/src/modules/credit-applications/application/use-cases/enqueue-natural-person-credit-application/enqueue-natural-person-credit-application.use-case.ts");
+const enqueue_legal_entity_credit_application_use_case_1 = __webpack_require__(/*! @modules/credit-applications/application/use-cases/enqueue-legal-entity-credit-application/enqueue-legal-entity-credit-application.use-case */ "./apps/products-ms/src/modules/credit-applications/application/use-cases/enqueue-legal-entity-credit-application/enqueue-legal-entity-credit-application.use-case.ts");
 const get_credit_application_job_use_case_1 = __webpack_require__(/*! @modules/credit-applications/application/use-cases/get-credit-application-job/get-credit-application-job.use-case */ "./apps/products-ms/src/modules/credit-applications/application/use-cases/get-credit-application-job/get-credit-application-job.use-case.ts");
 const credit_application_job_worker_1 = __webpack_require__(/*! @modules/credit-applications/infrastructure/workers/credit-application-job.worker */ "./apps/products-ms/src/modules/credit-applications/infrastructure/workers/credit-application-job.worker.ts");
 const USE_CASES = [
@@ -6418,6 +6703,7 @@ const USE_CASES = [
     publish_authorization_notification_use_case_1.PublishAuthorizationNotificationUseCase,
     register_natural_person_credit_application_use_case_1.RegisterNaturalPersonCreditApplicationUseCase,
     enqueue_natural_person_credit_application_use_case_1.EnqueueNaturalPersonCreditApplicationUseCase,
+    enqueue_legal_entity_credit_application_use_case_1.EnqueueLegalEntityCreditApplicationUseCase,
     get_credit_application_job_use_case_1.GetCreditApplicationJobUseCase,
     credit_application_job_worker_1.CreditApplicationJobWorkerService,
 ];
@@ -6843,7 +7129,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y;
+var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CreditApplicationsPrivateController = void 0;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
@@ -6870,11 +7156,15 @@ const approve_credit_application_use_case_1 = __webpack_require__(/*! @modules/c
 const approve_credit_application_request_1 = __webpack_require__(/*! @modules/credit-applications/application/use-cases/approve-credit-application/approve-credit-application.request */ "./apps/products-ms/src/modules/credit-applications/application/use-cases/approve-credit-application/approve-credit-application.request.ts");
 const reject_credit_application_use_case_1 = __webpack_require__(/*! @modules/credit-applications/application/use-cases/reject-credit-application/reject-credit-application.use-case */ "./apps/products-ms/src/modules/credit-applications/application/use-cases/reject-credit-application/reject-credit-application.use-case.ts");
 const reject_credit_application_request_1 = __webpack_require__(/*! @modules/credit-applications/application/use-cases/reject-credit-application/reject-credit-application.request */ "./apps/products-ms/src/modules/credit-applications/application/use-cases/reject-credit-application/reject-credit-application.request.ts");
+const enqueue_legal_entity_credit_application_use_case_1 = __webpack_require__(/*! @modules/credit-applications/application/use-cases/enqueue-legal-entity-credit-application/enqueue-legal-entity-credit-application.use-case */ "./apps/products-ms/src/modules/credit-applications/application/use-cases/enqueue-legal-entity-credit-application/enqueue-legal-entity-credit-application.use-case.ts");
+const enqueue_legal_entity_credit_application_request_1 = __webpack_require__(/*! @modules/credit-applications/application/use-cases/enqueue-legal-entity-credit-application/enqueue-legal-entity-credit-application.request */ "./apps/products-ms/src/modules/credit-applications/application/use-cases/enqueue-legal-entity-credit-application/enqueue-legal-entity-credit-application.request.ts");
 const update_credit_application_dto_1 = __webpack_require__(/*! ../dto/update-credit-application.dto */ "./apps/products-ms/src/modules/credit-applications/presentation/dto/update-credit-application.dto.ts");
 const approve_credit_application_dto_1 = __webpack_require__(/*! ../dto/approve-credit-application.dto */ "./apps/products-ms/src/modules/credit-applications/presentation/dto/approve-credit-application.dto.ts");
 const reject_credit_application_dto_1 = __webpack_require__(/*! ../dto/reject-credit-application.dto */ "./apps/products-ms/src/modules/credit-applications/presentation/dto/reject-credit-application.dto.ts");
 const save_pre_study_dto_1 = __webpack_require__(/*! ../dto/save-pre-study.dto */ "./apps/products-ms/src/modules/credit-applications/presentation/dto/save-pre-study.dto.ts");
 const credit_application_response_dto_1 = __webpack_require__(/*! ../dto/credit-application-response.dto */ "./apps/products-ms/src/modules/credit-applications/presentation/dto/credit-application-response.dto.ts");
+const create_legal_entity_credit_application_dto_1 = __webpack_require__(/*! ../dto/create-legal-entity-credit-application.dto */ "./apps/products-ms/src/modules/credit-applications/presentation/dto/create-legal-entity-credit-application.dto.ts");
+const credit_application_job_response_dto_1 = __webpack_require__(/*! ../dto/credit-application-job-response.dto */ "./apps/products-ms/src/modules/credit-applications/presentation/dto/credit-application-job-response.dto.ts");
 let CreditApplicationsPrivateController = class CreditApplicationsPrivateController {
     list_all;
     list_by_partner;
@@ -6885,7 +7175,8 @@ let CreditApplicationsPrivateController = class CreditApplicationsPrivateControl
     upload_document;
     approve;
     reject;
-    constructor(list_all, list_by_partner, list_by_sales_rep, get_by_external_id, update, save_pre_study, upload_document, approve, reject) {
+    enqueue_legal_entity;
+    constructor(list_all, list_by_partner, list_by_sales_rep, get_by_external_id, update, save_pre_study, upload_document, approve, reject, enqueue_legal_entity) {
         this.list_all = list_all;
         this.list_by_partner = list_by_partner;
         this.list_by_sales_rep = list_by_sales_rep;
@@ -6895,6 +7186,17 @@ let CreditApplicationsPrivateController = class CreditApplicationsPrivateControl
         this.upload_document = upload_document;
         this.approve = approve;
         this.reject = reject;
+        this.enqueue_legal_entity = enqueue_legal_entity;
+    }
+    async create_legal_entity_async(dto, idempotency_key) {
+        const result = await this.enqueue_legal_entity.execute(new enqueue_legal_entity_credit_application_request_1.EnqueueLegalEntityCreditApplicationRequest(dto.partnerId, dto.salesRepId, dto.legalName, dto.taxId, dto.yearOfEstablishment ?? null, dto.cityId ?? null, dto.businessAddress ?? null, dto.email, dto.firstName, dto.lastName, dto.docType, dto.docNumber, dto.phone, dto.legalRepAddress ?? null, dto.businessName ?? null, dto.businessType, dto.businessSeniority ?? null, dto.numberOfLocations ?? null, dto.numberOfEmployees ?? null, dto.businessFlagshipM2 ?? null, dto.businessRentAmount ?? null, dto.totalAssets ?? null, dto.monthlyIncome ?? null, dto.monthlyExpenses ?? null, dto.monthlyPurchases ?? null, dto.currentPurchases ?? null, dto.requestedCreditLine, dto.shareholders.map((s) => ({
+            first_name: s.shareholderName,
+            last_name: s.shareholderLastName,
+            doc_type: s.shareholderDocType,
+            doc_number: s.shareholderDocNumber,
+            ownership_percentage: s.shareholderPercent ?? null,
+        })), dto.salesRepKnowledgeTime ?? null, dto.salesRepConfidence ?? null, dto.salesRepSuggestedLimit ?? null, dto.privacyPolicyAccepted, dto.partnerCategoryIds ?? null, idempotency_key ?? null));
+        return new credit_application_job_response_dto_1.EnqueueCreditApplicationResponseDto(result.jobId);
     }
     async list() {
         const rows = await this.list_all.execute();
@@ -6935,12 +7237,26 @@ let CreditApplicationsPrivateController = class CreditApplicationsPrivateControl
 };
 exports.CreditApplicationsPrivateController = CreditApplicationsPrivateController;
 __decorate([
+    (0, common_1.Post)('legal-entity/async'),
+    (0, common_1.HttpCode)(common_1.HttpStatus.ACCEPTED),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Encolar solicitud de cupo (persona jurídica) — representante de ventas',
+        description: 'Devuelve 202 + job_id inmediatamente. El proceso crea el representante legal (transversal-ms), el negocio (suppliers-ms) y la solicitud de crédito de forma asíncrona. Las categorías se asignan desde partnerCategoryIds enviado en el body. Consultar estado en GET /credit-applications/jobs/:jobId.',
+    }),
+    (0, swagger_1.ApiAcceptedResponse)({ description: 'Job encolado', type: credit_application_job_response_dto_1.EnqueueCreditApplicationResponseDto }),
+    __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Headers)('Idempotency-Key')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [typeof (_l = typeof create_legal_entity_credit_application_dto_1.CreateLegalEntityCreditApplicationDto !== "undefined" && create_legal_entity_credit_application_dto_1.CreateLegalEntityCreditApplicationDto) === "function" ? _l : Object, String]),
+    __metadata("design:returntype", typeof (_m = typeof Promise !== "undefined" && Promise) === "function" ? _m : Object)
+], CreditApplicationsPrivateController.prototype, "create_legal_entity_async", null);
+__decorate([
     (0, common_1.Get)(),
     (0, swagger_1.ApiOperation)({ summary: 'Listar todas las solicitudes de cupo' }),
     (0, swagger_1.ApiOkResponse)({ type: [credit_application_response_dto_1.CreditApplicationResponseDto] }),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
-    __metadata("design:returntype", typeof (_k = typeof Promise !== "undefined" && Promise) === "function" ? _k : Object)
+    __metadata("design:returntype", typeof (_o = typeof Promise !== "undefined" && Promise) === "function" ? _o : Object)
 ], CreditApplicationsPrivateController.prototype, "list", null);
 __decorate([
     (0, common_1.Get)('partner/:partnerId'),
@@ -6949,7 +7265,7 @@ __decorate([
     __param(0, (0, common_1.Param)('partnerId', common_1.ParseIntPipe)),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
-    __metadata("design:returntype", typeof (_l = typeof Promise !== "undefined" && Promise) === "function" ? _l : Object)
+    __metadata("design:returntype", typeof (_p = typeof Promise !== "undefined" && Promise) === "function" ? _p : Object)
 ], CreditApplicationsPrivateController.prototype, "list_by_partner_id", null);
 __decorate([
     (0, common_1.Get)('sales-rep/:salesRepId'),
@@ -6958,7 +7274,7 @@ __decorate([
     __param(0, (0, common_1.Param)('salesRepId', common_1.ParseIntPipe)),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
-    __metadata("design:returntype", typeof (_m = typeof Promise !== "undefined" && Promise) === "function" ? _m : Object)
+    __metadata("design:returntype", typeof (_q = typeof Promise !== "undefined" && Promise) === "function" ? _q : Object)
 ], CreditApplicationsPrivateController.prototype, "list_by_sales_rep_id", null);
 __decorate([
     (0, common_1.Get)(':externalId'),
@@ -6967,7 +7283,7 @@ __decorate([
     __param(0, (0, common_1.Param)('externalId', new common_1.ParseUUIDPipe({ version: '4' }))),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", typeof (_o = typeof Promise !== "undefined" && Promise) === "function" ? _o : Object)
+    __metadata("design:returntype", typeof (_r = typeof Promise !== "undefined" && Promise) === "function" ? _r : Object)
 ], CreditApplicationsPrivateController.prototype, "get_detail", null);
 __decorate([
     (0, common_1.Patch)(':externalId'),
@@ -6976,8 +7292,8 @@ __decorate([
     __param(0, (0, common_1.Param)('externalId', new common_1.ParseUUIDPipe({ version: '4' }))),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, typeof (_p = typeof update_credit_application_dto_1.UpdateCreditApplicationDto !== "undefined" && update_credit_application_dto_1.UpdateCreditApplicationDto) === "function" ? _p : Object]),
-    __metadata("design:returntype", typeof (_q = typeof Promise !== "undefined" && Promise) === "function" ? _q : Object)
+    __metadata("design:paramtypes", [String, typeof (_s = typeof update_credit_application_dto_1.UpdateCreditApplicationDto !== "undefined" && update_credit_application_dto_1.UpdateCreditApplicationDto) === "function" ? _s : Object]),
+    __metadata("design:returntype", typeof (_t = typeof Promise !== "undefined" && Promise) === "function" ? _t : Object)
 ], CreditApplicationsPrivateController.prototype, "update_application", null);
 __decorate([
     (0, common_1.Post)(':externalId/pre-study'),
@@ -6987,8 +7303,8 @@ __decorate([
     __param(0, (0, common_1.Param)('externalId', new common_1.ParseUUIDPipe({ version: '4' }))),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, typeof (_r = typeof save_pre_study_dto_1.SavePreStudyDto !== "undefined" && save_pre_study_dto_1.SavePreStudyDto) === "function" ? _r : Object]),
-    __metadata("design:returntype", typeof (_s = typeof Promise !== "undefined" && Promise) === "function" ? _s : Object)
+    __metadata("design:paramtypes", [String, typeof (_u = typeof save_pre_study_dto_1.SavePreStudyDto !== "undefined" && save_pre_study_dto_1.SavePreStudyDto) === "function" ? _u : Object]),
+    __metadata("design:returntype", typeof (_v = typeof Promise !== "undefined" && Promise) === "function" ? _v : Object)
 ], CreditApplicationsPrivateController.prototype, "save_study", null);
 __decorate([
     (0, common_1.Post)(':externalId/documents'),
@@ -7010,8 +7326,8 @@ __decorate([
     __param(1, (0, common_1.Body)('documentType')),
     __param(2, (0, common_1.UploadedFile)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, typeof (_t = typeof MulterFile !== "undefined" && MulterFile) === "function" ? _t : Object]),
-    __metadata("design:returntype", typeof (_u = typeof Promise !== "undefined" && Promise) === "function" ? _u : Object)
+    __metadata("design:paramtypes", [String, String, typeof (_w = typeof MulterFile !== "undefined" && MulterFile) === "function" ? _w : Object]),
+    __metadata("design:returntype", typeof (_x = typeof Promise !== "undefined" && Promise) === "function" ? _x : Object)
 ], CreditApplicationsPrivateController.prototype, "upload_doc", null);
 __decorate([
     (0, common_1.Post)(':externalId/approve'),
@@ -7022,8 +7338,8 @@ __decorate([
     __param(0, (0, common_1.Param)('externalId', new common_1.ParseUUIDPipe({ version: '4' }))),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, typeof (_v = typeof approve_credit_application_dto_1.ApproveCreditApplicationDto !== "undefined" && approve_credit_application_dto_1.ApproveCreditApplicationDto) === "function" ? _v : Object]),
-    __metadata("design:returntype", typeof (_w = typeof Promise !== "undefined" && Promise) === "function" ? _w : Object)
+    __metadata("design:paramtypes", [String, typeof (_y = typeof approve_credit_application_dto_1.ApproveCreditApplicationDto !== "undefined" && approve_credit_application_dto_1.ApproveCreditApplicationDto) === "function" ? _y : Object]),
+    __metadata("design:returntype", typeof (_z = typeof Promise !== "undefined" && Promise) === "function" ? _z : Object)
 ], CreditApplicationsPrivateController.prototype, "approve_application", null);
 __decorate([
     (0, common_1.Post)(':externalId/reject'),
@@ -7034,8 +7350,8 @@ __decorate([
     __param(0, (0, common_1.Param)('externalId', new common_1.ParseUUIDPipe({ version: '4' }))),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, typeof (_x = typeof reject_credit_application_dto_1.RejectCreditApplicationDto !== "undefined" && reject_credit_application_dto_1.RejectCreditApplicationDto) === "function" ? _x : Object]),
-    __metadata("design:returntype", typeof (_y = typeof Promise !== "undefined" && Promise) === "function" ? _y : Object)
+    __metadata("design:paramtypes", [String, typeof (_0 = typeof reject_credit_application_dto_1.RejectCreditApplicationDto !== "undefined" && reject_credit_application_dto_1.RejectCreditApplicationDto) === "function" ? _0 : Object]),
+    __metadata("design:returntype", typeof (_1 = typeof Promise !== "undefined" && Promise) === "function" ? _1 : Object)
 ], CreditApplicationsPrivateController.prototype, "reject_application", null);
 exports.CreditApplicationsPrivateController = CreditApplicationsPrivateController = __decorate([
     (0, swagger_1.ApiTags)('credit-applications'),
@@ -7043,7 +7359,7 @@ exports.CreditApplicationsPrivateController = CreditApplicationsPrivateControlle
     (0, common_1.Controller)('credit-applications'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     (0, require_roles_decorator_1.RequireRoles)(shared_1.Roles.BACK_OFFICE_ADMIN, shared_1.Roles.BACK_OFFICE_ANALYST, shared_1.Roles.SALES_MANAGER, shared_1.Roles.SALES_REPRESENTATIVE, shared_1.Roles.PARTNER_ADMIN),
-    __metadata("design:paramtypes", [typeof (_a = typeof list_credit_applications_use_case_1.ListCreditApplicationsUseCase !== "undefined" && list_credit_applications_use_case_1.ListCreditApplicationsUseCase) === "function" ? _a : Object, typeof (_b = typeof list_credit_applications_by_partner_use_case_1.ListCreditApplicationsByPartnerUseCase !== "undefined" && list_credit_applications_by_partner_use_case_1.ListCreditApplicationsByPartnerUseCase) === "function" ? _b : Object, typeof (_c = typeof list_credit_applications_by_sales_rep_use_case_1.ListCreditApplicationsBySalesRepUseCase !== "undefined" && list_credit_applications_by_sales_rep_use_case_1.ListCreditApplicationsBySalesRepUseCase) === "function" ? _c : Object, typeof (_d = typeof get_credit_application_by_external_id_use_case_1.GetCreditApplicationByExternalIdUseCase !== "undefined" && get_credit_application_by_external_id_use_case_1.GetCreditApplicationByExternalIdUseCase) === "function" ? _d : Object, typeof (_e = typeof update_credit_application_by_external_id_use_case_1.UpdateCreditApplicationByExternalIdUseCase !== "undefined" && update_credit_application_by_external_id_use_case_1.UpdateCreditApplicationByExternalIdUseCase) === "function" ? _e : Object, typeof (_f = typeof save_credit_application_pre_study_use_case_1.SaveCreditApplicationPreStudyUseCase !== "undefined" && save_credit_application_pre_study_use_case_1.SaveCreditApplicationPreStudyUseCase) === "function" ? _f : Object, typeof (_g = typeof upload_credit_application_document_use_case_1.UploadCreditApplicationDocumentUseCase !== "undefined" && upload_credit_application_document_use_case_1.UploadCreditApplicationDocumentUseCase) === "function" ? _g : Object, typeof (_h = typeof approve_credit_application_use_case_1.ApproveCreditApplicationUseCase !== "undefined" && approve_credit_application_use_case_1.ApproveCreditApplicationUseCase) === "function" ? _h : Object, typeof (_j = typeof reject_credit_application_use_case_1.RejectCreditApplicationUseCase !== "undefined" && reject_credit_application_use_case_1.RejectCreditApplicationUseCase) === "function" ? _j : Object])
+    __metadata("design:paramtypes", [typeof (_a = typeof list_credit_applications_use_case_1.ListCreditApplicationsUseCase !== "undefined" && list_credit_applications_use_case_1.ListCreditApplicationsUseCase) === "function" ? _a : Object, typeof (_b = typeof list_credit_applications_by_partner_use_case_1.ListCreditApplicationsByPartnerUseCase !== "undefined" && list_credit_applications_by_partner_use_case_1.ListCreditApplicationsByPartnerUseCase) === "function" ? _b : Object, typeof (_c = typeof list_credit_applications_by_sales_rep_use_case_1.ListCreditApplicationsBySalesRepUseCase !== "undefined" && list_credit_applications_by_sales_rep_use_case_1.ListCreditApplicationsBySalesRepUseCase) === "function" ? _c : Object, typeof (_d = typeof get_credit_application_by_external_id_use_case_1.GetCreditApplicationByExternalIdUseCase !== "undefined" && get_credit_application_by_external_id_use_case_1.GetCreditApplicationByExternalIdUseCase) === "function" ? _d : Object, typeof (_e = typeof update_credit_application_by_external_id_use_case_1.UpdateCreditApplicationByExternalIdUseCase !== "undefined" && update_credit_application_by_external_id_use_case_1.UpdateCreditApplicationByExternalIdUseCase) === "function" ? _e : Object, typeof (_f = typeof save_credit_application_pre_study_use_case_1.SaveCreditApplicationPreStudyUseCase !== "undefined" && save_credit_application_pre_study_use_case_1.SaveCreditApplicationPreStudyUseCase) === "function" ? _f : Object, typeof (_g = typeof upload_credit_application_document_use_case_1.UploadCreditApplicationDocumentUseCase !== "undefined" && upload_credit_application_document_use_case_1.UploadCreditApplicationDocumentUseCase) === "function" ? _g : Object, typeof (_h = typeof approve_credit_application_use_case_1.ApproveCreditApplicationUseCase !== "undefined" && approve_credit_application_use_case_1.ApproveCreditApplicationUseCase) === "function" ? _h : Object, typeof (_j = typeof reject_credit_application_use_case_1.RejectCreditApplicationUseCase !== "undefined" && reject_credit_application_use_case_1.RejectCreditApplicationUseCase) === "function" ? _j : Object, typeof (_k = typeof enqueue_legal_entity_credit_application_use_case_1.EnqueueLegalEntityCreditApplicationUseCase !== "undefined" && enqueue_legal_entity_credit_application_use_case_1.EnqueueLegalEntityCreditApplicationUseCase) === "function" ? _k : Object])
 ], CreditApplicationsPrivateController);
 
 
@@ -7068,7 +7384,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
+var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CreditApplicationsPublicController = void 0;
 const common_1 = __webpack_require__(/*! @nestjs/common */ "@nestjs/common");
@@ -7079,21 +7395,26 @@ const register_natural_person_credit_application_use_case_1 = __webpack_require_
 const register_natural_person_credit_application_request_1 = __webpack_require__(/*! @modules/credit-applications/application/use-cases/register-natural-person-credit-application/register-natural-person-credit-application.request */ "./apps/products-ms/src/modules/credit-applications/application/use-cases/register-natural-person-credit-application/register-natural-person-credit-application.request.ts");
 const enqueue_natural_person_credit_application_use_case_1 = __webpack_require__(/*! @modules/credit-applications/application/use-cases/enqueue-natural-person-credit-application/enqueue-natural-person-credit-application.use-case */ "./apps/products-ms/src/modules/credit-applications/application/use-cases/enqueue-natural-person-credit-application/enqueue-natural-person-credit-application.use-case.ts");
 const enqueue_natural_person_credit_application_request_1 = __webpack_require__(/*! @modules/credit-applications/application/use-cases/enqueue-natural-person-credit-application/enqueue-natural-person-credit-application.request */ "./apps/products-ms/src/modules/credit-applications/application/use-cases/enqueue-natural-person-credit-application/enqueue-natural-person-credit-application.request.ts");
+const enqueue_legal_entity_credit_application_use_case_1 = __webpack_require__(/*! @modules/credit-applications/application/use-cases/enqueue-legal-entity-credit-application/enqueue-legal-entity-credit-application.use-case */ "./apps/products-ms/src/modules/credit-applications/application/use-cases/enqueue-legal-entity-credit-application/enqueue-legal-entity-credit-application.use-case.ts");
+const enqueue_legal_entity_credit_application_request_1 = __webpack_require__(/*! @modules/credit-applications/application/use-cases/enqueue-legal-entity-credit-application/enqueue-legal-entity-credit-application.request */ "./apps/products-ms/src/modules/credit-applications/application/use-cases/enqueue-legal-entity-credit-application/enqueue-legal-entity-credit-application.request.ts");
 const get_credit_application_job_use_case_1 = __webpack_require__(/*! @modules/credit-applications/application/use-cases/get-credit-application-job/get-credit-application-job.use-case */ "./apps/products-ms/src/modules/credit-applications/application/use-cases/get-credit-application-job/get-credit-application-job.use-case.ts");
 const get_credit_application_job_request_1 = __webpack_require__(/*! @modules/credit-applications/application/use-cases/get-credit-application-job/get-credit-application-job.request */ "./apps/products-ms/src/modules/credit-applications/application/use-cases/get-credit-application-job/get-credit-application-job.request.ts");
 const create_credit_application_dto_1 = __webpack_require__(/*! ../dto/create-credit-application.dto */ "./apps/products-ms/src/modules/credit-applications/presentation/dto/create-credit-application.dto.ts");
 const create_natural_person_credit_application_dto_1 = __webpack_require__(/*! ../dto/create-natural-person-credit-application.dto */ "./apps/products-ms/src/modules/credit-applications/presentation/dto/create-natural-person-credit-application.dto.ts");
+const create_legal_entity_credit_application_dto_1 = __webpack_require__(/*! ../dto/create-legal-entity-credit-application.dto */ "./apps/products-ms/src/modules/credit-applications/presentation/dto/create-legal-entity-credit-application.dto.ts");
 const credit_application_response_dto_1 = __webpack_require__(/*! ../dto/credit-application-response.dto */ "./apps/products-ms/src/modules/credit-applications/presentation/dto/credit-application-response.dto.ts");
 const credit_application_job_response_dto_1 = __webpack_require__(/*! ../dto/credit-application-job-response.dto */ "./apps/products-ms/src/modules/credit-applications/presentation/dto/credit-application-job-response.dto.ts");
 let CreditApplicationsPublicController = class CreditApplicationsPublicController {
     register_client;
     register_natural_person;
     enqueue_natural_person;
+    enqueue_legal_entity;
     get_job;
-    constructor(register_client, register_natural_person, enqueue_natural_person, get_job) {
+    constructor(register_client, register_natural_person, enqueue_natural_person, enqueue_legal_entity, get_job) {
         this.register_client = register_client;
         this.register_natural_person = register_natural_person;
         this.enqueue_natural_person = enqueue_natural_person;
+        this.enqueue_legal_entity = enqueue_legal_entity;
         this.get_job = get_job;
     }
     async create(dto) {
@@ -7106,6 +7427,16 @@ let CreditApplicationsPublicController = class CreditApplicationsPublicControlle
     }
     async create_natural_person_async(dto, idempotency_key) {
         const result = await this.enqueue_natural_person.execute(new enqueue_natural_person_credit_application_request_1.EnqueueNaturalPersonCreditApplicationRequest(dto.partnerId, dto.salesRepId, dto.firstName, dto.lastName, dto.docType, dto.docNumber, dto.phone ?? null, dto.email ?? null, dto.birthDate ?? null, dto.cityId ?? null, dto.businessType, dto.businessName ?? null, dto.businessAddress ?? null, dto.relationshipToBusiness ?? null, dto.businessSeniority ?? null, dto.numberOfEmployees ?? null, dto.numberOfLocations ?? null, dto.businessFlagshipM2 ?? null, null, dto.businessRentAmount ?? null, dto.requestedCreditLine, dto.monthlyPurchases ?? null, dto.currentPurchases ?? null, dto.totalAssets ?? null, dto.monthlyIncome ?? null, dto.monthlyExpenses ?? null, dto.privacyPolicyAccepted, idempotency_key ?? null));
+        return new credit_application_job_response_dto_1.EnqueueCreditApplicationResponseDto(result.jobId);
+    }
+    async create_legal_entity_async(dto, idempotency_key) {
+        const result = await this.enqueue_legal_entity.execute(new enqueue_legal_entity_credit_application_request_1.EnqueueLegalEntityCreditApplicationRequest(dto.partnerId, dto.salesRepId, dto.legalName, dto.taxId, dto.yearOfEstablishment ?? null, dto.cityId ?? null, dto.businessAddress ?? null, dto.email, dto.firstName, dto.lastName, dto.docType, dto.docNumber, dto.phone, dto.legalRepAddress ?? null, dto.businessName ?? null, dto.businessType, dto.businessSeniority ?? null, dto.numberOfLocations ?? null, dto.numberOfEmployees ?? null, dto.businessFlagshipM2 ?? null, dto.businessRentAmount ?? null, dto.totalAssets ?? null, dto.monthlyIncome ?? null, dto.monthlyExpenses ?? null, dto.monthlyPurchases ?? null, dto.currentPurchases ?? null, dto.requestedCreditLine, dto.shareholders.map((s) => ({
+            first_name: s.shareholderName,
+            last_name: s.shareholderLastName,
+            doc_type: s.shareholderDocType,
+            doc_number: s.shareholderDocNumber,
+            ownership_percentage: s.shareholderPercent ?? null,
+        })), dto.salesRepKnowledgeTime ?? null, dto.salesRepConfidence ?? null, dto.salesRepSuggestedLimit ?? null, dto.privacyPolicyAccepted, null, idempotency_key ?? null));
         return new credit_application_job_response_dto_1.EnqueueCreditApplicationResponseDto(result.jobId);
     }
     async get_job_status(job_id) {
@@ -7127,8 +7458,8 @@ __decorate([
     }),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_e = typeof create_credit_application_dto_1.CreateCreditApplicationDto !== "undefined" && create_credit_application_dto_1.CreateCreditApplicationDto) === "function" ? _e : Object]),
-    __metadata("design:returntype", typeof (_f = typeof Promise !== "undefined" && Promise) === "function" ? _f : Object)
+    __metadata("design:paramtypes", [typeof (_f = typeof create_credit_application_dto_1.CreateCreditApplicationDto !== "undefined" && create_credit_application_dto_1.CreateCreditApplicationDto) === "function" ? _f : Object]),
+    __metadata("design:returntype", typeof (_g = typeof Promise !== "undefined" && Promise) === "function" ? _g : Object)
 ], CreditApplicationsPublicController.prototype, "create", null);
 __decorate([
     (0, common_1.Post)('natural-person'),
@@ -7143,8 +7474,8 @@ __decorate([
     }),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_g = typeof create_natural_person_credit_application_dto_1.CreateNaturalPersonCreditApplicationDto !== "undefined" && create_natural_person_credit_application_dto_1.CreateNaturalPersonCreditApplicationDto) === "function" ? _g : Object]),
-    __metadata("design:returntype", typeof (_h = typeof Promise !== "undefined" && Promise) === "function" ? _h : Object)
+    __metadata("design:paramtypes", [typeof (_h = typeof create_natural_person_credit_application_dto_1.CreateNaturalPersonCreditApplicationDto !== "undefined" && create_natural_person_credit_application_dto_1.CreateNaturalPersonCreditApplicationDto) === "function" ? _h : Object]),
+    __metadata("design:returntype", typeof (_j = typeof Promise !== "undefined" && Promise) === "function" ? _j : Object)
 ], CreditApplicationsPublicController.prototype, "create_natural_person", null);
 __decorate([
     (0, common_1.Post)('natural-person/async'),
@@ -7157,9 +7488,23 @@ __decorate([
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.Headers)('Idempotency-Key')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_j = typeof create_natural_person_credit_application_dto_1.CreateNaturalPersonCreditApplicationDto !== "undefined" && create_natural_person_credit_application_dto_1.CreateNaturalPersonCreditApplicationDto) === "function" ? _j : Object, String]),
-    __metadata("design:returntype", typeof (_k = typeof Promise !== "undefined" && Promise) === "function" ? _k : Object)
+    __metadata("design:paramtypes", [typeof (_k = typeof create_natural_person_credit_application_dto_1.CreateNaturalPersonCreditApplicationDto !== "undefined" && create_natural_person_credit_application_dto_1.CreateNaturalPersonCreditApplicationDto) === "function" ? _k : Object, String]),
+    __metadata("design:returntype", typeof (_l = typeof Promise !== "undefined" && Promise) === "function" ? _l : Object)
 ], CreditApplicationsPublicController.prototype, "create_natural_person_async", null);
+__decorate([
+    (0, common_1.Post)('legal-entity'),
+    (0, common_1.HttpCode)(common_1.HttpStatus.ACCEPTED),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Encolar solicitud de cupo (persona jurídica) — asíncrono',
+        description: 'Devuelve 202 + job_id inmediatamente. El proceso crea el representante legal (transversal-ms), el negocio (suppliers-ms) y la solicitud de crédito de forma asíncrona. Las categorías asignadas son las que tienen is_default = true para el partner indicado. Consultar estado en GET /credit-applications/jobs/:jobId.',
+    }),
+    (0, swagger_1.ApiAcceptedResponse)({ description: 'Job encolado', type: credit_application_job_response_dto_1.EnqueueCreditApplicationResponseDto }),
+    __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Headers)('Idempotency-Key')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [typeof (_m = typeof create_legal_entity_credit_application_dto_1.CreateLegalEntityCreditApplicationDto !== "undefined" && create_legal_entity_credit_application_dto_1.CreateLegalEntityCreditApplicationDto) === "function" ? _m : Object, String]),
+    __metadata("design:returntype", typeof (_o = typeof Promise !== "undefined" && Promise) === "function" ? _o : Object)
+], CreditApplicationsPublicController.prototype, "create_legal_entity_async", null);
 __decorate([
     (0, common_1.Get)('jobs/:jobId'),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
@@ -7168,12 +7513,12 @@ __decorate([
     __param(0, (0, common_1.Param)('jobId')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", typeof (_l = typeof Promise !== "undefined" && Promise) === "function" ? _l : Object)
+    __metadata("design:returntype", typeof (_p = typeof Promise !== "undefined" && Promise) === "function" ? _p : Object)
 ], CreditApplicationsPublicController.prototype, "get_job_status", null);
 exports.CreditApplicationsPublicController = CreditApplicationsPublicController = __decorate([
     (0, swagger_1.ApiTags)('credit-applications'),
     (0, common_1.Controller)('credit-applications'),
-    __metadata("design:paramtypes", [typeof (_a = typeof register_client_credit_application_use_case_1.RegisterClientCreditApplicationUseCase !== "undefined" && register_client_credit_application_use_case_1.RegisterClientCreditApplicationUseCase) === "function" ? _a : Object, typeof (_b = typeof register_natural_person_credit_application_use_case_1.RegisterNaturalPersonCreditApplicationUseCase !== "undefined" && register_natural_person_credit_application_use_case_1.RegisterNaturalPersonCreditApplicationUseCase) === "function" ? _b : Object, typeof (_c = typeof enqueue_natural_person_credit_application_use_case_1.EnqueueNaturalPersonCreditApplicationUseCase !== "undefined" && enqueue_natural_person_credit_application_use_case_1.EnqueueNaturalPersonCreditApplicationUseCase) === "function" ? _c : Object, typeof (_d = typeof get_credit_application_job_use_case_1.GetCreditApplicationJobUseCase !== "undefined" && get_credit_application_job_use_case_1.GetCreditApplicationJobUseCase) === "function" ? _d : Object])
+    __metadata("design:paramtypes", [typeof (_a = typeof register_client_credit_application_use_case_1.RegisterClientCreditApplicationUseCase !== "undefined" && register_client_credit_application_use_case_1.RegisterClientCreditApplicationUseCase) === "function" ? _a : Object, typeof (_b = typeof register_natural_person_credit_application_use_case_1.RegisterNaturalPersonCreditApplicationUseCase !== "undefined" && register_natural_person_credit_application_use_case_1.RegisterNaturalPersonCreditApplicationUseCase) === "function" ? _b : Object, typeof (_c = typeof enqueue_natural_person_credit_application_use_case_1.EnqueueNaturalPersonCreditApplicationUseCase !== "undefined" && enqueue_natural_person_credit_application_use_case_1.EnqueueNaturalPersonCreditApplicationUseCase) === "function" ? _c : Object, typeof (_d = typeof enqueue_legal_entity_credit_application_use_case_1.EnqueueLegalEntityCreditApplicationUseCase !== "undefined" && enqueue_legal_entity_credit_application_use_case_1.EnqueueLegalEntityCreditApplicationUseCase) === "function" ? _d : Object, typeof (_e = typeof get_credit_application_job_use_case_1.GetCreditApplicationJobUseCase !== "undefined" && get_credit_application_job_use_case_1.GetCreditApplicationJobUseCase) === "function" ? _e : Object])
 ], CreditApplicationsPublicController);
 
 
@@ -7593,6 +7938,318 @@ __decorate([
     (0, class_validator_1.Min)(0),
     __metadata("design:type", Object)
 ], CreateCreditApplicationDto.prototype, "monthlyExpenses", void 0);
+
+
+/***/ },
+
+/***/ "./apps/products-ms/src/modules/credit-applications/presentation/dto/create-legal-entity-credit-application.dto.ts"
+/*!*************************************************************************************************************************!*\
+  !*** ./apps/products-ms/src/modules/credit-applications/presentation/dto/create-legal-entity-credit-application.dto.ts ***!
+  \*************************************************************************************************************************/
+(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.CreateLegalEntityCreditApplicationDto = exports.LegalEntityShareholderItemDto = void 0;
+const swagger_1 = __webpack_require__(/*! @nestjs/swagger */ "@nestjs/swagger");
+const class_validator_1 = __webpack_require__(/*! class-validator */ "class-validator");
+const class_transformer_1 = __webpack_require__(/*! class-transformer */ "class-transformer");
+class LegalEntityShareholderItemDto {
+    shareholderName;
+    shareholderLastName;
+    shareholderDocType;
+    shareholderDocNumber;
+    shareholderPercent;
+}
+exports.LegalEntityShareholderItemDto = LegalEntityShareholderItemDto;
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", String)
+], LegalEntityShareholderItemDto.prototype, "shareholderName", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", String)
+], LegalEntityShareholderItemDto.prototype, "shareholderLastName", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", String)
+], LegalEntityShareholderItemDto.prototype, "shareholderDocType", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", String)
+], LegalEntityShareholderItemDto.prototype, "shareholderDocNumber", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", Object)
+], LegalEntityShareholderItemDto.prototype, "shareholderPercent", void 0);
+class CreateLegalEntityCreditApplicationDto {
+    partnerId;
+    salesRepId;
+    legalName;
+    taxId;
+    cityId;
+    businessAddress;
+    email;
+    yearOfEstablishment;
+    requestedCreditLine;
+    firstName;
+    lastName;
+    docType;
+    docNumber;
+    phone;
+    legalRepAddress;
+    businessName;
+    businessType;
+    businessSeniority;
+    numberOfLocations;
+    numberOfEmployees;
+    businessFlagshipM2;
+    businessRentAmount;
+    totalAssets;
+    monthlyIncome;
+    monthlyExpenses;
+    monthlyPurchases;
+    currentPurchases;
+    shareholders;
+    salesRepKnowledgeTime;
+    salesRepConfidence;
+    salesRepSuggestedLimit;
+    privacyPolicyAccepted;
+    partnerCategoryIds;
+}
+exports.CreateLegalEntityCreditApplicationDto = CreateLegalEntityCreditApplicationDto;
+__decorate([
+    (0, swagger_1.ApiProperty)({ description: 'UUID externo del partner' }),
+    (0, class_validator_1.IsUUID)('4'),
+    __metadata("design:type", String)
+], CreateLegalEntityCreditApplicationDto.prototype, "partnerId", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ description: 'UUID externo del representante de ventas' }),
+    (0, class_validator_1.IsUUID)('4'),
+    __metadata("design:type", String)
+], CreateLegalEntityCreditApplicationDto.prototype, "salesRepId", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ description: 'Razón social' }),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", String)
+], CreateLegalEntityCreditApplicationDto.prototype, "legalName", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ description: 'NIT sin dígito de verificación' }),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", String)
+], CreateLegalEntityCreditApplicationDto.prototype, "taxId", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ nullable: true, description: 'UUID v4 de la ciudad' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsUUID)('4'),
+    __metadata("design:type", Object)
+], CreateLegalEntityCreditApplicationDto.prototype, "cityId", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", Object)
+], CreateLegalEntityCreditApplicationDto.prototype, "businessAddress", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ description: 'Correo de contacto de la empresa' }),
+    (0, class_validator_1.IsEmail)(),
+    __metadata("design:type", String)
+], CreateLegalEntityCreditApplicationDto.prototype, "email", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ description: 'Año de constitución (YYYY)' }),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", String)
+], CreateLegalEntityCreditApplicationDto.prototype, "yearOfEstablishment", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ description: 'Cupo de crédito solicitado' }),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(0),
+    __metadata("design:type", Number)
+], CreateLegalEntityCreditApplicationDto.prototype, "requestedCreditLine", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", String)
+], CreateLegalEntityCreditApplicationDto.prototype, "firstName", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", String)
+], CreateLegalEntityCreditApplicationDto.prototype, "lastName", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", String)
+], CreateLegalEntityCreditApplicationDto.prototype, "docType", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", String)
+], CreateLegalEntityCreditApplicationDto.prototype, "docNumber", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", String)
+], CreateLegalEntityCreditApplicationDto.prototype, "phone", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ nullable: true, description: 'Dirección del representante legal' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", Object)
+], CreateLegalEntityCreditApplicationDto.prototype, "legalRepAddress", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ description: 'Nombre comercial' }),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", String)
+], CreateLegalEntityCreditApplicationDto.prototype, "businessName", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ description: 'Tipo de negocio (código CIIU)' }),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", String)
+], CreateLegalEntityCreditApplicationDto.prototype, "businessType", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", Object)
+], CreateLegalEntityCreditApplicationDto.prototype, "businessSeniority", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsInt)(),
+    (0, class_validator_1.Min)(0),
+    __metadata("design:type", Object)
+], CreateLegalEntityCreditApplicationDto.prototype, "numberOfLocations", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsInt)(),
+    (0, class_validator_1.Min)(0),
+    __metadata("design:type", Object)
+], CreateLegalEntityCreditApplicationDto.prototype, "numberOfEmployees", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(0),
+    __metadata("design:type", Object)
+], CreateLegalEntityCreditApplicationDto.prototype, "businessFlagshipM2", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(0),
+    __metadata("design:type", Object)
+], CreateLegalEntityCreditApplicationDto.prototype, "businessRentAmount", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(0),
+    __metadata("design:type", Object)
+], CreateLegalEntityCreditApplicationDto.prototype, "totalAssets", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(0),
+    __metadata("design:type", Object)
+], CreateLegalEntityCreditApplicationDto.prototype, "monthlyIncome", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(0),
+    __metadata("design:type", Object)
+], CreateLegalEntityCreditApplicationDto.prototype, "monthlyExpenses", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(0),
+    __metadata("design:type", Object)
+], CreateLegalEntityCreditApplicationDto.prototype, "monthlyPurchases", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(0),
+    __metadata("design:type", Object)
+], CreateLegalEntityCreditApplicationDto.prototype, "currentPurchases", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ type: [LegalEntityShareholderItemDto], description: 'Mínimo 1 accionista' }),
+    (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.ArrayMinSize)(1),
+    (0, class_validator_1.ValidateNested)({ each: true }),
+    (0, class_transformer_1.Type)(() => LegalEntityShareholderItemDto),
+    __metadata("design:type", Array)
+], CreateLegalEntityCreditApplicationDto.prototype, "shareholders", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", Object)
+], CreateLegalEntityCreditApplicationDto.prototype, "salesRepKnowledgeTime", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ nullable: true, minimum: 1, maximum: 10 }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(1),
+    (0, class_validator_1.Max)(10),
+    __metadata("design:type", Object)
+], CreateLegalEntityCreditApplicationDto.prototype, "salesRepConfidence", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(0),
+    __metadata("design:type", Object)
+], CreateLegalEntityCreditApplicationDto.prototype, "salesRepSuggestedLimit", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'Requerido en flujo público' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], CreateLegalEntityCreditApplicationDto.prototype, "privacyPolicyAccepted", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        type: [String],
+        description: 'UUIDs de categorías (flujo sales rep). Omitir en flujo público → se usan las categorías default del partner.',
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.IsUUID)('4', { each: true }),
+    __metadata("design:type", Object)
+], CreateLegalEntityCreditApplicationDto.prototype, "partnerCategoryIds", void 0);
 
 
 /***/ },
@@ -9280,7 +9937,18 @@ let ProcessProductsInboundMessageUseCase = ProcessProductsInboundMessageUseCase_
             return;
         }
         let partner_category_id = null;
-        if (partner_internal_id !== null) {
+        const explicit_category_ids = Array.isArray(job.payload.partner_category_ids)
+            ? job.payload.partner_category_ids
+            : null;
+        if (explicit_category_ids !== null && explicit_category_ids.length > 0) {
+            const rows = await this.ds.query(`SELECT id FROM products_schema.categories
+         WHERE external_id = $1
+         LIMIT 1`, [explicit_category_ids[0]]);
+            if (rows.length > 0) {
+                partner_category_id = rows[0].id;
+            }
+        }
+        else if (partner_internal_id !== null) {
             const rows = await this.ds.query(`SELECT id FROM products_schema.categories
          WHERE partner_id = $1 AND is_default = true
          LIMIT 1`, [partner_internal_id]);

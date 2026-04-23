@@ -8,6 +8,14 @@ import {
 } from 'typeorm';
 import { AsyncJobStatus, AsyncJobStep } from '@platam/shared';
 
+export interface LegalEntityShareholderPayload {
+  first_name: string;
+  last_name: string;
+  doc_type: string;
+  doc_number: string;
+  ownership_percentage: string | null;
+}
+
 export interface CreditApplicationJobPayload {
   partner_id: string;
   sales_rep_id: string;
@@ -36,6 +44,19 @@ export interface CreditApplicationJobPayload {
   monthly_income: number | null;
   monthly_expenses: number | null;
   privacy_policy_accepted: boolean;
+
+  // Campos exclusivos de persona jurídica (ausentes en jobs de persona natural)
+  is_legal_entity?: boolean;
+  legal_name?: string | null;
+  tax_id?: string | null;
+  year_of_establishment?: string | null;
+  legal_rep_address?: string | null;
+  shareholders?: LegalEntityShareholderPayload[] | null;
+  sales_rep_knowledge_time?: string | null;
+  sales_rep_confidence?: number | null;
+  sales_rep_suggested_limit?: number | null;
+  /** null → usar categorías default del partner; array → categorías explícitas (flujo sales rep) */
+  partner_category_ids?: string[] | null;
 }
 
 export interface CreditApplicationJobResolvedIds {

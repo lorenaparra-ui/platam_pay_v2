@@ -12,10 +12,13 @@ import { RegisterNaturalPersonCreditApplicationUseCase } from '@modules/credit-a
 import { RegisterNaturalPersonCreditApplicationRequest } from '@modules/credit-applications/application/use-cases/register-natural-person-credit-application/register-natural-person-credit-application.request';
 import { EnqueueNaturalPersonCreditApplicationUseCase } from '@modules/credit-applications/application/use-cases/enqueue-natural-person-credit-application/enqueue-natural-person-credit-application.use-case';
 import { EnqueueNaturalPersonCreditApplicationRequest } from '@modules/credit-applications/application/use-cases/enqueue-natural-person-credit-application/enqueue-natural-person-credit-application.request';
+import { EnqueueLegalEntityCreditApplicationUseCase } from '@modules/credit-applications/application/use-cases/enqueue-legal-entity-credit-application/enqueue-legal-entity-credit-application.use-case';
+import { EnqueueLegalEntityCreditApplicationRequest } from '@modules/credit-applications/application/use-cases/enqueue-legal-entity-credit-application/enqueue-legal-entity-credit-application.request';
 import { GetCreditApplicationJobUseCase } from '@modules/credit-applications/application/use-cases/get-credit-application-job/get-credit-application-job.use-case';
 import { GetCreditApplicationJobRequest } from '@modules/credit-applications/application/use-cases/get-credit-application-job/get-credit-application-job.request';
 import { CreateCreditApplicationDto } from '../dto/create-credit-application.dto';
 import { CreateNaturalPersonCreditApplicationDto } from '../dto/create-natural-person-credit-application.dto';
+import { CreateLegalEntityCreditApplicationDto } from '../dto/create-legal-entity-credit-application.dto';
 import { CreditApplicationResponseDto } from '../dto/credit-application-response.dto';
 import {
   CreditApplicationJobStatusResponseDto,
@@ -29,6 +32,7 @@ export class CreditApplicationsPublicController {
     private readonly register_client: RegisterClientCreditApplicationUseCase,
     private readonly register_natural_person: RegisterNaturalPersonCreditApplicationUseCase,
     private readonly enqueue_natural_person: EnqueueNaturalPersonCreditApplicationUseCase,
+    private readonly enqueue_legal_entity: EnqueueLegalEntityCreditApplicationUseCase,
     private readonly get_job: GetCreditApplicationJobUseCase,
   ) {}
 
@@ -167,6 +171,65 @@ export class CreditApplicationsPublicController {
         dto.monthlyIncome ?? null,
         dto.monthlyExpenses ?? null,
         dto.privacyPolicyAccepted,
+        idempotency_key ?? null,
+      ),
+    );
+    return new EnqueueCreditApplicationResponseDto(result.jobId);
+  }
+
+  @Post('legal-entity')
+  @HttpCode(HttpStatus.ACCEPTED)
+  @ApiOperation({
+    summary: 'Encolar solicitud de cupo (persona jurídica) — asíncrono',
+    description:
+      'Devuelve 202 + job_id inmediatamente. El proceso crea el representante legal (transversal-ms), el negocio (suppliers-ms) y la solicitud de crédito de forma asíncrona. Las categorías asignadas son las que tienen is_default = true para el partner indicado. Consultar estado en GET /credit-applications/jobs/:jobId.',
+  })
+  @ApiAcceptedResponse({ description: 'Job encolado', type: EnqueueCreditApplicationResponseDto })
+  async create_legal_entity_async(
+    @Body() dto: CreateLegalEntityCreditApplicationDto,
+    @Headers('Idempotency-Key') idempotency_key?: string,
+  ): Promise<EnqueueCreditApplicationResponseDto> {
+    const result = await this.enqueue_legal_entity.execute(
+      new EnqueueLegalEntityCreditApplicationRequest(
+        dto.partnerId,
+        dto.salesRepId,
+        dto.legalName,
+        dto.taxId,
+        dto.yearOfEstablishment ?? null,
+        dto.cityId ?? null,
+        dto.businessAddress ?? null,
+        dto.email,
+        dto.firstName,
+        dto.lastName,
+        dto.docType,
+        dto.docNumber,
+        dto.phone,
+        dto.legalRepAddress ?? null,
+        dto.businessName ?? null,
+        dto.businessType,
+        dto.businessSeniority ?? null,
+        dto.numberOfLocations ?? null,
+        dto.numberOfEmployees ?? null,
+        dto.businessFlagshipM2 ?? null,
+        dto.businessRentAmount ?? null,
+        dto.totalAssets ?? null,
+        dto.monthlyIncome ?? null,
+        dto.monthlyExpenses ?? null,
+        dto.monthlyPurchases ?? null,
+        dto.currentPurchases ?? null,
+        dto.requestedCreditLine,
+        dto.shareholders.map((s) => ({
+          first_name: s.shareholderName,
+          last_name: s.shareholderLastName,
+          doc_type: s.shareholderDocType,
+          doc_number: s.shareholderDocNumber,
+          ownership_percentage: s.shareholderPercent ?? null,
+        })),
+        dto.salesRepKnowledgeTime ?? null,
+        dto.salesRepConfidence ?? null,
+        dto.salesRepSuggestedLimit ?? null,
+        dto.privacyPolicyAccepted,
+        null, // público: usa categorías default
         idempotency_key ?? null,
       ),
     );
