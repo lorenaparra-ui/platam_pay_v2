@@ -8,7 +8,7 @@ export class Category {
   constructor(
     readonly internal_id: number,
     readonly external_id: string,
-    readonly credit_facility_id: number,
+    readonly credit_facility_id: number | null,
     readonly partner_id: number | null,
     readonly name: string,
     readonly modality: ModalityTypes,

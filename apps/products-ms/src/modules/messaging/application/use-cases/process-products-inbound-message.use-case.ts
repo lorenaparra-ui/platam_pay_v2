@@ -263,7 +263,23 @@ export class ProcessProductsInboundMessageUseCase
     }
 
     let partner_category_id: number | null = null;
-    if (partner_internal_id !== null) {
+    const explicit_category_ids = Array.isArray(job.payload.partner_category_ids)
+      ? job.payload.partner_category_ids
+      : null;
+
+    if (explicit_category_ids !== null && explicit_category_ids.length > 0) {
+      // Flujo sales rep: usar la primera categoría enviada explícitamente en la petición
+      const rows: Array<{ id: number }> = await this.ds.query(
+        `SELECT id FROM products_schema.categories
+         WHERE external_id = $1
+         LIMIT 1`,
+        [explicit_category_ids[0]],
+      );
+      if (rows.length > 0) {
+        partner_category_id = rows[0].id;
+      }
+    } else if (partner_internal_id !== null) {
+      // Flujo público: asignar la categoría default del partner
       const rows: Array<{ id: number }> = await this.ds.query(
         `SELECT id FROM products_schema.categories
          WHERE partner_id = $1 AND is_default = true

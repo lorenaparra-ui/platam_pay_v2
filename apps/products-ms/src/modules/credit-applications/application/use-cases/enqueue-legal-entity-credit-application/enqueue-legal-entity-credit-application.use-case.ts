@@ -11,11 +11,11 @@ import {
 import { PublishCreatePersonCommandUseCase } from '@messaging/application/use-cases/publish-create-person-command.use-case';
 import { PublishCreateBusinessJobUseCase } from '@messaging/application/use-cases/publish-create-business-job.use-case';
 import { ValidationFailedError } from '@messaging/application/exceptions/validation-failed.error';
-import { EnqueueNaturalPersonCreditApplicationRequest } from './enqueue-natural-person-credit-application.request';
-import { EnqueueNaturalPersonCreditApplicationResponse } from './enqueue-natural-person-credit-application.response';
+import { EnqueueLegalEntityCreditApplicationRequest } from './enqueue-legal-entity-credit-application.request';
+import { EnqueueLegalEntityCreditApplicationResponse } from './enqueue-legal-entity-credit-application.response';
 
 @Injectable()
-export class EnqueueNaturalPersonCreditApplicationUseCase {
+export class EnqueueLegalEntityCreditApplicationUseCase {
   constructor(
     @Inject(CREDIT_APPLICATION_JOB_REPOSITORY)
     private readonly job_repository: CreditApplicationJobRepository,
@@ -28,12 +28,12 @@ export class EnqueueNaturalPersonCreditApplicationUseCase {
   ) {}
 
   async execute(
-    req: EnqueueNaturalPersonCreditApplicationRequest,
-  ): Promise<EnqueueNaturalPersonCreditApplicationResponse> {
+    req: EnqueueLegalEntityCreditApplicationRequest,
+  ): Promise<EnqueueLegalEntityCreditApplicationResponse> {
     if (req.idempotencyKey) {
       const existing = await this.job_repository.find_by_idempotency_key(req.idempotencyKey);
       if (existing) {
-        return new EnqueueNaturalPersonCreditApplicationResponse(existing.externalId);
+        return new EnqueueLegalEntityCreditApplicationResponse(existing.externalId);
       }
     }
 
@@ -64,6 +64,7 @@ export class EnqueueNaturalPersonCreditApplicationUseCase {
       status: AsyncJobStatus.RUNNING,
       step: AsyncJobStep.ENQUEUED,
       payload: {
+        // Campos comunes con persona natural
         partner_id: req.partnerId,
         sales_rep_id: req.salesRepId,
         doc_number: req.docNumber,
@@ -73,16 +74,16 @@ export class EnqueueNaturalPersonCreditApplicationUseCase {
         phone: req.phone ?? null,
         email: req.email ?? null,
         city_id: req.cityId ?? null,
-        birth_date: req.birthDate ?? null,
+        birth_date: null,
         business_type: req.businessType,
         business_name: req.businessName ?? null,
         business_address: req.businessAddress ?? null,
-        relationship_to_business: req.relationshipToBusiness ?? null,
+        relationship_to_business: 'Representante legal',
         business_seniority: req.businessSeniority ?? null,
         number_of_employees: req.numberOfEmployees ?? null,
         number_of_locations: req.numberOfLocations ?? null,
         business_flagship_m2: req.businessFlagshipM2 ?? null,
-        business_has_rent: req.businessHasRent ?? null,
+        business_has_rent: null,
         business_rent_amount: req.businessRentAmount ?? null,
         requested_credit_line: req.requestedCreditLine,
         monthly_purchases: req.monthlyPurchases ?? null,
@@ -91,6 +92,17 @@ export class EnqueueNaturalPersonCreditApplicationUseCase {
         monthly_income: req.monthlyIncome ?? null,
         monthly_expenses: req.monthlyExpenses ?? null,
         privacy_policy_accepted: req.privacyPolicyAccepted ?? false,
+        // Campos exclusivos de persona jurídica
+        is_legal_entity: true,
+        legal_name: req.legalName,
+        tax_id: req.taxId,
+        year_of_establishment: req.yearOfEstablishment ?? null,
+        legal_rep_address: req.legalRepAddress ?? null,
+        shareholders: req.shareholders,
+        sales_rep_knowledge_time: req.salesRepKnowledgeTime ?? null,
+        sales_rep_confidence: req.salesRepConfidence ?? null,
+        sales_rep_suggested_limit: req.salesRepSuggestedLimit ?? null,
+        partner_category_ids: req.partnerCategoryIds ?? null,
       },
       resolvedIds: {
         partner_internal_id,
@@ -100,6 +112,7 @@ export class EnqueueNaturalPersonCreditApplicationUseCase {
       idempotency_key: req.idempotencyKey ?? null,
     });
 
+    // La persona buscada es el representante legal (por docNumber)
     const person_id = await this.client_registration.find_person_by_doc_number(req.docNumber);
 
     if (person_id !== null) {
@@ -112,7 +125,7 @@ export class EnqueueNaturalPersonCreditApplicationUseCase {
             business_id,
           );
         } catch {
-          // Non-blocking; worker will retry
+          // Non-blocking; worker reintentará
         }
         await this.job_repository.update_status_and_step(
           job.id,
@@ -128,10 +141,10 @@ export class EnqueueNaturalPersonCreditApplicationUseCase {
             business_name: req.businessName ?? null,
             business_address: req.businessAddress ?? null,
             business_type: req.businessType ?? null,
-            relationship_to_business: req.relationshipToBusiness ?? null,
+            relationship_to_business: 'Representante legal',
           });
         } catch {
-          // Non-blocking; worker will retry
+          // Non-blocking; worker reintentará
         }
         await this.job_repository.update_status_and_step(
           job.id,
@@ -168,6 +181,6 @@ export class EnqueueNaturalPersonCreditApplicationUseCase {
       );
     }
 
-    return new EnqueueNaturalPersonCreditApplicationResponse(job.externalId);
+    return new EnqueueLegalEntityCreditApplicationResponse(job.externalId);
   }
 }

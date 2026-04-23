@@ -1,5 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
+  ArrayMinSize,
+  IsArray,
   IsBoolean,
   IsEmail,
   IsInt,
@@ -123,15 +125,25 @@ export class CreateNaturalPersonCreditApplicationDto {
   partnerId!: string;
 
   @ApiProperty({
+    description: 'UUIDs de las categorías del partner a asociar (mínimo 1)',
+    type: [String],
+  })
+  @IsArray()
+  @ArrayMinSize(1)
+  @IsUUID('4', { each: true })
+  partnerCategoryIds!: string[];
+
+  @ApiProperty({
     description:
       'Identificador externo (UUID, `sales_representatives.external_id`) del representante de ventas',
   })
   @IsUUID('4')
   salesRepId!: string;
 
-  @ApiProperty({ description: 'Aceptación explícita de la política de privacidad' })
+  @ApiPropertyOptional({ description: 'Aceptación explícita de la política de privacidad' })
+  @IsOptional()
   @IsBoolean()
-  privacyPolicyAccepted!: boolean;
+  privacyPolicyAccepted?: boolean;
 
   @ApiProperty()
   @IsString()

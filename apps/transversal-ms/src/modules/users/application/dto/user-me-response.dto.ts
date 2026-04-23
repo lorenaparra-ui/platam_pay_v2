@@ -6,9 +6,10 @@ export class UserMeHierarchyDto {
 
   @ApiProperty({
     nullable: true,
-    example: '7',
+    format: 'uuid',
+    example: null,
     description:
-      'Id interno del partner en BD (suppliers_schema.partners.id). ' +
+      'external_id UUID del partner en BD (suppliers_schema.partners.external_id). ' +
       'Presente para roles PartnerRoles (PARTNER_ADMIN, PARTNER_OPERATIONS, CUSTOMER, SALES_MANAGER, SALES_REPRESENTATIVE). ' +
       'null para roles back-office o si el usuario no tiene vínculo de partner registrado.',
   })

@@ -2,7 +2,7 @@ import { CategoryPublicFields } from '@modules/categories/application/mapping/ca
 
 export class ListCategoriesByPartnerItemResponse implements CategoryPublicFields {
   external_id: string;
-  credit_facility_external_id: string;
+  credit_facility_external_id: string | null;
   partner_external_id: string | null;
   name: string;
   modality: string;

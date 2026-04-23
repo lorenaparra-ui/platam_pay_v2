@@ -16,6 +16,7 @@ import { AuthorizeCreditApplicationUseCase } from '@modules/credit-applications/
 import { PublishAuthorizationNotificationUseCase } from '@modules/credit-applications/application/use-cases/publish-authorization-notification/publish-authorization-notification.use-case';
 import { RegisterNaturalPersonCreditApplicationUseCase } from '@modules/credit-applications/application/use-cases/register-natural-person-credit-application/register-natural-person-credit-application.use-case';
 import { EnqueueNaturalPersonCreditApplicationUseCase } from '@modules/credit-applications/application/use-cases/enqueue-natural-person-credit-application/enqueue-natural-person-credit-application.use-case';
+import { EnqueueLegalEntityCreditApplicationUseCase } from '@modules/credit-applications/application/use-cases/enqueue-legal-entity-credit-application/enqueue-legal-entity-credit-application.use-case';
 import { GetCreditApplicationJobUseCase } from '@modules/credit-applications/application/use-cases/get-credit-application-job/get-credit-application-job.use-case';
 import { CreditApplicationJobWorkerService } from '@modules/credit-applications/infrastructure/workers/credit-application-job.worker';
 
@@ -37,6 +38,7 @@ const USE_CASES = [
   PublishAuthorizationNotificationUseCase,
   RegisterNaturalPersonCreditApplicationUseCase,
   EnqueueNaturalPersonCreditApplicationUseCase,
+  EnqueueLegalEntityCreditApplicationUseCase,
   GetCreditApplicationJobUseCase,
   CreditApplicationJobWorkerService,
 ];

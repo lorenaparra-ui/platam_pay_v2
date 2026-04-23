@@ -6,14 +6,9 @@ import {
   ModalityTypes,
 } from '@platam/shared';
 
-function credit_facility_id_from_entity(row: CategoryEntity): number {
+function credit_facility_id_from_entity(row: CategoryEntity): number | null {
   const cf = row.creditFacility?.[0];
-  if (cf === undefined) {
-    throw new Error(
-      'CategoryMapper: falta facilidad vía client_category_assignments para la categoría',
-    );
-  }
-  return cf.id;
+  return cf === undefined ? null : cf.id;
 }
 
 export class CategoryMapper {
@@ -47,10 +42,14 @@ export class CategoryMapper {
         ? CategoryState.INACTIVE
         : CategoryState.ACTIVE;
 
+    const cf_raw = row['credit_facility_id'];
+    const credit_facility_id =
+      cf_raw === null || cf_raw === undefined ? null : Number(cf_raw);
+
     return new Category(
       Number(row['id']),
       String(row['external_id']),
-      Number(row['credit_facility_id']),
+      credit_facility_id,
       row['partner_id'] === null || row['partner_id'] === undefined
         ? null
         : Number(row['partner_id']),

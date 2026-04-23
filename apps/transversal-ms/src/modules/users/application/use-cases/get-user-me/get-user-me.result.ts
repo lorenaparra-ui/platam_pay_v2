@@ -1,6 +1,6 @@
 export type UserMeHierarchy = Readonly<{
   parentId: string | null;
-  /** Id interno del partner en BD (suppliers_schema.partners.id). Poblado para PartnerRoles; null para back-office o si no existe vínculo. */
+  /** external_id UUID del partner en BD (suppliers_schema.partners.external_id). Poblado para PartnerRoles; null para back-office o si no existe vínculo. */
   partnerId: string | null;
   /** external_id UUID del registro en suppliers_schema.sales_representatives. Sólo para SALES_REPRESENTATIVE; null en caso contrario. */
   salesRepExternalId: string | null;

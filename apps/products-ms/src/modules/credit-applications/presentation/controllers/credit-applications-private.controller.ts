@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Headers,
   HttpCode,
   HttpStatus,
   Param,
@@ -15,6 +16,7 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
+  ApiAcceptedResponse,
   ApiBearerAuth,
   ApiConsumes,
   ApiBody,
@@ -44,12 +46,16 @@ import { ApproveCreditApplicationUseCase } from '@modules/credit-applications/ap
 import { ApproveCreditApplicationRequest } from '@modules/credit-applications/application/use-cases/approve-credit-application/approve-credit-application.request';
 import { RejectCreditApplicationUseCase } from '@modules/credit-applications/application/use-cases/reject-credit-application/reject-credit-application.use-case';
 import { RejectCreditApplicationRequest } from '@modules/credit-applications/application/use-cases/reject-credit-application/reject-credit-application.request';
+import { EnqueueLegalEntityCreditApplicationUseCase } from '@modules/credit-applications/application/use-cases/enqueue-legal-entity-credit-application/enqueue-legal-entity-credit-application.use-case';
+import { EnqueueLegalEntityCreditApplicationRequest } from '@modules/credit-applications/application/use-cases/enqueue-legal-entity-credit-application/enqueue-legal-entity-credit-application.request';
 
 import { UpdateCreditApplicationDto } from '../dto/update-credit-application.dto';
 import { ApproveCreditApplicationDto } from '../dto/approve-credit-application.dto';
 import { RejectCreditApplicationDto } from '../dto/reject-credit-application.dto';
 import { SavePreStudyDto } from '../dto/save-pre-study.dto';
 import { CreditApplicationResponseDto } from '../dto/credit-application-response.dto';
+import { CreateLegalEntityCreditApplicationDto } from '../dto/create-legal-entity-credit-application.dto';
+import { EnqueueCreditApplicationResponseDto } from '../dto/credit-application-job-response.dto';
 
 type MulterFile = Express.Multer.File;
 
@@ -75,7 +81,67 @@ export class CreditApplicationsPrivateController {
     private readonly upload_document: UploadCreditApplicationDocumentUseCase,
     private readonly approve: ApproveCreditApplicationUseCase,
     private readonly reject: RejectCreditApplicationUseCase,
+    private readonly enqueue_legal_entity: EnqueueLegalEntityCreditApplicationUseCase,
   ) {}
+
+  @Post('legal-entity/async')
+  @HttpCode(HttpStatus.ACCEPTED)
+  @ApiOperation({
+    summary: 'Encolar solicitud de cupo (persona jurídica) — representante de ventas',
+    description:
+      'Devuelve 202 + job_id inmediatamente. El proceso crea el representante legal (transversal-ms), el negocio (suppliers-ms) y la solicitud de crédito de forma asíncrona. Las categorías se asignan desde partnerCategoryIds enviado en el body. Consultar estado en GET /credit-applications/jobs/:jobId.',
+  })
+  @ApiAcceptedResponse({ description: 'Job encolado', type: EnqueueCreditApplicationResponseDto })
+  async create_legal_entity_async(
+    @Body() dto: CreateLegalEntityCreditApplicationDto,
+    @Headers('Idempotency-Key') idempotency_key?: string,
+  ): Promise<EnqueueCreditApplicationResponseDto> {
+    const result = await this.enqueue_legal_entity.execute(
+      new EnqueueLegalEntityCreditApplicationRequest(
+        dto.partnerId,
+        dto.salesRepId,
+        dto.legalName,
+        dto.taxId,
+        dto.yearOfEstablishment ?? null,
+        dto.cityId ?? null,
+        dto.businessAddress ?? null,
+        dto.email,
+        dto.firstName,
+        dto.lastName,
+        dto.docType,
+        dto.docNumber,
+        dto.phone,
+        dto.legalRepAddress ?? null,
+        dto.businessName ?? null,
+        dto.businessType,
+        dto.businessSeniority ?? null,
+        dto.numberOfLocations ?? null,
+        dto.numberOfEmployees ?? null,
+        dto.businessFlagshipM2 ?? null,
+        dto.businessRentAmount ?? null,
+        dto.totalAssets ?? null,
+        dto.monthlyIncome ?? null,
+        dto.monthlyExpenses ?? null,
+        dto.monthlyPurchases ?? null,
+        dto.currentPurchases ?? null,
+        dto.requestedCreditLine,
+        dto.shareholders.map((s) => ({
+          first_name: s.shareholderName,
+          last_name: s.shareholderLastName,
+          doc_type: s.shareholderDocType,
+          doc_number: s.shareholderDocNumber,
+          ownership_percentage: s.shareholderPercent ?? null,
+        })),
+        dto.salesRepKnowledgeTime ?? null,
+        dto.salesRepConfidence ?? null,
+        dto.salesRepSuggestedLimit ?? null,
+        dto.privacyPolicyAccepted,
+        dto.partnerCategoryIds ?? null, // privado: categorías explícitas del sales rep
+        idempotency_key ?? null,
+      ),
+    );
+    return new EnqueueCreditApplicationResponseDto(result.jobId);
+  }
 
   @Get()
   @ApiOperation({ summary: 'Listar todas las solicitudes de cupo' })

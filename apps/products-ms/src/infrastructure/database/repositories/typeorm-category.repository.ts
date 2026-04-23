@@ -176,9 +176,10 @@ export class TypeormCategoryRepository implements CategoryRepository {
 
     if (patch.credit_facility_id !== undefined) {
       await this.repo.query(
-        `UPDATE products_schema.client_category_assignments
-         SET credit_facility_id = $1
-         WHERE category_id = $2`,
+        `INSERT INTO products_schema.client_category_assignments (credit_facility_id, category_id)
+         VALUES ($1, $2)
+         ON CONFLICT (category_id) DO UPDATE
+         SET credit_facility_id = EXCLUDED.credit_facility_id`,
         [patch.credit_facility_id, existing.id],
       );
     }
