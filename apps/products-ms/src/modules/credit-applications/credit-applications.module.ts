@@ -5,6 +5,7 @@ import { CreditApplicationsApplicationModule } from '@modules/credit-application
 import { CreditApplicationsPublicController } from './presentation/controllers/credit-applications-public.controller';
 import { CreditApplicationsPrivateController } from './presentation/controllers/credit-applications-private.controller';
 import { CreditApplicationsAuthorizeController } from './presentation/controllers/credit-applications-authorize.controller';
+import { CreditApplicationsAiAgentController } from './presentation/controllers/credit-applications-ai-agent.controller';
 import { TwilioWebhookController } from './presentation/controllers/twilio-webhook.controller';
 
 @Module({
@@ -19,6 +20,7 @@ import { TwilioWebhookController } from './presentation/controllers/twilio-webho
     CreditApplicationsPublicController,
     CreditApplicationsPrivateController,
     CreditApplicationsAuthorizeController,
+    CreditApplicationsAiAgentController,
     TwilioWebhookController,
   ],
   exports: [CreditApplicationsApplicationModule],

@@ -210,4 +210,25 @@ export class TypeormCreditApplicationRepository implements CreditApplicationRepo
     const result = await this.repo.delete({ externalId: external_id });
     return (result.affected ?? 0) > 0;
   }
+
+  async find_active_by_person_identity(
+    doc_number: string,
+    phone: string | null,
+    email: string | null,
+  ): Promise<CreditApplication | null> {
+    const rows = await this.repo.query<Record<string, unknown>[]>(
+      `SELECT ca.*
+       FROM products_schema.credit_applications ca
+       JOIN transversal_schema.persons p ON p.id = ca.person_id
+       WHERE ca.status NOT IN ('duplicate', 'rejected', 'cancelled', 'closed')
+         AND (
+           p.doc_number = $1
+           OR ($2::varchar IS NOT NULL AND p.phone = $2)
+           OR ($3::varchar IS NOT NULL AND p.email = $3)
+         )
+       LIMIT 1`,
+      [doc_number, phone, email],
+    );
+    return rows.length > 0 ? CreditApplicationMapper.from_raw_row(rows[0]) : null;
+  }
 }

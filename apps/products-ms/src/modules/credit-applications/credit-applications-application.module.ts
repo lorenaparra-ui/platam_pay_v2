@@ -18,6 +18,7 @@ import { RegisterNaturalPersonCreditApplicationUseCase } from '@modules/credit-a
 import { EnqueueNaturalPersonCreditApplicationUseCase } from '@modules/credit-applications/application/use-cases/enqueue-natural-person-credit-application/enqueue-natural-person-credit-application.use-case';
 import { GetCreditApplicationJobUseCase } from '@modules/credit-applications/application/use-cases/get-credit-application-job/get-credit-application-job.use-case';
 import { CreditApplicationJobWorkerService } from '@modules/credit-applications/infrastructure/workers/credit-application-job.worker';
+import { RunCreditApplicationPipelineUseCase } from '@modules/credit-applications/application/use-cases/run-credit-application-pipeline/run-credit-application-pipeline.use-case';
 
 const USE_CASES = [
   CreateCreditApplicationUseCase,
@@ -39,6 +40,7 @@ const USE_CASES = [
   EnqueueNaturalPersonCreditApplicationUseCase,
   GetCreditApplicationJobUseCase,
   CreditApplicationJobWorkerService,
+  RunCreditApplicationPipelineUseCase,
 ];
 
 @Module({

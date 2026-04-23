@@ -21,6 +21,7 @@ import { CREDIT_APPLICATION_JOB_REPOSITORY } from '@modules/credit-applications/
 import type { CreditApplicationJobRepository } from '@modules/credit-applications/domain/ports/credit-application-job.port';
 import { CreateCreditApplicationUseCase } from '@modules/credit-applications/application/use-cases/create-credit-application/create-credit-application.use-case';
 import { CreateCreditApplicationRequest } from '@modules/credit-applications/application/use-cases/create-credit-application/create-credit-application.request';
+import { RunCreditApplicationPipelineUseCase } from '@modules/credit-applications/application/use-cases/run-credit-application-pipeline/run-credit-application-pipeline.use-case';
 
 type CreditFacilityPayload = Readonly<{
   credit_facility_external_id?: string;
@@ -98,6 +99,7 @@ export class ProcessProductsInboundMessageUseCase
     @Inject(CREDIT_APPLICATION_JOB_REPOSITORY)
     private readonly job_repository: CreditApplicationJobRepository,
     private readonly create_credit_application: CreateCreditApplicationUseCase,
+    private readonly run_pipeline: RunCreditApplicationPipelineUseCase,
     @InjectDataSource()
     private readonly ds: DataSource,
   ) {}
@@ -112,6 +114,12 @@ export class ProcessProductsInboundMessageUseCase
         return;
       case TransversalEventType.credit_application_business_created:
         await this.handle_business_created(dto);
+        return;
+      case TransversalEventType.credit_application_pipeline_start:
+        await this.run_pipeline.execute({
+          creditApplicationExternalId: (dto.payload as { credit_application_external_id: string })
+            .credit_application_external_id,
+        });
         return;
       default:
         this.logger.log(

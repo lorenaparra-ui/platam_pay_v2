@@ -9,8 +9,12 @@
     "start:prod": "node ../../dist/apps/products-ms/main.js"
   },
   "dependencies": {
+    "@aws-crypto/sha256-js": "^5.2.0",
+    "@aws-sdk/client-cognito-identity-provider": "^3.700.0",
     "@aws-sdk/client-scheduler": "^3.1033.0",
     "@aws-sdk/client-sqs": "^3.700.0",
+    "@aws-sdk/credential-provider-node": "^3.700.0",
+    "@smithy/signature-v4": "^4.2.3",
     "@nestjs/common": "^11.0.0",
     "@nestjs/config": "^4.0.0",
     "@nestjs/core": "^11.0.0",
