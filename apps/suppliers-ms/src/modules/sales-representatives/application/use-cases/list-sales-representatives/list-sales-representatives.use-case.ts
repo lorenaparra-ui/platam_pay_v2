@@ -39,7 +39,10 @@ export class ListSalesRepresentativesUseCase {
       partner_id_filter = resolved;
     }
 
-    const rows = await this.sales_representative_repository.find_all(partner_id_filter);
+    const rows = await this.sales_representative_repository.find_all(
+      partner_id_filter,
+      req.includeDefaultRepresentatives === true,
+    );
     const out: SalesRepresentativePublicFields[] = [];
     for (const row of rows) {
       const fields = await build_sales_representative_public_fields(row, this.lookup);

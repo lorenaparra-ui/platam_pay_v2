@@ -1,15 +1,30 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 export class UserMeHierarchyDto {
-  @ApiProperty({ nullable: true, example: '20' })
+  @ApiProperty({ nullable: true, example: '20', description: 'Id interno del usuario padre en la jerarquía.' })
   parentId!: string | null;
 
   @ApiProperty({
     nullable: true,
+    format: 'uuid',
     example: null,
-    description: 'Reservado cuando exista vínculo explícito usuario–partner en BD.',
+    description:
+      'external_id UUID del partner en BD (suppliers_schema.partners.external_id). ' +
+      'Presente para roles PartnerRoles (PARTNER_ADMIN, PARTNER_OPERATIONS, CUSTOMER, SALES_MANAGER, SALES_REPRESENTATIVE). ' +
+      'null para roles back-office o si el usuario no tiene vínculo de partner registrado.',
   })
   partnerId!: string | null;
+
+  @ApiProperty({
+    nullable: true,
+    format: 'uuid',
+    example: null,
+    description:
+      'external_id UUID del registro en suppliers_schema.sales_representatives. ' +
+      'Presente únicamente cuando role = SALES_REPRESENTATIVE y existe fila en esa tabla. ' +
+      'null en cualquier otro caso.',
+  })
+  salesRepExternalId!: string | null;
 }
 
 export class UserMeProfileDto {

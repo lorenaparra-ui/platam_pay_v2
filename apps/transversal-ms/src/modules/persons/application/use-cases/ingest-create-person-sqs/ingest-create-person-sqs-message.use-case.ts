@@ -8,6 +8,8 @@ import { CITY_REPOSITORY, PARTNER_CREATE_USER_SQS_IDEMPOTENCY_PORT } from '@modu
 import type { CityRepository } from '@modules/transversal/domain/ports/catalog/city.repository.port';
 import type { PartnerCreateUserSqsIdempotencyPort } from '@modules/users/domain/ports/partner-create-user-sqs-idempotency.port';
 import type { PersonRepository } from '@modules/persons/domain/ports/person.ports';
+import { CreatePersonUseCase } from '@modules/persons/application/use-cases/create-person/create-person.use-case';
+import { CreatePersonRequest } from '@modules/persons/application/use-cases/create-person/create-person.request';
 import { CreatePersonInboundEventDto } from '@modules/transversal/application/dto/create-person-inbound.dto';
 
 export type IngestCreatePersonSqsCommand = Readonly<{
@@ -30,6 +32,7 @@ export class IngestCreatePersonSqsMessageUseCase
     private readonly person_repository: PersonRepository,
     @Inject(CITY_REPOSITORY)
     private readonly city_repository: CityRepository,
+    private readonly create_person: CreatePersonUseCase,
   ) {}
 
   async execute(command: IngestCreatePersonSqsCommand): Promise<boolean> {
@@ -73,32 +76,25 @@ export class IngestCreatePersonSqsMessageUseCase
     const payload = dto.payload;
 
     try {
-      let city_id: number | null = null;
-      if (payload.city_external_id !== null && payload.city_external_id !== undefined) {
-        const city = await this.city_repository.find_by_external_id(payload.city_external_id);
-        if (city === null) {
-          this.logger.warn(
-            `[CreatePerson][correlationId=${dto.correlation_id}][step=city_not_found] city_external_id=${payload.city_external_id}`,
-          );
-        } else {
-          city_id = city.id;
-        }
-      }
+      const city_external_id = await this.resolve_city_external_id_lenient(
+        dto.correlation_id,
+        payload.city_external_id,
+      );
 
-      const created = await this.person_repository.create({
-        country_code: payload.country_code ?? null,
-        first_name: payload.first_name.trim(),
-        last_name: payload.last_name.trim(),
-        doc_type: payload.doc_type.trim(),
-        doc_number: payload.doc_number.trim(),
-        doc_issue_date: null,
-        birth_date: null,
-        gender: null,
-        phone: payload.phone ?? null,
-        residential_address: null,
-        business_address: null,
-        city_id,
-      });
+      const created = await this.create_person.execute(
+        new CreatePersonRequest(
+          payload.first_name.trim(),
+          payload.last_name.trim(),
+          payload.doc_type.trim(),
+          payload.doc_number.trim(),
+          null,
+          null,
+          null,
+          payload.phone ?? null,
+          null,
+          city_external_id,
+        ),
+      );
 
       await this.idempotency.complete(dto.idempotency_key, {
         user_external_id: 'n/a',
@@ -160,5 +156,26 @@ export class IngestCreatePersonSqsMessageUseCase
     return err instanceof QueryFailedError && err.driverError !== undefined
       ? String((err.driverError as { code?: string }).code) === PG_UNIQUE_VIOLATION
       : false;
+  }
+
+  /**
+   * Si viene ciudad en el payload pero no existe en catálogo, no falla (solo log):
+   * se crea la persona sin ciudad, igual que el flujo previo a delegar en CreatePersonUseCase.
+   */
+  private async resolve_city_external_id_lenient(
+    correlation_id: string,
+    city_external_id: string | null | undefined,
+  ): Promise<string | null> {
+    if (city_external_id === null || city_external_id === undefined) {
+      return null;
+    }
+    const city = await this.city_repository.find_by_external_id(city_external_id);
+    if (city === null) {
+      this.logger.warn(
+        `[CreatePerson][correlationId=${correlation_id}][step=city_not_found] city_external_id=${city_external_id}`,
+      );
+      return null;
+    }
+    return city_external_id;
   }
 }

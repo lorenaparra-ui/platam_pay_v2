@@ -22,7 +22,7 @@ El resultado de este pipeline es una solicitud en uno de estos tres estados fina
 
 Los estados de error detienen el pipeline y requieren intervención del equipo técnico o de cumplimiento.
 
-> **Responsable de implementación:** Freddy Candelo (backend NestJS) + Juan Pablo Chacón (agente AI en n8n).
+> **Responsable de implementación:** Freddy Candelo (backend NestJS).
 
 ---
 
@@ -258,9 +258,78 @@ persons:
 
 ---
 
-## Paso 6 — Envío al Agente AI (n8n)
+---
 
-El backend envía un payload al webhook del agente AI de n8n con toda la información recopilada.
+## ⚠️ Plan Alterno — Integración Agente AI (Pendiente de Resolución)
+
+> **Contexto:** n8n ya no es el orquestador de agentes AI. El servicio está siendo migrado a una API propia con FastAPI. Dicho servicio se encuentra en etapa de **planeación/desarrollo** y no tiene contrato definido aún.  
+> Para que esto **no sea un bloqueante** de HU-06, se implementa un **stub configurable** que simula el comportamiento del agente AI, con una estrategia clara de integración futura.
+
+### Estrategia de implementación: Stub desacoplado por Hexagonal Architecture
+
+El port `AiAgentServicePort` aísla completamente el use case del proveedor concreto. El stub implementa este port devolviendo un resultado determinístico sin llamada HTTP externa.
+
+```
+RunCreditApplicationPipelineUseCase
+  → AiAgentServicePort.analyze(payload): Promise<AiAgentResult>
+        ↑
+  [StubAiAgentAdapter]  ← implementación actual (sin HTTP)
+  [HttpFastApiAiAgentAdapter]  ← futura implementación (swap en infrastructure.module.ts)
+```
+
+### `StubAiAgentAdapter` — Lógica de decisión
+
+El stub toma la decisión basándose en el **credit score de Experian** con un override vía variable de entorno para testing:
+
+```typescript
+// Prioridad 1: override por env var (para QA — probar cada rama)
+// AI_AGENT_MOCK_RECOMMENDATION = 'hitl' | 'auto_approve' | 'auto_reject'
+// Si no está definida, usa lógica basada en score:
+
+if (creditScore >= 700)      → recommendation = 'auto_approve'
+else if (creditScore >= 450) → recommendation = 'hitl'
+else                         → recommendation = 'auto_reject'
+// creditScore = null o 0    → recommendation = 'hitl'
+```
+
+> **Nota:** El stub **nunca devuelve `interview`**. Ese flujo requiere el agente real y se validará en la integración con FastAPI.
+
+### Comportamiento del stub respecto al callback
+
+Con el stub, la decisión es **síncrona**: `AiAgentServicePort.analyze()` retorna el resultado directamente al `RunCreditApplicationPipelineUseCase`, que lo procesa inline. No hay llamada HTTP, no hay callback externo.
+
+El endpoint `POST /credit-applications/ai-result` **se implementa de todas formas** — será el punto de entrada para el agente FastAPI real. El stub simplemente no lo usa.
+
+### Variables de entorno del stub
+
+```env
+# Stub — override de recomendación para QA (dejar vacío para usar lógica de score)
+AI_AGENT_MOCK_RECOMMENDATION=        # '' | 'hitl' | 'auto_approve' | 'auto_reject'
+# Thresholds del stub (opcionales — tienen defaults en el código)
+AI_AGENT_MOCK_APPROVE_THRESHOLD=700
+AI_AGENT_MOCK_REVIEW_THRESHOLD=450
+```
+
+### Estrategia de integración futura (FastAPI)
+
+Cuando el servicio FastAPI esté disponible con contrato definido:
+
+1. Crear `HttpFastApiAiAgentAdapter` implementando `AiAgentServicePort`
+2. Si FastAPI es **síncrono** (POST → respuesta directa): el adapter hace la llamada y retorna el resultado — arquitectura idéntica al stub
+3. Si FastAPI es **asíncrono** (POST → callback): el adapter lanza el job y el callback (`POST /credit-applications/ai-result`) despacha a `ReceiveAiAgentResultUseCase`
+4. Cambiar en `infrastructure.module.ts`: `useClass: StubAiAgentAdapter` → `useClass: HttpFastApiAiAgentAdapter`
+5. Los use cases no cambian — el port los aísla completamente
+
+> **Pendiente por resolver:** Contrato de la API FastAPI (URL, auth, request/response, sync vs async). Sin este contrato `HttpFastApiAiAgentAdapter` no puede implementarse.
+
+---
+
+## Paso 6 — Envío al Agente AI
+
+> **Implementación actual:** `StubAiAgentAdapter` (ver sección Plan Alterno). El payload se construye igual; el stub lo recibe y toma la decisión sin llamada HTTP.  
+> **Implementación futura:** `HttpFastApiAiAgentAdapter` — mismo payload, distinto adaptador.
+
+El backend construye un payload con toda la información recopilada y lo envía al agente AI.
 
 **Payload enviado a n8n:**
 ```json
@@ -304,7 +373,7 @@ El backend envía un payload al webhook del agente AI de n8n con toda la informa
 
 > **Nota sobre data_sources:** Los JSONs de SARLAFT, BDME y Rama Judicial se envían completos para que el agente AI los analice. El reporte Experian se envía como URL a S3 por su tamaño.
 
-**Si n8n falla o no responde:**
+**Si el agente falla o no responde:**
 ```
 credit_applications:
   status → CreditApplicationStatus.AI_AGENT_ERROR ('ai_agent_error')
@@ -315,7 +384,10 @@ credit_applications:
 
 ## Paso 7 — Resultado del Agente AI
 
-n8n procesa la solicitud y llama a un endpoint del backend con el resultado. El agente puede retornar cuatro resultados posibles.
+> **Implementación actual (stub):** el resultado llega directamente como retorno de `AiAgentServicePort.analyze()` dentro del pipeline use case. No hay callback externo.  
+> **Implementación futura (FastAPI async):** el agente llama a `POST /credit-applications/ai-result`. El endpoint existe desde la primera implementación.
+
+El agente puede retornar cuatro resultados posibles. El stub solo devuelve `hitl`, `auto_approve` o `auto_reject` (nunca `interview` — requiere agente real).
 
 **Payload recibido del agente:**
 ```json
@@ -361,11 +433,11 @@ Se envía el siguiente mensaje de WhatsApp al cliente vía Twilio:
 | `{{1}}` | `persons.first_name` |
 | `{{2}}` | Número de teléfono del agente AI de n8n (configurable) |
 
-> 🚀 ¡Hola {{1}}! Para continuar con tu solicitud de crédito en Platam Pay necesitamos validar algunos datos adicionales.
+> ¡Hola {{1}}! Para continuar con tu solicitud de crédito en Platam Pay necesitamos validar algunos datos adicionales.
 >
-> 📞 En los próximos 2 minutos recibirás una llamada desde el número {{2}} de nuestro equipo para validar datos de tu solicitud y continuar con tu proceso de evaluación.
+> En los próximos 2 minutos recibirás una llamada desde el número {{2}} de nuestro equipo para validar datos de tu solicitud y continuar con tu proceso de evaluación.
 >
-> ⏰ La llamada será breve (2-5 min) y es necesaria para avanzar con tu solicitud. Si no puedes contestar ahora, te volvemos a llamar en 1 hora.
+> La llamada será breve (2-5 min) y es necesaria para avanzar con tu solicitud. Si no puedes contestar ahora, te volvemos a llamar en 1 hora.
 >
 > ¡Gracias por tu tiempo!  
 > Platam
@@ -449,4 +521,18 @@ credit_applications:
 - [ ] Tras la entrevista, el agente retorna el resultado final y el flujo continúa normalmente
 - [ ] Si el resultado es `hitl`, `status = 'under_review'` y se notifica al equipo de analistas
 - [ ] Si el resultado es `auto_approve` o `auto_reject`, el flujo pasa a HU-07
-- [ ] Solo SARLAFT con coincidencia, Experian con error crítico, o n8n con error detienen el pipeline
+- [ ] Solo SARLAFT con coincidencia, Experian con error crítico, o el agente AI con error detienen el pipeline
+- [ ] **[STUB]** El stub toma la decisión basada en el credit score de Experian (o `AI_AGENT_MOCK_RECOMMENDATION` si está definido) sin llamada HTTP externa
+- [ ] **[STUB]** El stub nunca devuelve `interview` — ese criterio se validará con el agente real (FastAPI)
+- [ ] El endpoint `POST /credit-applications/ai-result` existe y es funcional (preparado para la integración con FastAPI)
+
+---
+
+## ⚠️ Pendientes por Resolver (Fuera del Scope de Implementación Actual)
+
+| Pendiente | Descripción | Bloqueante para |
+|---|---|---|
+| **Contrato FastAPI AI Agent** | URL, auth, formato request/response, sync vs async | `HttpFastApiAiAgentAdapter` |
+| **Flujo `interview` completo** | Requiere agente real que conduzca la entrevista vía WhatsApp | Criterios de aceptación del flujo interview |
+| **Template Twilio `platam_entrevista_pn`** | Registro en Twilio Console y obtención de Content SID | Envío de WhatsApp en flujo interview |
+| **Reanudación post-SARLAFT** | Mecanismo por el cual el Analista libera la solicitud desde backoffice | Criterio de aceptación: "Si el Analista libera..." (HU-B07) |

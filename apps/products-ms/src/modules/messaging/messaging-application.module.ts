@@ -4,9 +4,10 @@ import { ProcessProductsInboundMessageUseCase } from './application/use-cases/pr
 import { IngestProductsInboundSqsMessageUseCase } from './application/use-cases/ingest-products-inbound-sqs-message.use-case';
 import { CreditFacilitiesApplicationModule } from '@modules/credit-facilities/credit-facilities-application.module';
 import { CategoriesApplicationModule } from '@modules/categories/categories-application.module';
+import { CreditApplicationsApplicationModule } from '@modules/credit-applications/credit-applications-application.module';
 
 @Module({
-  imports: [CreditFacilitiesApplicationModule, CategoriesApplicationModule],
+  imports: [CreditFacilitiesApplicationModule, CategoriesApplicationModule, CreditApplicationsApplicationModule],
   providers: [
     PublishProductsEventUseCase,
     ProcessProductsInboundMessageUseCase,

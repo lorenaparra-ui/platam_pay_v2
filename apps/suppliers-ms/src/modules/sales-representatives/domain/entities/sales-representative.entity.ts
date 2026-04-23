@@ -18,6 +18,7 @@ export class SalesRepresentative {
     readonly updated_at: Date,
     /** `person.first_name` + `person.last_name` del usuario vinculado (sin fallback a email). */
     readonly user_full_name: string | null,
+    readonly is_default: boolean,
     readonly loaded_user?: SalesRepresentativeLoadedUser,
   ) {}
 }

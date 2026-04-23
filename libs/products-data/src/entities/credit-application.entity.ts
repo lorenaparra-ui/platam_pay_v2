@@ -9,7 +9,6 @@ import {
 import { SalesRepresentativeEntity } from '../../../suppliers-data/src/entities/sales-representative.entity';
 import { CreditApplicationStatus } from '@platam/shared';
 import { BaseExternalIdEntity } from './base-external-id.entity';
-import { ContractEntity } from './contract.entity';
 import { PersonEntity } from '@app/transversal-data';
 import { BusinessEntity, PartnerEntity } from '@app/suppliers-data';
 import { CategoryEntity } from './category.entity';
@@ -142,7 +141,6 @@ export class CreditApplicationEntity extends BaseExternalIdEntity {
   @Column({ name: 'privacy_policy_date', type: 'timestamptz', nullable: true })
   privacyPolicyDate: Date | null;
 
-  // Relaciones al final
   @ManyToOne(() => SalesRepresentativeEntity, { nullable: false })
   @JoinColumn({
     name: 'sales_representative_id',

@@ -15,15 +15,6 @@ const empty_string_to_null = ({ value }: { value: unknown }): unknown =>
   value === '' ? null : value;
 
 export class CreatePersonInboundPayloadDto {
-  @Expose({ name: 'country_code' })
-  @IsOptional()
-  @Transform(empty_string_to_null)
-  @ValidateIf((o: CreatePersonInboundPayloadDto) => o.country_code !== null)
-  @IsString()
-  @MinLength(2)
-  @MaxLength(2)
-  country_code!: string | null;
-
   @Expose({ name: 'first_name' })
   @IsString()
   @MinLength(1)

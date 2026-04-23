@@ -1,3 +1,6 @@
+import type { CreditApplicationStatus } from '@platam/shared';
+import type { CreditApplicationClientType } from '../publish-authorization-notification/publish-authorization-notification.command';
+
 export class RegisterClientCreditApplicationRequest {
   constructor(
     readonly phone: string,
@@ -10,6 +13,8 @@ export class RegisterClientCreditApplicationRequest {
     readonly businessType: string,
     readonly isCurrentClient: boolean,
     readonly requestedCreditLine: number,
+    readonly privacyPolicyAccepted: boolean,
+    // ── Opcionales existentes (no mover; el controller posicional los usa así) ──
     readonly relationshipToBusiness?: string | null,
     readonly cityExternalId?: string | null,
     readonly businessAddress?: string | null,
@@ -24,5 +29,14 @@ export class RegisterClientCreditApplicationRequest {
     readonly totalAssets?: number | null,
     readonly monthlyIncome?: number | null,
     readonly monthlyExpenses?: number | null,
+    // ── Nuevos opcionales HU-05 (siempre al final para no romper callers existentes) ──
+    /** Undefined → IN_PROGRESS (self-service). SR flows pasan PENDING_AUTHORIZATION. */
+    readonly status?: CreditApplicationStatus,
+    /** Nombre comercial del partner. Requerido para notificaciones cuando PENDING_AUTHORIZATION. */
+    readonly partnerName?: string | null,
+    /** Selecciona la plantilla Twilio. Default 'pn'. */
+    readonly clientType?: CreditApplicationClientType,
+    /** Razón social de la empresa cliente (solo PJ). */
+    readonly businessLegalName?: string | null,
   ) {}
 }

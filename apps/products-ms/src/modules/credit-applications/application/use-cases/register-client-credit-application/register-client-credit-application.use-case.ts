@@ -7,6 +7,7 @@ import {
   ClientRegistrationPort,
 } from '@modules/credit-applications/application/ports/client-registration.port';
 import { build_credit_application_public_fields } from '@modules/credit-applications/application/mapping/credit-application-public-fields.builder';
+import { PublishAuthorizationNotificationUseCase } from '../publish-authorization-notification/publish-authorization-notification.use-case';
 import { RegisterClientCreditApplicationRequest } from './register-client-credit-application.request';
 import { RegisterClientCreditApplicationResponse } from './register-client-credit-application.response';
 
@@ -17,6 +18,7 @@ export class RegisterClientCreditApplicationUseCase {
     private readonly credit_application_repository: CreditApplicationRepository,
     @Inject(CLIENT_REGISTRATION_PORT)
     private readonly client_registration: ClientRegistrationPort,
+    private readonly publish_authorization_notification: PublishAuthorizationNotificationUseCase,
   ) {}
 
   async execute(
@@ -53,16 +55,19 @@ export class RegisterClientCreditApplicationUseCase {
       });
     }
 
+    const resolved_status = req.status ?? CreditApplicationStatus.IN_PROGRESS;
+    const is_pending_auth = resolved_status === CreditApplicationStatus.PENDING_AUTHORIZATION;
+
     const created = await this.credit_application_repository.create({
       person_id,
       business_id,
       partner_id: null,
       partner_category_id: null,
       sales_representative_id: null,
-      status: CreditApplicationStatus.IN_PROGRESS,
+      status: resolved_status,
       is_current_client: req.isCurrentClient,
-      privacy_policy_accepted: true,
-      privacy_policy_date: new Date(),
+      privacy_policy_accepted: is_pending_auth ? false : req.privacyPolicyAccepted,
+      privacy_policy_date: is_pending_auth ? null : (req.privacyPolicyAccepted ? new Date() : null),
       submission_date: new Date(),
       business_seniority: req.businessSeniority,
       number_of_employees: req.numberOfEmployees,
@@ -77,6 +82,18 @@ export class RegisterClientCreditApplicationUseCase {
       monthly_income: req.monthlyIncome,
       monthly_expenses: req.monthlyExpenses,
     });
+
+    if (is_pending_auth) {
+      await this.publish_authorization_notification.execute({
+        credit_application_external_id: created.external_id,
+        client_type: req.clientType ?? 'pn',
+        client_phone_e164: req.phone,
+        client_email: req.email,
+        client_first_name: req.firstName,
+        partner_name: req.partnerName ?? null,
+        business_legal_name: req.businessLegalName,
+      });
+    }
 
     return new RegisterClientCreditApplicationResponse(
       build_credit_application_public_fields(created),

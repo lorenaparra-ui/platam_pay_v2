@@ -1,4 +1,5 @@
 # Environments
+
 .env
 .env.*
 !.env.example
@@ -13,3 +14,8 @@ node_modules/
 # OS
 .DS_Store
 Thumbs.db
+
+# Build outputs (Nest/TS emit; no versionar artefactos compilados)
+dist/
+**/dist/
+.dist/

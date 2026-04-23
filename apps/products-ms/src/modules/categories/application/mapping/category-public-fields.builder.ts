@@ -3,7 +3,7 @@ import { Category } from '@modules/categories/domain/models/category.models';
 
 export interface CategoryPublicFields {
   external_id: string;
-  credit_facility_external_id: string;
+  credit_facility_external_id: string | null;
   partner_external_id: string | null;
   name: string;
   modality: string;
@@ -26,16 +26,18 @@ export async function build_category_public_fields(
   lookup: ProductsReferenceLookupPort,
 ): Promise<CategoryPublicFields> {
   const credit_facility_external_id =
-    await lookup.get_credit_facility_external_id_by_internal_id(
-      row.credit_facility_id,
-    );
+    row.credit_facility_id === null
+      ? null
+      : await lookup.get_credit_facility_external_id_by_internal_id(
+          row.credit_facility_id,
+        );
   const partner_external_id =
     row.partner_id === null
       ? null
       : await lookup.get_partner_external_id_by_internal_id(row.partner_id);
 
   if (
-    credit_facility_external_id === null ||
+    (row.credit_facility_id !== null && credit_facility_external_id === null) ||
     (row.partner_id !== null && partner_external_id === null)
   ) {
     throw new Error('category reference resolution failed');

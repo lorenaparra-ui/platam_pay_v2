@@ -48,16 +48,15 @@ export class TypeormPersonRepository implements PersonRepository {
   async create(props: CreatePersonProps): Promise<Person> {
     const rows = await this.repo.query(
       `INSERT INTO transversal_schema.persons (
-        external_id, country_code, first_name, last_name, doc_type, doc_number,
-        doc_issue_date, birth_date, gender, phone, residential_address, business_address, city_id
+        external_id, first_name, last_name, doc_type, doc_number,
+        doc_issue_date, birth_date, gender, phone, residential_address, city_id
       ) VALUES (
-        gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12
+        gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10
       )
-      RETURNING id, external_id, created_at, updated_at, country_code, first_name, last_name,
+      RETURNING id, external_id, created_at, updated_at, first_name, last_name,
         doc_type, doc_number, doc_issue_date, birth_date, gender, phone, residential_address,
-        business_address, city_id`,
+        city_id`,
       [
-        props.country_code,
         props.first_name,
         props.last_name,
         props.doc_type,
@@ -67,7 +66,6 @@ export class TypeormPersonRepository implements PersonRepository {
         props.gender,
         props.phone,
         props.residential_address,
-        props.business_address,
         props.city_id,
       ],
     );
@@ -96,9 +94,6 @@ export class TypeormPersonRepository implements PersonRepository {
       i += 1;
     };
 
-    if (patch.country_code !== undefined) {
-      add('country_code', patch.country_code);
-    }
     if (patch.first_name !== undefined) {
       add('first_name', patch.first_name);
     }
@@ -125,9 +120,6 @@ export class TypeormPersonRepository implements PersonRepository {
     }
     if (patch.residential_address !== undefined) {
       add('residential_address', patch.residential_address);
-    }
-    if (patch.business_address !== undefined) {
-      add('business_address', patch.business_address);
     }
     if (patch.city_id !== undefined) {
       add('city_id', patch.city_id);

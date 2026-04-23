@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { InfrastructureModule } from '@infrastructure/infrastructure.module';
+import { PartnersModule } from '@modules/partners/partners.module';
 import { TypeormSalesRepresentativeRepository } from '@infrastructure/database/repositories/typeorm-sales-representative.repository';
 import { SALES_REPRESENTATIVE_REPOSITORY } from './sales-representatives.tokens';
 import { CreateSalesRepresentativeUseCase } from './application/use-cases/create-sales-representative/create-sales-representative.use-case';
@@ -8,10 +9,11 @@ import { ListSalesRepresentativesUseCase } from './application/use-cases/list-sa
 import { UpdateSalesRepresentativeByExternalIdUseCase } from './application/use-cases/update-sales-representative-by-external-id/update-sales-representative-by-external-id.use-case';
 import { DeleteSalesRepresentativeByExternalIdUseCase } from './application/use-cases/delete-sales-representative-by-external-id/delete-sales-representative-by-external-id.use-case';
 import { SalesRepresentativesController } from './presentation/sales-representatives.controller';
+import { SalesRepresentativesPublicController } from './presentation/sales-representatives-public.controller';
 
 @Module({
-  imports: [InfrastructureModule],
-  controllers: [SalesRepresentativesController],
+  imports: [InfrastructureModule, PartnersModule],
+  controllers: [SalesRepresentativesController, SalesRepresentativesPublicController],
   providers: [
     {
       provide: SALES_REPRESENTATIVE_REPOSITORY,

@@ -30,6 +30,9 @@ export class SalesRepresentativeResponseDto {
   @ApiProperty({ enum: UserState, nullable: true })
   userState!: UserState | null;
 
+  @ApiProperty({ description: 'Representante por defecto del partner' })
+  isDefault!: boolean;
+
   static from(fields: SalesRepresentativePublicFields): SalesRepresentativeResponseDto {
     const d = new SalesRepresentativeResponseDto();
     d.internalId = fields.internal_id;
@@ -40,6 +43,7 @@ export class SalesRepresentativeResponseDto {
     d.userDisplayName = fields.user_display_name;
     d.userRoleName = fields.user_role_name;
     d.userState = fields.user_state;
+    d.isDefault = fields.is_default;
     return d;
   }
 }

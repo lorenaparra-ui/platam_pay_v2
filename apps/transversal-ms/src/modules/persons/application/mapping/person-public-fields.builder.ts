@@ -3,7 +3,6 @@ import type { CityRepository } from '@modules/transversal/domain/ports/catalog/c
 
 export interface PersonPublicFields {
   external_id: string;
-  country_code: string | null;
   first_name: string;
   last_name: string;
   doc_type: string;
@@ -13,7 +12,6 @@ export interface PersonPublicFields {
   gender: string | null;
   phone: string | null;
   residential_address: string | null;
-  business_address: string | null;
   city_external_id: string | null;
   created_at: Date;
   updated_at: Date;
@@ -34,7 +32,6 @@ export async function build_person_public_fields(
 
   return {
     external_id: row.external_id,
-    country_code: row.country_code,
     first_name: row.first_name,
     last_name: row.last_name,
     doc_type: row.doc_type,
@@ -44,7 +41,6 @@ export async function build_person_public_fields(
     gender: row.gender,
     phone: row.phone,
     residential_address: row.residential_address,
-    business_address: row.business_address,
     city_external_id,
     created_at: row.created_at,
     updated_at: row.updated_at,
