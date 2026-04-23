@@ -21,4 +21,10 @@ export interface CreditApplicationRepository {
   ): Promise<CreditApplication | null>;
 
   delete_by_external_id(external_id: string): Promise<boolean>;
+
+  find_active_by_person_identity(
+    doc_number: string,
+    phone: string | null,
+    email: string | null,
+  ): Promise<CreditApplication | null>;
 }

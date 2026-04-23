@@ -6,6 +6,8 @@ export enum TransversalEventType {
   partner_onboarding_category_batch_requested = 'partner_onboarding_category_batch_requested',
   /** Respuesta de suppliers-ms: negocio creado (o ya existente) para un job de solicitud. */
   credit_application_business_created = 'credit_application_business_created',
+  /** Trigger interno: iniciar pipeline de estudio automatizado PN. */
+  credit_application_pipeline_start = 'credit_application_pipeline_start',
 }
 
 /**

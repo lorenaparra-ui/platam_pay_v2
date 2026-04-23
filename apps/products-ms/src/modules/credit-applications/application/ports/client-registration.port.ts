@@ -1,5 +1,15 @@
 export const CLIENT_REGISTRATION_PORT = Symbol('CLIENT_REGISTRATION_PORT');
 
+export interface PersonPipelineData {
+  internal_id: number;
+  doc_number: string;
+  doc_type: string;
+  first_name: string;
+  last_name: string;
+  phone: string | null;
+  email: string | null;
+}
+
 export interface CreatePersonData {
   first_name: string;
   last_name: string;
@@ -32,4 +42,5 @@ export interface ClientRegistrationPort {
   find_business_by_person_id(person_id: number): Promise<number | null>;
   create_business(data: CreateBusinessData): Promise<number>;
   resolve_city_internal_id(city_external_id: string): Promise<number | null>;
+  get_person_for_pipeline(person_id: number): Promise<PersonPipelineData | null>;
 }

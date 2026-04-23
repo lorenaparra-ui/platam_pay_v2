@@ -5,6 +5,7 @@ import type {
   ClientRegistrationPort,
   CreatePersonData,
   CreateBusinessData,
+  PersonPipelineData,
 } from '@modules/credit-applications/application/ports/client-registration.port';
 
 @Injectable()
@@ -81,6 +82,34 @@ export class TypeormClientRegistrationAdapter implements ClientRegistrationPort 
       [person_id],
     );
     return rows[0]?.id ?? null;
+  }
+
+  async get_person_for_pipeline(person_id: number): Promise<PersonPipelineData | null> {
+    const rows: Array<{
+      id: number;
+      doc_number: string;
+      doc_type: string;
+      first_name: string;
+      last_name: string;
+      phone: string | null;
+      email: string | null;
+    }> = await this.data_source.query(
+      `SELECT id, doc_number, doc_type, first_name, last_name, phone, email
+       FROM transversal_schema.persons
+       WHERE id = $1 LIMIT 1`,
+      [person_id],
+    );
+    const row = rows[0];
+    if (!row) return null;
+    return {
+      internal_id: row.id,
+      doc_number: row.doc_number,
+      doc_type: row.doc_type,
+      first_name: row.first_name,
+      last_name: row.last_name,
+      phone: row.phone,
+      email: row.email,
+    };
   }
 
   async create_business(data: CreateBusinessData): Promise<number> {

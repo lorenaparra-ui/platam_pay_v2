@@ -213,7 +213,7 @@ Platam
 ### 7.3 `platam_recordatorio_1_pn`
 
 ```
-¡Hola {{1}}! 👋
+¡Hola {{1}}! 
 
 Te recordamos que tu solicitud de línea de crédito con Platam | {{2}} está esperando tu autorización para avanzar.
 
@@ -234,7 +234,7 @@ Platam
 **Variables:** `{{1}}` rep. legal, `{{2}}` razón social, `{{3}}` partner.
 
 ```
-¡Hola {{1}}! 👋
+¡Hola {{1}}! 
 
 Te recordamos que la solicitud de línea de crédito de {{2}} con Platam | {{3}} está pendiente de tu autorización.
 
